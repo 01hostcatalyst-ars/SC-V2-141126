@@ -1,0 +1,1421 @@
+# BrandBridge MVP — Complete Implementation Plan (v2)
+
+> [!NOTE]
+> **Changes from v1:**
+> 1. **Email-only** — All OTP, notifications, reminders, and document delivery via email (Resend). No Twilio/SMS/WhatsApp for MVP.
+> 2. **Agency flow** — Agency as middleman creating TWO separate contracts (Brand↔Agency + Agency↔Creator) with liability separation.
+
+---
+
+## 1. Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Frontend - Next.js 14 App Router"
+        LP["Landing Page"]
+        AUTH["Auth Pages<br/>Login / Signup / Email OTP"]
+        DASH["Dashboard"]
+        CF["Contract Form<br/>(Creator / Agency)"]
+        RF["Respondent Form<br/>(Public Link)"]
+        SP["Signature Pad"]
+        PDF_VIEW["PDF Viewer"]
+    end
+    
+    subgraph "Backend - Next.js API Routes"
+        AUTH_API["Auth API"]
+        CONTRACT_API["Contract API"]
+        SIGN_API["Signature API"]
+        PDF_API["PDF Generation"]
+        NOTIFY_API["Notification API<br/>(Email Only)"]
+        CRON["Cron Jobs<br/>Expiry + Reminders"]
+    end
+    
+    subgraph "Supabase"
+        SB_AUTH["Supabase Auth<br/>(Email OTP)"]
+        SB_DB["PostgreSQL"]
+        SB_STORAGE["Storage<br/>(Signatures, PDFs, CNIC)"]
+    end
+    
+    subgraph "External Services"
+        RESEND["Resend<br/>(All Email)"]
+    end
+    
+    LP --> AUTH
+    AUTH --> DASH
+    DASH --> CF
+    CF --> RF
+    RF --> SP
+    SP --> SIGN_API
+    
+    AUTH_API --> SB_AUTH
+    CONTRACT_API --> SB_DB
+    SIGN_API --> SB_DB
+    SIGN_API --> SB_STORAGE
+    PDF_API --> SB_STORAGE
+    NOTIFY_API --> RESEND
+    CRON --> CONTRACT_API
+    CRON --> NOTIFY_API
+```
+
+---
+
+## 2. Tech Stack — Final Decisions
+
+| Layer | Technology | Rationale |
+|---|---|---|
+| **Framework** | Next.js 14+ (App Router, TypeScript) | SSR, API routes, file-based routing — everything in one project |
+| **Database** | Supabase PostgreSQL | Managed Postgres, free tier = 500MB (sufficient for MVP), no DevOps |
+| **ORM** | Prisma | Type-safe queries, migration management, schema-as-code |
+| **Auth** | Supabase Auth (Email OTP + password) | Built-in email OTP, session management, JWT — no SMS provider needed |
+| **Storage** | Supabase Storage | Signature images, CNIC photos, generated PDFs — 1GB free |
+| **E-Signature** | `signature_pad` (MIT, client-side) | No external API dependency; audit trail built around it |
+| **PDF Generation** | Puppeteer (`puppeteer-core` + `@sparticuz/chromium`) | HTML/CSS → PDF gives full design control for professional contracts |
+| **Email** | Resend | OTP delivery, notifications, reminders, signed PDF attachment — 100 emails/day free |
+| **Hashing** | Node.js `crypto` (SHA-256) | Built-in, no dependency — for document integrity verification |
+| **Device Fingerprint** | `@fingerprintjs/fingerprintjs` (open-source) | Client-side device identification for audit trail |
+| **Styling** | Vanilla CSS with CSS custom properties | Full control, no framework overhead |
+| **Fonts** | Google Fonts (Inter) | Clean, professional, modern typography |
+| **Deployment** | Vercel (app) + Supabase Cloud (backend) | Zero-config Next.js deployment, free tiers for both |
+
+### What We're NOT Using (and Why)
+
+| Skipped | Reason |
+|---|---|
+| Twilio / SMS / WhatsApp | Email-only for MVP — eliminates cost, WhatsApp verification delay, and SMS per-message fees |
+| Redis / BullMQ | No background job queue needed at MVP volume |
+| Full RBAC library | Simple `role` field (creator/brand/agency) is sufficient |
+| AI layer | Deferred entirely |
+| Sentry / OpenTelemetry | Basic `console.error` + Vercel logs is enough for now |
+| Native mobile apps | Post-PMF |
+| Payment processing | Platform is free for now |
+
+---
+
+## 3. The Four Contract Scenarios
+
+BrandBridge supports **four types of contracts** across **three user roles** (Creator, Brand, Agency). Any registered user can initiate contracts:
+
+### Scenario 1: Creator → Brand
+
+Creator found the brand (or was approached via DM), negotiated terms, and initiates the contract.
+
+```mermaid
+sequenceDiagram
+    participant C as Creator
+    participant BB as BrandBridge
+    participant B as Brand
+
+    Note over C,B: They found each other via Instagram/DM
+    C->>BB: Creates contract, fills creator fields
+    BB->>B: Sends contract link via email
+    B->>BB: Fills brand fields + email OTP + signs
+    BB->>C: Notifies creator (email)
+    C->>BB: Reviews + signs
+    BB->>C: Sends signed PDF via email
+    BB->>B: Sends signed PDF via email
+```
+
+**Liability**: Direct between creator and brand.
+
+---
+
+### Scenario 2: Brand → Creator
+
+Brand found the creator and wants to formalize the deal. Brand initiates the contract.
+
+```mermaid
+sequenceDiagram
+    participant B as Brand
+    participant BB as BrandBridge
+    participant C as Creator
+
+    Note over B,C: Brand found creator on Instagram / via referral
+    B->>BB: Creates contract, fills brand fields + deliverables + usage rights
+    BB->>C: Sends contract link via email
+    C->>BB: Fills creator fields + email OTP + signs
+    BB->>B: Notifies brand (email)
+    B->>BB: Reviews + signs
+    BB->>B: Sends signed PDF via email
+    BB->>C: Sends signed PDF via email
+```
+
+**Liability**: Direct between brand and creator.
+
+---
+
+### Scenario 3: Agency → Brand + Agency → Creator (Middleman — Two Contracts)
+
+```mermaid
+sequenceDiagram
+    participant B as Brand
+    participant BB as BrandBridge
+    participant A as Agency
+    participant C as Creator
+
+    Note over B,A: Brand approaches agency, they negotiate off-platform
+
+    rect rgb(40, 40, 80)
+        Note over A,B: CONTRACT 1: Brand ↔ Agency
+        A->>BB: Creates Brand-Agency contract
+        BB->>B: Sends contract link via email
+        B->>BB: Fills brand fields + email OTP + signs
+        BB->>A: Notifies agency (email)
+        A->>BB: Reviews + signs
+        BB->>A: Sends signed PDF (email)
+        BB->>B: Sends signed PDF (email)
+    end
+
+    Note over A,C: Agency approaches creator, they negotiate off-platform
+
+    rect rgb(40, 80, 40)
+        Note over A,C: CONTRACT 2: Agency ↔ Creator
+        A->>BB: Creates Agency-Creator contract (optionally linked to Contract 1)
+        BB->>C: Sends contract link via email
+        C->>BB: Fills creator fields + email OTP + signs
+        BB->>A: Notifies agency (email)
+        A->>BB: Reviews + signs
+        BB->>A: Sends signed PDF (email)
+        BB->>C: Sends signed PDF (email)
+    end
+```
+
+### Liability Firewall — The Key Design
+
+```mermaid
+graph LR
+    subgraph "Content Disputes"
+        B["Brand"] <-->|"Contract 1<br/>Brand resolves with Agency"| A1["Agency"]
+    end
+    
+    subgraph "Payment Disputes"
+        A2["Agency"] <-->|"Contract 2<br/>Agency resolves with Creator"| C["Creator"]
+    end
+    
+    B -.->|"NO direct relationship<br/>Brand has nothing to do<br/>with creator payment"| C
+```
+
+| Dispute Type | Who Resolves | Based On | Who's NOT Involved |
+|---|---|---|---|
+| **Content not delivered / quality issue** | Brand + Agency | Contract 1 (Brand↔Agency) | Creator has nothing to do with it |
+| **Payment not received / delayed** | Agency + Creator | Contract 2 (Agency↔Creator) | Brand has nothing to do with it |
+| **Usage rights violation** | Depends on which contract the violation relates to | Contract 1 or 2 | — |
+
+> [!IMPORTANT]
+> BrandBridge does NOT enforce this liability separation — it's a natural consequence of having two separate contracts between two separate pairs of parties. Each contract is a standalone legal agreement. The platform just makes it easy to create, sign, and store both.
+
+---
+
+## 4. Database Schema
+
+```mermaid
+erDiagram
+    User ||--o{ Contract : initiates
+    User ||--o{ Contract : responds_to
+    User ||--o{ Signature : signs
+    User ||--o{ AuditLog : triggers
+    Contract ||--o{ Deliverable : contains
+    Contract ||--o{ Signature : has
+    Contract ||--o{ AuditLog : logs
+    Contract ||--o{ Reminder : schedules
+    Contract |o--o| Contract : linked_to
+
+    User {
+        uuid id PK
+        string name
+        string phone
+        string email UK
+        string instagram_handle
+        string cnic_number
+        string cnic_photo_url
+        string supabase_auth_id UK
+        enum role "CREATOR | BRAND | AGENCY"
+        string agency_name "nullable - for agencies only"
+        string agency_address "nullable"
+        boolean is_verified
+        datetime created_at
+        datetime updated_at
+    }
+
+    Contract {
+        uuid id PK
+        string contract_number UK
+        enum contract_type "CREATOR_TO_BRAND | BRAND_TO_CREATOR | AGENCY_TO_BRAND | AGENCY_TO_CREATOR"
+        uuid initiator_id FK "the user who creates the contract"
+        uuid respondent_id FK "nullable - the user who receives the link"
+        uuid linked_contract_id FK "nullable - links agency-creator to brand-agency"
+        enum status
+        string respondent_name "filled by respondent via link"
+        string respondent_email "filled by respondent via link"
+        string respondent_phone "filled by respondent via link"
+        string respondent_company "brand name or agency name"
+        string respondent_address
+        string respondent_designation
+        text collab_details
+        decimal total_amount
+        decimal advance_payment
+        decimal remaining_amount
+        enum payment_method
+        string bank_account_iban
+        string mobile_wallet_number
+        boolean advance_received
+        int delivery_timeframe_days
+        string[] platforms_allowed
+        enum usage_type
+        string usage_rights_duration
+        int revision_rounds
+        boolean brand_approval_required
+        boolean exclusivity_clause
+        string exclusivity_duration
+        decimal late_payment_penalty_pct
+        decimal late_content_penalty_pct
+        text content_ownership
+        text tagging_requirements
+        string share_token UK
+        datetime expires_at
+        datetime activated_at
+        string document_hash
+        string pdf_url
+        datetime created_at
+        datetime updated_at
+    }
+
+    Deliverable {
+        uuid id PK
+        uuid contract_id FK
+        enum type
+        int quantity
+        string duration
+        text notes
+    }
+
+    Signature {
+        uuid id PK
+        uuid contract_id FK
+        uuid signer_id FK "nullable"
+        enum signer_role "CREATOR | BRAND | AGENCY"
+        string signature_image_url
+        datetime signed_at
+        string ip_address
+        string user_agent
+        string device_fingerprint
+        string document_hash
+        boolean otp_verified
+        string otp_email
+        boolean consent_recorded
+    }
+
+    AuditLog {
+        uuid id PK
+        uuid contract_id FK "nullable"
+        uuid user_id FK "nullable"
+        string action
+        json details
+        string ip_address
+        string user_agent
+        datetime created_at
+    }
+
+    Reminder {
+        uuid id PK
+        uuid contract_id FK
+        enum type
+        datetime scheduled_at
+        datetime sent_at
+        string status
+    }
+```
+
+### Key Schema Change: Generic Initiator/Respondent Model
+
+Instead of hardcoded `creator_id` / `brand_user_id`, the contract uses:
+
+- **`initiator_id`** — The user who creates the contract (any role: Creator, Brand, or Agency — they must have an account)
+- **`respondent_id`** — The user who receives the link (may or may not have an account)
+- **`contract_type`** — One of 4 types: `CREATOR_TO_BRAND`, `BRAND_TO_CREATOR`, `AGENCY_TO_BRAND`, `AGENCY_TO_CREATOR`
+- **`linked_contract_id`** — Optional FK to another contract (so an Agency→Creator contract can reference its parent Agency→Brand contract)
+
+### Prisma Schema
+
+```prisma
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CREATOR
+  BRAND
+  AGENCY
+}
+
+enum ContractType {
+  CREATOR_TO_BRAND
+  BRAND_TO_CREATOR
+  AGENCY_TO_BRAND
+  AGENCY_TO_CREATOR
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_RESPONDENT
+  PENDING_INITIATOR
+  ACTIVE
+  EXPIRED
+  COMPLETED
+  CANCELLED
+}
+
+enum UsageType {
+  ORGANIC_ONLY
+  PAID_AD
+  BILLBOARD_PRINT
+  ALL_MEDIA
+}
+
+enum PaymentMethod {
+  BANK_IBAN
+  JAZZCASH
+  EASYPAISA
+}
+
+enum DeliverableType {
+  IMAGE_POST
+  REEL
+  STORY
+  CAROUSEL_POST
+  LIVE_SESSION
+  AD
+  YOUTUBE_VIDEO
+  TIKTOK_VIDEO
+}
+
+enum SignerRole {
+  CREATOR
+  BRAND
+  AGENCY
+}
+
+enum ReminderType {
+  RESPONDENT_SIGN_REMINDER
+  CONTRACT_EXPIRY_NOTICE
+}
+
+model User {
+  id              String   @id @default(uuid())
+  name            String
+  phone           String?
+  email           String   @unique
+  instagramHandle String?  @map("instagram_handle")
+  cnicNumber      String?  @map("cnic_number")
+  cnicPhotoUrl    String?  @map("cnic_photo_url")
+  supabaseAuthId  String   @unique @map("supabase_auth_id")
+  role            Role
+  agencyName      String?  @map("agency_name")
+  agencyAddress   String?  @map("agency_address")
+  isVerified      Boolean  @default(false) @map("is_verified")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  initiatedContracts Contract[] @relation("InitiatorContracts")
+  respondedContracts Contract[] @relation("RespondentContracts")
+  signatures         Signature[]
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+model Contract {
+  id                    String         @id @default(uuid())
+  contractNumber        String         @unique @map("contract_number")
+  contractType          ContractType   @map("contract_type")
+
+  // Parties
+  initiatorId           String         @map("initiator_id")
+  initiator             User           @relation("InitiatorContracts", fields: [initiatorId], references: [id])
+  respondentId          String?        @map("respondent_id")
+  respondent            User?          @relation("RespondentContracts", fields: [respondentId], references: [id])
+
+  // Link to parent contract (Agency→Creator links to Brand→Agency)
+  linkedContractId      String?        @unique @map("linked_contract_id")
+  linkedContract        Contract?      @relation("LinkedContracts", fields: [linkedContractId], references: [id])
+  childContract         Contract?      @relation("LinkedContracts")
+
+  status                ContractStatus @default(DRAFT)
+
+  // Respondent details (filled by respondent via shared link)
+  respondentName        String?        @map("respondent_name")
+  respondentEmail       String?        @map("respondent_email")
+  respondentPhone       String?        @map("respondent_phone")
+  respondentCompany     String?        @map("respondent_company")
+  respondentAddress     String?        @map("respondent_address")
+  respondentDesignation String?        @map("respondent_designation")
+  collabDetails         String?        @map("collab_details")
+
+  // Financial
+  totalAmount           Decimal        @map("total_amount")
+  advancePayment        Decimal?       @map("advance_payment")
+  remainingAmount       Decimal?       @map("remaining_amount")
+  paymentMethod         PaymentMethod? @map("payment_method")
+  bankAccountIban       String?        @map("bank_account_iban")
+  mobileWalletNumber    String?        @map("mobile_wallet_number")
+  advanceReceived       Boolean        @default(false) @map("advance_received")
+
+  // Delivery
+  deliveryTimeframeDays Int            @map("delivery_timeframe_days")
+
+  // Usage Rights
+  platformsAllowed      String[]       @map("platforms_allowed")
+  usageType             UsageType      @map("usage_type")
+  usageRightsDuration   String         @map("usage_rights_duration")
+
+  // Revision & Approval
+  revisionRounds        Int            @default(1) @map("revision_rounds")
+  brandApprovalRequired Boolean        @default(false) @map("brand_approval_required")
+
+  // Exclusivity
+  exclusivityClause     Boolean        @default(false) @map("exclusivity_clause")
+  exclusivityDuration   String?        @map("exclusivity_duration")
+
+  // Bilateral Penalties
+  latePaymentPenaltyPct Decimal        @default(3) @map("late_payment_penalty_pct")
+  lateContentPenaltyPct Decimal        @default(3) @map("late_content_penalty_pct")
+
+  // Content & Tagging
+  contentOwnership      String         @default("Creator retains copyright; brand receives usage license as defined.") @map("content_ownership")
+  taggingRequirements   String?        @map("tagging_requirements")
+
+  // Sharing
+  shareToken            String         @unique @default(uuid()) @map("share_token")
+
+  // Timestamps
+  expiresAt             DateTime?      @map("expires_at")
+  activatedAt           DateTime?      @map("activated_at")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+
+  // Document integrity
+  documentHash          String?        @map("document_hash")
+  pdfUrl                String?        @map("pdf_url")
+
+  deliverables          Deliverable[]
+  signatures            Signature[]
+  auditLogs             AuditLog[]
+  reminders             Reminder[]
+
+  @@map("contracts")
+}
+
+model Deliverable {
+  id         String          @id @default(uuid())
+  contractId String          @map("contract_id")
+  contract   Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  type       DeliverableType
+  quantity   Int             @default(1)
+  duration   String?
+  notes      String?
+
+  @@map("deliverables")
+}
+
+model Signature {
+  id                String    @id @default(uuid())
+  contractId        String    @map("contract_id")
+  contract          Contract  @relation(fields: [contractId], references: [id])
+  signerId          String?   @map("signer_id")
+  signer            User?     @relation(fields: [signerId], references: [id])
+  signerRole        SignerRole @map("signer_role")
+  signatureImageUrl String    @map("signature_image_url")
+  signedAt          DateTime  @default(now()) @map("signed_at")
+  ipAddress         String    @map("ip_address")
+  userAgent         String    @map("user_agent")
+  deviceFingerprint String?   @map("device_fingerprint")
+  documentHash      String    @map("document_hash")
+  otpVerified       Boolean   @default(false) @map("otp_verified")
+  otpEmail          String?   @map("otp_email")
+  consentRecorded   Boolean   @default(true) @map("consent_recorded")
+
+  @@map("signatures")
+}
+
+model AuditLog {
+  id         String    @id @default(uuid())
+  contractId String?   @map("contract_id")
+  contract   Contract? @relation(fields: [contractId], references: [id])
+  userId     String?   @map("user_id")
+  user       User?     @relation(fields: [userId], references: [id])
+  action     String
+  details    Json?
+  ipAddress  String?   @map("ip_address")
+  userAgent  String?   @map("user_agent")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
+model Reminder {
+  id          String       @id @default(uuid())
+  contractId  String       @map("contract_id")
+  contract    Contract     @relation(fields: [contractId], references: [id])
+  type        ReminderType
+  scheduledAt DateTime     @map("scheduled_at")
+  sentAt      DateTime?    @map("sent_at")
+  status      String       @default("pending")
+
+  @@map("reminders")
+}
+```
+
+---
+
+## 5. Contract Lifecycle — State Machine
+
+The state machine is **identical** for all four contract types. Only the labels change (who is "initiator" and who is "respondent").
+
+```mermaid
+stateDiagram-v2
+    [*] --> DRAFT: Initiator fills form
+
+    DRAFT --> PENDING_RESPONDENT: Initiator submits<br/>(link generated, 7-day expiry set,<br/>email sent to respondent)
+    DRAFT --> CANCELLED: Initiator cancels
+
+    PENDING_RESPONDENT --> PENDING_INITIATOR: Respondent fills fields<br/>+ email OTP verifies<br/>+ signs first
+    PENDING_RESPONDENT --> EXPIRED: 7 days pass<br/>(day-5 reminder email sent)
+    PENDING_RESPONDENT --> CANCELLED: Initiator cancels
+
+    PENDING_INITIATOR --> ACTIVE: Initiator reviews<br/>+ signs second<br/>(PDF generated + emailed to BOTH)
+
+    ACTIVE --> COMPLETED: Both mark deal as fulfilled
+
+    EXPIRED --> [*]
+    CANCELLED --> [*]
+    COMPLETED --> [*]
+```
+
+### Who is Initiator / Respondent in Each Scenario?
+
+| Contract Type | Initiator (creates + signs last) | Respondent (receives link + signs first) |
+|---|---|---|
+| `CREATOR_TO_BRAND` | Creator | Brand |
+| `BRAND_TO_CREATOR` | Brand | Creator |
+| `AGENCY_TO_BRAND` | Agency | Brand |
+| `AGENCY_TO_CREATOR` | Agency | Creator |
+
+### Status Transitions & Triggers
+
+| From | To | Trigger | Side Effects |
+|---|---|---|---|
+| — | `DRAFT` | Initiator opens contract form | — |
+| `DRAFT` | `PENDING_RESPONDENT` | Initiator submits | Generate share link, set `expires_at` = now + 7 days, schedule day-5 reminder, **email link to respondent** |
+| `PENDING_RESPONDENT` | `PENDING_INITIATOR` | Respondent fills + OTP verifies + signs | Store signature + metadata, **email notification to initiator** |
+| `PENDING_RESPONDENT` | `EXPIRED` | Cron job detects `expires_at` passed | **Email expiry notice to initiator** |
+| `PENDING_INITIATOR` | `ACTIVE` | Initiator signs | Store signature, generate PDF, compute SHA-256, lock document, **email signed PDF to BOTH parties as attachment** |
+| `ACTIVE` | `COMPLETED` | Either party marks complete | Log audit event |
+| Any pre-active | `CANCELLED` | Initiator cancels | **Email cancellation notice to respondent** (if link was sent) |
+
+---
+
+## 6. Authentication — Email OTP Only
+
+### 6.1 Sign-Up Flow (Creator / Brand / Agency)
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant FE as Frontend
+    participant API as API Route
+    participant SA as Supabase Auth
+    participant DB as PostgreSQL
+
+    U->>FE: Fill sign-up form<br/>(name, email, phone, role, password)
+    FE->>API: POST /api/auth/signup
+    API->>SA: supabase.auth.signUp({email, password})
+    SA-->>U: Sends OTP to email (magic code)
+    U->>FE: Enter 6-digit OTP from email
+    FE->>API: POST /api/auth/verify-otp
+    API->>SA: supabase.auth.verifyOtp({email, token, type: 'email'})
+    SA-->>API: Session + JWT
+    API->>DB: INSERT into users (name, email, phone, role, supabase_auth_id)
+    API-->>FE: Redirect to dashboard
+```
+
+### 6.2 Respondent OTP (No Account — Public Link)
+
+When a brand or creator receives a contract link and needs to verify identity before signing:
+
+```mermaid
+sequenceDiagram
+    actor R as Respondent
+    participant FE as Public Contract Page
+    participant API as API Route
+    participant RE as Resend
+
+    R->>FE: Fill respondent fields on contract
+    R->>FE: Enter email address
+    FE->>API: POST /api/contracts/share/:token/send-otp
+    API->>API: Generate 6-digit OTP, store with 10-min expiry
+    API->>RE: Send email with OTP code
+    RE-->>R: Email with 6-digit code
+    R->>FE: Enter OTP
+    FE->>API: POST /api/contracts/share/:token/verify-otp
+    API->>API: Validate OTP matches + not expired
+    API-->>FE: OTP verified, enable signature pad
+    R->>FE: Draw signature + click "I Agree"
+    FE->>API: POST /api/contracts/share/:token/sign
+    API-->>FE: Signature recorded
+```
+
+> [!NOTE]
+> For respondent-side OTP (without a Supabase account), we use a **simple OTP table** or in-memory store:
+> ```prisma
+> model OtpVerification {
+>   id        String   @id @default(uuid())
+>   email     String
+>   code      String   // 6-digit code
+>   expiresAt DateTime @map("expires_at")
+>   verified  Boolean  @default(false)
+>   attempts  Int      @default(0) // max 5 attempts
+>   createdAt DateTime @default(now()) @map("created_at")
+>   @@map("otp_verifications")
+> }
+> ```
+
+---
+
+## 7. API Endpoints
+
+### Auth
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/signup` | Public | Create account (triggers email OTP) |
+| `POST` | `/api/auth/verify-otp` | Public | Verify email OTP and create session |
+| `POST` | `/api/auth/login` | Public | Login with email + password |
+| `POST` | `/api/auth/logout` | Authenticated | Destroy session |
+
+### Profile
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/profile` | Authenticated | Get current user profile |
+| `PUT` | `/api/profile` | Authenticated | Update profile fields |
+| `POST` | `/api/profile/upload-cnic` | Authenticated | Upload CNIC photo to Supabase Storage |
+
+### Contracts (Authenticated — Dashboard)
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/contracts` | Authenticated | Create new contract (creator or agency) |
+| `GET` | `/api/contracts` | Authenticated | List all contracts for current user |
+| `GET` | `/api/contracts/:id` | Authenticated | Get single contract details |
+| `PUT` | `/api/contracts/:id` | Authenticated | Update draft contract |
+| `DELETE` | `/api/contracts/:id` | Authenticated | Cancel contract |
+| `POST` | `/api/contracts/:id/submit` | Authenticated | Submit draft → PENDING_RESPONDENT (sends email) |
+| `POST` | `/api/contracts/:id/sign` | Authenticated | Initiator signs contract (second signature) |
+| `POST` | `/api/contracts/:id/advance-received` | Authenticated | Mark advance payment as received |
+| `POST` | `/api/contracts/:id/complete` | Authenticated | Mark contract as completed |
+| `GET` | `/api/contracts/:id/pdf` | Authenticated | Download signed PDF |
+
+### Contracts (Public — Respondent Link)
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/contracts/share/:token` | Public | Get contract by share token (read-only view) |
+| `PUT` | `/api/contracts/share/:token` | Public | Respondent fills their fields |
+| `POST` | `/api/contracts/share/:token/send-otp` | Public | Send email OTP to respondent |
+| `POST` | `/api/contracts/share/:token/verify-otp` | Public | Verify respondent email OTP |
+| `POST` | `/api/contracts/share/:token/sign` | Public | Respondent signs (requires verified OTP) |
+
+### Cron / Internal
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/cron/check-expiry` | API Key | Expire contracts past 7 days |
+| `POST` | `/api/cron/send-reminders` | API Key | Send day-5 reminder emails |
+
+---
+
+## 8. Frontend — Pages & Components
+
+### 8.1 Page Map
+
+| Route | Page | Auth | Description |
+|---|---|---|---|
+| `/` | Landing Page | Public | Product pitch, CTA to sign up |
+| `/login` | Login | Public | Email + password login |
+| `/signup` | Sign Up | Public | Registration form with role selection (Creator / Brand / Agency) |
+| `/verify` | OTP Verification | Public | Enter email OTP code |
+| `/dashboard` | Dashboard | Protected | Role-adaptive dashboard (see 8.3 below) |
+| `/contracts/new` | New Contract | Protected (All roles) | Multi-step contract creation form |
+| `/contracts/[id]` | Contract Detail | Protected | View contract, sign (if pending), download PDF |
+| `/profile` | Profile | Protected | View/edit profile (role-adaptive fields) |
+| `/c/[token]` | Respondent Contract Page | Public | Respondent fills fields, verifies, signs |
+| `/c/[token]/success` | Signing Success | Public | Confirmation + "create account" prompt |
+
+### 8.2 Sign-Up — Role-Specific Fields
+
+The sign-up page has a **role selector** (Creator / Brand / Agency) that dynamically shows relevant fields:
+
+| Field | Creator | Brand | Agency |
+|---|---|---|---|
+| Full Name | ✅ | ✅ (Contact Person Name) | ✅ (Contact Person Name) |
+| Email | ✅ | ✅ | ✅ |
+| Phone | ✅ | ✅ | ✅ |
+| Password | ✅ | ✅ | ✅ |
+| Instagram Handle | ✅ | — | — |
+| CNIC Number | ✅ (optional) | — | — |
+| Brand/Company Name | — | ✅ | — |
+| Brand Address | — | ✅ | — |
+| Designation | — | ✅ | — |
+| Agency Name | — | — | ✅ |
+| Agency Address | — | — | ✅ |
+| Designation | — | — | ✅ |
+
+### 8.3 Dashboard — Role-Specific Views
+
+All three roles see the same dashboard layout but with **different data, actions, and labels**:
+
+#### Creator Dashboard
+
+| Section | Content |
+|---|---|
+| **Stats Bar** | Total contracts, Active contracts, Completed contracts, Pending your signature |
+| **Quick Actions** | "+ New Contract" (Creator → Brand) |
+| **Contract List** | All contracts where creator is initiator OR respondent, with status badges |
+| **Filters** | Status (All / Pending / Active / Completed / Expired), contract type |
+| **Each Contract Card** | Contract #, Brand/Agency name, amount, status, date, type badge |
+
+#### Brand Dashboard
+
+| Section | Content |
+|---|---|
+| **Stats Bar** | Total contracts, Active contracts, Completed contracts, Pending your signature |
+| **Quick Actions** | "+ New Contract" (Brand → Creator) |
+| **Contract List** | All contracts where brand is initiator OR respondent, with status badges |
+| **Filters** | Status (All / Pending / Active / Completed / Expired), contract type |
+| **Each Contract Card** | Contract #, Creator/Agency name, amount, status, date, type badge |
+
+#### Agency Dashboard
+
+| Section | Content |
+|---|---|
+| **Stats Bar** | Total contracts, Brand contracts, Creator contracts, Pending signatures |
+| **Quick Actions** | "+ New Contract" → type selector (Agency → Brand OR Agency → Creator) |
+| **Contract List** | All contracts where agency is initiator, split into two tabs: "Brand Contracts" / "Creator Contracts" |
+| **Linked Contracts** | Visual indicator showing which Agency→Creator contracts are linked to which Agency→Brand contracts |
+| **Filters** | Status, contract type, linked/unlinked |
+| **Each Contract Card** | Contract #, counterparty name, amount, status, date, type badge, linked contract # (if any) |
+
+### 8.4 Key Components
+
+```
+src/
+├── components/
+│   ├── layout/
+│   │   ├── Header.tsx            # Nav bar with logo, user menu
+│   │   ├── Sidebar.tsx           # Dashboard sidebar nav (role-adaptive)
+│   │   ├── Footer.tsx            # Landing page footer
+│   │   └── ProtectedRoute.tsx    # Auth guard wrapper
+│   ├── ui/
+│   │   ├── Button.tsx
+│   │   ├── Input.tsx
+│   │   ├── Select.tsx
+│   │   ├── Checkbox.tsx
+│   │   ├── Badge.tsx             # Contract status + type badges
+│   │   ├── Card.tsx
+│   │   ├── Modal.tsx
+│   │   ├── Toast.tsx             # Notification toasts
+│   │   ├── Tabs.tsx              # For agency dashboard tabs
+│   │   └── Stepper.tsx           # Multi-step form progress
+│   ├── contract/
+│   │   ├── ContractForm/
+│   │   │   ├── Step1_Deliverables.tsx
+│   │   │   ├── Step2_UsageRights.tsx
+│   │   │   ├── Step3_Financial.tsx
+│   │   │   ├── Step4_DeliveryTerms.tsx
+│   │   │   ├── Step5_Penalties.tsx
+│   │   │   ├── Step6_Review.tsx
+│   │   │   └── ContractTypeSelector.tsx  # Choose contract type (agency sees 2, others auto-select)
+│   │   ├── RespondentForm.tsx    # Generic respondent fields (brand or creator)
+│   │   ├── ContractCard.tsx      # Dashboard list item
+│   │   ├── ContractDetail.tsx    # Full contract view
+│   │   ├── ContractPDF.tsx       # HTML template for PDF generation
+│   │   ├── StatusTimeline.tsx    # Visual status progression
+│   │   └── LinkedContractBadge.tsx  # Shows link between agency contracts
+│   ├── dashboard/
+│   │   ├── StatsBar.tsx          # Role-adaptive stats
+│   │   ├── CreatorDashboard.tsx
+│   │   ├── BrandDashboard.tsx
+│   │   └── AgencyDashboard.tsx   # With tabs + linked contract view
+│   ├── signature/
+│   │   ├── SignaturePad.tsx      # Canvas signature capture
+│   │   └── SignatureModal.tsx    # Modal wrapping the pad + "I Agree"
+│   └── auth/
+│       ├── LoginForm.tsx
+│       ├── SignupForm.tsx        # Role-adaptive fields
+│       ├── RoleSelector.tsx      # Creator / Brand / Agency selector
+│       └── OTPInput.tsx          # 6-digit OTP input
+```
+
+### 8.5 Contract Creation — Role-Based Form
+
+When a user clicks "New Contract", the form adapts based on their role:
+
+**Creator sees:**
+- Contract type is automatically `CREATOR_TO_BRAND`
+- Creator fields pre-filled from profile
+- Respondent = Brand
+
+**Brand sees:**
+- Contract type is automatically `BRAND_TO_CREATOR`
+- Brand fields pre-filled from profile
+- Respondent = Creator
+
+**Agency sees:**
+- Contract type selector: "Agency → Brand" or "Agency → Creator"
+- Agency fields pre-filled from profile
+- For Agency → Creator: option to link to an existing Agency → Brand contract
+- Respondent = Brand or Creator (depending on type)
+
+### 8.6 Contract Form — Field Mapping by Type
+
+| Field | Creator→Brand | Brand→Creator | Agency→Brand | Agency→Creator |
+|---|---|---|---|---|
+| **Initiator fills** | Creator profile + deliverables + usage rights + financial | Brand profile + deliverables + usage rights + financial | Agency profile + deliverables + usage rights + financial | Agency profile + deliverables + usage rights + financial |
+| **Respondent fills** | Brand name, address, contact, collab details | Creator name, IG handle, CNIC, bank details | Brand name, address, contact, collab details | Creator name, IG handle, CNIC, bank details |
+| **Usage rights** | ✅ | ✅ | ✅ | ✅ |
+| **Deliverables** | ✅ | ✅ | ✅ | ✅ |
+| **Link to parent contract** | — | — | — | ✅ (optional, links to Agency→Brand) |
+| **Late payment penalty** | Creator sets | Brand sets | Agency sets | Agency sets |
+| **Late content penalty** | Brand sets | Creator sets | Brand sets | Creator sets |
+
+---
+
+## 9. E-Signature Implementation
+
+### Architecture (unchanged from v1, but OTP is now email-based)
+
+```mermaid
+sequenceDiagram
+    actor S as Signer
+    participant FE as Frontend
+    participant FP as FingerprintJS
+    participant API as API Route
+    participant DB as PostgreSQL
+    participant ST as Supabase Storage
+
+    S->>FE: Click "Sign Contract"
+    FE->>FE: Show SignatureModal
+    FE->>FP: Get device fingerprint
+    FP-->>FE: Fingerprint hash
+    S->>FE: Draw signature on canvas
+    S->>FE: Check "I have read and agree to all terms"
+    S->>FE: Click "Sign & Submit"
+    FE->>FE: signaturePad.toDataURL() → base64 PNG
+    FE->>FE: Compute SHA-256 of displayed contract content
+    FE->>API: POST /sign {signature_b64, doc_hash, fingerprint, consent: true}
+    API->>API: Capture server timestamp, IP, user-agent
+    API->>API: Verify email OTP was completed for this session
+    API->>ST: Upload signature PNG
+    ST-->>API: Signature URL
+    API->>DB: INSERT into signatures (all metadata)
+    API->>DB: INSERT into audit_logs
+    API->>DB: UPDATE contract status
+    API-->>FE: Signature recorded
+```
+
+### Metadata Captured Per Signature
+
+| Field | Source | Purpose |
+|---|---|---|
+| `signed_at` | Server clock (`new Date()`) | Tamper-proof timestamp |
+| `ip_address` | `req.headers['x-forwarded-for']` | Geo/identity correlation |
+| `user_agent` | `req.headers['user-agent']` | Device/browser identification |
+| `device_fingerprint` | FingerprintJS (client) | Additional device identity |
+| `document_hash` | SHA-256 of contract JSON at signing time | Proves exactly what was agreed to |
+| `otp_verified` | Server session state | Confirms identity was verified |
+| `otp_email` | From OTP verification step | Links signature to a verified email |
+| `consent_recorded` | Explicit checkbox + button click | Legal "meeting of minds" evidence |
+| `signature_image_url` | Canvas → PNG → Supabase Storage | Visual representation |
+
+---
+
+## 10. PDF Generation & Email Delivery
+
+### PDF Generated When Both Parties Sign
+
+```mermaid
+sequenceDiagram
+    participant API as API Route
+    participant PP as Puppeteer
+    participant ST as Supabase Storage
+    participant RE as Resend
+    participant I as Initiator
+    participant R as Respondent
+
+    Note over API: Initiator just signed (second signature)
+    API->>API: Fetch full contract + signatures + deliverables
+    API->>API: Render ContractPDF React component to HTML
+    API->>PP: Generate PDF from HTML
+    PP-->>API: PDF buffer
+    API->>API: SHA-256 hash of PDF
+    API->>ST: Upload PDF to storage
+    API->>API: Update contract: status=ACTIVE, documentHash, pdfUrl
+    
+    par Send to both parties
+        API->>RE: Email to initiator with PDF attached
+        RE-->>I: "Your contract is now active" + PDF attachment
+    and
+        API->>RE: Email to respondent with PDF attached
+        RE-->>R: "Your contract is now active" + PDF attachment
+    end
+```
+
+### PDF Template Structure
+
+```
+┌──────────────────────────────────────────┐
+│  🔷 BrandBridge                          │
+│  [Contract Type Label]                   │
+│  Contract #BB-2026-0042                  │
+├──────────────────────────────────────────┤
+│  PARTY A: [Initiator Role]              │
+│  Name: ___    Email: ___    Phone: ___   │
+│  [IG Handle / Agency Name as relevant]   │
+├──────────────────────────────────────────┤
+│  PARTY B: [Respondent Role]             │
+│  Name: ___    Email: ___    Phone: ___   │
+│  [Brand Name / Creator Handle]           │
+├──────────────────────────────────────────┤
+│  DELIVERABLES                            │
+│  ┌──────────┬─────┬──────────┐           │
+│  │ Type     │ Qty │ Duration │           │
+│  ├──────────┼─────┼──────────┤           │
+│  │ Reel     │ 3   │ —        │           │
+│  │ Story    │ 5   │ 24h      │           │
+│  └──────────┴─────┴──────────┘           │
+├──────────────────────────────────────────┤
+│  USAGE RIGHTS                            │
+│  Platforms: Instagram, TikTok            │
+│  Usage: Organic post only                │
+│  Duration: 6 months                      │
+├──────────────────────────────────────────┤
+│  FINANCIAL TERMS                         │
+│  Total: PKR 150,000                      │
+│  Advance: PKR 50,000                     │
+│  Remaining: PKR 100,000                  │
+│  Method: JazzCash (03XX-XXXXXXX)         │
+├──────────────────────────────────────────┤
+│  PENALTIES                               │
+│  Late Payment: 3% per day                │
+│  Late Content: 3% per day                │
+├──────────────────────────────────────────┤
+│  TERMS & CONDITIONS                      │
+│  Content ownership, exclusivity,         │
+│  revision policy, tagging, etc.          │
+├──────────────────────────────────────────┤
+│  SIGNATURES                              │
+│                                          │
+│  [Respondent Role]   [Initiator Role]    │
+│  [signature image]   [signature image]   │
+│  Name: ___           Name: ___           │
+│  Date: ___           Date: ___           │
+│  Email: ___          Email: ___          │
+├──────────────────────────────────────────┤
+│  DOCUMENT INTEGRITY                      │
+│  Hash: SHA-256: abc123...                │
+│  Generated: 2026-07-09T20:30:00Z         │
+│                                          │
+│  Powered by BrandBridge                  │
+│  Electronic record under Pakistan's      │
+│  Electronic Transactions Ordinance 2002  │
+└──────────────────────────────────────────┘
+```
+
+---
+
+## 11. Email Notification System
+
+### All Communication via Resend
+
+| Event | Recipient(s) | Email Content | Attachment |
+|---|---|---|---|
+| **Contract link sent** | Respondent | "You've received a contract from [Initiator]. Click to review and sign." + link | — |
+| **Respondent signed** | Initiator | "[Respondent] has signed. Review and sign to activate the contract." + link | — |
+| **Contract activated** (both signed) | Both parties | "Your contract #BB-2026-XXXX is now active. Signed document attached." | ✅ **Signed PDF** |
+| **Day-5 reminder** | Respondent | "Reminder: Your contract from [Initiator] expires in 2 days. Sign now." + link | — |
+| **Contract expired** | Initiator | "Contract #BB-2026-XXXX expired. [Respondent] did not sign within 7 days." | — |
+| **Contract cancelled** | Respondent (if link was sent) | "[Initiator] has cancelled the contract." | — |
+| **Advance received** | Both parties | "[Creator/Agency] confirmed receipt of advance payment." | — |
+
+### Email Templates (Resend + React Email)
+
+```typescript
+// lib/notifications/email.ts
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+async function sendContractEmail(params: {
+  to: string;
+  subject: string;
+  template: 'contract_link' | 'signed_notification' | 'contract_active' | 'reminder' | 'expired';
+  data: Record<string, string>;
+  pdfBuffer?: Buffer;  // For contract_active email
+}) {
+  const attachments = params.pdfBuffer
+    ? [{ filename: `contract-${params.data.contractNumber}.pdf`, content: params.pdfBuffer }]
+    : undefined;
+
+  await resend.emails.send({
+    from: 'BrandBridge <contracts@brandbridge.pk>',
+    to: params.to,
+    subject: params.subject,
+    react: renderEmailTemplate(params.template, params.data),
+    attachments,
+  });
+}
+```
+
+### Cron Jobs (Vercel Cron)
+
+```json
+// vercel.json
+{
+  "crons": [
+    {
+      "path": "/api/cron/check-expiry",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/send-reminders",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
+```
+
+> [!TIP]
+> **Why email-only is smart for MVP:**
+> - Zero cost (Resend free tier: 100 emails/day = ~3,000/month)
+> - No Twilio account, no WhatsApp Business verification, no per-SMS costs
+> - Email is universal — every user has one
+> - PDF attachment delivery is built-in with email APIs
+> - WhatsApp/SMS can be added later as a growth feature once traction is proven
+
+---
+
+## 12. Security Measures
+
+| Concern | Solution |
+|---|---|
+| **OTP brute force** | Max 5 attempts per email per 15 minutes; OTP expires after 10 minutes |
+| **Share link guessing** | UUID v4 tokens (122 bits of entropy — unguessable) |
+| **Contract tampering** | SHA-256 hash computed at signing + stored; any change detectable |
+| **CNIC data protection** | Private Supabase Storage bucket; RLS policies restrict access to owner only |
+| **Signature image security** | Private storage bucket; served via signed URLs with expiry |
+| **CSRF** | Next.js built-in CSRF protection on server actions |
+| **XSS** | React's default escaping + CSP headers |
+| **SQL injection** | Prisma parameterized queries (no raw SQL) |
+| **Session hijacking** | Supabase Auth with httpOnly cookies, secure flag |
+| **Audit trail immutability** | Audit log table: INSERT-only (no UPDATE/DELETE permissions via RLS) |
+| **Email OTP spam** | Rate limit: max 3 OTP requests per email per hour |
+
+---
+
+## 13. Project Structure
+
+```
+brandbridge/
+├── prisma/
+│   └── schema.prisma
+├── public/
+│   ├── logo.svg
+│   └── fonts/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/page.tsx
+│   │   │   ├── signup/page.tsx
+│   │   │   └── verify/page.tsx
+│   │   ├── (dashboard)/
+│   │   │   ├── layout.tsx              # Dashboard layout with sidebar
+│   │   │   ├── dashboard/page.tsx
+│   │   │   ├── contracts/
+│   │   │   │   ├── page.tsx            # Contract list
+│   │   │   │   ├── new/page.tsx        # Create contract wizard
+│   │   │   │   └── [id]/page.tsx       # Contract detail/sign
+│   │   │   └── profile/page.tsx
+│   │   ├── c/
+│   │   │   └── [token]/
+│   │   │       ├── page.tsx            # Respondent public contract page
+│   │   │       └── success/page.tsx    # Post-signing confirmation
+│   │   ├── api/
+│   │   │   ├── auth/
+│   │   │   │   ├── signup/route.ts
+│   │   │   │   ├── login/route.ts
+│   │   │   │   ├── verify-otp/route.ts
+│   │   │   │   └── logout/route.ts
+│   │   │   ├── contracts/
+│   │   │   │   ├── route.ts            # POST (create) + GET (list)
+│   │   │   │   ├── [id]/
+│   │   │   │   │   ├── route.ts        # GET + PUT + DELETE
+│   │   │   │   │   ├── submit/route.ts
+│   │   │   │   │   ├── sign/route.ts
+│   │   │   │   │   ├── advance-received/route.ts
+│   │   │   │   │   ├── complete/route.ts
+│   │   │   │   │   └── pdf/route.ts
+│   │   │   │   └── share/
+│   │   │   │       └── [token]/
+│   │   │   │           ├── route.ts         # GET + PUT
+│   │   │   │           ├── send-otp/route.ts
+│   │   │   │           ├── verify-otp/route.ts
+│   │   │   │           └── sign/route.ts
+│   │   │   ├── profile/
+│   │   │   │   ├── route.ts
+│   │   │   │   └── upload-cnic/route.ts
+│   │   │   └── cron/
+│   │   │       ├── check-expiry/route.ts
+│   │   │       └── send-reminders/route.ts
+│   │   ├── layout.tsx                  # Root layout
+│   │   ├── page.tsx                    # Landing page
+│   │   └── globals.css
+│   ├── components/
+│   │   ├── layout/
+│   │   ├── ui/
+│   │   ├── contract/
+│   │   ├── signature/
+│   │   └── auth/
+│   ├── lib/
+│   │   ├── supabase/
+│   │   │   ├── client.ts               # Browser client
+│   │   │   ├── server.ts               # Server client
+│   │   │   └── middleware.ts            # Auth middleware
+│   │   ├── prisma.ts                   # Prisma client singleton
+│   │   ├── pdf/
+│   │   │   ├── generate.ts             # PDF generation logic
+│   │   │   └── template.tsx            # React PDF template
+│   │   ├── notifications/
+│   │   │   ├── email.ts                # Resend integration
+│   │   │   ├── templates/              # React Email templates
+│   │   │   │   ├── ContractLink.tsx
+│   │   │   │   ├── SignedNotification.tsx
+│   │   │   │   ├── ContractActive.tsx
+│   │   │   │   ├── Reminder.tsx
+│   │   │   │   └── Expired.tsx
+│   │   │   └── index.ts                # Unified dispatcher
+│   │   ├── otp.ts                      # Email OTP generation/verification
+│   │   ├── hash.ts                     # SHA-256 utility
+│   │   └── utils.ts                    # General helpers
+│   ├── types/
+│   │   ├── contract.ts
+│   │   ├── user.ts
+│   │   └── api.ts
+│   └── emails/                         # React Email templates (for Resend)
+├── .env.local
+├── middleware.ts                        # Next.js middleware (auth guard)
+├── next.config.js
+├── package.json
+├── tsconfig.json
+└── vercel.json                         # Cron job config
+```
+
+---
+
+## 14. Development Timeline
+
+### Phase 1: Foundation (Week 1)
+
+| Task | Est. |
+|---|---|
+| Project scaffolding (Next.js + TypeScript + ESLint) | 0.5 day |
+| Supabase project setup (auth with email OTP, storage buckets, RLS) | 0.5 day |
+| Prisma schema + initial migration (all models incl. OtpVerification) | 0.5 day |
+| Design system: CSS custom properties, typography, color palette | 1 day |
+| Reusable UI components (Button, Input, Card, Modal, Badge, Toast, Stepper) | 1 day |
+| Layout components (Header, Sidebar, Footer, ProtectedRoute) | 0.5 day |
+| Landing page | 1 day |
+| **Total** | **5 days** |
+
+### Phase 2: Auth + Profile (Week 2)
+
+| Task | Est. |
+|---|---|
+| Sign-up flow with **role selector** (Creator / Brand / Agency) | 1 day |
+| Email OTP verification (Supabase Auth) | 0.5 day |
+| Login flow (email + password) | 0.5 day |
+| Auth middleware (route protection) | 0.5 day |
+| Profile page (view/edit) — adapts to role (agency shows agency fields) | 0.5 day |
+| CNIC upload to Supabase Storage | 0.5 day |
+| Session management + logout | 0.5 day |
+| Dashboard page (empty state, layout) | 1 day |
+| **Total** | **5 days** |
+
+### Phase 3: Contract Creation (Week 3)
+
+| Task | Est. |
+|---|---|
+| **Contract type selector** (agency sees Brand↔Agency or Agency↔Creator) | 0.5 day |
+| Multi-step form wizard (Stepper component) | 0.5 day |
+| Step 1: Deliverables (dynamic rows, type/qty/duration) | 1 day |
+| Step 2: Usage Rights (platforms, type, duration) | 0.5 day |
+| Step 3: Financial Terms (amounts, payment method, account) | 0.5 day |
+| Step 4: Delivery Terms (timeframe, revisions, approval, exclusivity, tagging) | 0.5 day |
+| Step 5: Penalties (bilateral, defaults at 3%) | 0.5 day |
+| Step 6: Review & Submit + **link to parent contract** (agency) | 0.5 day |
+| API: Create contract + save deliverables (handles all 3 types) | 0.5 day |
+| API: Submit → generate share link + set expiry + **send email** | 0.5 day |
+| **Total** | **5.5 days** |
+
+### Phase 4: Respondent Flow + Signing (Week 4)
+
+| Task | Est. |
+|---|---|
+| Public contract page (`/c/[token]`) — read-only contract view | 1 day |
+| **Respondent form** (adapts fields based on contract type) | 1 day |
+| Email OTP for respondent (custom OTP system via Resend) | 1 day |
+| SignaturePad component (canvas, touch support, DPI handling) | 1 day |
+| SignatureModal (pad + consent checkbox + submit) | 0.5 day |
+| API: Respondent fills + signs (metadata capture, audit log) | 1 day |
+| Respondent success page + "create account" prompt | 0.5 day |
+| **Total** | **6 days** |
+
+### Phase 5: Initiator Sign + PDF + Dashboard (Week 5)
+
+| Task | Est. |
+|---|---|
+| Initiator contract review page (see respondent fields + signature) | 0.5 day |
+| Initiator signing flow (reuse SignatureModal) | 0.5 day |
+| Contract activation logic (both signed → ACTIVE) | 0.5 day |
+| PDF template (React component, adapts to all 3 contract types) | 1.5 days |
+| PDF generation (Puppeteer integration) | 1 day |
+| SHA-256 hashing + document locking | 0.5 day |
+| **Email signed PDF to both parties** on activation | 0.5 day |
+| Dashboard: contract list with status badges, filters, contract type labels | 1 day |
+| Contract detail page (timeline, signatures, download PDF) | 1 day |
+| **Total** | **7 days** |
+
+### Phase 6: Agency Features + Notifications (Week 6)
+
+| Task | Est. |
+|---|---|
+| **Agency dashboard** — separate view showing Brand↔Agency and Agency↔Creator contracts | 1 day |
+| **Linked contract display** — show relationship between agency contracts | 0.5 day |
+| Email templates (React Email): contract link, signed, active, reminder, expired | 1 day |
+| Cron: contract expiry check (hourly) | 0.5 day |
+| Cron: day-5 reminder email | 0.5 day |
+| Advance payment tracking (manual mark) | 0.5 day |
+| Responsive design pass (mobile-first) | 1 day |
+| Error handling, loading states, edge cases | 0.5 day |
+| **Total** | **5.5 days** |
+
+### Phase 7: Testing + Launch Prep (Week 7)
+
+| Task | Est. |
+|---|---|
+| E2E testing: full Creator→Brand contract lifecycle | 0.5 day |
+| E2E testing: full Agency→Brand + Agency→Creator lifecycle | 0.5 day |
+| E2E testing: contract expiry + reminder flow | 0.5 day |
+| Security review (RLS policies, rate limiting, input validation) | 1 day |
+| Performance optimization (lazy loading, image optimization) | 0.5 day |
+| ToS page (placeholder, to be filled by lawyer) | 0.5 day |
+| Deploy to Vercel + Supabase Cloud | 0.5 day |
+| DNS/domain setup | 0.5 day |
+| Smoke test on production | 0.5 day |
+| **Total** | **5 days** |
+
+### Summary: ~7 weeks (49 calendar days)
+
+```mermaid
+gantt
+    title BrandBridge MVP - Development Timeline
+    dateFormat  YYYY-MM-DD
+    axisFormat  %b %d
+    
+    section Phase 1
+    Foundation + Design System     :p1, 2026-07-14, 5d
+    
+    section Phase 2
+    Auth + Profile                 :p2, after p1, 5d
+    
+    section Phase 3
+    Contract Creation Form         :p3, after p2, 6d
+    
+    section Phase 4
+    Respondent Flow + Signing      :p4, after p3, 6d
+    
+    section Phase 5
+    Initiator Sign + PDF + Dashboard :p5, after p4, 7d
+    
+    section Phase 6
+    Agency Features + Notifications :p6, after p5, 6d
+    
+    section Phase 7
+    Testing + Launch               :p7, after p6, 5d
+    
+    section Parallel
+    ToS Lawyer Review              :crit, 2026-07-14, 21d
+    Recruit Test Users             :2026-07-28, 21d
+```
+
+---
+
+## 15. Cost Estimates (MVP Phase)
+
+| Service | Free Tier | When You'd Pay |
+|---|---|---|
+| **Vercel** | 100GB bandwidth, serverless functions | > limits ($20/mo) |
+| **Supabase** | 500MB DB, 1GB storage, 50K MAU | > limits ($25/mo Pro) |
+| **Resend** | 100 emails/day, 3,000/month | > 100/day ($20/mo) |
+| **Domain** | — | ~$12/year |
+| **Total MVP cost** | **~$1/month** (domain only) | Scales with usage |
+
+> [!TIP]
+> By going email-only, the MVP runs on **essentially $0/month** (all free tiers). No Twilio SMS costs, no WhatsApp Business API fees. This is a massive simplification.
+
+---
+
+## 16. Risks & Mitigations
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| **Supabase free tier pause** (1 week inactivity) | App goes down | Keep-alive cron ping; upgrade to Pro ($25/mo) when real users exist |
+| **Resend daily limit** (100/day) | Can't send OTPs or notifications | Upgrade to paid ($20/mo) when volume grows |
+| **Puppeteer on Vercel** (serverless limits) | PDF generation times out | Use `@sparticuz/chromium`; fallback: move PDF gen to Railway |
+| **Email OTP deliverability** | OTP emails land in spam | Use custom domain for Resend, set up DKIM/SPF/DMARC |
+| **CNIC collection scares users** | Low signup conversion | Optional at signup, mandatory only for contracts > PKR 50K |
+| **Respondent never signs** | Contract stuck | 7-day expiry + day-5 reminder |
+| **Agency creates mismatched contracts** | Brand-Agency ≠ Agency-Creator terms | Linked contract display shows both; BrandBridge doesn't enforce match (that's agency's responsibility) |
+| **Legal challenge to e-signatures** | Contract validity questioned | ToS + lawyer review before launch; cite ETO 2002 |
+
+---
+
+## 17. Open Items Before Starting
+
+> [!IMPORTANT]
+> These must be decided before coding starts:
+
+1. **Domain name** — Is `brandbridge.pk` or `brandbridge.co` available?
+2. **Supabase project region** — Mumbai (closest to Pakistan) or Singapore?
+3. **Branding assets** — Logo, color palette. Do you have these, or should I design them?
+4. **ToS lawyer** — Has someone been identified? This needs to run in parallel with development.
+5. **Resend sending domain** — Need a verified domain for email delivery (e.g., `contracts@brandbridge.pk`)
+
+> [!NOTE]
+> **What's NOT in this plan (by design):**
+> - SMS / WhatsApp notifications (email-only for MVP)
+> - Payment/monetization infrastructure (free for now)
+> - Free-tier enforcement logic (no limits for now)
+> - AI features
+> - Native mobile apps
+> - Escrow / payment custody
+> - Deliverable upload portal
+> - Public dispute resolution
+> - NADRA Verisys integration
+> - Marketplace / discovery features
