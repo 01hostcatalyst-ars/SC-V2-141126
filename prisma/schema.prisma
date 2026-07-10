@@ -1,0 +1,243 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+enum Role {
+  CREATOR
+  BRAND
+  AGENCY
+}
+
+enum ContractType {
+  CREATOR_TO_BRAND
+  BRAND_TO_CREATOR
+  AGENCY_TO_BRAND
+  AGENCY_TO_CREATOR
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_RESPONDENT
+  PENDING_INITIATOR
+  ACTIVE
+  EXPIRED
+  COMPLETED
+  CANCELLED
+}
+
+enum UsageType {
+  ORGANIC_ONLY
+  PAID_AD
+  BILLBOARD_PRINT
+  ALL_MEDIA
+}
+
+enum PaymentMethod {
+  BANK_IBAN
+  JAZZCASH
+  EASYPAISA
+}
+
+enum DeliverableType {
+  IMAGE_POST
+  REEL
+  STORY
+  CAROUSEL_POST
+  LIVE_SESSION
+  AD
+  YOUTUBE_VIDEO
+  TIKTOK_VIDEO
+}
+
+enum SignerRole {
+  CREATOR
+  BRAND
+  AGENCY
+}
+
+enum ReminderType {
+  RESPONDENT_SIGN_REMINDER
+  CONTRACT_EXPIRY_NOTICE
+}
+
+model User {
+  id              String   @id @default(uuid())
+  name            String
+  phone           String?
+  email           String   @unique
+  instagramHandle String?  @map("instagram_handle")
+  cnicNumber      String?  @map("cnic_number")
+  cnicPhotoUrl    String?  @map("cnic_photo_url")
+  supabaseAuthId  String   @unique @map("supabase_auth_id")
+  role            Role
+  agencyName      String?  @map("agency_name")
+  agencyAddress   String?  @map("agency_address")
+  isVerified      Boolean  @default(false) @map("is_verified")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  initiatedContracts Contract[] @relation("InitiatorContracts")
+  respondedContracts Contract[] @relation("RespondentContracts")
+  signatures         Signature[]
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+model Contract {
+  id                    String         @id @default(uuid())
+  contractNumber        String         @unique @map("contract_number")
+  contractType          ContractType   @map("contract_type")
+
+  // Parties
+  initiatorId           String         @map("initiator_id")
+  initiator             User           @relation("InitiatorContracts", fields: [initiatorId], references: [id])
+  respondentId          String?        @map("respondent_id")
+  respondent            User?          @relation("RespondentContracts", fields: [respondentId], references: [id])
+
+  // Link to parent contract (Agency→Creator links to Brand→Agency)
+  linkedContractId      String?        @unique @map("linked_contract_id")
+  linkedContract        Contract?      @relation("LinkedContracts", fields: [linkedContractId], references: [id])
+  childContract         Contract?      @relation("LinkedContracts")
+
+  status                ContractStatus @default(DRAFT)
+
+  // Respondent details (filled by respondent via shared link)
+  respondentName        String?        @map("respondent_name")
+  respondentEmail       String?        @map("respondent_email")
+  respondentPhone       String?        @map("respondent_phone")
+  respondentCompany     String?        @map("respondent_company")
+  respondentAddress     String?        @map("respondent_address")
+  respondentDesignation String?        @map("respondent_designation")
+  collabDetails         String?        @map("collab_details")
+
+  // Financial
+  totalAmount           Decimal        @map("total_amount")
+  advancePayment        Decimal?       @map("advance_payment")
+  remainingAmount       Decimal?       @map("remaining_amount")
+  paymentMethod         PaymentMethod? @map("payment_method")
+  bankAccountIban       String?        @map("bank_account_iban")
+  mobileWalletNumber    String?        @map("mobile_wallet_number")
+  advanceReceived       Boolean        @default(false) @map("advance_received")
+
+  // Delivery
+  deliveryTimeframeDays Int            @map("delivery_timeframe_days")
+
+  // Usage Rights
+  platformsAllowed      String[]       @map("platforms_allowed")
+  usageType             UsageType      @map("usage_type")
+  usageRightsDuration   String         @map("usage_rights_duration")
+
+  // Revision & Approval
+  revisionRounds        Int            @default(1) @map("revision_rounds")
+  brandApprovalRequired Boolean        @default(false) @map("brand_approval_required")
+
+  // Exclusivity
+  exclusivityClause     Boolean        @default(false) @map("exclusivity_clause")
+  exclusivityDuration   String?        @map("exclusivity_duration")
+
+  // Bilateral Penalties
+  latePaymentPenaltyPct Decimal        @default(3) @map("late_payment_penalty_pct")
+  lateContentPenaltyPct Decimal        @default(3) @map("late_content_penalty_pct")
+
+  // Content & Tagging
+  contentOwnership      String         @default("Creator retains copyright; brand receives usage license as defined.") @map("content_ownership")
+  taggingRequirements   String?        @map("tagging_requirements")
+
+  // Sharing
+  shareToken            String         @unique @default(uuid()) @map("share_token")
+
+  // Timestamps
+  expiresAt             DateTime?      @map("expires_at")
+  activatedAt           DateTime?      @map("activated_at")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+
+  // Document integrity
+  documentHash          String?        @map("document_hash")
+  pdfUrl                String?        @map("pdf_url")
+
+  deliverables          Deliverable[]
+  signatures            Signature[]
+  auditLogs             AuditLog[]
+  reminders             Reminder[]
+
+  @@map("contracts")
+}
+
+model Deliverable {
+  id         String          @id @default(uuid())
+  contractId String          @map("contract_id")
+  contract   Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  type       DeliverableType
+  quantity   Int             @default(1)
+  duration   String?
+  notes      String?
+
+  @@map("deliverables")
+}
+
+model Signature {
+  id                String    @id @default(uuid())
+  contractId        String    @map("contract_id")
+  contract          Contract  @relation(fields: [contractId], references: [id])
+  signerId          String?   @map("signer_id")
+  signer            User?     @relation(fields: [signerId], references: [id])
+  signerRole        SignerRole @map("signer_role")
+  signatureImageUrl String    @map("signature_image_url")
+  signedAt          DateTime  @default(now()) @map("signed_at")
+  ipAddress         String    @map("ip_address")
+  userAgent         String    @map("user_agent")
+  deviceFingerprint String?   @map("device_fingerprint")
+  documentHash      String    @map("document_hash")
+  otpVerified       Boolean   @default(false) @map("otp_verified")
+  otpEmail          String?   @map("otp_email")
+  consentRecorded   Boolean   @default(true) @map("consent_recorded")
+
+  @@map("signatures")
+}
+
+model AuditLog {
+  id         String    @id @default(uuid())
+  contractId String?   @map("contract_id")
+  contract   Contract? @relation(fields: [contractId], references: [id])
+  userId     String?   @map("user_id")
+  user       User?     @relation(fields: [userId], references: [id])
+  action     String
+  details    Json?
+  ipAddress  String?   @map("ip_address")
+  userAgent  String?   @map("user_agent")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
+model Reminder {
+  id          String       @id @default(uuid())
+  contractId  String       @map("contract_id")
+  contract    Contract     @relation(fields: [contractId], references: [id])
+  type        ReminderType
+  scheduledAt DateTime     @map("scheduled_at")
+  sentAt      DateTime?    @map("sent_at")
+  status      String       @default("pending")
+
+  @@map("reminders")
+}
+
+model OtpVerification {
+  id        String   @id @default(uuid())
+  email     String
+  code      String   // 6-digit code
+  expiresAt DateTime @map("expires_at")
+  verified  Boolean  @default(false)
+  attempts  Int      @default(0) // max 5 attempts
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("otp_verifications")
+}
