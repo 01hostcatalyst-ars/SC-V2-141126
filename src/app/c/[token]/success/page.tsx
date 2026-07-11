@@ -2,48 +2,51 @@
 
 import React from "react";
 import Link from "next/link";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { getCompanyConfig } from "@/lib/config";
 
-export default function SignSuccessPage() {
+export default function SigningSuccessPage() {
   const company = getCompanyConfig();
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950">
-      <Header />
+    <div className="min-h-screen bg-theme-gradient flex items-center justify-center p-6 text-center relative overflow-hidden">
+      {/* Background gradients */}
+      <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
+      <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
-      <main className="flex-grow flex items-center justify-center p-4 pt-24 pb-20">
-        <Card className="w-full max-w-md p-8 text-center flex flex-col items-center gap-6">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-3xl animate-bounce">
-            ✓
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <h2 className="text-2xl font-bold text-white tracking-tight">Agreement Executed!</h2>
-            <p className="text-slate-400 text-sm">
-              Your electronic signature has been successfully verified and applied to the campaign contract.
-            </p>
-          </div>
+      {/* Success Card */}
+      <div className="relative bg-white border border-gray-200 rounded-2xl shadow-xl p-8 max-w-md w-full z-10 space-y-6 text-center animate-slide-in">
+        {/* Success Icon */}
+        <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-bold text-2xl mx-auto">
+          ✓
+        </div>
 
-          <div className="p-4 rounded-xl border border-slate-900 bg-slate-900/10 text-xs text-slate-400 leading-relaxed text-left">
-            ℹ️ <strong>Next Steps:</strong> The contract has been returned to the initiator for their final executing signature. Once both signatures are recorded, the final contract PDF and audit logs will be emailed directly to your inbox.
-          </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-black">Signature Completed!</h2>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 uppercase mx-auto">
+            Executed Under ETO 2002
+          </span>
+        </div>
 
-          <div className="flex flex-col gap-3 w-full border-t border-slate-900 pt-6">
-            <Link href="/signup">
-              <Button className="w-full py-2.5">Create Free Account</Button>
-            </Link>
-            <Link href="/">
-              <Button variant="ghost" className="w-full">Back to Home</Button>
-            </Link>
-          </div>
-        </Card>
-      </main>
+        <p className="text-xs text-gray-500 leading-relaxed max-w-xs mx-auto">
+          Your electronic signature has been logged and locked. 
+          A fully executed campaign agreement PDF will be emailed to you shortly as a persistent transaction record.
+        </p>
 
-      <Footer />
+        <div className="border-t border-gray-100 pt-6 space-y-4">
+          <p className="text-[11px] text-gray-400 font-semibold leading-relaxed">
+            Need to negotiate, manage, or bilaterally sign other campaign partnerships yourself?
+          </p>
+          <Link href="/">
+            <button className="w-full bg-black text-white hover:bg-black/90 font-bold text-xs uppercase py-3 rounded-xl transition-all shadow-md mt-2">
+              Create Free {company.name} Account
+            </button>
+          </Link>
+        </div>
+
+        <div className="text-[10px] text-gray-400 font-bold">
+          Powered by {company.name}
+        </div>
+      </div>
     </div>
   );
 }

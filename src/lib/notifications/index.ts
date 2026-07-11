@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || "re_mock_key");
 interface EmailPayload {
   to: string;
   subject: string;
-  template: "contract_link" | "signed_notification" | "contract_active" | "reminder" | "expired";
+  template: "contract_link" | "signed_notification" | "contract_active" | "reminder" | "expired" | "otp";
   data: Record<string, string>;
   pdfBuffer?: Buffer;
 }

@@ -1,133 +1,502 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getCompanyConfig } from "@/lib/config";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+
+type AuthTab = "signin" | "signup";
+type Role = "CREATOR" | "BRAND" | "AGENCY";
 
 export default function Home() {
+  const router = useRouter();
   const company = getCompanyConfig();
 
+  const [authTab, setAuthTab] = useState<AuthTab>("signin");
+  const [role, setRole] = useState<Role>("CREATOR");
+
+  // Sign In state
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
+
+  // Sign Up state
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPhone, setSignupPhone] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [instagramHandle, setInstagramHandle] = useState("");
+  const [cnicNumber, setCnicNumber] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [companyAddress, setCompanyAddress] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupError, setSignupError] = useState("");
+
+  // Toast message simulation helper
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const triggerToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginEmail || !loginPassword) {
+      setLoginError("Please enter both email and password.");
+      return;
+    }
+
+    setLoginLoading(true);
+    setLoginError("");
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Login authentication failed.");
+      }
+
+      if (data.session) {
+        const { supabase } = await import("@/lib/supabase/client");
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+      }
+
+      triggerToast("Signed in successfully. Redirecting...", "success");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 800);
+    } catch (err: any) {
+      setLoginError(err.message || "Invalid credentials.");
+      triggerToast(err.message || "Failed to sign in.", "error");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signupName || !signupEmail || !signupPassword) {
+      setSignupError("Please fill in name, email, and password.");
+      return;
+    }
+
+    setSignupLoading(true);
+    setSignupError("");
+
+    const payload = {
+      name: signupName,
+      email: signupEmail,
+      phone: signupPhone,
+      role,
+      password: signupPassword,
+      instagramHandle: role === "CREATOR" ? instagramHandle : undefined,
+      cnicNumber: role === "CREATOR" ? cnicNumber : undefined,
+      // API maps both Brand/Agency name fields to agencyName and agencyAddress in database
+      agencyName: role !== "CREATOR" ? companyName : undefined,
+      agencyAddress: role !== "CREATOR" ? companyAddress : undefined,
+      designation: role !== "CREATOR" ? designation : undefined,
+    };
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Registration initialization failed.");
+      }
+
+      triggerToast("Account created! Please check your email to confirm registration.", "success");
+      setSignupName("");
+      setSignupEmail("");
+      setSignupPhone("");
+      setSignupPassword("");
+      setInstagramHandle("");
+      setCnicNumber("");
+      setCompanyName("");
+      setCompanyAddress("");
+      setDesignation("");
+      setTimeout(() => {
+        setAuthTab("signin");
+      }, 2000);
+    } catch (err: any) {
+      setSignupError(err.message || "Failed to initialize account creation.");
+      triggerToast(err.message || "Registration failed.", "error");
+    } finally {
+      setSignupLoading(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 overflow-hidden relative">
-      {/* Background glow effects */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden">
+      {/* Background ambient glow shapes */}
+      <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
+      <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
-      <Header />
-
-      {/* Hero Section */}
-      <main className="flex-grow pt-32 pb-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center gap-6">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/15 uppercase tracking-widest">
-            🛡️ Admissible Evidence Under ETO 2002
-          </span>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-4xl leading-[1.1] text-white">
-            Formalize Deals. Secure Evidence. <br />
-            <span className="text-accent-gradient">Protect Collabs.</span>
-          </h1>
-          <p className="text-lg text-slate-400 max-w-2xl leading-relaxed">
-            Stop negotiating vital commercial campaigns on temporary chat logs. {company.name} builds immutable, signed proof for creator-brand deals across Pakistan. No account setup required for brand signatures.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full justify-center max-w-md">
-            <Link href="/signup" className="flex-1 sm:flex-none">
-              <Button className="w-full sm:w-auto px-8 py-3">Get Started For Free</Button>
-            </Link>
-            <Link href="#features" className="flex-1 sm:flex-none">
-              <Button variant="secondary" className="w-full sm:w-auto px-8 py-3">
-                See How It Works
-              </Button>
-            </Link>
-          </div>
-
-          {/* Stats Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl w-full mt-16 border-t border-slate-900 pt-10">
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-3xl font-extrabold text-white">100%</span>
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Free to Try</span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-3xl font-extrabold text-white">ETO 2002</span>
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Admissible Evidence</span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-3xl font-extrabold text-white">PKR 0</span>
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hidden Fees</span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-3xl font-extrabold text-white">100%</span>
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Tamper-Proof</span>
-            </div>
-          </div>
+      {/* Global Toast */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg border text-sm font-semibold transition-all duration-300 animate-bounce ${
+          toast.type === "success" 
+            ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
+            : "bg-rose-50 border-rose-200 text-rose-800"
+        }`}>
+          {toast.type === "success" ? "✓" : "✗"} {toast.message}
         </div>
+      )}
 
-        {/* Features Section */}
-        <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 mt-12">
-          <div className="flex flex-col items-center text-center gap-3 mb-16">
-            <span className="text-xs font-bold uppercase tracking-widest text-violet-400">Features</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Designed For the Pakistani Creator Economy
-            </h2>
-            <p className="text-sm text-slate-500 max-w-xl">
-              We solve the core friction points of WhatsApp agreements with structured proof fields.
-            </p>
-          </div>
+      {/* Header */}
+      <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-6 z-10 sticky top-0">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base">
+            {company.name[0]}
+          </span>
+          <span className="font-bold text-lg text-black tracking-tight uppercase">
+            {company.name}
+          </span>
+        </Link>
+        <div>
+          <button 
+            onClick={() => setAuthTab(authTab === "signin" ? "signup" : "signin")} 
+            className="text-xs font-semibold px-4 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors"
+          >
+            {authTab === "signin" ? "Create Account" : "Sign In"}
+          </button>
+        </div>
+      </header>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="flex flex-col gap-4 text-left">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-lg">
-                ✍️
-              </div>
-              <h3 className="text-lg font-bold text-slate-100">Bilateral Signatures</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Both parties sign capturing server-side timestamps, IP logs, and user-agent metadata. Direct verification closes agent/PA proxy loopholes.
-              </p>
-            </Card>
-
-            <Card className="flex flex-col gap-4 text-left">
-              <div className="w-10 h-10 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center font-bold text-lg">
-                📐
-              </div>
-              <h3 className="text-lg font-bold text-slate-100">Structured Usage Rights</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Explicit terms for platforms allowed, whitelisting/paid ad usage rights, revision counts, and campaign durations to eliminate quality dispute arguments.
-              </p>
-            </Card>
-
-            <Card className="flex flex-col gap-4 text-left">
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg">
-                ⚡
-              </div>
-              <h3 className="text-lg font-bold text-slate-100">Bilateral Penalties</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Establish late payment penalties for brand delays and late delivery penalties for creator delays at a 3%/day default rate to protect performance.
-              </p>
-            </Card>
-          </div>
-        </section>
-
-        {/* Legality Section */}
-        <section id="legal" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-900 text-center">
-          <Card className="flex flex-col items-center gap-6 p-8 md:p-12">
-            <div className="w-12 h-12 rounded-full bg-blue-600/10 flex items-center justify-center text-xl">
-              ⚖️
-            </div>
-            <h3 className="text-2xl font-bold text-white tracking-tight">Legal Admissibility in Pakistan</h3>
-            <p className="text-sm text-slate-400 leading-relaxed max-w-2xl">
-              Under Pakistan&apos;s Electronic Transactions Ordinance (ETO 2002), electronic records, signatures, and verified consent logs hold strong legal standing in disputes. {company.name} compiles and locks these metadata points in a clean, tamper-evident audit trail PDF delivered directly to your inbox.
-            </p>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Neutral Record-Keeping Agency. No Legal Opinion or Mediation Offered.
+      {/* Main Body */}
+      <main className="flex-1 flex items-center justify-center p-6 md:p-12 lg:p-16 z-10">
+        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          
+          {/* Column 1: Info Column */}
+          <div className="flex flex-col text-left space-y-6">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100/70 text-blue-800 border border-blue-200 w-fit">
+              ⚡ Safe & bilaterally signed campaign proofs
             </span>
-          </Card>
-        </section>
+            <h1 className="text-4xl md:text-5xl font-black text-black leading-tight tracking-tight">
+              Bilateral Contracts.<br />
+              <span className="text-accent-gradient">Secure Evidence.</span>
+            </h1>
+            <p className="text-sm md:text-base text-gray-700 leading-relaxed max-w-xl">
+              Stop executing commercial social media partnerships via transient chat logs. 
+              <strong> {company.name}</strong> provides a simple, bilateral proof-layer with tamper-proof signature logs. Admissible under Pakistan&apos;s ETO 2002.
+            </p>
+
+            {/* Badges system - using Gen-Z/Professional favorite color codes */}
+            <div className="flex flex-wrap gap-2 pt-2">
+              <span className="px-3 py-1 rounded-md text-xs font-bold border bg-blue-50 border-blue-200 text-blue-800">
+                #Creator
+              </span>
+              <span className="px-3 py-1 rounded-md text-xs font-bold border bg-emerald-50 border-emerald-200 text-emerald-800">
+                #Brand
+              </span>
+              <span className="px-3 py-1 rounded-md text-xs font-bold border bg-orange-50 border-orange-200 text-orange-800">
+                #Agency
+              </span>
+              <span className="px-3 py-1 rounded-md text-xs font-bold border bg-amber-50 border-amber-200 text-amber-800">
+                #ETO2002
+              </span>
+              <span className="px-3 py-1 rounded-md text-xs font-bold border bg-rose-50 border-rose-200 text-rose-800">
+                #SignedPDF
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 border-t border-gray-200/80 pt-6 mt-4">
+              <div>
+                <h4 className="text-xl font-bold text-black">100% Free</h4>
+                <p className="text-xs text-gray-500 mt-1">Unlimited draft generation, OTP verification, and storage.</p>
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-black">Audit Trails</h4>
+                <p className="text-xs text-gray-500 mt-1">Includes SHA-256 integrity check and device identifiers.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 2: Auth Card */}
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
+              
+              {/* Tab Selector */}
+              <div className="flex border-b border-gray-200 mb-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthTab("signin");
+                    setLoginError("");
+                  }}
+                  className={`flex-1 pb-3 text-sm font-bold text-center border-b-2 transition-all ${
+                    authTab === "signin"
+                      ? "border-black text-black"
+                      : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthTab("signup");
+                    setSignupError("");
+                  }}
+                  className={`flex-1 pb-3 text-sm font-bold text-center border-b-2 transition-all ${
+                    authTab === "signup"
+                      ? "border-black text-black"
+                      : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  Sign Up
+                </button>
+              </div>
+
+              {/* Form Content */}
+              {authTab === "signin" ? (
+                /* Login Form */
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@company.com"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      disabled={loginLoading}
+                      className="input-field"
+                    />
+                  </div>
+
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">Password</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      disabled={loginLoading}
+                      className="input-field"
+                    />
+                  </div>
+
+                  {loginError && (
+                    <div className="p-3 text-xs bg-rose-50 border border-rose-200 text-rose-800 rounded-lg font-medium text-left">
+                      ⚠ {loginError}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loginLoading}
+                    className="w-full bg-black text-white hover:bg-black/90 font-bold py-3 px-4 rounded-xl transition-all shadow-md mt-6 flex items-center justify-center gap-2"
+                  >
+                    {loginLoading ? "Authenticating..." : "Sign In"}
+                  </button>
+                </form>
+              ) : (
+                /* Sign Up Form */
+                <form onSubmit={handleSignup} className="space-y-4">
+                  
+                  {/* Role tab selector */}
+                  <div className="flex flex-col text-left gap-2 mb-2">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Select Platform Role</label>
+                    <div className="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200/60">
+                      {(["CREATOR", "BRAND", "AGENCY"] as Role[]).map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => setRole(r)}
+                          className={`py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
+                            role === r
+                              ? "bg-black text-white shadow-sm"
+                              : "text-gray-500 hover:text-black"
+                          }`}
+                        >
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Fields Grid */}
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex flex-col text-left gap-1">
+                      <label className="text-xs font-bold text-black uppercase tracking-wider">
+                        {role === "CREATOR" ? "Full Name" : "Contact Person Name"}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Mohammad Ali"
+                        value={signupName}
+                        onChange={(e) => setSignupName(e.target.value)}
+                        disabled={signupLoading}
+                        className="input-field"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex flex-col text-left gap-1">
+                        <label className="text-xs font-bold text-black uppercase tracking-wider">Email Address</label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="ali@domain.com"
+                          value={signupEmail}
+                          onChange={(e) => setSignupEmail(e.target.value)}
+                          disabled={signupLoading}
+                          className="input-field"
+                        />
+                      </div>
+                      <div className="flex flex-col text-left gap-1">
+                        <label className="text-xs font-bold text-black uppercase tracking-wider">Phone (WhatsApp)</label>
+                        <input
+                          type="tel"
+                          placeholder="03XXXXXXXXX"
+                          value={signupPhone}
+                          onChange={(e) => setSignupPhone(e.target.value)}
+                          disabled={signupLoading}
+                          className="input-field"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col text-left gap-1">
+                      <label className="text-xs font-bold text-black uppercase tracking-wider">Password</label>
+                      <input
+                        type="password"
+                        required
+                        placeholder="Min 6 characters"
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
+                        disabled={signupLoading}
+                        className="input-field"
+                      />
+                    </div>
+
+                    {/* Creator Specific Form Inputs */}
+                    {role === "CREATOR" && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+                        <div className="flex flex-col text-left gap-1">
+                          <label className="text-xs font-bold text-black uppercase tracking-wider">Instagram Handle</label>
+                          <input
+                            type="text"
+                            placeholder="@username"
+                            value={instagramHandle}
+                            onChange={(e) => setInstagramHandle(e.target.value)}
+                            disabled={signupLoading}
+                            className="input-field"
+                          />
+                        </div>
+                        <div className="flex flex-col text-left gap-1">
+                          <label className="text-xs font-bold text-black uppercase tracking-wider">CNIC Number (Optional)</label>
+                          <input
+                            type="text"
+                            placeholder="42101-XXXXXXX-X"
+                            value={cnicNumber}
+                            onChange={(e) => setCnicNumber(e.target.value)}
+                            disabled={signupLoading}
+                            className="input-field"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Brand or Agency inputs */}
+                    {role !== "CREATOR" && (
+                      <div className="space-y-3 pt-2 border-t border-gray-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="flex flex-col text-left gap-1">
+                            <label className="text-xs font-bold text-black uppercase tracking-wider">
+                              {role === "BRAND" ? "Brand / Company Name" : "Agency Name"}
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder={role === "BRAND" ? "e.g. Sapphire" : "e.g. Core Agency"}
+                              value={companyName}
+                              onChange={(e) => setCompanyName(e.target.value)}
+                              disabled={signupLoading}
+                              className="input-field"
+                            />
+                          </div>
+                          <div className="flex flex-col text-left gap-1">
+                            <label className="text-xs font-bold text-black uppercase tracking-wider">Your Job Title</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="Marketing Manager"
+                              value={designation}
+                              onChange={(e) => setDesignation(e.target.value)}
+                              disabled={signupLoading}
+                              className="input-field"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col text-left gap-1">
+                          <label className="text-xs font-bold text-black uppercase tracking-wider">Office Address</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Office Address, City"
+                            value={companyAddress}
+                            onChange={(e) => setCompanyAddress(e.target.value)}
+                            disabled={signupLoading}
+                            className="input-field"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {signupError && (
+                    <div className="p-3 text-xs bg-rose-50 border border-rose-200 text-rose-800 rounded-lg font-medium text-left mt-2">
+                      ⚠ {signupError}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={signupLoading}
+                    className="w-full bg-black text-white hover:bg-black/90 font-bold py-3 px-4 rounded-xl transition-all shadow-md mt-6 flex items-center justify-center gap-2"
+                  >
+                    {signupLoading ? "Registering..." : "Create Account"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+
+        </div>
       </main>
 
-      <Footer />
+      {/* Footer */}
+      <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-6 flex flex-col md:flex-row items-center justify-between px-6 gap-4 z-10">
+        <span className="text-xs text-gray-500 font-semibold">
+          © {new Date().getFullYear()} {company.name}. Loaded from {company.domain}.
+        </span>
+        <div className="flex gap-4">
+          <a href={`mailto:${company.supportEmail}`} className="text-xs text-gray-500 hover:text-black font-semibold transition-colors">
+            Support: {company.supportEmail}
+          </a>
+          <span className="text-gray-300">|</span>
+          <span className="text-xs text-gray-500 font-semibold">{company.legalInfo}</span>
+        </div>
+      </footer>
     </div>
   );
 }

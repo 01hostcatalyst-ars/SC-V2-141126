@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/supabase/server";
 import { supabase } from "@/lib/supabase/client";
 import { prisma } from "@/lib/prisma";
+import { generateContractPDF } from "@/lib/pdf/generate";
 
 export async function GET(
   req: Request,
@@ -15,9 +16,26 @@ export async function GET(
 
     const { id } = await params;
 
-    const contract = await prisma.contract.findUnique({
+    let contract = await prisma.contract.findUnique({
       where: { id },
     });
+
+    if (!contract) {
+      return NextResponse.json({ error: "Contract not found" }, { status: 404 });
+    }
+
+    // Generate PDF on the fly if not generated previously and contract is active/completed
+    if (!contract.pdfUrl && (contract.status === "ACTIVE" || contract.status === "COMPLETED")) {
+      try {
+        await generateContractPDF(contract.id);
+        contract = await prisma.contract.findUnique({
+          where: { id },
+        });
+      } catch (pdfErr: any) {
+        console.error("Failed to generate PDF on the fly:", pdfErr);
+        return NextResponse.json({ error: "Failed to generate PDF on the fly: " + pdfErr.message }, { status: 500 });
+      }
+    }
 
     if (!contract || !contract.pdfUrl) {
       return NextResponse.json({ error: "PDF document not generated or found" }, { status: 404 });

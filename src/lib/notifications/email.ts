@@ -1,7 +1,7 @@
 import { getCompanyConfig } from "@/lib/config";
 
 export function renderEmailTemplate(
-  template: "contract_link" | "signed_notification" | "contract_active" | "reminder" | "expired",
+  template: "contract_link" | "signed_notification" | "contract_active" | "reminder" | "expired" | "otp",
   data: Record<string, string>
 ): string {
   const company = getCompanyConfig();
@@ -44,6 +44,25 @@ export function renderEmailTemplate(
   `;
 
   switch (template) {
+    case "otp":
+      return `
+        <div style="${baseStyles}">
+          <div style="${headerStyles}">
+            <h2 style="margin: 0; color: #111;">${company.name} Verification Code</h2>
+          </div>
+          <p>Hello,</p>
+          <p>Your one-time passcode (OTP) to verify your email identity and sign the agreement is:</p>
+          <div style="font-size: 32px; font-weight: 900; letter-spacing: 6px; padding: 15px; background-color: #f3f4f6; text-align: center; border-radius: 8px; margin: 20px 0; color: #000;">
+            ${data.code}
+          </div>
+          <p>This code is valid for 10 minutes. If you did not request this code, you can safely ignore this email.</p>
+          <div style="${footerStyles}">
+            <p>This identity verification layer is compliant under Pakistan's ETO 2002 guidelines.</p>
+            <p>Powered by ${company.name} | ${company.legalInfo}</p>
+          </div>
+        </div>
+      `;
+
     case "contract_link":
       return `
         <div style="${baseStyles}">

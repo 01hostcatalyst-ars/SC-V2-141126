@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendEmailNotification } from "@/lib/notifications";
 
 export async function POST(
   req: Request,
@@ -35,7 +36,16 @@ export async function POST(
       },
     });
 
-    // TODO: Connect Resend dispatch helper in Phase 6. Print to console for local developers.
+    // 3. Send actual email notification via Resend
+    await sendEmailNotification({
+      to: email,
+      subject: "Your BrandBridge E-Sign Verification Code",
+      template: "otp",
+      data: {
+        code,
+      },
+    });
+
     console.log(`[DEV OTP ALERT] Respondent verification code for ${email} is: ${code}`);
 
     return NextResponse.json({

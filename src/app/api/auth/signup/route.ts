@@ -12,9 +12,15 @@ export async function POST(req: Request) {
 
     // Initialize Supabase Server Client to manage registration cookies
     const supabase = await getSupabaseServerClient();
+    
+    // 1. Register the user profile with Supabase Auth
+    // Set emailRedirectTo to undefined to prevent confirm links override
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: undefined,
+      }
     });
 
     if (authError) {
@@ -41,7 +47,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Sign-up initialized. OTP email dispatched.",
+      message: "Sign-up successful! Please check your email to confirm your account.",
       user: {
         id: dbUser.id,
         email: dbUser.email,

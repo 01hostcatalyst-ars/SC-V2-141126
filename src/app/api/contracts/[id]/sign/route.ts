@@ -3,6 +3,7 @@ import { getAuthUser } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { ContractStatus, SignerRole } from "@prisma/client";
 import { generateContractPDF } from "@/lib/pdf/generate";
+import { sendEmailNotification } from "@/lib/notifications";
 
 export async function POST(
   req: Request,
@@ -88,11 +89,38 @@ export async function POST(
 
     // Trigger PDF engine to render static contract containing BOTH signatures
     try {
-      await generateContractPDF(contract.id);
+      const pdfResult = await generateContractPDF(contract.id);
       
-      // TODO: Dispatch active contract with PDF attachment via Resend in Phase 6
+      const fullContract = await prisma.contract.findUnique({
+        where: { id: contract.id },
+        include: { initiator: true },
+      });
+
+      if (fullContract && fullContract.respondentEmail) {
+        // 1. Dispatch active contract with PDF attachment to Initiator
+        await sendEmailNotification({
+          to: fullContract.initiator.email,
+          subject: `Active Collaboration Contract - ${fullContract.contractNumber}`,
+          template: "contract_active",
+          data: {
+            contractNumber: fullContract.contractNumber,
+          },
+          pdfBuffer: pdfResult.buffer,
+        });
+
+        // 2. Dispatch active contract with PDF attachment to Respondent
+        await sendEmailNotification({
+          to: fullContract.respondentEmail,
+          subject: `Active Collaboration Contract - ${fullContract.contractNumber}`,
+          template: "contract_active",
+          data: {
+            contractNumber: fullContract.contractNumber,
+          },
+          pdfBuffer: pdfResult.buffer,
+        });
+      }
     } catch (pdfErr) {
-      console.error("PDF generation failed during signing execution:", pdfErr);
+      console.error("PDF generation or email dispatch failed during signing execution:", pdfErr);
     }
 
     return NextResponse.json({

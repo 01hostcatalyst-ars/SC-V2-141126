@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { supabase } from "@/lib/supabase/client";
 import { prisma } from "@/lib/prisma";
 
-export async function generateContractPDF(contractId: string): Promise<string> {
+export async function generateContractPDF(contractId: string): Promise<{ path: string; buffer: Buffer }> {
   // 1. Fetch full contract specifications
   const contract = await prisma.contract.findUnique({
     where: { id: contractId },
@@ -169,9 +169,30 @@ export async function generateContractPDF(contractId: string): Promise<string> {
   `;
 
   // 3. Generate PDF Buffer via Puppeteer
+  let executablePath = "";
+  if (process.platform === "win32") {
+    const fs = require("fs");
+    const paths = [
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    ];
+    for (const p of paths) {
+      if (fs.existsSync(p)) {
+        executablePath = p;
+        break;
+      }
+    }
+    if (!executablePath) {
+      throw new Error("Could not locate local Chrome or Edge browser executable on Windows.");
+    }
+  } else {
+    executablePath = await chromium.executablePath();
+  }
+
   const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath(),
+    args: process.platform === "win32" ? [] : chromium.args,
+    executablePath,
     headless: true,
   });
 
@@ -207,5 +228,5 @@ export async function generateContractPDF(contractId: string): Promise<string> {
     },
   });
 
-  return uploadData.path;
+  return { path: uploadData.path, buffer: Buffer.from(pdfBuffer) };
 }
