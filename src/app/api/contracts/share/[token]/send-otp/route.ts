@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmailNotification } from "@/lib/notifications";
+import { getCompanyConfig } from "@/lib/config";
 
 export async function POST(
   req: Request,
@@ -36,10 +37,12 @@ export async function POST(
       },
     });
 
+    const company = getCompanyConfig();
+
     // 3. Send actual email notification via Resend
     await sendEmailNotification({
       to: email,
-      subject: "Your BrandBridge E-Sign Verification Code",
+      subject: `Your ${company.name} E-Sign Verification Code`,
       template: "otp",
       data: {
         code,

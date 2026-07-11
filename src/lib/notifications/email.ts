@@ -146,6 +146,6 @@ export function renderEmailTemplate(
       `;
 
     default:
-      return `<p>BrandBridge Notification</p>`;
+      return `<p>${company.name} Notification</p>`;
   }
 }
