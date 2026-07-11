@@ -81,6 +81,25 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           </div>
         </div>
 
+        ${contract.brandName ? `
+        <div style="margin-bottom: 20px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background-color: #fcfcfc;">
+          <h3 style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #666;">Client Brand & Campaign Info</h3>
+          <div style="display: flex; gap: 40px; font-size: 13px;">
+            <p style="margin: 2px 0;"><strong>Brand:</strong> ${contract.brandName} ${contract.brandHandle ? `(${contract.brandHandle})` : ""}</p>
+            ${contract.campaignName ? `<p style="margin: 2px 0;"><strong>Campaign/Product:</strong> ${contract.campaignName}</p>` : ""}
+          </div>
+        </div>
+        ` : ""}
+
+        ${contract.creatorName ? `
+        <div style="margin-bottom: 20px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background-color: #fcfcfc;">
+          <h3 style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #666;">Creator Details</h3>
+          <div style="display: flex; gap: 40px; font-size: 13px;">
+            <p style="margin: 2px 0;"><strong>Creator:</strong> ${contract.creatorName} ${contract.creatorHandle ? `(${contract.creatorHandle})` : ""}</p>
+          </div>
+        </div>
+        ` : ""}
+
         <div style="margin-bottom: 20px;">
           <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px;">Campaign Deliverables</h3>
           <table style="width: 100%; border-collapse: collapse; font-size: 13px;">

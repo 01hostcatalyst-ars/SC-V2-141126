@@ -243,6 +243,31 @@ export default function PublicSigningPage({ params }: PageProps) {
                   <span className="text-gray-400 font-bold block mb-1">Contract ID</span>
                   <span className="font-black text-black">{contract.contractNumber}</span>
                 </div>
+                {contract.brandName && (
+                  <>
+                    <hr className="border-gray-50" />
+                    <div>
+                      <span className="text-gray-400 font-bold block mb-1">Client Brand</span>
+                      <span className="font-black text-black">
+                        {contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}
+                      </span>
+                      {contract.campaignName && (
+                        <span className="text-[10px] text-gray-500 block mt-0.5">Campaign: {contract.campaignName}</span>
+                      )}
+                    </div>
+                  </>
+                )}
+                {contract.creatorName && (
+                  <>
+                    <hr className="border-gray-50" />
+                    <div>
+                      <span className="text-gray-400 font-bold block mb-1">Creator</span>
+                      <span className="font-black text-black">
+                        {contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}
+                      </span>
+                    </div>
+                  </>
+                )}
                 <hr className="border-gray-50" />
                 <div>
                   <span className="text-gray-400 font-bold block mb-1">Total Valuation</span>
@@ -304,7 +329,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   <tbody>
                     {contract.deliverables?.map((d: any) => (
                       <tr key={d.id} className="text-black font-semibold border-b border-gray-50/50">
-                        <td className="py-1.5">{d.type}</td>
+                        <td className="py-1.5">{d.type.replace(/_/g, " ")}</td>
                         <td className="py-1.5 text-center">{d.quantity}</td>
                       </tr>
                     ))}

@@ -46,6 +46,11 @@ export default function NewContractPage() {
   // State mapping database schema fields
   const [contractType, setContractType] = useState(getDefaultContractType());
   const [linkedContractId, setLinkedContractId] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [brandHandle, setBrandHandle] = useState("");
+  const [campaignName, setCampaignName] = useState("");
+  const [creatorName, setCreatorName] = useState("");
+  const [creatorHandle, setCreatorHandle] = useState("");
   const [deliverables, setDeliverables] = useState<Deliverable[]>([
     { type: "REEL", quantity: 1, duration: "", notes: "" },
   ]);
@@ -176,6 +181,11 @@ export default function NewContractPage() {
     const payload = {
       contractType,
       linkedContractId: contractType === "AGENCY_TO_CREATOR" ? linkedContractId || undefined : undefined,
+      brandName: contractType === "AGENCY_TO_CREATOR" ? brandName || undefined : undefined,
+      brandHandle: contractType === "AGENCY_TO_CREATOR" ? brandHandle || undefined : undefined,
+      campaignName: contractType === "AGENCY_TO_CREATOR" ? campaignName || undefined : undefined,
+      creatorName: contractType === "AGENCY_TO_BRAND" ? creatorName || undefined : undefined,
+      creatorHandle: contractType === "AGENCY_TO_BRAND" ? creatorHandle || undefined : undefined,
       totalAmount: Number(totalAmount),
       advancePayment: advancePayment ? Number(advancePayment) : undefined,
       paymentMethod,
@@ -267,6 +277,72 @@ export default function NewContractPage() {
               </select>
             </div>
           )}
+
+          {contractType === "AGENCY_TO_CREATOR" && (
+            <div className="border-t border-gray-100 pt-4 mt-3 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Client Brand Details</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Brand Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Samsung"
+                    className="input-field"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Brand IG / Website</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. @samsungpk"
+                    className="input-field"
+                    value={brandHandle}
+                    onChange={(e) => setBrandHandle(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Campaign Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Galaxy S27 Launch"
+                    className="input-field"
+                    value={campaignName}
+                    onChange={(e) => setCampaignName(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {contractType === "AGENCY_TO_BRAND" && (
+            <div className="border-t border-gray-100 pt-4 mt-3 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Creator Details</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Creator Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Jane Doe"
+                    className="input-field"
+                    value={creatorName}
+                    onChange={(e) => setCreatorName(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Creator Handle</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. @janedoe"
+                    className="input-field"
+                    value={creatorHandle}
+                    onChange={(e) => setCreatorHandle(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -352,7 +428,16 @@ export default function NewContractPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-black uppercase tracking-wider">Duration (Optional)</label>
+                      <label className="flex items-center gap-1.5 text-xs font-bold text-black uppercase tracking-wider">
+                        Duration (Optional)
+                        <div className="group relative inline-block cursor-pointer">
+                          <span className="text-gray-400 hover:text-black text-[11px] font-normal transition-colors">ⓘ</span>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-900 text-white text-[11px] font-normal normal-case p-2.5 rounded-lg shadow-xl z-50 leading-relaxed text-center">
+                            How long the post must remain visible on the creator&apos;s profile before they are allowed to delete or archive it (e.g., 24 hours for a Story, or Permanent for a Reel/Post).
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                          </div>
+                        </div>
+                      </label>
                       <input
                         type="text"
                         placeholder="e.g. 24 hours, Permanent"
@@ -362,7 +447,16 @@ export default function NewContractPage() {
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-black uppercase tracking-wider">Instructions (Optional)</label>
+                      <label className="flex items-center gap-1.5 text-xs font-bold text-black uppercase tracking-wider">
+                        Instructions (Optional)
+                        <div className="group relative inline-block cursor-pointer">
+                          <span className="text-gray-400 hover:text-black text-[11px] font-normal transition-colors">ⓘ</span>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-900 text-white text-[11px] font-normal normal-case p-2.5 rounded-lg shadow-xl z-50 leading-relaxed text-center">
+                            Special rules or directions for the content (e.g., &quot;Put the discount link in your bio&quot; or &quot;Tag the brand logo in the first 3 seconds&quot;).
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                          </div>
+                        </div>
+                      </label>
                       <input
                         type="text"
                         placeholder="e.g. Include link in bio, Tag brand logo"

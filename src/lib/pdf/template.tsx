@@ -58,6 +58,25 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         </div>
       </div>
 
+      {contract.brandName && (
+        <div style={{ marginBottom: "20px", padding: "12px", border: "1px solid #ddd", borderRadius: "8px", backgroundColor: "#fcfcfc" }}>
+          <h3 style={{ margin: "0 0 8px 0", fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", color: "#666" }}>Client Brand & Campaign Info</h3>
+          <div style={{ display: "flex", gap: "40px", fontSize: "13px" }}>
+            <p style={{ margin: "2px 0" }}><strong>Brand:</strong> {contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</p>
+            {contract.campaignName && <p style={{ margin: "2px 0" }}><strong>Campaign/Product:</strong> {contract.campaignName}</p>}
+          </div>
+        </div>
+      )}
+
+      {contract.creatorName && (
+        <div style={{ marginBottom: "20px", padding: "12px", border: "1px solid #ddd", borderRadius: "8px", backgroundColor: "#fcfcfc" }}>
+          <h3 style={{ margin: "0 0 8px 0", fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", color: "#666" }}>Creator Details</h3>
+          <div style={{ display: "flex", gap: "40px", fontSize: "13px" }}>
+            <p style={{ margin: "2px 0" }}><strong>Creator:</strong> {contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}</p>
+          </div>
+        </div>
+      )}
+
       {/* Deliverables */}
       <div style={{ marginBottom: "20px" }}>
         <h3 style={{ fontSize: "14px", fontWeight: "bold", borderBottom: "1px solid #eee", paddingBottom: "6px", marginBottom: "10px" }}>Campaign Deliverables</h3>

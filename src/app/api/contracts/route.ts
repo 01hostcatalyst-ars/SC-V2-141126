@@ -21,6 +21,11 @@ export async function POST(req: Request) {
     const {
       contractType,
       linkedContractId,
+      brandName,
+      brandHandle,
+      campaignName,
+      creatorName,
+      creatorHandle,
       totalAmount,
       advancePayment,
       paymentMethod,
@@ -56,6 +61,11 @@ export async function POST(req: Request) {
         contractType,
         initiatorId: dbUser.id,
         linkedContractId: contractType === ContractType.AGENCY_TO_CREATOR ? linkedContractId : undefined,
+        brandName: contractType === ContractType.AGENCY_TO_CREATOR ? brandName : undefined,
+        brandHandle: contractType === ContractType.AGENCY_TO_CREATOR ? brandHandle : undefined,
+        campaignName: contractType === ContractType.AGENCY_TO_CREATOR ? campaignName : undefined,
+        creatorName: contractType === ContractType.AGENCY_TO_BRAND ? creatorName : undefined,
+        creatorHandle: contractType === ContractType.AGENCY_TO_BRAND ? creatorHandle : undefined,
         totalAmount,
         advancePayment,
         remainingAmount,
@@ -75,7 +85,12 @@ export async function POST(req: Request) {
         contentOwnership,
         taggingRequirements,
         deliverables: {
-          create: deliverables,
+          create: deliverables.map((d: any) => ({
+            type: d.type,
+            quantity: d.quantity,
+            duration: d.duration || undefined,
+            notes: d.notes || undefined,
+          })),
         },
       },
     });

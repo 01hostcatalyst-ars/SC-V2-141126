@@ -68,7 +68,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         remainingAmount: Number(updateData.totalAmount) - (Number(updateData.advancePayment) || 0),
         deliverables: deliverables ? {
           deleteMany: {},
-          create: deliverables,
+          create: deliverables.map((d: any) => ({
+            type: d.type,
+            quantity: d.quantity,
+            duration: d.duration || undefined,
+            notes: d.notes || undefined,
+          })),
         } : undefined,
       },
       include: {

@@ -304,6 +304,31 @@ export default function ContractDetailPage({ params }: PageProps) {
                 <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Contract Type</span>
                 <span className="text-black font-bold uppercase">{contract.contractType.replace(/_/g, " ")}</span>
               </div>
+              {contract.brandName && (
+                <>
+                  <hr className="border-gray-50" />
+                  <div>
+                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Client Brand</span>
+                    <span className="text-black font-bold">
+                      {contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}
+                    </span>
+                    {contract.campaignName && (
+                      <span className="text-[10px] text-gray-400 block mt-0.5 font-bold uppercase">Campaign: {contract.campaignName}</span>
+                    )}
+                  </div>
+                </>
+              )}
+              {contract.creatorName && (
+                <>
+                  <hr className="border-gray-50" />
+                  <div>
+                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Creator</span>
+                    <span className="text-black font-bold">
+                      {contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}
+                    </span>
+                  </div>
+                </>
+              )}
               <hr className="border-gray-50" />
               <div>
                 <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Platforms Allowed</span>
@@ -391,7 +416,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                 <tbody>
                   {contract.deliverables?.map((d: any) => (
                     <tr key={d.id} className="border-b border-gray-50 text-black">
-                      <td className="py-3 font-bold">{d.type}</td>
+                      <td className="py-3 font-bold">{d.type.replace(/_/g, " ")}</td>
                       <td className="py-3 font-bold text-center">{d.quantity}</td>
                       <td className="py-3 font-bold text-center text-gray-500">{d.duration || "Permanent"}</td>
                       <td className="py-3 text-gray-500">{d.notes || "No notes"}</td>
