@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import crypto from "crypto";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 
 export async function generateContractPDF(contractId: string): Promise<{ path: string; buffer: Buffer }> {
@@ -210,7 +210,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
   // 5. Upload document to Supabase storage
   const filePath = `agreements/${contractId}.pdf`;
-  const { data: uploadData, error: uploadError } = await supabase.storage
+  const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
     .from("profiles")
     .upload(filePath, pdfBuffer, {
       contentType: "application/pdf",

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/supabase/server";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { generateContractPDF } from "@/lib/pdf/generate";
 
@@ -42,7 +42,7 @@ export async function GET(
     }
 
     // Retrieve temporary signed download URL from Supabase Storage
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseAdmin.storage
       .from("profiles")
       .createSignedUrl(contract.pdfUrl, 60); // valid for 60 seconds
 
