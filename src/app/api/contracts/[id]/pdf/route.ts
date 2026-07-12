@@ -24,17 +24,15 @@ export async function GET(
       return NextResponse.json({ error: "Contract not found" }, { status: 404 });
     }
 
-    // Generate PDF on the fly if not generated previously and contract is active/completed
-    if (!contract.pdfUrl && (contract.status === "ACTIVE" || contract.status === "COMPLETED")) {
-      try {
-        await generateContractPDF(contract.id);
-        contract = await prisma.contract.findUnique({
-          where: { id },
-        });
-      } catch (pdfErr: any) {
-        console.error("Failed to generate PDF on the fly:", pdfErr);
-        return NextResponse.json({ error: "Failed to generate PDF on the fly: " + pdfErr.message }, { status: 500 });
-      }
+    // Always regenerate PDF on-demand to guarantee the latest 11-section legal design is served
+    try {
+      await generateContractPDF(contract.id);
+      contract = await prisma.contract.findUnique({
+        where: { id },
+      });
+    } catch (pdfErr: any) {
+      console.error("Failed to generate PDF on-demand:", pdfErr);
+      return NextResponse.json({ error: "Failed to generate PDF document: " + pdfErr.message }, { status: 500 });
     }
 
     if (!contract || !contract.pdfUrl) {
