@@ -173,10 +173,10 @@ model Contract {
   creatorHandle         String?        @map("creator_handle")
 
   // Collaboration Product details
-  collabProduct          String?        @map("collab_product")
-  collabProductQty       Int?           @map("collab_product_qty")
-  collabDeliveryAddress  String?        @map("collab_delivery_address")
-  collabDeliveryDate     DateTime?      @map("collab_delivery_date")
+  collabProduct                String?        @map("collab_product")
+  collabProductProvisionType   String?        @map("collab_product_provision_type")
+  collabDeliveryAddress        String?        @map("collab_delivery_address")
+  collabDeliveryDate           DateTime?      @map("collab_delivery_date")
 
   deliverables          Deliverable[]
   signatures            Signature[]

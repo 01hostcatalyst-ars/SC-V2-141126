@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       taggingRequirements,
       deliverables, // Array of { type, quantity, duration, notes }
       collabProduct,
-      collabProductQty,
+      collabProductProvisionType,
       collabDeliveryAddress,
       collabDeliveryDate,
     } = await req.json();
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
         contentOwnership,
         taggingRequirements,
         collabProduct,
-        collabProductQty: collabProductQty ? Number(collabProductQty) : undefined,
+        collabProductProvisionType,
         collabDeliveryAddress,
         collabDeliveryDate: collabDeliveryDate ? new Date(collabDeliveryDate) : undefined,
         deliverables: {

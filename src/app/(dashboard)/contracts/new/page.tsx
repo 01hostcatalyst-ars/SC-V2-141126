@@ -83,7 +83,7 @@ export default function NewContractPage() {
   );
   const [taggingRequirements, setTaggingRequirements] = useState("");
   const [collabProduct, setCollabProduct] = useState("");
-  const [collabProductQty, setCollabProductQty] = useState("");
+  const [collabProductProvisionType, setCollabProductProvisionType] = useState("Product Provision");
   const [collabDeliveryAddress, setCollabDeliveryAddress] = useState("");
   const [collabDeliveryDate, setCollabDeliveryDate] = useState("");
 
@@ -209,7 +209,7 @@ export default function NewContractPage() {
       creatorName: contractType === "AGENCY_TO_BRAND" ? creatorName || undefined : undefined,
       creatorHandle: contractType === "AGENCY_TO_BRAND" ? creatorHandle || undefined : undefined,
       collabProduct: collabProduct || undefined,
-      collabProductQty: collabProductQty ? Number(collabProductQty) : undefined,
+      collabProductProvisionType: collabProductProvisionType || undefined,
       collabDeliveryAddress: collabDeliveryAddress || undefined,
       collabDeliveryDate: collabDeliveryDate || undefined,
       totalAmount: Number(totalAmount),
@@ -759,7 +759,7 @@ export default function NewContractPage() {
               <h4 className="text-xs font-bold uppercase tracking-wider text-black">Collaboration Product Shipment (Optional)</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-400">Product Name / Description</label>
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Product Name, Description and Qty</label>
                   <input
                     type="text"
                     placeholder="e.g. Samsung Galaxy S27 Ultra"
@@ -769,15 +769,23 @@ export default function NewContractPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-400">Quantity</label>
-                  <input
-                    type="number"
-                    min={1}
-                    placeholder="1"
-                    className="input-field"
-                    value={collabProductQty}
-                    onChange={(e) => setCollabProductQty(e.target.value)}
-                  />
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Provision Type</label>
+                  <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-full">
+                    <button
+                      type="button"
+                      onClick={() => setCollabProductProvisionType("Product Loan")}
+                      className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${collabProductProvisionType === "Product Loan" ? "bg-black text-white shadow" : "text-gray-500 hover:text-black"}`}
+                    >
+                      Product Loan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCollabProductProvisionType("Product Provision")}
+                      className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${collabProductProvisionType === "Product Provision" ? "bg-black text-white shadow" : "text-gray-500 hover:text-black"}`}
+                    >
+                      Product Provision
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -896,7 +904,7 @@ export default function NewContractPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
                     <span className="font-semibold text-gray-500 block">Product:</span>
-                    <span className="font-bold text-black">{collabProduct} {collabProductQty && `(Qty: ${collabProductQty})`}</span>
+                    <span className="font-bold text-black">{collabProduct} ({collabProductProvisionType})</span>
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Expected Arrival:</span>

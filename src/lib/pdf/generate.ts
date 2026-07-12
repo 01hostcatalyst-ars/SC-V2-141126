@@ -144,7 +144,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         ${contract.collabProduct ? `
         <div style="margin-bottom: 20px;">
           <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px;">Collaboration Product Shipment</h3>
-          <p style="margin: 4px 0;"><strong>Product:</strong> ${contract.collabProduct} ${contract.collabProductQty ? `(Quantity: ${contract.collabProductQty})` : ""}</p>
+          <p style="margin: 4px 0;"><strong>Product:</strong> ${contract.collabProduct} (${contract.collabProductProvisionType || "Not Specified"})</p>
           ${contract.collabDeliveryDate ? `<p style="margin: 4px 0;"><strong>Expected Arrival Date:</strong> ${new Date(contract.collabDeliveryDate).toLocaleDateString()}</p>` : ""}
           ${contract.collabDeliveryAddress ? `<p style="margin: 4px 0;"><strong>Delivery Address:</strong> ${contract.collabDeliveryAddress}</p>` : ""}
         </div>

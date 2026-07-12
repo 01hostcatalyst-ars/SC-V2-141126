@@ -365,7 +365,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <hr className="border-gray-50" />
                     <div>
                       <span className="text-gray-400 font-bold block mb-1">Collaboration Product</span>
-                      <span className="font-black text-black block">{contract.collabProduct} {contract.collabProductQty && `(Qty: ${contract.collabProductQty})`}</span>
+                      <span className="font-black text-black block">{contract.collabProduct} ({contract.collabProductProvisionType})</span>
                     </div>
                   </>
                 )}

@@ -463,7 +463,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                 <div>
                   <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Product details</span>
                   <span className="text-black font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 block">
-                    {contract.collabProduct} {contract.collabProductQty && `(Qty: ${contract.collabProductQty})`}
+                    {contract.collabProduct} ({contract.collabProductProvisionType})
                   </span>
                 </div>
                 <div>
