@@ -317,6 +317,27 @@ export default function PublicSigningPage({ params }: PageProps) {
                   <span className="text-gray-400 font-bold block mb-1">Platforms</span>
                   <span className="font-black text-black uppercase">{contract.platformsAllowed.join(", ")}</span>
                 </div>
+                <hr className="border-gray-50" />
+                <div>
+                  <span className="text-gray-400 font-bold block mb-1">Usage Scope</span>
+                  <span className="font-black text-black">{formatUsageType(contract.usageType)}</span>
+                </div>
+                <hr className="border-gray-50" />
+                <div>
+                  <span className="text-gray-400 font-bold block mb-1">Usage Duration</span>
+                  <span className="font-black text-black">{contract.usageRightsDuration}</span>
+                </div>
+                <hr className="border-gray-50" />
+                <div>
+                  <span className="text-gray-400 font-bold block mb-1">Payment Method</span>
+                  <span className="font-black text-black uppercase">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
+                  {(contract.paymentMethod === "BANK_IBAN" && contract.bankAccountIban) && (
+                    <span className="text-[10px] text-gray-500 block mt-1 truncate font-mono">{contract.bankAccountIban}</span>
+                  )}
+                  {(contract.paymentMethod !== "BANK_IBAN" && contract.mobileWalletNumber) && (
+                    <span className="text-[10px] text-gray-500 block mt-1 truncate font-mono">{contract.mobileWalletNumber}</span>
+                  )}
+                </div>
                 {contract.exclusivityClause && (
                   <>
                     <hr className="border-gray-50" />
