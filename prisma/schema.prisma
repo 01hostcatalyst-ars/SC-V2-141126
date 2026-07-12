@@ -140,13 +140,21 @@ model Contract {
   revisionRounds        Int            @default(1) @map("revision_rounds")
   brandApprovalRequired Boolean        @default(false) @map("brand_approval_required")
 
-  // Exclusivity
-  exclusivityClause     Boolean        @default(false) @map("exclusivity_clause")
-  exclusivityDuration   String?        @map("exclusivity_duration")
+  // Exclusivity & NDA
+  exclusivityClause           Boolean        @default(false) @map("exclusivity_clause")
+  exclusivityDuration         String?        @map("exclusivity_duration")
+  exclusivityCompetitors      String?        @map("exclusivity_competitors")
+  confidentialityRequired     Boolean        @default(false) @map("confidentiality_required")
+  embargoDate                 DateTime?      @map("embargo_date")
+  earlyDisclosurePenalty      Decimal?       @map("early_disclosure_penalty")
 
-  // Bilateral Penalties
-  latePaymentPenaltyPct Decimal        @default(3) @map("late_payment_penalty_pct")
-  lateContentPenaltyPct Decimal        @default(3) @map("late_content_penalty_pct")
+  // Bilateral Penalties & Safeguards
+  latePaymentPenaltyPct       Decimal        @default(3) @map("late_payment_penalty_pct")
+  lateContentPenaltyPct       Decimal        @default(3) @map("late_content_penalty_pct")
+  unauthorizedUsagePenaltyPct Decimal        @default(50) @map("unauthorized_usage_penalty_pct")
+  advanceRefundable           Boolean        @default(true) @map("advance_refundable")
+  advanceRefundTimeframeDays  Int            @default(7) @map("advance_refund_timeframe_days")
+  cancellationFeePct          Decimal        @default(25) @map("cancellation_fee_pct")
 
   // Content & Tagging
   contentOwnership      String         @default("Creator retains copyright; brand receives usage license as defined.") @map("content_ownership")

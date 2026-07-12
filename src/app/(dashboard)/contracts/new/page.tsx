@@ -76,8 +76,16 @@ export default function NewContractPage() {
   const [brandApprovalRequired, setBrandApprovalRequired] = useState(false);
   const [exclusivityClause, setExclusivityClause] = useState(false);
   const [exclusivityDuration, setExclusivityDuration] = useState("");
+  const [exclusivityCompetitors, setExclusivityCompetitors] = useState("");
+  const [confidentialityRequired, setConfidentialityRequired] = useState(false);
+  const [embargoDate, setEmbargoDate] = useState("");
+  const [earlyDisclosurePenalty, setEarlyDisclosurePenalty] = useState("");
   const [latePaymentPenaltyPct, setLatePaymentPenaltyPct] = useState("3");
   const [lateContentPenaltyPct, setLateContentPenaltyPct] = useState("3");
+  const [unauthorizedUsagePenaltyPct, setUnauthorizedUsagePenaltyPct] = useState("50");
+  const [advanceRefundable, setAdvanceRefundable] = useState(true);
+  const [advanceRefundTimeframeDays, setAdvanceRefundTimeframeDays] = useState("7");
+  const [cancellationFeePct, setCancellationFeePct] = useState("25");
   const [contentOwnership, setContentOwnership] = useState(
     "Creator retains copyright; brand receives usage license as defined."
   );
@@ -227,8 +235,16 @@ export default function NewContractPage() {
       brandApprovalRequired,
       exclusivityClause,
       exclusivityDuration: exclusivityClause ? exclusivityDuration : undefined,
+      exclusivityCompetitors: exclusivityClause ? exclusivityCompetitors : undefined,
+      confidentialityRequired,
+      embargoDate: confidentialityRequired && embargoDate ? embargoDate : undefined,
+      earlyDisclosurePenalty: confidentialityRequired && earlyDisclosurePenalty ? Number(earlyDisclosurePenalty) : undefined,
       latePaymentPenaltyPct: Number(latePaymentPenaltyPct),
       lateContentPenaltyPct: Number(lateContentPenaltyPct),
+      unauthorizedUsagePenaltyPct: Number(unauthorizedUsagePenaltyPct),
+      advanceRefundable,
+      advanceRefundTimeframeDays: Number(advanceRefundTimeframeDays),
+      cancellationFeePct: Number(cancellationFeePct),
       contentOwnership,
       taggingRequirements,
       deliverables,
@@ -731,17 +747,71 @@ export default function NewContractPage() {
             </div>
 
             {exclusivityClause && (
-              <div className="flex flex-col gap-1 mt-4">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Exclusivity Duration</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 1 month from delivery"
-                  className="input-field"
-                  value={exclusivityDuration}
-                  onChange={(e) => setExclusivityDuration(e.target.value)}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-black uppercase tracking-wider">Exclusivity Duration</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 30 days post-campaign"
+                    className="input-field"
+                    value={exclusivityDuration}
+                    onChange={(e) => setExclusivityDuration(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-black uppercase tracking-wider">Restricted Competitors / Categories</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Apple, OnePlus, Android Smartphones"
+                    className="input-field"
+                    value={exclusivityCompetitors}
+                    onChange={(e) => setExclusivityCompetitors(e.target.value)}
+                  />
+                </div>
               </div>
             )}
+
+            {/* Confidentiality & Pre-Launch NDA Clause */}
+            <div className="border-t border-gray-100 pt-6 mt-4 space-y-4">
+              <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 select-none">
+                <input
+                  type="checkbox"
+                  checked={confidentialityRequired}
+                  onChange={(e) => setConfidentialityRequired(e.target.checked)}
+                  className="w-4 h-4 accent-black"
+                />
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-bold text-black">Confidentiality / Pre-Launch NDA Clause</span>
+                  <span className="text-[10px] text-gray-400">Strictly prohibits early disclosure or leaking unreleased product info before official launch.</span>
+                </div>
+              </label>
+
+              {confidentialityRequired && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">Embargo / Launch Date</label>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={embargoDate}
+                      onChange={(e) => setEmbargoDate(e.target.value)}
+                    />
+                    <span className="text-[10px] text-gray-400">Creator cannot post or disclose product before this date.</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">Early Disclosure Penalty (PKR)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 50000"
+                      className="input-field"
+                      value={earlyDisclosurePenalty}
+                      onChange={(e) => setEarlyDisclosurePenalty(e.target.value.replace(/\D/g, ""))}
+                    />
+                    <span className="text-[10px] text-gray-400">Fine owed if product/content is leaked prior to embargo date.</span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="flex flex-col gap-1 mt-4">
               <label className="text-xs font-bold text-black uppercase tracking-wider">Tagging / Caption Requirements (Optional)</label>
@@ -829,7 +899,7 @@ export default function NewContractPage() {
             <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Bilateral Safeguard Penalties</h3>
             
             <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 leading-relaxed font-semibold">
-              ⚖️ Bilateral safeguards protect both parties equally. These penalties apply per calendar day of delay.
+              ⚖️ Bilateral safeguards protect both parties equally across payment delays, content delivery delays, unauthorized content usage, advance refunds, and pre-delivery cancellations.
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -842,7 +912,7 @@ export default function NewContractPage() {
                   value={latePaymentPenaltyPct}
                   onChange={(e) => setLatePaymentPenaltyPct(e.target.value)}
                 />
-                <span className="text-[10px] text-gray-400">Paid by Brand if payment is delayed (default 3%).</span>
+                <span className="text-[10px] text-gray-400">Paid by Brand per day if payment is delayed (default 3%).</span>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">Late Content Penalty (%)</label>
@@ -853,7 +923,64 @@ export default function NewContractPage() {
                   value={lateContentPenaltyPct}
                   onChange={(e) => setLateContentPenaltyPct(e.target.value)}
                 />
-                <span className="text-[10px] text-gray-400">Paid by Creator if delivery is delayed (default 3%).</span>
+                <span className="text-[10px] text-gray-400">Paid by Creator per day if delivery is delayed (default 3%).</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-black uppercase tracking-wider">Unauthorized Usage Penalty (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="input-field"
+                  value={unauthorizedUsagePenaltyPct}
+                  onChange={(e) => setUnauthorizedUsagePenaltyPct(e.target.value)}
+                />
+                <span className="text-[10px] text-gray-400">Fee charged to Brand per violation if content is used outside agreed platforms, category, or duration (default 50%).</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-black uppercase tracking-wider">Pre-Delivery Cancellation Fee (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="input-field"
+                  value={cancellationFeePct}
+                  onChange={(e) => setCancellationFeePct(e.target.value)}
+                />
+                <span className="text-[10px] text-gray-400">Owed if either party cancels contract after execution but before content delivery (default 25%).</span>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 pt-6 mt-4 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Advance Refund Terms (Non-Delivery Protection)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 select-none">
+                  <input
+                    type="checkbox"
+                    checked={advanceRefundable}
+                    onChange={(e) => setAdvanceRefundable(e.target.checked)}
+                    className="w-4 h-4 accent-black"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-bold text-black">Advance Refundable on Non-Delivery</span>
+                    <span className="text-[10px] text-gray-400">Requires creator/agency to return advance payout if deliverables are not provided.</span>
+                  </div>
+                </label>
+
+                {advanceRefundable && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">Refund Timeframe (Business Days)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      className="input-field"
+                      value={advanceRefundTimeframeDays}
+                      onChange={(e) => setAdvanceRefundTimeframeDays(e.target.value)}
+                    />
+                    <span className="text-[10px] text-gray-400">Days allowed for refunding advance payout following non-delivery notice.</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -893,7 +1020,57 @@ export default function NewContractPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-gray-500">Exclusivity:</span>
-                  <span className="font-bold text-black">{exclusivityClause ? exclusivityDuration || "Yes" : "No"}</span>
+                  <span className="font-bold text-black">{exclusivityClause ? (exclusivityDuration ? `${exclusivityDuration}` : "Active") : "No"}</span>
+                </div>
+                {exclusivityClause && exclusivityCompetitors && (
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-500">Restricted Competitors:</span>
+                    <span className="font-bold text-black truncate max-w-[180px]" title={exclusivityCompetitors}>{exclusivityCompetitors}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2">
+                <span className="text-gray-400 font-bold uppercase tracking-wider block">Confidentiality / Pre-Launch NDA</span>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-500">NDA Status:</span>
+                  <span className="font-bold text-black">{confidentialityRequired ? "Strict NDA Active" : "Standard Confidentiality"}</span>
+                </div>
+                {confidentialityRequired && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-gray-500">Embargo / Launch Date:</span>
+                      <span className="font-bold text-black">{embargoDate ? new Date(embargoDate).toLocaleDateString() : "Required until launch"}</span>
+                    </div>
+                    {earlyDisclosurePenalty && (
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-gray-500">Early Disclosure Penalty:</span>
+                        <span className="font-bold text-black">PKR {Number(earlyDisclosurePenalty).toLocaleString()}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2">
+                <span className="text-gray-400 font-bold uppercase tracking-wider block">Bilateral Safeguard Penalties</span>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-500">Late Payment / Delivery:</span>
+                  <span className="font-bold text-black">{latePaymentPenaltyPct}% / {lateContentPenaltyPct}% per day</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-500">Unauthorized Brand Usage:</span>
+                  <span className="font-bold text-black">{unauthorizedUsagePenaltyPct}% of fee</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-500">Non-Delivery Advance Refund:</span>
+                  <span className="font-bold text-black">{advanceRefundable ? `Yes (within ${advanceRefundTimeframeDays} days)` : "No"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-500">Pre-Delivery Cancellation Fee:</span>
+                  <span className="font-bold text-black">{cancellationFeePct}%</span>
                 </div>
               </div>
             </div>

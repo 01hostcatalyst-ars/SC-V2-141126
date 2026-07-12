@@ -131,14 +131,23 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         {contract.mobileWalletNumber && <p style={{ margin: "4px 0" }}><strong>Mobile Wallet Account:</strong> {contract.mobileWalletNumber}</p>}
       </div>
 
-      {/* Revision & Penalties */}
+      {/* Revision, Safeguards & Penalties */}
       <div style={{ marginBottom: "20px" }}>
-        <h3 style={{ fontSize: "14px", fontWeight: "bold", borderBottom: "1px solid #eee", paddingBottom: "6px", marginBottom: "10px" }}>Delivery Terms & Penalties</h3>
+        <h3 style={{ fontSize: "14px", fontWeight: "bold", borderBottom: "1px solid #eee", paddingBottom: "6px", marginBottom: "10px" }}>Delivery Terms, Safeguards & Penalties</h3>
         <p style={{ margin: "4px 0" }}><strong>Delivery Deadline:</strong> {contract.deliveryTimeframeDays} Days after mutual execution</p>
         <p style={{ margin: "4px 0" }}><strong>Revision Rounds Included:</strong> {contract.revisionRounds} rounds</p>
-        <p style={{ margin: "4px 0" }}><strong>Late Payment Penalty (Charged to Brand):</strong> {contract.latePaymentPenaltyPct}% per day delay</p>
-        <p style={{ margin: "4px 0" }}><strong>Late Delivery Penalty (Charged to Creator):</strong> {contract.lateContentPenaltyPct}% per day delay</p>
-        <p style={{ margin: "4px 0" }}><strong>Content Exclusivity:</strong> {contract.exclusivityClause ? `Required (${contract.exclusivityDuration})` : "Not Required"}</p>
+        <p style={{ margin: "4px 0" }}><strong>Late Payment Penalty (Charged to Brand):</strong> {Number(contract.latePaymentPenaltyPct)}% per day delay</p>
+        <p style={{ margin: "4px 0" }}><strong>Late Delivery Penalty (Charged to Creator):</strong> {Number(contract.lateContentPenaltyPct)}% per day delay</p>
+        <p style={{ margin: "4px 0" }}><strong>Unauthorized Brand Usage Penalty:</strong> {Number(contract.unauthorizedUsagePenaltyPct || 50)}% of total contract fee per violation outside agreed platforms/duration/scope</p>
+        <p style={{ margin: "4px 0" }}><strong>Non-Delivery Advance Refund:</strong> {contract.advanceRefundable !== false ? `Advance Payout is 100% Refundable within ${contract.advanceRefundTimeframeDays || 7} business days of non-delivery notice` : "Non-refundable advance"}</p>
+        <p style={{ margin: "4px 0" }}><strong>Pre-Delivery Cancellation Fee:</strong> {Number(contract.cancellationFeePct || 25)}% of total fee owed if terminated after execution prior to content delivery</p>
+        
+        <p style={{ margin: "4px 0" }}><strong>Content Exclusivity:</strong> {contract.exclusivityClause ? `Required (${contract.exclusivityDuration || "Active"})${contract.exclusivityCompetitors ? ` - Restricted Competitors: ${contract.exclusivityCompetitors}` : ""}` : "Not Required"}</p>
+
+        {contract.confidentialityRequired && (
+          <p style={{ margin: "4px 0" }}><strong>Confidentiality / Product Embargo (NDA):</strong> Strictly confidential until {contract.embargoDate ? new Date(contract.embargoDate).toLocaleDateString() : "official launch"}. {contract.earlyDisclosurePenalty ? `Early disclosure penalty: PKR ${Number(contract.earlyDisclosurePenalty).toLocaleString()}` : ""}</p>
+        )}
+
         <p style={{ margin: "4px 0" }}><strong>Copyright Terms:</strong> {contract.contentOwnership}</p>
       </div>
 

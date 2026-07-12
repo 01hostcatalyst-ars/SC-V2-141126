@@ -367,8 +367,46 @@ export default function ContractDetailPage({ params }: PageProps) {
               </div>
               <hr className="border-gray-50" />
               <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Bilateral Penalties</span>
-                <span className="text-black font-bold">Payment: {contract.latePaymentPenaltyPct}%/day | Content: {contract.lateContentPenaltyPct}%/day</span>
+                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Exclusivity Clause</span>
+                <span className="text-black font-bold">
+                  {contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "Not Required"}
+                </span>
+                {contract.exclusivityClause && contract.exclusivityCompetitors && (
+                  <span className="text-[10px] text-gray-500 font-semibold block mt-0.5">
+                    Prohibited: {contract.exclusivityCompetitors}
+                  </span>
+                )}
+              </div>
+              {contract.confidentialityRequired && (
+                <>
+                  <hr className="border-gray-50" />
+                  <div>
+                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Confidentiality / Product NDA</span>
+                    <span className="text-amber-800 uppercase bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-bold inline-block">
+                      Strict NDA Active
+                    </span>
+                    {contract.embargoDate && (
+                      <span className="text-[10px] text-gray-500 font-semibold block mt-1">
+                        Embargo Until: {new Date(contract.embargoDate).toLocaleDateString()}
+                      </span>
+                    )}
+                    {contract.earlyDisclosurePenalty && (
+                      <span className="text-[10px] text-rose-600 font-bold block mt-0.5">
+                        Early Leak Fine: PKR {Number(contract.earlyDisclosurePenalty).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
+              <hr className="border-gray-50" />
+              <div>
+                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Bilateral Safeguards & Penalties</span>
+                <div className="text-[11px] text-black font-medium space-y-1 mt-1">
+                  <div>• Late Payment: <strong>{Number(contract.latePaymentPenaltyPct)}%/day</strong> | Late Content: <strong>{Number(contract.lateContentPenaltyPct)}%/day</strong></div>
+                  <div>• Brand Unauthorized Usage: <strong>{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of total fee</strong></div>
+                  <div>• Non-Delivery Advance Refund: <strong>{contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</strong></div>
+                  <div>• Pre-Delivery Cancellation Fee: <strong>{Number(contract.cancellationFeePct || 25)}% of fee</strong></div>
+                </div>
               </div>
             </div>
           </div>

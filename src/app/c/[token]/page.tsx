@@ -346,9 +346,45 @@ export default function PublicSigningPage({ params }: PageProps) {
                       <span className="font-black text-rose-800 uppercase bg-rose-50 border border-rose-200 px-2 py-0.5 rounded text-[10px] w-fit font-bold block mt-1">
                         Active ({contract.exclusivityDuration || "Not Specified"})
                       </span>
+                      {contract.exclusivityCompetitors && (
+                        <span className="text-[10px] text-gray-500 block mt-1 font-semibold">
+                          Prohibited: {contract.exclusivityCompetitors}
+                        </span>
+                      )}
                     </div>
                   </>
                 )}
+                {contract.confidentialityRequired && (
+                  <>
+                    <hr className="border-gray-50" />
+                    <div>
+                      <span className="text-gray-400 font-bold block mb-1">Confidentiality / Product Embargo (NDA)</span>
+                      <span className="font-black text-amber-800 uppercase bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[10px] w-fit font-bold block mt-1">
+                        Strict NDA Active
+                      </span>
+                      {contract.embargoDate && (
+                        <span className="text-[10px] text-gray-500 block mt-1 font-semibold">
+                          Embargo Until: {new Date(contract.embargoDate).toLocaleDateString()}
+                        </span>
+                      )}
+                      {contract.earlyDisclosurePenalty && (
+                        <span className="text-[10px] text-rose-600 block mt-0.5 font-bold">
+                          Early Leak Fine: PKR {Number(contract.earlyDisclosurePenalty).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  </>
+                )}
+                <hr className="border-gray-50" />
+                <div>
+                  <span className="text-gray-400 font-bold block mb-1">Bilateral Safeguard Penalties</span>
+                  <div className="text-[10px] text-gray-600 space-y-1 font-semibold mt-1">
+                    <div>• Late Payment / Delivery: {Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day</div>
+                    <div>• Unauthorized Brand Usage Penalty: {Number(contract.unauthorizedUsagePenaltyPct || 50)}% of fee</div>
+                    <div>• Advance Payout Refund: {contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</div>
+                    <div>• Pre-Delivery Cancellation Fee: {Number(contract.cancellationFeePct || 25)}% of total fee</div>
+                  </div>
+                </div>
                 {contract.brandApprovalRequired && (
                   <>
                     <hr className="border-gray-50" />
