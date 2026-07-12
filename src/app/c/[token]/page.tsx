@@ -360,6 +360,33 @@ export default function PublicSigningPage({ params }: PageProps) {
                     </div>
                   </>
                 )}
+                {contract.collabProduct && (
+                  <>
+                    <hr className="border-gray-50" />
+                    <div>
+                      <span className="text-gray-400 font-bold block mb-1">Collaboration Product</span>
+                      <span className="font-black text-black block">{contract.collabProduct} {contract.collabProductQty && `(Qty: ${contract.collabProductQty})`}</span>
+                    </div>
+                  </>
+                )}
+                {contract.collabDeliveryDate && (
+                  <>
+                    <hr className="border-gray-50" />
+                    <div>
+                      <span className="text-gray-400 font-bold block mb-1">Expected Arrival</span>
+                      <span className="font-black text-black">{new Date(contract.collabDeliveryDate).toLocaleDateString()}</span>
+                    </div>
+                  </>
+                )}
+                {contract.collabDeliveryAddress && (
+                  <>
+                    <hr className="border-gray-50" />
+                    <div>
+                      <span className="text-gray-400 font-bold block mb-1">Delivery Address</span>
+                      <span className="text-[10px] text-gray-500 block leading-relaxed font-semibold">{contract.collabDeliveryAddress}</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Deliverables display */}

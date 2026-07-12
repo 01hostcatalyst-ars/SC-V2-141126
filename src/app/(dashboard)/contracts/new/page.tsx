@@ -82,6 +82,10 @@ export default function NewContractPage() {
     "Creator retains copyright; brand receives usage license as defined."
   );
   const [taggingRequirements, setTaggingRequirements] = useState("");
+  const [collabProduct, setCollabProduct] = useState("");
+  const [collabProductQty, setCollabProductQty] = useState("");
+  const [collabDeliveryAddress, setCollabDeliveryAddress] = useState("");
+  const [collabDeliveryDate, setCollabDeliveryDate] = useState("");
 
   // Load parent contracts for agency linking
   useEffect(() => {
@@ -192,7 +196,7 @@ export default function NewContractPage() {
     }
   };
 
-  const handleBack = () => setStep((prev) => Math.max(prev - 0, prev - 1));
+  const handleBack = () => setStep((prev) => Math.max(0, prev - 1));
 
   const handleCreate = async () => {
     setLoading(true);
@@ -204,6 +208,10 @@ export default function NewContractPage() {
       campaignName: contractType === "AGENCY_TO_CREATOR" ? campaignName || undefined : undefined,
       creatorName: contractType === "AGENCY_TO_BRAND" ? creatorName || undefined : undefined,
       creatorHandle: contractType === "AGENCY_TO_BRAND" ? creatorHandle || undefined : undefined,
+      collabProduct: collabProduct || undefined,
+      collabProductQty: collabProductQty ? Number(collabProductQty) : undefined,
+      collabDeliveryAddress: collabDeliveryAddress || undefined,
+      collabDeliveryDate: collabDeliveryDate || undefined,
       totalAmount: Number(totalAmount),
       advancePayment: advancePayment ? Number(advancePayment) : undefined,
       paymentMethod,
@@ -746,6 +754,55 @@ export default function NewContractPage() {
               />
             </div>
 
+            {/* Collaboration Product Details (Optional) */}
+            <div className="border-t border-gray-100 pt-6 mt-4 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Collaboration Product Shipment (Optional)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Product Name / Description</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Samsung Galaxy S27 Ultra"
+                    className="input-field"
+                    value={collabProduct}
+                    onChange={(e) => setCollabProduct(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Quantity</label>
+                  <input
+                    type="number"
+                    min={1}
+                    placeholder="1"
+                    className="input-field"
+                    value={collabProductQty}
+                    onChange={(e) => setCollabProductQty(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Delivery Address</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 123 Brand Ave, Suite 400"
+                    className="input-field"
+                    value={collabDeliveryAddress}
+                    onChange={(e) => setCollabDeliveryAddress(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Expected Arrival Date</label>
+                  <input
+                    type="date"
+                    className="input-field"
+                    value={collabDeliveryDate}
+                    onChange={(e) => setCollabDeliveryDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="flex flex-col gap-1 mt-4">
               <label className="text-xs font-bold text-black uppercase tracking-wider">Content Ownership Clause</label>
               <textarea
@@ -832,6 +889,28 @@ export default function NewContractPage() {
                 </div>
               </div>
             </div>
+
+            {collabProduct && (
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
+                <span className="text-gray-400 font-bold uppercase tracking-wider block">Collaboration Product Shipment</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Product:</span>
+                    <span className="font-bold text-black">{collabProduct} {collabProductQty && `(Qty: ${collabProductQty})`}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Expected Arrival:</span>
+                    <span className="font-bold text-black">{collabDeliveryDate ? new Date(collabDeliveryDate).toLocaleDateString() : "Not Specified"}</span>
+                  </div>
+                  {collabDeliveryAddress && (
+                    <div>
+                      <span className="font-semibold text-gray-500 block">Delivery Address:</span>
+                      <span className="font-bold text-black truncate block" title={collabDeliveryAddress}>{collabDeliveryAddress}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Deliverables table */}
             <div className="p-4 rounded-xl border border-gray-200 bg-white">

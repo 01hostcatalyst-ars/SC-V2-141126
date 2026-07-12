@@ -141,6 +141,15 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <p style="margin: 4px 0;"><strong>Usage Duration:</strong> ${contract.usageRightsDuration.replace(/_/g, " ")}</p>
         </div>
 
+        ${contract.collabProduct ? `
+        <div style="margin-bottom: 20px;">
+          <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px;">Collaboration Product Shipment</h3>
+          <p style="margin: 4px 0;"><strong>Product:</strong> ${contract.collabProduct} ${contract.collabProductQty ? `(Quantity: ${contract.collabProductQty})` : ""}</p>
+          ${contract.collabDeliveryDate ? `<p style="margin: 4px 0;"><strong>Expected Arrival Date:</strong> ${new Date(contract.collabDeliveryDate).toLocaleDateString()}</p>` : ""}
+          ${contract.collabDeliveryAddress ? `<p style="margin: 4px 0;"><strong>Delivery Address:</strong> ${contract.collabDeliveryAddress}</p>` : ""}
+        </div>
+        ` : ""}
+
         <div style="margin-bottom: 20px;">
           <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px;">Financial Compensation</h3>
           <p style="margin: 4px 0;"><strong>Total Campaign Value:</strong> PKR ${Number(contract.totalAmount).toLocaleString()}</p>
@@ -148,17 +157,19 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <p style="margin: 4px 0;"><strong>Remaining Payout:</strong> PKR ${getRemainingAmount().toLocaleString()} ${contract.remainingPaymentDate ? `(Due: ${new Date(contract.remainingPaymentDate).toLocaleDateString()})` : ""}</p>
           <p style="margin: 4px 0;"><strong>Payment Method:</strong> ${contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</p>
           ${contract.bankAccountIban ? `<p style="margin: 4px 0;"><strong>Bank Account IBAN:</strong> ${contract.bankAccountIban}</p>` : ""}
-          ${contract.mobileWalletNumber ? `<p style="margin: 4px 0;"><strong>Mobile Wallet Account:</strong> ${contract.mobileWalletNumber}</p>` : ""}
+          ${contract.mobileWalletNumber ? `<p style="margin: 4px 0;"><strong>${contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Mobile Wallet"} Account:</strong> ${contract.mobileWalletNumber}</p>` : ""}
         </div>
 
         <div style="margin-bottom: 20px;">
           <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px;">Delivery Terms & Penalties</h3>
           <p style="margin: 4px 0;"><strong>Delivery Deadline:</strong> ${contract.deliveryTimeframeDays} Days after mutual execution</p>
           <p style="margin: 4px 0;"><strong>Revision Rounds Included:</strong> ${contract.revisionRounds} rounds</p>
+          <p style="margin: 4px 0;"><strong>Brand Pre-Approval Required:</strong> ${contract.brandApprovalRequired ? "Yes" : "No"}</p>
           <p style="margin: 4px 0;"><strong>Late Payment Penalty (Charged to Brand):</strong> ${contract.latePaymentPenaltyPct}% per day delay</p>
           <p style="margin: 4px 0;"><strong>Late Delivery Penalty (Charged to Creator):</strong> ${contract.lateContentPenaltyPct}% per day delay</p>
           <p style="margin: 4px 0;"><strong>Content Exclusivity:</strong> ${contract.exclusivityClause ? `Required (${contract.exclusivityDuration})` : "Not Required"}</p>
           <p style="margin: 4px 0;"><strong>Copyright Terms:</strong> ${contract.contentOwnership}</p>
+          ${contract.taggingRequirements ? `<p style="margin: 4px 0;"><strong>Caption / Tagging Requirements:</strong> ${contract.taggingRequirements}</p>` : ""}
         </div>
 
         <div style="display: flex; gap: 20px; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">

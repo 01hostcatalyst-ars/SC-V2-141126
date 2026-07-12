@@ -14,12 +14,13 @@ export async function POST(req: Request) {
     const supabase = await getSupabaseServerClient();
     
     // 1. Register the user profile with Supabase Auth
-    // Set emailRedirectTo to undefined to prevent confirm links override
+    // Dynamically retrieve origin to redirect confirmation to /dashboard
+    const origin = req.headers.get("origin") || `https://${process.env.NEXT_PUBLIC_COMPANY_DOMAIN || "www.signcollab.com"}`;
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: undefined,
+        emailRedirectTo: `${origin}/dashboard`,
       }
     });
 

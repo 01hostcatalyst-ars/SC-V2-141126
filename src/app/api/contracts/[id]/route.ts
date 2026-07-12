@@ -67,6 +67,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         ...updateData,
         advancePaymentDate: updateData.advancePaymentDate ? new Date(updateData.advancePaymentDate) : undefined,
         remainingPaymentDate: updateData.remainingPaymentDate ? new Date(updateData.remainingPaymentDate) : undefined,
+        collabDeliveryDate: updateData.collabDeliveryDate ? new Date(updateData.collabDeliveryDate) : undefined,
+        collabProductQty: updateData.collabProductQty ? Number(updateData.collabProductQty) : undefined,
         remainingAmount: Number(updateData.totalAmount) - (Number(updateData.advancePayment) || 0),
         deliverables: deliverables ? {
           deleteMany: {},

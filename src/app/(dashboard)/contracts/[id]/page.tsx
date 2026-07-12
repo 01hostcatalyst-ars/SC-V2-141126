@@ -455,6 +455,33 @@ export default function ContractDetailPage({ params }: PageProps) {
             </div>
           </div>
 
+          {/* Collaboration Product Details (if present) */}
+          {contract.collabProduct && (
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-xs space-y-4">
+              <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Collaboration Product Shipment</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Product details</span>
+                  <span className="text-black font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 block">
+                    {contract.collabProduct} {contract.collabProductQty && `(Qty: ${contract.collabProductQty})`}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Expected Arrival Date</span>
+                  <span className="text-black font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 block">
+                    {contract.collabDeliveryDate ? new Date(contract.collabDeliveryDate).toLocaleDateString() : "Not Specified"}
+                  </span>
+                </div>
+              </div>
+              {contract.collabDeliveryAddress && (
+                <div>
+                  <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Delivery Address</span>
+                  <p className="text-black leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-200">{contract.collabDeliveryAddress}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Text clauses detail */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-xs space-y-4">
             <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Additional Legal Clauses</h4>

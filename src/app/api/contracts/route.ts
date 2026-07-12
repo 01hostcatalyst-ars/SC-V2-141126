@@ -46,6 +46,10 @@ export async function POST(req: Request) {
       contentOwnership,
       taggingRequirements,
       deliverables, // Array of { type, quantity, duration, notes }
+      collabProduct,
+      collabProductQty,
+      collabDeliveryAddress,
+      collabDeliveryDate,
     } = await req.json();
 
     if (!contractType || !totalAmount || !deliveryTimeframeDays || !deliverables || deliverables.length === 0) {
@@ -88,6 +92,10 @@ export async function POST(req: Request) {
         lateContentPenaltyPct,
         contentOwnership,
         taggingRequirements,
+        collabProduct,
+        collabProductQty: collabProductQty ? Number(collabProductQty) : undefined,
+        collabDeliveryAddress,
+        collabDeliveryDate: collabDeliveryDate ? new Date(collabDeliveryDate) : undefined,
         deliverables: {
           create: deliverables.map((d: any) => ({
             type: d.type,
