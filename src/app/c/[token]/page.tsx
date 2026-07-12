@@ -425,21 +425,44 @@ export default function PublicSigningPage({ params }: PageProps) {
                 )}
               </div>
 
+              {/* Tagging & Copyright Terms */}
+              {(contract.taggingRequirements || contract.contentOwnership) && (
+                <div className="border-t border-gray-100 pt-3 text-xs space-y-2">
+                  {contract.taggingRequirements && (
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Tagging Requirements</span>
+                      <p className="text-black font-semibold text-[11px] bg-gray-50 p-2 rounded border border-gray-100">{contract.taggingRequirements}</p>
+                    </div>
+                  )}
+                  {contract.contentOwnership && (
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Copyright Terms</span>
+                      <p className="text-gray-700 text-[10px] bg-gray-50 p-2 rounded border border-gray-100 leading-relaxed">{contract.contentOwnership}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Deliverables display */}
               <div className="border-t border-gray-100 pt-3">
-                <span className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Deliverables Requirements</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Deliverables Requirements & Retention</span>
                 <table className="w-full text-[11px] text-left">
                   <thead>
                     <tr className="border-b border-gray-50 text-gray-400 font-bold">
                       <th className="py-1">Format</th>
                       <th className="py-1 text-center">Qty</th>
+                      <th className="py-1 text-center">Duration</th>
                     </tr>
                   </thead>
                   <tbody>
                     {contract.deliverables?.map((d: any) => (
                       <tr key={d.id} className="text-black font-semibold border-b border-gray-50/50">
-                        <td className="py-1.5">{d.type.replace(/_/g, " ")}</td>
+                        <td className="py-1.5 font-bold">
+                          {d.type.replace(/_/g, " ")}
+                          {d.notes && <span className="block text-[9px] text-gray-400 font-normal">{d.notes}</span>}
+                        </td>
                         <td className="py-1.5 text-center">{d.quantity}</td>
+                        <td className="py-1.5 text-center text-gray-500 text-[10px]">{d.duration || "Permanent"}</td>
                       </tr>
                     ))}
                   </tbody>

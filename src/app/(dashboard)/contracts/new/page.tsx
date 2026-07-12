@@ -988,39 +988,97 @@ export default function NewContractPage() {
 
         {step === 5 && (
           /* Step 6: Confirmation */
-          <div className="space-y-6">
-            <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Review Campaign Terms</h3>
+          <div className="space-y-6 text-left">
+            <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Review All Campaign Terms</h3>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block">Campaign Specifications</span>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Direction:</span>
+            {/* 1. Campaign & Parties */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
+              <span className="text-gray-400 font-bold uppercase tracking-wider block">1. Campaign Direction & Parties</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                  <span className="font-semibold text-gray-500 block">Direction:</span>
                   <span className="font-bold text-black uppercase">{contractType.replace(/_/g, " ")}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Total Value:</span>
-                  <span className="font-bold text-black">PKR {Number(totalAmount).toLocaleString()}</span>
+                {brandName && (
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Client Brand:</span>
+                    <span className="font-bold text-black">{brandName} {brandHandle ? `(${brandHandle})` : ""}</span>
+                    {campaignName && <span className="text-[10px] text-gray-500 block">Campaign: {campaignName}</span>}
+                  </div>
+                )}
+                {creatorName && (
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Target Creator:</span>
+                    <span className="font-bold text-black">{creatorName} {creatorHandle ? `(${creatorHandle})` : ""}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 2. Financial & Payment Route */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
+              <span className="text-gray-400 font-bold uppercase tracking-wider block">2. Financial Compensation & Payment Route</span>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div>
+                  <span className="font-semibold text-gray-500 block">Total Campaign Value:</span>
+                  <span className="font-bold text-black text-sm">PKR {Number(totalAmount).toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Advance Check:</span>
+                <div>
+                  <span className="font-semibold text-gray-500 block">Advance Escrow:</span>
                   <span className="font-bold text-black">{advancePayment ? `PKR ${Number(advancePayment).toLocaleString()}` : "No Advance"}</span>
+                  {advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {new Date(advancePaymentDate).toLocaleDateString()}</span>}
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-500 block">Remaining Payout:</span>
+                  <span className="font-bold text-black">PKR {(Number(totalAmount) - (Number(advancePayment) || 0)).toLocaleString()}</span>
+                  {remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {new Date(remainingPaymentDate).toLocaleDateString()}</span>}
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-500 block">Payment Route Method:</span>
+                  <span className="font-bold text-black uppercase">{paymentMethod.replace(/_/g, " ")}</span>
+                  <span className="text-[10px] text-gray-500 block font-mono truncate">{paymentMethod === "BANK_IBAN" ? bankAccountIban : mobileWalletNumber}</span>
                 </div>
               </div>
+            </div>
 
+            {/* 3. Usage Rights & Scope */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
+              <span className="text-gray-400 font-bold uppercase tracking-wider block">3. Usage Rights & Platform Scope</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <span className="font-semibold text-gray-500 block">Platforms Allowed:</span>
+                  <span className="font-bold text-black uppercase">{platformsAllowed.join(", ")}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-500 block">Usage Category:</span>
+                  <span className="font-bold text-black uppercase">{usageType.map(t => t.replace(/_/g, " ")).join(", ")}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-500 block">Rights Duration:</span>
+                  <span className="font-bold text-black">{usageRightsDuration}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Delivery, Exclusivity & NDA */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block">Delivery & Exclusivity</span>
+                <span className="text-gray-400 font-bold uppercase tracking-wider block">4. Delivery Terms & Exclusivity</span>
                 <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Timeframe:</span>
-                  <span className="font-bold text-black">{deliveryTimeframeDays} Days</span>
+                  <span className="font-semibold text-gray-500">Delivery Deadline:</span>
+                  <span className="font-bold text-black">{deliveryTimeframeDays} Days post-execution</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Revision Cap:</span>
+                  <span className="font-semibold text-gray-500">Revision Rounds:</span>
                   <span className="font-bold text-black">{revisionRounds} Rounds</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Exclusivity:</span>
-                  <span className="font-bold text-black">{exclusivityClause ? (exclusivityDuration ? `${exclusivityDuration}` : "Active") : "No"}</span>
+                  <span className="font-semibold text-gray-500">Content Pre-Approval:</span>
+                  <span className="font-bold text-black">{brandApprovalRequired ? "Required" : "Not Required"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-500">Exclusivity Clause:</span>
+                  <span className="font-bold text-black">{exclusivityClause ? (exclusivityDuration ? `Active (${exclusivityDuration})` : "Active") : "No"}</span>
                 </div>
                 {exclusivityClause && exclusivityCompetitors && (
                   <div className="flex justify-between">
@@ -1029,13 +1087,11 @@ export default function NewContractPage() {
                   </div>
                 )}
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block">Confidentiality / Pre-Launch NDA</span>
+                <span className="text-gray-400 font-bold uppercase tracking-wider block">5. Confidentiality / Pre-Launch NDA</span>
                 <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">NDA Status:</span>
+                  <span className="font-semibold text-gray-500">NDA Embargo:</span>
                   <span className="font-bold text-black">{confidentialityRequired ? "Strict NDA Active" : "Standard Confidentiality"}</span>
                 </div>
                 {confidentialityRequired && (
@@ -1046,38 +1102,42 @@ export default function NewContractPage() {
                     </div>
                     {earlyDisclosurePenalty && (
                       <div className="flex justify-between">
-                        <span className="font-semibold text-gray-500">Early Disclosure Penalty:</span>
+                        <span className="font-semibold text-gray-500">Early Disclosure Leak Fine:</span>
                         <span className="font-bold text-black">PKR {Number(earlyDisclosurePenalty).toLocaleString()}</span>
                       </div>
                     )}
                   </>
                 )}
               </div>
+            </div>
 
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block">Bilateral Safeguard Penalties</span>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Late Payment / Delivery:</span>
+            {/* 5. Bilateral Safeguard Penalties */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
+              <span className="text-gray-400 font-bold uppercase tracking-wider block">6. Bilateral Safeguard Penalties</span>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div>
+                  <span className="font-semibold text-gray-500 block">Late Payment / Delivery:</span>
                   <span className="font-bold text-black">{latePaymentPenaltyPct}% / {lateContentPenaltyPct}% per day</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Unauthorized Brand Usage:</span>
-                  <span className="font-bold text-black">{unauthorizedUsagePenaltyPct}% of fee</span>
+                <div>
+                  <span className="font-semibold text-gray-500 block">Unauthorized Brand Usage:</span>
+                  <span className="font-bold text-black">{unauthorizedUsagePenaltyPct}% of contract fee</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Non-Delivery Advance Refund:</span>
-                  <span className="font-bold text-black">{advanceRefundable ? `Yes (within ${advanceRefundTimeframeDays} days)` : "No"}</span>
+                <div>
+                  <span className="font-semibold text-gray-500 block">Advance Refundability:</span>
+                  <span className="font-bold text-black">{advanceRefundable ? `Yes (${advanceRefundTimeframeDays} days)` : "No"}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Pre-Delivery Cancellation Fee:</span>
-                  <span className="font-bold text-black">{cancellationFeePct}%</span>
+                <div>
+                  <span className="font-semibold text-gray-500 block">Pre-Delivery Cancellation Fee:</span>
+                  <span className="font-bold text-black">{cancellationFeePct}% of fee</span>
                 </div>
               </div>
             </div>
 
+            {/* 6. Product Shipment Details (if present) */}
             {collabProduct && (
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block">Collaboration Product Shipment</span>
+                <span className="text-gray-400 font-bold uppercase tracking-wider block">7. Collaboration Product Shipment</span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
                     <span className="font-semibold text-gray-500 block">Product:</span>
@@ -1090,30 +1150,47 @@ export default function NewContractPage() {
                   {collabDeliveryAddress && (
                     <div>
                       <span className="font-semibold text-gray-500 block">Delivery Address:</span>
-                      <span className="font-bold text-black truncate block" title={collabDeliveryAddress}>{collabDeliveryAddress}</span>
+                      <span className="font-bold text-black block">{collabDeliveryAddress}</span>
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Deliverables table */}
+            {/* 7. Tagging & Content Ownership */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
+              <span className="text-gray-400 font-bold uppercase tracking-wider block">8. Tagging & Copyright Terms</span>
+              {taggingRequirements && (
+                <div>
+                  <span className="font-semibold text-gray-500 block">Tagging / Caption Requirements:</span>
+                  <span className="font-bold text-black">{taggingRequirements}</span>
+                </div>
+              )}
+              <div>
+                <span className="font-semibold text-gray-500 block">Copyright Clause:</span>
+                <span className="font-bold text-black">{contentOwnership}</span>
+              </div>
+            </div>
+
+            {/* 8. Deliverables Table */}
             <div className="p-4 rounded-xl border border-gray-200 bg-white">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Deliverables List</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">9. Deliverables List & Requirements</span>
               <table className="w-full text-xs text-left">
                 <thead>
                   <tr className="border-b border-gray-100 text-gray-500 font-bold">
-                    <th className="py-2">Platform Type</th>
-                    <th className="py-2">Qty</th>
-                    <th className="py-2">Notes</th>
+                    <th className="py-2">Platform Format</th>
+                    <th className="py-2 text-center">Qty</th>
+                    <th className="py-2 text-center">Retention Duration</th>
+                    <th className="py-2">Instructions / Brief</th>
                   </tr>
                 </thead>
                 <tbody>
                   {deliverables.map((d, i) => (
                     <tr key={i} className="border-b border-gray-50 text-black">
-                      <td className="py-2 font-bold">{d.type}</td>
-                      <td className="py-2 font-bold">{d.quantity}</td>
-                      <td className="py-2 text-gray-500 truncate max-w-xs">{d.notes || "No notes"} {d.duration && `(${d.duration})`}</td>
+                      <td className="py-2 font-bold">{d.type.replace(/_/g, " ")}</td>
+                      <td className="py-2 font-bold text-center">{d.quantity}</td>
+                      <td className="py-2 text-gray-500 font-semibold text-center">{d.duration || "Permanent"}</td>
+                      <td className="py-2 text-gray-500 max-w-xs">{d.notes || "No notes"}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -522,7 +522,7 @@ export default function ContractDetailPage({ params }: PageProps) {
 
           {/* Text clauses detail */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-xs space-y-4">
-            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Additional Legal Clauses</h4>
+            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Additional Legal Clauses & Bilateral Safeguards</h4>
             
             {contract.taggingRequirements && (
               <div>
@@ -534,11 +534,37 @@ export default function ContractDetailPage({ params }: PageProps) {
             {contract.exclusivityClause && (
               <div>
                 <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Exclusivity Restrictive Clause</span>
-                <p className="text-black font-semibold bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  Required Exclusivity Duration: <strong>{contract.exclusivityDuration || "Not Specified"}</strong>
-                </p>
+                <div className="text-black font-semibold bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-1">
+                  <div>Required Exclusivity Duration: <strong>{contract.exclusivityDuration || "Active"}</strong></div>
+                  {contract.exclusivityCompetitors && (
+                    <div className="text-gray-600">Restricted Competitors / Categories: <strong>{contract.exclusivityCompetitors}</strong></div>
+                  )}
+                </div>
               </div>
             )}
+
+            {contract.confidentialityRequired && (
+              <div>
+                <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Confidentiality / Pre-Launch NDA</span>
+                <div className="text-black font-semibold bg-amber-50/50 p-3 rounded-lg border border-amber-200 space-y-1">
+                  <div>Embargo Launch Threshold: <strong>{contract.embargoDate ? new Date(contract.embargoDate).toLocaleDateString() : "Required until official launch"}</strong></div>
+                  {contract.earlyDisclosurePenalty && (
+                    <div className="text-rose-700">Early Disclosure Leak Fine: <strong>PKR {Number(contract.earlyDisclosurePenalty).toLocaleString()}</strong></div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Bilateral Safeguard Penalties</span>
+              <div className="text-black font-medium bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-1.5">
+                <div>• Late Payment Delay Penalty (Charged to Brand): <strong>{Number(contract.latePaymentPenaltyPct)}% per day</strong></div>
+                <div>• Late Content Delivery Penalty (Charged to Creator): <strong>{Number(contract.lateContentPenaltyPct)}% per day</strong></div>
+                <div>• Unauthorized Brand Re-Use Penalty: <strong>{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of contract value per violation</strong></div>
+                <div>• Non-Delivery Advance Refund: <strong>{contract.advanceRefundable !== false ? `100% Refundable within ${contract.advanceRefundTimeframeDays || 7} business days` : "Non-refundable"}</strong></div>
+                <div>• Pre-Delivery Termination Fee: <strong>{Number(contract.cancellationFeePct || 25)}% of total fee</strong></div>
+              </div>
+            </div>
 
             <div>
               <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Content Ownership & License Terms</span>
