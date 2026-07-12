@@ -120,7 +120,9 @@ model Contract {
   // Financial
   totalAmount           Decimal        @map("total_amount")
   advancePayment        Decimal?       @map("advance_payment")
+  advancePaymentDate    DateTime?      @map("advance_payment_date")
   remainingAmount       Decimal?       @map("remaining_amount")
+  remainingPaymentDate  DateTime?      @map("remaining_payment_date")
   paymentMethod         PaymentMethod? @map("payment_method")
   bankAccountIban       String?        @map("bank_account_iban")
   mobileWalletNumber    String?        @map("mobile_wallet_number")
@@ -131,7 +133,7 @@ model Contract {
 
   // Usage Rights
   platformsAllowed      String[]       @map("platforms_allowed")
-  usageType             UsageType      @map("usage_type")
+  usageType             UsageType[]    @map("usage_type")
   usageRightsDuration   String         @map("usage_rights_duration")
 
   // Revision & Approval

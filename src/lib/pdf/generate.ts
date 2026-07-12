@@ -22,6 +22,16 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
     return Number(contract.totalAmount || 0) - Number(contract.advancePayment || 0);
   };
 
+  const formatUsageType = (type: any) => {
+    if (Array.isArray(type)) {
+      return type.map((t) => t.replace(/_/g, " ")).join(", ");
+    }
+    if (typeof type === 'string') {
+      return type.replace(/_/g, " ");
+    }
+    return "N/A";
+  };
+
   const getSignatureByRole = (role: string) => {
     return contract.signatures?.find((s: any) => s.signerRole === role);
   };
@@ -127,15 +137,15 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         <div style="margin-bottom: 20px;">
           <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px;">Usage Rights & Platform Scope</h3>
           <p style="margin: 4px 0;"><strong>Platforms Allowed:</strong> ${contract.platformsAllowed.join(", ")}</p>
-          <p style="margin: 4px 0;"><strong>Usage Scope:</strong> ${contract.usageType.replace(/_/g, " ")}</p>
+          <p style="margin: 4px 0;"><strong>Usage Scope:</strong> ${formatUsageType(contract.usageType)}</p>
           <p style="margin: 4px 0;"><strong>Usage Duration:</strong> ${contract.usageRightsDuration.replace(/_/g, " ")}</p>
         </div>
 
         <div style="margin-bottom: 20px;">
           <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px;">Financial Compensation</h3>
           <p style="margin: 4px 0;"><strong>Total Campaign Value:</strong> PKR ${Number(contract.totalAmount).toLocaleString()}</p>
-          <p style="margin: 4px 0;"><strong>Advance Payout:</strong> PKR ${Number(contract.advancePayment || 0).toLocaleString()}</p>
-          <p style="margin: 4px 0;"><strong>Remaining Payout:</strong> PKR ${getRemainingAmount().toLocaleString()}</p>
+          <p style="margin: 4px 0;"><strong>Advance Payout:</strong> PKR ${Number(contract.advancePayment || 0).toLocaleString()} ${contract.advancePaymentDate ? `(Due: ${new Date(contract.advancePaymentDate).toLocaleDateString()})` : ""}</p>
+          <p style="margin: 4px 0;"><strong>Remaining Payout:</strong> PKR ${getRemainingAmount().toLocaleString()} ${contract.remainingPaymentDate ? `(Due: ${new Date(contract.remainingPaymentDate).toLocaleDateString()})` : ""}</p>
           <p style="margin: 4px 0;"><strong>Payment Method:</strong> ${contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</p>
           ${contract.bankAccountIban ? `<p style="margin: 4px 0;"><strong>Bank Account IBAN:</strong> ${contract.bankAccountIban}</p>` : ""}
           ${contract.mobileWalletNumber ? `<p style="margin: 4px 0;"><strong>Mobile Wallet Account:</strong> ${contract.mobileWalletNumber}</p>` : ""}

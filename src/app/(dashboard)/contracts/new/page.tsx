@@ -25,7 +25,14 @@ const DELIVERABLE_TYPES = [
   { label: "TikTok Video", value: "TIKTOK_VIDEO" },
 ];
 
-const PLATFORMS = ["Instagram", "TikTok", "YouTube", "Facebook", "Twitter"];
+const PLATFORMS = ["Instagram", "TikTok", "YouTube", "Facebook", "LinkedIn", "X"];
+
+const USAGE_CATEGORIES = [
+  { label: "Organic Social Post Only", value: "ORGANIC_ONLY" },
+  { label: "Paid Advertising Whitelisting", value: "PAID_AD" },
+  { label: "Print / Billboard Rights", value: "BILLBOARD_PRINT" },
+  { label: "All Media Broadcast License", value: "ALL_MEDIA" },
+];
 
 export default function NewContractPage() {
   const router = useRouter();
@@ -55,10 +62,12 @@ export default function NewContractPage() {
     { type: "REEL", quantity: 1, duration: "", notes: "" },
   ]);
   const [platformsAllowed, setPlatformsAllowed] = useState<string[]>(["Instagram"]);
-  const [usageType, setUsageType] = useState("ORGANIC_ONLY");
+  const [usageType, setUsageType] = useState<string[]>(["ORGANIC_ONLY"]);
   const [usageRightsDuration, setUsageRightsDuration] = useState("6 months");
   const [totalAmount, setTotalAmount] = useState("");
   const [advancePayment, setAdvancePayment] = useState("");
+  const [advancePaymentDate, setAdvancePaymentDate] = useState("");
+  const [remainingPaymentDate, setRemainingPaymentDate] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("BANK_IBAN");
   const [bankAccountIban, setBankAccountIban] = useState("");
   const [mobileWalletNumber, setMobileWalletNumber] = useState("");
@@ -132,6 +141,15 @@ export default function NewContractPage() {
     }
   };
 
+  const handleUsageTypeToggle = (type: string) => {
+    if (usageType.includes(type)) {
+      if (usageType.length === 1) return; // Keep at least one selected
+      setUsageType(usageType.filter((t) => t !== type));
+    } else {
+      setUsageType([...usageType, type]);
+    }
+  };
+
   const validateStep = () => {
     if (step === 0) {
       for (const d of deliverables) {
@@ -195,6 +213,8 @@ export default function NewContractPage() {
       platformsAllowed,
       usageType,
       usageRightsDuration,
+      advancePaymentDate: advancePayment ? advancePaymentDate || undefined : undefined,
+      remainingPaymentDate: remainingPaymentDate || undefined,
       revisionRounds: Number(revisionRounds),
       brandApprovalRequired,
       exclusivityClause,
@@ -508,30 +528,38 @@ export default function NewContractPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Usage Category</label>
-                <select
-                  className="input-field"
-                  value={usageType}
-                  onChange={(e) => setUsageType(e.target.value)}
-                >
-                  <option value="ORGANIC_ONLY">Organic Social Post Only</option>
-                  <option value="PAID_AD">Paid Advertising Whitelisting</option>
-                  <option value="BILLBOARD_PRINT">Print / Billboard Rights</option>
-                  <option value="ALL_MEDIA">All Media Broadcast License</option>
-                </select>
+            <div className="flex flex-col gap-2 mt-4">
+              <label className="text-xs font-bold text-black uppercase tracking-wider">Usage Category</label>
+              <div className="flex flex-wrap gap-2">
+                {USAGE_CATEGORIES.map((cat) => {
+                  const active = usageType.includes(cat.value);
+                  return (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => handleUsageTypeToggle(cat.value)}
+                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                        active 
+                          ? "bg-black border-black text-white" 
+                          : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Rights Duration</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 6 months, 1 year, Permanent"
-                  className="input-field"
-                  value={usageRightsDuration}
-                  onChange={(e) => setUsageRightsDuration(e.target.value)}
-                />
-              </div>
+            </div>
+
+            <div className="flex flex-col gap-1 mt-4">
+              <label className="text-xs font-bold text-black uppercase tracking-wider">Rights Duration</label>
+              <input
+                type="text"
+                placeholder="e.g. 6 months, 1 year, Permanent"
+                className="input-field"
+                value={usageRightsDuration}
+                onChange={(e) => setUsageRightsDuration(e.target.value)}
+              />
             </div>
           </div>
         )}
@@ -560,6 +588,29 @@ export default function NewContractPage() {
                   className="input-field"
                   value={advancePayment}
                   onChange={(e) => setAdvancePayment(e.target.value.replace(/\D/g, ""))}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              {advancePayment && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-black uppercase tracking-wider">Advance Payment Deadline Date</label>
+                  <input
+                    type="date"
+                    className="input-field"
+                    value={advancePaymentDate}
+                    onChange={(e) => setAdvancePaymentDate(e.target.value)}
+                  />
+                </div>
+              )}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-black uppercase tracking-wider">Remaining Payment Deadline Date</label>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={remainingPaymentDate}
+                  onChange={(e) => setRemainingPaymentDate(e.target.value)}
                 />
               </div>
             </div>

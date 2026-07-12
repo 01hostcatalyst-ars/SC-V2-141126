@@ -11,6 +11,16 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+const formatUsageType = (type: any) => {
+  if (Array.isArray(type)) {
+    return type.map((t) => t.replace(/_/g, " ")).join(", ");
+  }
+  if (typeof type === 'string') {
+    return type.replace(/_/g, " ");
+  }
+  return "N/A";
+};
+
 export default function ContractDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
@@ -343,7 +353,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               <hr className="border-gray-50" />
               <div>
                 <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Usage rights</span>
-                <span className="text-black font-bold">{contract.usageRightsDuration} ({contract.usageType.replace(/_/g, " ")})</span>
+                <span className="text-black font-bold">{contract.usageRightsDuration} ({formatUsageType(contract.usageType)})</span>
               </div>
               <hr className="border-gray-50" />
               <div>
@@ -370,29 +380,47 @@ export default function ContractDetailPage({ params }: PageProps) {
           {/* Financial details */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
             <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider mb-4">Financial Settlements</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-semibold">
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
                 <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Total Valuation</span>
                 <span className="text-base font-black text-black">PKR {Number(contract.totalAmount).toLocaleString()}</span>
               </div>
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Advance Escrow</span>
-                <span className="text-base font-black text-black">
-                  {contract.advancePayment ? `PKR ${Number(contract.advancePayment).toLocaleString()}` : "PKR 0"}
-                </span>
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col justify-between min-h-[90px]">
+                <div>
+                  <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Advance Escrow</span>
+                  <span className="text-base font-black text-black">
+                    {contract.advancePayment ? `PKR ${Number(contract.advancePayment).toLocaleString()}` : "PKR 0"}
+                  </span>
+                  {contract.advancePaymentDate && (
+                    <span className="text-[10px] text-gray-500 block mt-1">
+                      Due: {new Date(contract.advancePaymentDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
                 {contract.advancePayment && (
-                  <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded border block w-fit mt-1 tracking-wider ${
+                  <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded border block w-fit mt-1.5 tracking-wider ${
                     contract.advanceReceived 
                       ? "bg-emerald-50 border-emerald-200 text-emerald-800 uppercase" 
                       : "bg-amber-50 border-amber-200 text-amber-800 uppercase"
                   }`}>
-                    {contract.advanceReceived ? "Confirmed" : "Pending Confirmation"}
+                    {contract.advanceReceived ? "Confirmed" : "Pending"}
+                  </span>
+                )}
+              </div>
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
+                <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Remaining Payout</span>
+                <span className="text-base font-black text-black font-sans">
+                  PKR {Number(contract.remainingAmount || 0).toLocaleString()}
+                </span>
+                {contract.remainingPaymentDate && (
+                  <span className="text-[10px] text-gray-500 block mt-1">
+                    Due: {new Date(contract.remainingPaymentDate).toLocaleDateString()}
                   </span>
                 )}
               </div>
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
                 <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Route Method</span>
-                <span className="text-base font-black text-black uppercase">{contract.paymentMethod.replace(/_/g, " ")}</span>
+                <span className="text-base font-black text-black uppercase">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
                 <span className="text-[10px] text-gray-500 font-semibold block mt-1 truncate">
                   {contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}
                 </span>

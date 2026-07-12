@@ -10,6 +10,16 @@ interface PageProps {
   params: Promise<{ token: string }>;
 }
 
+const formatUsageType = (type: any) => {
+  if (Array.isArray(type)) {
+    return type.map((t) => t.replace(/_/g, " ")).join(", ");
+  }
+  if (typeof type === 'string') {
+    return type.replace(/_/g, " ");
+  }
+  return "N/A";
+};
+
 export default function PublicSigningPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const { showToast } = useToast();
@@ -279,9 +289,24 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <div>
                       <span className="text-gray-400 font-bold block mb-1">Advance Payment</span>
                       <span className="font-black text-black">PKR {Number(contract.advancePayment).toLocaleString()}</span>
+                      {contract.advancePaymentDate && (
+                        <span className="text-[10px] text-gray-500 block mt-0.5 font-semibold">
+                          Due: {new Date(contract.advancePaymentDate).toLocaleDateString()}
+                        </span>
+                      )}
                     </div>
                   </>
                 )}
+                <hr className="border-gray-50" />
+                <div>
+                  <span className="text-gray-400 font-bold block mb-1">Remaining Payment</span>
+                  <span className="font-black text-black">PKR {Number(contract.remainingAmount || 0).toLocaleString()}</span>
+                  {contract.remainingPaymentDate && (
+                    <span className="text-[10px] text-gray-500 block mt-0.5 font-semibold">
+                      Due: {new Date(contract.remainingPaymentDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
                 <hr className="border-gray-50" />
                 <div>
                   <span className="text-gray-400 font-bold block mb-1">Delivery Frame</span>
