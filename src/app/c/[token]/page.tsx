@@ -64,9 +64,21 @@ export default function PublicSigningPage({ params }: PageProps) {
     fetchSharedContract();
   }, [resolvedParams.token, showToast]);
 
+  const isRespondentBrand = contract?.contractType?.endsWith("BRAND") ?? true;
+
+  // Validation check: Send OTP button is enabled only when all required fields have data
+  const isFormValid = Boolean(
+    respondentEmail &&
+    respondentPhone &&
+    respondentName &&
+    (isRespondentBrand ? respondentCompany : true) &&
+    respondentAddress &&
+    respondentDesignation
+  );
+
   const handleSendOTP = async () => {
-    if (!respondentEmail) {
-      showToast("Please enter a valid email address first.", "error");
+    if (!isFormValid) {
+      showToast("Please fill in all verification fields before requesting OTP code.", "error");
       return;
     }
     setOtpLoading(true);
@@ -74,7 +86,15 @@ export default function PublicSigningPage({ params }: PageProps) {
       const res = await fetch(`/api/contracts/share/${resolvedParams.token}/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: respondentEmail }),
+        body: JSON.stringify({
+          email: respondentEmail,
+          phone: respondentPhone,
+          name: respondentName,
+          company: respondentCompany,
+          address: respondentAddress,
+          designation: respondentDesignation,
+          collabDetails,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -118,7 +138,7 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   const handleReviewAndSign = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!respondentEmail || !respondentPhone || !respondentName || !respondentAddress) {
+    if (!isFormValid) {
       showToast("Please fill in all required verification fields.", "error");
       return;
     }
@@ -135,9 +155,9 @@ export default function PublicSigningPage({ params }: PageProps) {
       respondentName,
       respondentEmail,
       respondentPhone,
-      respondentCompany: contract.contractType.endsWith("BRAND") ? respondentCompany : undefined,
+      respondentCompany: isRespondentBrand ? respondentCompany : undefined,
       respondentAddress,
-      respondentDesignation: contract.contractType.endsWith("BRAND") ? respondentDesignation : undefined,
+      respondentDesignation: isRespondentBrand ? respondentDesignation : undefined,
       collabDetails,
     };
 
@@ -208,8 +228,6 @@ export default function PublicSigningPage({ params }: PageProps) {
     );
   }
 
-  const isRespondentBrand = contract.contractType.endsWith("BRAND");
-
   return (
     <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
       {/* Ambient backgrounds */}
@@ -259,7 +277,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   1. Counterparty Verification &amp; Profile Details
                 </h2>
                 <p className="text-[11px] text-gray-400 font-medium">
-                  Enter your official contact details and verify your email address via OTP.
+                  Fill all verification fields below to enable Send OTP button. Profile fields will lock once OTP is dispatched.
                 </p>
               </div>
               {otpVerified && (
@@ -270,7 +288,7 @@ export default function PublicSigningPage({ params }: PageProps) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Email */}
+              {/* 1. Your Email Address * */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
                   Your Email Address <span className="text-rose-500">*</span>
@@ -282,11 +300,11 @@ export default function PublicSigningPage({ params }: PageProps) {
                   value={respondentEmail}
                   onChange={(e) => setRespondentEmail(e.target.value)}
                   disabled={otpDispatched || otpVerified}
-                  className="input-field"
+                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                 />
               </div>
 
-              {/* Phone */}
+              {/* 2. Your Phone Number * */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
                   Your Phone Number <span className="text-rose-500">*</span>
@@ -297,12 +315,12 @@ export default function PublicSigningPage({ params }: PageProps) {
                   placeholder="03XXXXXXXXX"
                   value={respondentPhone}
                   onChange={(e) => setRespondentPhone(e.target.value)}
-                  disabled={otpVerified}
-                  className="input-field"
+                  disabled={otpDispatched || otpVerified}
+                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                 />
               </div>
 
-              {/* Contact Person Name */}
+              {/* 3. Contact Person Name * */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
                   Contact Person Name <span className="text-rose-500">*</span>
@@ -313,14 +331,15 @@ export default function PublicSigningPage({ params }: PageProps) {
                   placeholder="e.g. Mohammad Ali"
                   value={respondentName}
                   onChange={(e) => setRespondentName(e.target.value)}
-                  className="input-field"
+                  disabled={otpDispatched || otpVerified}
+                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                 />
               </div>
 
-              {isRespondentBrand ? (
-                <>
-                  {/* Brand / Company Name */}
-                  <div className="flex flex-col gap-1">
+              {/* 4. Brand / Company Name * */}
+              <div className="flex flex-col gap-1">
+                {isRespondentBrand ? (
+                  <>
                     <label className="text-xs font-bold text-black uppercase tracking-wider">
                       Brand / Company Name <span className="text-rose-500">*</span>
                     </label>
@@ -330,41 +349,29 @@ export default function PublicSigningPage({ params }: PageProps) {
                       placeholder="e.g. Sapphire Retail Ltd."
                       value={respondentCompany}
                       onChange={(e) => setRespondentCompany(e.target.value)}
-                      className="input-field"
+                      disabled={otpDispatched || otpVerified}
+                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                     />
-                  </div>
-
-                  {/* Your Job Title */}
-                  <div className="flex flex-col gap-1">
+                  </>
+                ) : (
+                  <>
                     <label className="text-xs font-bold text-black uppercase tracking-wider">
-                      Your Job Title <span className="text-rose-500">*</span>
+                      Instagram / Social Handle <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Head of Marketing / Director"
-                      value={respondentDesignation}
-                      onChange={(e) => setRespondentDesignation(e.target.value)}
-                      className="input-field"
+                      placeholder="@username"
+                      value={collabDetails}
+                      onChange={(e) => setCollabDetails(e.target.value)}
+                      disabled={otpDispatched || otpVerified}
+                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                     />
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-black uppercase tracking-wider">
-                    Instagram / Social Handle
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="@username"
-                    value={collabDetails}
-                    onChange={(e) => setCollabDetails(e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-              )}
+                  </>
+                )}
+              </div>
 
-              {/* Brand / Company Address */}
+              {/* 5. Brand / Company Address * (MOVED ABOVE JOB TITLE, FULL WIDTH) */}
               <div className="flex flex-col gap-1 sm:col-span-2">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
                   Brand / Company Address <span className="text-rose-500">*</span>
@@ -375,60 +382,82 @@ export default function PublicSigningPage({ params }: PageProps) {
                   placeholder="Official registered address, City"
                   value={respondentAddress}
                   onChange={(e) => setRespondentAddress(e.target.value)}
-                  className="input-field"
+                  disabled={otpDispatched || otpVerified}
+                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                 />
               </div>
-            </div>
 
-            {/* OTP VERIFICATION ACTION BOX */}
-            <div className="p-5 rounded-2xl bg-gray-50 border border-gray-200 space-y-4">
-              {!otpVerified ? (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold text-black">Email OTP Verification Required</span>
-                    <span className="text-[11px] text-gray-500">
-                      {otpDispatched
-                        ? "A 6-digit OTP has been sent to your email. Check your inbox and enter code below."
-                        : "Click Send OTP to receive your 6-digit verification code before signing."}
-                    </span>
-                  </div>
+              {/* 6. Your Job Title * AND Send OTP Trigger in SAME ROW */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-black uppercase tracking-wider">
+                  Your Job Title <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Head of Marketing / Director"
+                  value={respondentDesignation}
+                  onChange={(e) => setRespondentDesignation(e.target.value)}
+                  disabled={otpDispatched || otpVerified}
+                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                />
+              </div>
 
-                  {!otpDispatched ? (
-                    <button
-                      type="button"
-                      onClick={handleSendOTP}
-                      disabled={otpLoading || !respondentEmail}
-                      className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all whitespace-nowrap"
-                    >
-                      {otpLoading ? "Sending..." : "Send OTP Code"}
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <input
-                        type="text"
-                        maxLength={6}
-                        placeholder="123456"
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                        className="input-field text-center font-mono font-bold tracking-widest text-base py-2 max-w-[140px]"
-                      />
+              {/* OTP Action Trigger (Right side of same row) */}
+              <div className="flex flex-col justify-end">
+                {!otpVerified ? (
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex flex-col text-left">
+                      <span className="text-[11px] font-bold text-black">Email OTP Verification Required</span>
+                      <span className="text-[10px] text-gray-500">
+                        {otpDispatched
+                          ? "Code sent to email. Enter below."
+                          : "Fill all required fields above to enable Send OTP."}
+                      </span>
+                    </div>
+
+                    {!otpDispatched ? (
                       <button
                         type="button"
-                        onClick={handleVerifyOTP}
-                        disabled={otpLoading || !otpCode}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase shadow transition-all whitespace-nowrap"
+                        onClick={handleSendOTP}
+                        disabled={!isFormValid || otpLoading}
+                        className={`font-bold px-5 py-2.5 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
+                          isFormValid && !otpLoading
+                            ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
+                            : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
+                        }`}
                       >
-                        {otpLoading ? "Verifying..." : "Verify OTP"}
+                        {otpLoading ? "Sending..." : "Send OTP"}
                       </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 text-xs font-bold text-emerald-800 bg-emerald-50/80 p-3.5 rounded-xl border border-emerald-200">
-                  <span className="text-base">✓</span>
-                  <span>Email address ({respondentEmail}) has been successfully verified! You may now review all terms below and execute signature.</span>
-                </div>
-              )}
+                    ) : (
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <input
+                          type="text"
+                          maxLength={6}
+                          placeholder="123456"
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                          className="input-field text-center font-mono font-bold tracking-widest text-sm py-1.5 max-w-[110px]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyOTP}
+                          disabled={otpLoading || !otpCode}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs uppercase shadow transition-all whitespace-nowrap"
+                        >
+                          {otpLoading ? "..." : "Verify"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800 flex items-center gap-2">
+                    <span>✓</span>
+                    <span>Identity Verified via OTP code!</span>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
 
@@ -674,7 +703,7 @@ export default function PublicSigningPage({ params }: PageProps) {
 
             <button
               type="submit"
-              disabled={signing}
+              disabled={signing || !otpVerified}
               className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center gap-2 ${
                 otpVerified
                   ? "bg-black text-white hover:bg-black/90 cursor-pointer"

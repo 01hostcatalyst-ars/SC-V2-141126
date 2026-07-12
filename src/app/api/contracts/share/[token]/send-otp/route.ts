@@ -8,7 +8,7 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { email } = await req.json();
+    const { email, phone, name, company: respondentCompany, address, designation, collabDetails } = await req.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -46,6 +46,13 @@ export async function POST(
       template: "otp",
       data: {
         code,
+        email,
+        phone: phone || "N/A",
+        name: name || "N/A",
+        company: respondentCompany || "N/A",
+        address: address || "N/A",
+        designation: designation || "N/A",
+        collabDetails: collabDetails || "N/A",
       },
     });
 
