@@ -122,7 +122,12 @@ export default function PublicSigningPage({ params }: PageProps) {
       const res = await fetch(`/api/contracts/share/${resolvedParams.token}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: otpCode }),
+        body: JSON.stringify({
+          email: respondentEmail,
+          respondentEmail,
+          code: otpCode,
+          otpCode,
+        }),
       });
 
       const data = await res.json();
@@ -155,6 +160,13 @@ export default function PublicSigningPage({ params }: PageProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          email: respondentEmail,
+          name: respondentName,
+          phone: respondentPhone,
+          company: isRespondentBrand ? respondentCompany : undefined,
+          address: respondentAddress,
+          designation: respondentDesignation,
+          ntn: respondentNtn,
           respondentName,
           respondentEmail,
           respondentPhone,

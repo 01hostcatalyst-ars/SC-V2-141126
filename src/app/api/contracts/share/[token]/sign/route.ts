@@ -7,10 +7,20 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { signatureB64, documentHash, fingerprint, email } = await req.json();
+    const body = await req.json();
+    const signatureB64 = body.signatureB64;
+    const fingerprint = body.fingerprint || "browser-fingerprint";
+    const email = body.email || body.respondentEmail;
+    const name = body.name || body.respondentName;
+    const phone = body.phone || body.respondentPhone;
+    const company = body.company || body.respondentCompany;
+    const address = body.address || body.respondentAddress;
+    const designation = body.designation || body.respondentDesignation;
+    const ntn = body.ntn || body.respondentNtn;
+    const documentHash = body.documentHash || "SHA256_PENDING_FINAL_PDF";
 
-    if (!signatureB64 || !documentHash || !fingerprint || !email) {
-      return NextResponse.json({ error: "Missing signature parameters" }, { status: 400 });
+    if (!signatureB64 || !email) {
+      return NextResponse.json({ error: "Missing signature or email parameters" }, { status: 400 });
     }
 
     const { token } = await params;
@@ -57,18 +67,27 @@ export async function POST(
         data: {
           contractId: contract.id,
           signerRole,
-          signatureImageUrl: signatureB64, // base64 PNG stored directly for MVP
+          signatureImageUrl: signatureB64,
           ipAddress,
           userAgent,
           deviceFingerprint: fingerprint,
-          documentHash,
+          documentHash: contract.documentHash || documentHash,
           otpVerified: true,
           otpEmail: email,
         },
       }),
       prisma.contract.update({
         where: { id: contract.id },
-        data: { status: ContractStatus.PENDING_INITIATOR },
+        data: {
+          status: ContractStatus.PENDING_INITIATOR,
+          respondentName: name || contract.respondentName,
+          respondentEmail: email || contract.respondentEmail,
+          respondentPhone: phone || contract.respondentPhone,
+          respondentCompany: company || contract.respondentCompany,
+          respondentAddress: address || contract.respondentAddress,
+          respondentDesignation: designation || contract.respondentDesignation,
+          respondentNtn: ntn || contract.respondentNtn,
+        },
       }),
       prisma.auditLog.create({
         data: {

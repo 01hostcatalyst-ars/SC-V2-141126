@@ -6,10 +6,12 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { email, code } = await req.json();
+    const body = await req.json();
+    const email = body.email || body.respondentEmail;
+    const code = body.code || body.otpCode;
 
     if (!email || !code) {
-      return NextResponse.json({ error: "Email and code are required" }, { status: 400 });
+      return NextResponse.json({ error: "Email and verification code are required" }, { status: 400 });
     }
 
     const { token } = await params;
