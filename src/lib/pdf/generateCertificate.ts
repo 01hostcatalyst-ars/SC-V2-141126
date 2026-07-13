@@ -32,6 +32,14 @@ export async function generateAuditCertificatePDF(contractId: string) {
     (s) => s.signerRole === "BRAND" || (contract.respondentId && s.signerId === contract.respondentId)
   );
 
+  const formatLegalDate = (date: Date | null | undefined) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "medium",
+    });
+  };
+
   const getContractTitle = (type: string) => {
     switch (type) {
       case "AGENCY_TO_BRAND": return "AGENCY TO BRAND INFLUENCER MARKETING & CONTENT LICENSING AGREEMENT";
