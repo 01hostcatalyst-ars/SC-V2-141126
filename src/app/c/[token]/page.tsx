@@ -213,7 +213,7 @@ export default function PublicSigningPage({ params }: PageProps) {
         {/* Banner Welcome */}
         <div className="space-y-2 text-left">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-800 uppercase">
-            ⚖️ Mutual Legal Agreement Execution (ETO 2002)
+            Mutual Legal Agreement Execution (ETO 2002)
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-black leading-tight">
             Review &amp; Sign Collaboration Agreement
@@ -681,7 +681,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                 ? "Processing Signature..."
                 : otpVerified
                 ? "REVIEW & SIGN AGREEMENT ➔"
-                : "🔒 Verify Email via OTP Above to Unlock Signature"}
+                : "Verify Email via OTP Above to Unlock Signature"}
             </button>
           </div>
 

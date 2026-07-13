@@ -185,7 +185,7 @@ export default function Home() {
           {/* Column 1: Info Column */}
           <div className="flex flex-col text-left space-y-6">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100/70 text-blue-800 border border-blue-200 w-fit">
-              ⚡ Safe & bilaterally signed campaign proofs
+              Safe & bilaterally signed campaign proofs
             </span>
             <h1 className="text-4xl md:text-5xl font-black text-black leading-tight tracking-tight">
               Bilateral Contracts.<br />

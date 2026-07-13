@@ -242,7 +242,7 @@ export default function DashboardPage() {
                         {getContractTypeBadge(contract.contractType)}
                         {contract.linkedContractId && (
                           <span className="text-[10px] font-extrabold bg-amber-50 text-amber-700 px-2 py-0.5 rounded border border-amber-200">
-                            🔗 Linked Campaign
+                            Linked Campaign
                           </span>
                         )}
                       </div>

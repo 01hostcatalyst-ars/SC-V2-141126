@@ -183,7 +183,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         </div>
         {contract.brandApprovalRequired && (
           <div style={{ fontSize: "10px", color: "#475569", borderTop: "1px dashed #cbd5e1", paddingTop: "4px", marginTop: "4px" }}>
-            ⚡ <strong>48-HOUR DEEMED APPROVAL PROTOCOL:</strong> Draft content must be submitted to Brand at least 3 business days prior to delivery deadline. Brand must respond within 48 hours. Failure by Brand to respond within 48 hours legally constitutes Deemed Approval, authorizing final posting without delay liability.
+            <strong>48-HOUR DEEMED APPROVAL PROTOCOL:</strong> Draft content must be submitted to Brand at least 3 business days prior to delivery deadline. Brand must respond within 48 hours. Failure by Brand to respond within 48 hours legally constitutes Deemed Approval, authorizing final posting without delay liability.
           </div>
         )}
       </div>
@@ -230,7 +230,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
             {contract.collabDeliveryAddress && <div style={{ marginTop: "4px", fontSize: "10px", color: "#475569" }}><strong>Shipment Address:</strong> {contract.collabDeliveryAddress}</div>}
             {contract.collabProductProvisionType === "Product Loan" && (
               <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: "1px dashed #cbd5e1", fontSize: "10px", color: "#92400e" }}>
-                🔒 <strong>PRODUCT LOAN RETURN CONDITIONS:</strong> Loaned product must be returned to Brand within {contract.collabProductReturnDays || 7} calendar days post-deliverable. Return shipping costs paid by {contract.collabProductReturnShippingBy || "Brand"}. Failure to return or returning in damaged condition incurs a mandatory non-return penalty of PKR {Number(contract.collabProductNonReturnFee || 0).toLocaleString()}.
+                <strong>PRODUCT LOAN RETURN CONDITIONS:</strong> Loaned product must be returned to Brand within {contract.collabProductReturnDays || 7} calendar days post-deliverable. Return shipping costs paid by {contract.collabProductReturnShippingBy || "Brand"}. Failure to return or returning in damaged condition incurs a mandatory non-return penalty of PKR {Number(contract.collabProductNonReturnFee || 0).toLocaleString()}.
                 {contract.collabProductReturnAddress && <><br />Return Address: {contract.collabProductReturnAddress}</>}
               </div>
             )}

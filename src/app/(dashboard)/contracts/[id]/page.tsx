@@ -210,7 +210,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               onClick={copySigningLink}
               className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
             >
-              🔗 Copy Signing Link
+              Copy Signing Link
             </button>
           )}
 
@@ -339,7 +339,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                 <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Delivery Window</span>
                 <span className="text-black font-bold">{contract.deliveryTimeframeDays} Days post-execution</span>
                 {contract.brandApprovalRequired && (
-                  <span className="text-[10px] text-blue-700 block font-semibold mt-0.5">⚡ 48-Hr Deemed Approval Active</span>
+                  <span className="text-[10px] text-blue-700 block font-semibold mt-0.5">48-Hr Deemed Approval Active</span>
                 )}
               </div>
               <hr className="border-gray-50" />
@@ -487,7 +487,7 @@ export default function ContractDetailPage({ params }: PageProps) {
 
               {contract.collabProductProvisionType === "Product Loan" && (
                 <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 text-xs space-y-2">
-                  <span className="font-bold text-amber-900 uppercase tracking-wider block">🔒 Product Loan Return Terms</span>
+                  <span className="font-bold text-amber-900 uppercase tracking-wider block">Product Loan Return Terms</span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-amber-950">
                     <div>• Return Deadline: Within <strong>{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
                     <div>• Shipping Paid By: <strong>{contract.collabProductReturnShippingBy || "Brand"}</strong></div>

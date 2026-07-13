@@ -14,12 +14,12 @@ interface Deliverable {
 }
 
 const STEPS = [
-  { id: 0, title: "Deliverables & Brief", icon: "📦" },
-  { id: 1, title: "Usage Rights & Scope", icon: "🛡️" },
-  { id: 2, title: "Financials & Payment", icon: "💳" },
-  { id: 3, title: "Delivery & Exclusivity", icon: "⏱️" },
-  { id: 4, title: "Safeguards & NDA", icon: "⚖️" },
-  { id: 5, title: "Confirm & Submit", icon: "📝" },
+  { id: 0, title: "Deliverables & Brief", icon: "1" },
+  { id: 1, title: "Usage Rights & Scope", icon: "2" },
+  { id: 2, title: "Financials & Payment", icon: "3" },
+  { id: 3, title: "Delivery & Exclusivity", icon: "4" },
+  { id: 4, title: "Safeguards & NDA", icon: "5" },
+  { id: 5, title: "Confirm & Submit", icon: "6" },
 ];
 
 export default function NewContractPage() {
@@ -786,7 +786,7 @@ export default function NewContractPage() {
               </label>
               {brandApprovalRequired && (
                 <p className="text-[10px] text-gray-500 leading-relaxed bg-white p-2.5 rounded border border-gray-200">
-                  ⚡ <strong>48-Hour Deemed Approval Protocol:</strong> Draft content must be submitted to Brand at least 3 business days prior to delivery deadline. Brand must respond within 48 hours. Failure by Brand to respond within 48 hours legally constitutes <strong>Deemed Approval</strong>, authorizing final posting.
+                  <strong>48-Hour Deemed Approval Protocol:</strong> Draft content must be submitted to Brand at least 3 business days prior to delivery deadline. Brand must respond within 48 hours. Failure by Brand to respond within 48 hours legally constitutes <strong>Deemed Approval</strong>, authorizing final posting.
                 </p>
               )}
             </div>
@@ -839,7 +839,7 @@ export default function NewContractPage() {
 
               {collabProductProvisionType === "Product Loan" && (
                 <div className="p-3 rounded-lg bg-amber-50/60 border border-amber-200 space-y-3 mt-2">
-                  <span className="text-[10px] font-bold uppercase text-amber-800 block">🔒 Product Loan Return Conditions</span>
+                  <span className="text-[10px] font-bold uppercase text-amber-800 block">Product Loan Return Conditions</span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] font-bold text-gray-500">Return Deadline (Days post-deliverable)</label>
@@ -1291,7 +1291,7 @@ export default function NewContractPage() {
             </div>
 
             <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-800 leading-relaxed font-semibold">
-              ⚖️ Once submitted, this generates a unique shared agreement link. The counterparty must verify their email via OTP before signing first.
+              Once submitted, this generates a unique shared agreement link. The counterparty must verify their email via OTP before signing first.
             </div>
           </div>
         )}

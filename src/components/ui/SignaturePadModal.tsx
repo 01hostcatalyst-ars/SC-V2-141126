@@ -102,7 +102,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
         <div className="space-y-4">
           {/* ETO 2002 Legal Warning */}
           <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-[11px] text-blue-800 leading-relaxed font-semibold">
-            ⚖️ <strong>Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by Pakistan&apos;s Electronic Transactions Ordinance (ETO 2002).
+            <strong>Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by Pakistan&apos;s Electronic Transactions Ordinance (ETO 2002).
           </div>
 
           {/* Consent Checkbox */}
