@@ -189,7 +189,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
             <div><strong>Email:</strong> ${contract.initiator.email}</div>
             <div><strong>IP Address:</strong> ${initiatorSignature?.ipAddress || "Record Logged"}</div>
             <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
-            <div><strong>Timestamp:</strong> ${formatLegalDate(initiatorSignature?.createdAt || contract.createdAt)}</div>
+            <div><strong>Timestamp:</strong> ${formatLegalDate(initiatorSignature?.signedAt || contract.createdAt)}</div>
           </div>
 
           <!-- Party B -->
@@ -201,7 +201,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
             <div><strong>Email:</strong> ${contract.respondentEmail || contract.respondent?.email || "N/A"}</div>
             <div><strong>IP Address:</strong> ${respondentSignature?.ipAddress || "Record Logged"}</div>
             <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
-            <div><strong>Timestamp:</strong> ${formatLegalDate(respondentSignature?.createdAt || contract.activatedAt)}</div>
+            <div><strong>Timestamp:</strong> ${formatLegalDate(respondentSignature?.signedAt || contract.activatedAt)}</div>
           </div>
         </div>
 
