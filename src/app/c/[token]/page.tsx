@@ -745,7 +745,7 @@ export default function PublicSigningPage({ params }: PageProps) {
 
               {/* Card 8: Dispute Resolution (ADR) Clause */}
               <div className="p-4 rounded-xl border border-gray-200 bg-blue-50/50 space-y-1 text-[11px] text-blue-950">
-                <span className="font-bold uppercase tracking-wider block text-blue-900">Section 12: Governing Law &amp; Dispute Resolution</span>
+                <span className="font-bold uppercase tracking-wider block text-blue-900">Section 11: Governing Law &amp; Dispute Resolution</span>
                 <p className="leading-relaxed">
                   Governed by the laws of Pakistan. Disputes proceed to 14 days of good-faith negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary determination in local courts; (b) Claims &gt; PKR 500,000 proceed to binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>.
                 </p>

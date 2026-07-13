@@ -520,7 +520,7 @@ export default function ContractDetailPage({ params }: PageProps) {
             </div>
 
             <div>
-              <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Section 12: Governing Law &amp; Dispute Resolution (ADR)</span>
+              <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Section 11: Governing Law &amp; Dispute Resolution (ADR)</span>
               <div className="text-blue-950 font-medium bg-blue-50/60 p-3.5 rounded-lg border border-blue-200 leading-relaxed">
                 Governed by the laws of Pakistan. Any dispute proceeds to 14 days of good-faith executive negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary determination in local courts; (b) Claims &gt; PKR 500,000 proceed to binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>. Prevailing party recovers legal costs.
               </div>

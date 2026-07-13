@@ -245,7 +245,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           </div>
         </div>
 
-        ${(contract.brandName || contract.creatorName) ? `
+        ${(contract.brandName || contract.creatorName || contract.campaignName) ? `
           <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; margin-bottom: 14px; background: #ffffff; font-size: 8.5pt;">
             <div style="font-weight: 800; color: #0f172a; text-transform: uppercase; margin-bottom: 4px;">CAMPAIGN &amp; CREATOR CONTEXT</div>
             <div style="display: flex; gap: 16px;">
@@ -256,11 +256,11 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           </div>
         ` : ""}
 
-        <!-- Section 2: Campaign Deliverables -->
+        <!-- Section 2: Deliverables -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-bottom: 8px;">
           2. CAMPAIGN DELIVERABLES SPECIFICATIONS &amp; RETENTION ENFORCEMENT
         </div>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 8.5pt; border: 1px solid #cbd5e1;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 8.5pt; border: 1px solid #cbd5e1;">
           <thead>
             <tr style="background-color: #f1f5f9; color: #0f172a; text-transform: uppercase; font-size: 8pt;">
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Platform Format</th>
@@ -280,10 +280,58 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
             `).join("")}
           </tbody>
         </table>
+        <div style="font-size: 7.5pt; color: #475569; margin-bottom: 14px; font-style: italic;">
+          * RETENTION BREACH ENFORCEMENT: Premature deletion, archiving, or hiding of deliverables prior to the agreed retention duration constitutes a material breach, subjecting the breaching party to a mandatory pro-rata refund plus a 25% early-deletion penalty fee.
+        </div>
 
-        <!-- Section 5: Draft Delivery Turnaround, Product Loan & Revision Protocol -->
+        <!-- Section 3: Usage Rights -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          5. DELIVERY PROTOCOL, PRODUCT SHIPMENT &amp; REVISIONS
+          3. USAGE RIGHTS, PLATFORM SCOPE &amp; LICENSING TERMS
+        </div>
+        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
+          <div style="margin-bottom: 4px;"><strong>Permitted Platforms:</strong> ${contract.platformsAllowed?.map((p: string) => (p === "X_TWITTER" ? "X (TWITTER)" : p)).join(", ")}</div>
+          <div style="margin-bottom: 4px;"><strong>Granted Commercial License:</strong> <strong>${formatUsageLicenseText(contract.usageType)}</strong></div>
+          <div style="margin-bottom: 4px;"><strong>Licensed Duration:</strong> <strong>${contract.usageRightsDuration}</strong></div>
+          <div style="font-size: 7.5pt; color: #64748b; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
+            <em>WITHHELD RIGHTS NOTICE: Party A and Creator reserve all intellectual property rights not expressly granted above. Any commercial re-use, television broadcast, dark-posting, or off-platform print distribution outside the licensed parameters is strictly prohibited without prior written amendment.</em>
+          </div>
+        </div>
+
+        <!-- Section 4: Financial Compensation -->
+        <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
+          4. FINANCIAL COMPENSATION &amp; PAYMENT SCHEDULE
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 8.5pt; border: 1px solid #cbd5e1;">
+          <thead>
+            <tr style="background-color: #f1f5f9; color: #0f172a; text-transform: uppercase; font-size: 8pt;">
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Total Campaign Valuation</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Advance Payment</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Remaining Payout</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Payment Method &amp; Route</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 9.5pt;">PKR ${Number(contract.totalAmount).toLocaleString()}</td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
+                <strong>PKR ${Number(contract.advancePayment || 0).toLocaleString()}</strong>
+                ${contract.advancePaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.advancePaymentDate)}</span>` : ""}
+              </td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
+                <strong>PKR ${getRemainingAmount().toLocaleString()}</strong>
+                ${contract.remainingPaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.remainingPaymentDate)}</span>` : ""}
+              </td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
+                <strong>${contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</strong>
+                <br /><span style="font-size: 7.5pt; font-family: monospace; color: #475569;">${contract.paymentMethod === "BANK_IBAN" ? (contract.bankAccountIban || "Pending") : (contract.mobileWalletNumber || "Pending")}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Section 5: Delivery Protocol & Revisions -->
+        <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
+          5. DELIVERY TIMEFRAME, REVISIONS &amp; PRE-APPROVAL PROTOCOL
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
           <div style="display: flex; gap: 12px; margin-bottom: 6px;">
@@ -292,45 +340,72 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
             <div style="flex: 1;"><strong>Revision Turnaround:</strong> ${contract.revisionTurnaroundDays || 5} Days / Round</div>
           </div>
           <div><strong>Pre-Approval Protocol:</strong> ${contract.brandApprovalRequired ? "Strict Pre-Approval Required (48-hour deemed approval applies if feedback is withheld)" : "Direct Content Publishing Permitted"}</div>
-          
-          ${contract.collabProduct ? `
-            <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #cbd5e1; background: #fffbebf0; padding: 6px; border-radius: 4px;">
-              <strong>COLLABORATION PRODUCT &amp; SHIPMENT TERMS:</strong>
-              <div>• Product Item: <strong>${contract.collabProduct}</strong> (${contract.collabProductProvisionType || "Provision"})</div>
-              <div>• Delivery Start Trigger: Timeframe (${contract.deliveryTimeframeDays} days) starts post receipt of product shipment or advance payment.</div>
-              ${contract.collabProductProvisionType === "Product Loan" ? `
-                <div>• Product Loan Return: Required within <strong>${contract.collabProductReturnDays || 7} days</strong> post-deliverable. Return Shipping Paid By: <strong>${contract.collabProductReturnShippingBy || "Brand"}</strong>.</div>
-                ${contract.collabProductNonReturnFee ? `<div>• Non-Return Penalty Fee: <strong>PKR ${Number(contract.collabProductNonReturnFee).toLocaleString()}</strong></div>` : ""}
-              ` : ""}
-            </div>
-          ` : ""}
         </div>
 
-        <!-- Section 6: Exclusivity & NDA Terms -->
+        <!-- Section 6: Exclusivity Restrictions -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          6. EXCLUSIVITY &amp; CONFIDENTIALITY EMBARGO
+          6. EXCLUSIVITY RESTRICTIONS &amp; PROHIBITED COMPETITORS
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
           <div><strong>Category Exclusivity:</strong> ${contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Agreed Duration"})` : "Non-Exclusive"}</div>
-          ${contract.exclusivityClause && contract.exclusivityCompetitors ? `<div><strong>Restricted Competitors:</strong> ${contract.exclusivityCompetitors}</div>` : ""}
-          <div style="margin-top: 4px;"><strong>Pre-Launch NDA Status:</strong> ${contract.confidentialityRequired ? `Strict Pre-Launch NDA Active (Embargo Date: ${contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Official Release Date"})` : "Standard Commercial Confidentiality"}</div>
+          ${contract.exclusivityClause && contract.exclusivityCompetitors ? `<div><strong>Restricted Competitors / Categories:</strong> ${contract.exclusivityCompetitors}</div>` : ""}
+        </div>
+
+        <!-- Section 7: Confidentiality & Pre-Launch Embargo (NDA) -->
+        <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
+          7. CONFIDENTIALITY &amp; PRE-LAUNCH PRODUCT EMBARGO (NDA)
+        </div>
+        <div style="border: 1px solid ${contract.confidentialityRequired ? "#fde68a" : "#cbd5e1"}; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: ${contract.confidentialityRequired ? "#fffbeb" : "#ffffff"}; line-height: 1.6;">
+          <div><strong>Pre-Launch NDA Status:</strong> ${contract.confidentialityRequired ? `Strict Pre-Launch NDA Active (Embargo Date: ${contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Official Release Date"})` : "Standard Commercial Confidentiality"}</div>
           ${contract.confidentialityRequired && contract.earlyDisclosurePenalty ? `<div><strong>Early Leak Liquidated Damages:</strong> PKR ${Number(contract.earlyDisclosurePenalty).toLocaleString()}</div>` : ""}
         </div>
 
-        <!-- Section 7: Bilateral Safeguards & Liquidated Damages -->
+        <!-- Section 8: Collaboration Product Shipment & Loan Terms -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          7. BILATERAL SAFEGUARDS &amp; LATE PENALTY CAPS
+          8. COLLABORATION PRODUCT SHIPMENT &amp; LOAN RETURN TERMS
         </div>
-        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #f8fafc; line-height: 1.6;">
-          <div>• <strong>Late Payment Penalty:</strong> ${Number(contract.latePaymentPenaltyPct || 3)}% per calendar day of delay.</div>
-          <div>• <strong>Late Content Delivery Penalty:</strong> ${Number(contract.lateContentPenaltyPct || 3)}% per calendar day of delay.</div>
-          <div>• <strong>Liquidated Damages Cap:</strong> Total accrued delay penalties are strictly capped at <strong>${Number(contract.penaltyCapPct || 20)}%</strong> of Total Campaign Valuation.</div>
-          <div>• <strong>Non-Delivery Cutoff &amp; Default:</strong> Delay exceeding 14 calendar days post-deadline constitutes a material breach, granting the non-breaching party immediate right of cancellation and full refund recovery.</div>
+        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
+          ${contract.collabProduct ? `
+            <div>• <strong>Product Item:</strong> <strong>${contract.collabProduct}</strong> (${contract.collabProductProvisionType || "Provision"})</div>
+            <div>• <strong>Delivery Start Trigger:</strong> Timeframe (${contract.deliveryTimeframeDays} days) starts post receipt of product shipment or advance payment.</div>
+            ${contract.collabDeliveryAddress ? `<div>• <strong>Shipment Address:</strong> ${contract.collabDeliveryAddress}</div>` : ""}
+            ${contract.collabProductProvisionType === "Product Loan" ? `
+              <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1; color: #92400e;">
+                <div>• <strong>Product Loan Return:</strong> Required within <strong>${contract.collabProductReturnDays || 7} days</strong> post-deliverable. Return Shipping Paid By: <strong>${contract.collabProductReturnShippingBy || "Brand"}</strong>.</div>
+                ${contract.collabProductReturnAddress ? `<div>• Return Shipping Address: ${contract.collabProductReturnAddress}</div>` : ""}
+                ${contract.collabProductNonReturnFee ? `<div>• Non-Return Penalty Fee: <strong>PKR ${Number(contract.collabProductNonReturnFee).toLocaleString()}</strong></div>` : ""}
+              </div>
+            ` : ""}
+          ` : `
+            <div>• <strong>Product Shipment Status:</strong> No physical product loan or shipment required for this collaboration. Deliverable delivery window commences post-execution and advance payment receipt as agreed.</div>
+          `}
         </div>
 
-        <!-- Section 8: Dispute Resolution (ADR & Arbitration Act 1940) -->
+        <!-- Section 9: Tagging Requirements & Copyright Ownership -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          8. GOVERNING LAW &amp; DISPUTE RESOLUTION (ADR)
+          9. TAGGING REQUIREMENTS &amp; COPYRIGHT OWNERSHIP
+        </div>
+        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
+          ${contract.taggingRequirements ? `<div style="margin-bottom: 4px;"><strong>Tagging &amp; Caption Guidelines:</strong> ${contract.taggingRequirements}</div>` : ""}
+          <div><strong>Content Copyright Clause:</strong> ${contract.contentOwnership}</div>
+        </div>
+
+        <!-- Section 10: Bilateral Safeguards & Liquidated Damages -->
+        <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
+          10. BILATERAL SAFEGUARDS &amp; LATE PENALTY CAPS
+        </div>
+        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #f8fafc; line-height: 1.6;">
+          <div>• <strong>Late Payment Penalty (Charged to Brand):</strong> ${Number(contract.latePaymentPenaltyPct || 3)}% per calendar day of delay.</div>
+          <div>• <strong>Late Content Delivery Penalty (Charged to Agency/Creator):</strong> ${Number(contract.lateContentPenaltyPct || 3)}% per calendar day of delay.</div>
+          <div>• <strong>Liquidated Damages Cap:</strong> Total accrued delay penalties are strictly capped at <strong>${Number(contract.penaltyCapPct || 20)}%</strong> of Total Campaign Valuation.</div>
+          <div>• <strong>Non-Delivery Cutoff &amp; Default:</strong> Delay exceeding ${contract.nonDeliveryCutoffDays || 7} calendar days post-deadline constitutes a material breach, granting the non-breaching party immediate right of cancellation and 100% advance refund recovery.</div>
+          <div>• <strong>Unauthorized Brand Re-Use Penalty:</strong> ${Number(contract.unauthorizedUsagePenaltyPct || 50)}% of total contract value per violation outside licensed scope.</div>
+          <div>• <strong>Pre-Delivery Cancellation Fee:</strong> ${Number(contract.cancellationFeePct || 25)}% of total campaign fee owed if terminated post-execution prior to deliverable hand-off.</div>
+        </div>
+
+        <!-- Section 11: Governing Law & Dispute Resolution (ADR) -->
+        <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
+          11. GOVERNING LAW &amp; DISPUTE RESOLUTION (ADR)
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
           This Agreement is governed by the laws of the Islamic Republic of Pakistan. Any dispute arising out of or in connection with this Agreement shall first proceed to 14 days of mandatory good-faith negotiation between authorized executive representatives. If unresolved:
@@ -340,9 +415,9 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           (b) Claims exceeding <strong>PKR 500,000</strong> shall proceed to final and binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>. The prevailing party shall be entitled to recover full legal costs and attorney fees.
         </div>
 
-        <!-- Section 9: ETO 2002 Bilateral Signature Audit Log -->
+        <!-- Section 12: ETO 2002 Bilateral Signature Audit Log -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          9. ETO 2002 BILATERAL SIGNATURE AUDIT LOG &amp; CRYPTOGRAPHIC VERIFICATION
+          12. ETO 2002 BILATERAL SIGNATURE AUDIT LOG &amp; CRYPTOGRAPHIC VERIFICATION
         </div>
         <div style="display: flex; gap: 12px; margin-bottom: 14px;">
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; text-align: center; background: #ffffff;">

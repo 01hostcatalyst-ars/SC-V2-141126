@@ -257,17 +257,17 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         <div>• <strong>Pre-Delivery Termination Fee:</strong> {Number(contract.cancellationFeePct || 25)}% of total campaign fee owed if terminated post-execution prior to deliverable hand-off.</div>
       </div>
 
-      {/* Section 12: Governing Law & Dispute Resolution */}
+      {/* Section 11: Governing Law & Dispute Resolution */}
       <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", color: "#0f172a", borderBottom: "1.5px solid #0f172a", paddingBottom: "3px", marginTop: "14px", marginBottom: "8px" }}>
-        12. GOVERNING LAW &amp; ALTERNATIVE DISPUTE RESOLUTION (ADR)
+        11. GOVERNING LAW &amp; ALTERNATIVE DISPUTE RESOLUTION (ADR)
       </div>
       <div style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "10px", fontSize: "10px", marginBottom: "14px", backgroundColor: "#ffffff", lineHeight: "1.6" }}>
         This agreement shall be governed by and construed in accordance with the laws of the Islamic Republic of Pakistan. In the event of any dispute or claim, the parties shall first attempt to resolve the matter through 14 calendar days of good-faith negotiation. If unresolved: (a) Disputes equal to or below PKR 500,000 shall proceed to summary determination in competent local courts; (b) Disputes exceeding PKR 500,000 shall be referred to binding arbitration by a sole arbitrator in Pakistan under the <strong>Arbitration Act 1940</strong> of Pakistan. The prevailing party shall recover reasonable legal fees and arbitration costs.
       </div>
 
-      {/* Section 11: Signature execution log */}
+      {/* Section 12: Signature execution log */}
       <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", color: "#0f172a", borderBottom: "1.5px solid #0f172a", paddingBottom: "3px", marginTop: "18px", marginBottom: "8px" }}>
-        11. ETO 2002 BILATERAL SIGNATURE AUDIT LOG &amp; CRYPTOGRAPHIC VERIFICATION
+        12. ETO 2002 BILATERAL SIGNATURE AUDIT LOG &amp; CRYPTOGRAPHIC VERIFICATION
       </div>
       <div style={{ display: "flex", gap: "16px", marginTop: "10px" }}>
         <div style={{ flex: 1, border: "1px solid #cbd5e1", borderRadius: "6px", padding: "10px", textAlign: "center", backgroundColor: "#ffffff" }}>
