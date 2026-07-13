@@ -5,20 +5,11 @@ import Link from "next/link";
 import { getCompanyConfig } from "@/lib/config";
 import { useToast } from "@/components/ui/Toast";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
+import { formatLegalDate, formatUsageLicenseText } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ token: string }>;
 }
-
-const formatUsageType = (type: any) => {
-  if (Array.isArray(type)) {
-    return type.map((t) => t.replace(/_/g, " ")).join(", ");
-  }
-  if (typeof type === 'string') {
-    return type.replace(/_/g, " ");
-  }
-  return "N/A";
-};
 
 export default function PublicSigningPage({ params }: PageProps) {
   const resolvedParams = use(params);
@@ -37,6 +28,7 @@ export default function PublicSigningPage({ params }: PageProps) {
   const [respondentCompany, setRespondentCompany] = useState("");
   const [respondentDesignation, setRespondentDesignation] = useState("");
   const [respondentAddress, setRespondentAddress] = useState("");
+  const [respondentNtn, setRespondentNtn] = useState("");
   const [collabDetails, setCollabDetails] = useState("");
 
   // OTP identity state
@@ -78,33 +70,36 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   const handleSendOTP = async () => {
     if (!isFormValid) {
-      showToast("Please fill in all verification fields before requesting OTP code.", "error");
+      showToast("Please complete all profile details before requesting OTP.", "error");
       return;
     }
+
     setOtpLoading(true);
     try {
       const res = await fetch(`/api/contracts/share/${resolvedParams.token}/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: respondentEmail,
-          phone: respondentPhone,
-          name: respondentName,
-          company: respondentCompany,
-          address: respondentAddress,
-          designation: respondentDesignation,
-          collabDetails,
+          respondentEmail,
+          respondentPhone,
+          respondentName,
+          respondentCompany: isRespondentBrand ? respondentCompany : collabDetails,
+          respondentAddress,
+          respondentDesignation,
+          respondentNtn,
+          collabDetails: !isRespondentBrand ? collabDetails : undefined,
         }),
       });
+
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data.success) {
         setOtpDispatched(true);
-        showToast("Verification code dispatched to your email!", "success");
+        showToast(`Verification code sent to ${respondentEmail}!`, "success");
       } else {
-        showToast(data.error || "Failed to send verification code.", "error");
+        showToast(data.error || "Failed to dispatch verification code.", "error");
       }
     } catch (err) {
-      showToast("Error dispatching OTP.", "error");
+      showToast("Error dispatching verification email.", "error");
     } finally {
       setOtpLoading(false);
     }
@@ -112,25 +107,27 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   const handleVerifyOTP = async () => {
     if (!otpCode || otpCode.length !== 6) {
-      showToast("Verification code must be 6 digits.", "error");
+      showToast("Please enter the 6-digit OTP code sent to your email.", "error");
       return;
     }
+
     setOtpLoading(true);
     try {
       const res = await fetch(`/api/contracts/share/${resolvedParams.token}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: respondentEmail, code: otpCode }),
+        body: JSON.stringify({ code: otpCode }),
       });
+
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data.success) {
         setOtpVerified(true);
-        showToast("Identity successfully verified!", "success");
+        showToast("Identity verified successfully! You may now review and sign.", "success");
       } else {
-        showToast(data.error || "Invalid verification code.", "error");
+        showToast(data.error || "Invalid or expired OTP code.", "error");
       }
     } catch (err) {
-      showToast("Error verifying OTP.", "error");
+      showToast("Error verifying identity code.", "error");
     } finally {
       setOtpLoading(false);
     }
@@ -138,12 +135,8 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   const handleReviewAndSign = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) {
-      showToast("Please fill in all required verification fields.", "error");
-      return;
-    }
     if (!otpVerified) {
-      showToast("Please verify your email address via OTP first.", "error");
+      showToast("Please complete email OTP identity verification first.", "error");
       return;
     }
     setIsSignModalOpen(true);
@@ -151,102 +144,65 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   const handleExecuteSignature = async (signatureB64: string, fingerprint: string) => {
     setSigning(true);
-    const payloadDetails = {
-      respondentName,
-      respondentEmail,
-      respondentPhone,
-      respondentCompany: isRespondentBrand ? respondentCompany : undefined,
-      respondentAddress,
-      respondentDesignation: isRespondentBrand ? respondentDesignation : undefined,
-      collabDetails,
-    };
-
     try {
-      const detailsRes = await fetch(`/api/contracts/share/${resolvedParams.token}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadDetails),
-      });
-
-      if (!detailsRes.ok) {
-        throw new Error("Failed to save respondent parameters.");
-      }
-
-      const documentHash = "SHA256-" + resolvedParams.token;
-      const signRes = await fetch(`/api/contracts/share/${resolvedParams.token}/sign`, {
+      const res = await fetch(`/api/contracts/share/${resolvedParams.token}/sign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          respondentName,
+          respondentEmail,
+          respondentPhone,
+          respondentCompany: isRespondentBrand ? respondentCompany : undefined,
+          respondentDesignation,
+          respondentAddress,
+          respondentNtn,
+          collabDetails: !isRespondentBrand ? collabDetails : undefined,
           signatureB64,
-          documentHash,
           fingerprint,
-          email: respondentEmail,
         }),
       });
 
-      const signData = await signRes.json();
-      if (!signRes.ok) {
-        throw new Error(signData.error || "Signature execution failed.");
-      }
-
-      showToast("Agreement signed successfully!", "success");
-      setTimeout(() => {
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast("Agreement signed successfully!", "success");
         window.location.href = `/c/${resolvedParams.token}/success`;
-      }, 800);
-    } catch (err: any) {
-      showToast(err.message || "Signing transaction failed.", "error");
+      } else {
+        showToast(data.error || "Failed to execute signature transaction.", "error");
+      }
+    } catch (err) {
+      showToast("Error processing signature transaction.", "error");
     } finally {
       setSigning(false);
+      setIsSignModalOpen(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-theme-gradient flex items-center justify-center flex-col gap-3">
-        <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs font-bold uppercase tracking-wider text-black">Querying agreement...</span>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500 font-bold text-sm">
+        Loading agreement details...
       </div>
     );
   }
 
   if (!contract) {
     return (
-      <div className="min-h-screen bg-theme-gradient flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 font-bold text-2xl mb-4">
-          ✗
-        </div>
-        <h2 className="text-2xl font-black text-black mb-2">Invalid or Expired Link</h2>
-        <p className="text-gray-500 text-xs mb-6 max-w-sm">
-          This agreement link is no longer valid, has expired, or is not accepting counterparty signatures.
-        </p>
-        <Link href="/">
-          <button className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow">
-            Back to Home
-          </button>
-        </Link>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-rose-600 font-bold text-sm">
+        Agreement unavailable or link has expired.
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
-      {/* Ambient backgrounds */}
-      <div className="absolute top-[5%] left-[-5%] w-[80%] h-[40%] rounded-full ambient-glow-purple pointer-events-none z-0" />
-      <div className="absolute bottom-[5%] right-[-5%] w-[80%] h-[40%] rounded-full ambient-glow-blue pointer-events-none z-0" />
-
-      {/* Header Bar */}
-      <header className="w-full h-16 border-b border-gray-200/60 bg-white/80 backdrop-blur-md flex items-center justify-between px-6 md:px-12 z-10 sticky top-0 shadow-sm">
+    <div className="min-h-screen bg-[#FBFBFC] flex flex-col justify-between font-sans antialiased selection:bg-black selection:text-white">
+      {/* Navbar Header */}
+      <header className="w-full border-b border-gray-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-20 px-6 md:px-12 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base">
-            {company.name[0]}
-          </span>
-          <span className="font-bold text-lg text-black tracking-tight uppercase">
-            {company.name}
-          </span>
+          <span className="font-black text-xl tracking-tight text-black">{company.name}</span>
         </Link>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-gray-500 bg-white border border-gray-200 px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
-            🔒 Contract No: {contract.contractNumber}
+          <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+            Ref: {contract.contractNumber}
           </span>
         </div>
       </header>
@@ -257,7 +213,7 @@ export default function PublicSigningPage({ params }: PageProps) {
         {/* Banner Welcome */}
         <div className="space-y-2 text-left">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-800 uppercase">
-            ⚖️ Mutual Legal Agreement Execution
+            ⚖️ Mutual Legal Agreement Execution (ETO 2002)
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-black leading-tight">
             Review &amp; Sign Collaboration Agreement
@@ -371,7 +327,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* 5. Brand / Company Address * (MOVED ABOVE JOB TITLE, FULL WIDTH) */}
+              {/* 5. Brand / Company Address * */}
               <div className="flex flex-col gap-1 sm:col-span-2">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
                   Brand / Company Address <span className="text-rose-500">*</span>
@@ -387,7 +343,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                 />
               </div>
 
-              {/* 6. Your Job Title * AND Send OTP Trigger in SAME ROW */}
+              {/* 6. Job Title AND NTN Reg No */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
                   Your Job Title <span className="text-rose-500">*</span>
@@ -403,16 +359,30 @@ export default function PublicSigningPage({ params }: PageProps) {
                 />
               </div>
 
-              {/* OTP Action Trigger (Right side of same row) */}
-              <div className="flex flex-col justify-end">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-black uppercase tracking-wider">
+                  NTN / Tax Reg No (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 1234567-8"
+                  value={respondentNtn}
+                  onChange={(e) => setRespondentNtn(e.target.value)}
+                  disabled={otpDispatched || otpVerified}
+                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              {/* OTP Action Trigger */}
+              <div className="flex flex-col justify-end sm:col-span-2 mt-2">
                 {!otpVerified ? (
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <div className="flex flex-col text-left">
-                      <span className="text-[11px] font-bold text-black">Email OTP Verification Required</span>
+                      <span className="text-xs font-bold text-black uppercase tracking-wider">Email OTP Verification Required</span>
                       <span className="text-[10px] text-gray-500">
                         {otpDispatched
-                          ? "Code sent to email. Enter below."
-                          : "Fill all required fields above to enable Send OTP."}
+                          ? "Code sent to email. Enter 6-digit verification code below."
+                          : "Fill all required fields above to enable Send OTP button."}
                       </span>
                     </div>
 
@@ -421,13 +391,13 @@ export default function PublicSigningPage({ params }: PageProps) {
                         type="button"
                         onClick={handleSendOTP}
                         disabled={!isFormValid || otpLoading}
-                        className={`font-bold px-5 py-2.5 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
+                        className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
                           isFormValid && !otpLoading
                             ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
                             : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
                         }`}
                       >
-                        {otpLoading ? "Sending..." : "Send OTP"}
+                        {otpLoading ? "Sending..." : "Send OTP ➔"}
                       </button>
                     ) : (
                       <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -437,23 +407,23 @@ export default function PublicSigningPage({ params }: PageProps) {
                           placeholder="123456"
                           value={otpCode}
                           onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                          className="input-field text-center font-mono font-bold tracking-widest text-sm py-1.5 max-w-[110px]"
+                          className="input-field text-center font-mono font-bold tracking-widest text-sm py-2 max-w-[120px]"
                         />
                         <button
                           type="button"
                           onClick={handleVerifyOTP}
                           disabled={otpLoading || !otpCode}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs uppercase shadow transition-all whitespace-nowrap"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase shadow transition-all whitespace-nowrap"
                         >
-                          {otpLoading ? "..." : "Verify"}
+                          {otpLoading ? "..." : "Verify OTP"}
                         </button>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800 flex items-center gap-2">
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
                     <span>✓</span>
-                    <span>Identity Verified via OTP code!</span>
+                    <span>Identity Verified via Email OTP code! You may now review terms below and execute signature.</span>
                   </div>
                 )}
               </div>
@@ -465,10 +435,10 @@ export default function PublicSigningPage({ params }: PageProps) {
           <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
             <div className="border-b border-gray-100 pb-3 text-left">
               <h2 className="text-base font-black text-black uppercase tracking-wider">
-                2. Review Agreement Terms
+                2. Review Campaign Terms
               </h2>
               <p className="text-xs text-gray-500 font-medium mt-1">
-                Please review the campaign details below. If the terms match your negotiated values, verify your identity and sign.
+                Please review all campaign parameters below. If terms match your negotiated values, execute your digital signature.
               </p>
             </div>
 
@@ -507,14 +477,14 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <span className="font-black text-black text-sm">PKR {Number(contract.totalAmount).toLocaleString()}</span>
                   </div>
                   <div>
-                    <span className="font-semibold text-gray-500 block">Advance Escrow:</span>
+                    <span className="font-semibold text-gray-500 block">Advance Payment:</span>
                     <span className="font-bold text-black">{contract.advancePayment ? `PKR ${Number(contract.advancePayment).toLocaleString()}` : "No Advance"}</span>
-                    {contract.advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {new Date(contract.advancePaymentDate).toLocaleDateString()}</span>}
+                    {contract.advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.advancePaymentDate)}</span>}
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Remaining Payout:</span>
                     <span className="font-bold text-black">PKR {Number(contract.remainingAmount || 0).toLocaleString()}</span>
-                    {contract.remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {new Date(contract.remainingPaymentDate).toLocaleDateString()}</span>}
+                    {contract.remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.remainingPaymentDate)}</span>}
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Payment Route Method:</span>
@@ -564,8 +534,8 @@ export default function PublicSigningPage({ params }: PageProps) {
                     </div>
                   </div>
                   <div>
-                    <span className="font-semibold text-gray-500 block mb-1">Usage Category:</span>
-                    <span className="font-bold text-black uppercase">{formatUsageType(contract.usageType)}</span>
+                    <span className="font-semibold text-gray-500 block mb-1">Granted License:</span>
+                    <span className="font-bold text-black">{formatUsageLicenseText(contract.usageType)}</span>
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block mb-1">Rights Duration:</span>
@@ -574,10 +544,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Card 5: Delivery & Exclusivity */}
+              {/* Card 5: Delivery, Exclusivity & NDA */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Delivery Window &amp; Exclusivity</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Delivery Window &amp; Pre-Approval Protocol</span>
                   <div className="flex justify-between">
                     <span className="font-semibold text-gray-500">Delivery Deadline:</span>
                     <span className="font-bold text-black">{contract.deliveryTimeframeDays} Days post-execution</span>
@@ -587,8 +557,8 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <span className="font-bold text-black">{contract.revisionRounds} Rounds</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-semibold text-gray-500">Pre-Approval:</span>
-                    <span className="font-bold text-black">{contract.brandApprovalRequired ? "Required" : "Not Required"}</span>
+                    <span className="font-semibold text-gray-500">Pre-Approval Protocol:</span>
+                    <span className="font-bold text-black">{contract.brandApprovalRequired ? "Required (48-hr Deemed Approval)" : "Not Required"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-semibold text-gray-500">Exclusivity Clause:</span>
@@ -612,7 +582,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <>
                       <div className="flex justify-between">
                         <span className="font-semibold text-gray-500">Embargo Launch Date:</span>
-                        <span className="font-bold text-black">{contract.embargoDate ? new Date(contract.embargoDate).toLocaleDateString() : "Required until official launch"}</span>
+                        <span className="font-bold text-black">{contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Required until official launch"}</span>
                       </div>
                       {contract.earlyDisclosurePenalty && (
                         <div className="flex justify-between">
@@ -625,10 +595,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Card 6: Collaboration Product (if present) */}
+              {/* Card 6: Collaboration Product & Loan Return Terms (if present) */}
               {contract.collabProduct && (
                 <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Collaboration Product Shipment</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Collaboration Product Shipment &amp; Return Terms</span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div>
                       <span className="font-semibold text-gray-500 block">Product:</span>
@@ -636,7 +606,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     </div>
                     <div>
                       <span className="font-semibold text-gray-500 block">Expected Arrival:</span>
-                      <span className="font-bold text-black">{contract.collabDeliveryDate ? new Date(contract.collabDeliveryDate).toLocaleDateString() : "Not Specified"}</span>
+                      <span className="font-bold text-black">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate) : "Not Specified"}</span>
                     </div>
                     {contract.collabDeliveryAddress && (
                       <div>
@@ -645,35 +615,23 @@ export default function PublicSigningPage({ params }: PageProps) {
                       </div>
                     )}
                   </div>
-                </div>
-              )}
-
-              {/* Card 7: Tagging & Copyright Terms */}
-              {(contract.taggingRequirements || contract.contentOwnership) && (
-                <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Tagging &amp; Copyright Terms</span>
-                  {contract.taggingRequirements && (
-                    <div>
-                      <span className="font-semibold text-gray-500 block mb-0.5">Tagging / Caption Requirements:</span>
-                      <p className="font-bold text-black bg-white p-2.5 rounded border border-gray-200">{contract.taggingRequirements}</p>
-                    </div>
-                  )}
-                  {contract.contentOwnership && (
-                    <div>
-                      <span className="font-semibold text-gray-500 block mb-0.5">Content Ownership Clause:</span>
-                      <p className="text-gray-800 leading-relaxed bg-white p-2.5 rounded border border-gray-200">{contract.contentOwnership}</p>
+                  {contract.collabProductProvisionType === "Product Loan" && (
+                    <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-950 space-y-1 mt-2">
+                      <div>• Product Loan Return Deadline: Within <strong>{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
+                      <div>• Return Shipping Paid By: <strong>{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
+                      {contract.collabProductNonReturnFee && <div>• Loss / Non-Return Fee: <strong>PKR {Number(contract.collabProductNonReturnFee).toLocaleString()}</strong></div>}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Card 8: Bilateral Safeguard Penalties */}
+              {/* Card 7: Bilateral Safeguard Penalties */}
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Bilateral Safeguard Penalties</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Bilateral Safeguard Penalties &amp; Caps</span>
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
                     <span className="font-semibold text-gray-500 block">Late Payment / Delivery:</span>
-                    <span className="font-bold text-black">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day</span>
+                    <span className="font-bold text-black">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Unauthorized Brand Re-Use:</span>
@@ -684,11 +642,20 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <span className="font-bold text-black">{contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</span>
                   </div>
                   <div>
-                    <span className="font-semibold text-gray-500 block">Pre-Delivery Cancellation Fee:</span>
-                    <span className="font-bold text-black">{Number(contract.cancellationFeePct || 25)}% of fee</span>
+                    <span className="font-semibold text-gray-500 block">Non-Delivery Cutoff:</span>
+                    <span className="font-bold text-black">{contract.nonDeliveryCutoffDays || 7} Days post-deadline</span>
                   </div>
                 </div>
               </div>
+
+              {/* Card 8: Dispute Resolution (ADR) Clause */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-blue-50/50 space-y-1 text-[11px] text-blue-950">
+                <span className="font-bold uppercase tracking-wider block text-blue-900">Section 12: Governing Law &amp; Dispute Resolution</span>
+                <p className="leading-relaxed">
+                  Governed by the laws of Pakistan. Disputes proceed to 14 days of good-faith negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary determination in local courts; (b) Claims &gt; PKR 500,000 proceed to binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>.
+                </p>
+              </div>
+
             </div>
           </div>
 

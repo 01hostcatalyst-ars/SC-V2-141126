@@ -151,9 +151,11 @@ model Contract {
   // Bilateral Penalties & Safeguards
   latePaymentPenaltyPct       Decimal        @default(3) @map("late_payment_penalty_pct")
   lateContentPenaltyPct       Decimal        @default(3) @map("late_content_penalty_pct")
+  penaltyCapPct               Decimal        @default(20) @map("penalty_cap_pct")
   unauthorizedUsagePenaltyPct Decimal        @default(50) @map("unauthorized_usage_penalty_pct")
   advanceRefundable           Boolean        @default(true) @map("advance_refundable")
   advanceRefundTimeframeDays  Int            @default(7) @map("advance_refund_timeframe_days")
+  nonDeliveryCutoffDays       Int            @default(7) @map("non_delivery_cutoff_days")
   cancellationFeePct          Decimal        @default(25) @map("cancellation_fee_pct")
 
   // Content & Tagging
@@ -174,17 +176,24 @@ model Contract {
   pdfUrl                String?        @map("pdf_url")
 
   // Brand Campaign / Creator details for Agency contracts
+  initiatorDesignation  String?        @map("initiator_designation")
+  initiatorNtn          String?        @map("initiator_ntn")
+  respondentNtn         String?        @map("respondent_ntn")
   brandName             String?        @map("brand_name")
   brandHandle           String?        @map("brand_handle")
   campaignName          String?        @map("campaign_name")
   creatorName           String?        @map("creator_name")
   creatorHandle         String?        @map("creator_handle")
 
-  // Collaboration Product details
+  // Collaboration Product details & Loan Return terms
   collabProduct                String?        @map("collab_product")
   collabProductProvisionType   String?        @map("collab_product_provision_type")
   collabDeliveryAddress        String?        @map("collab_delivery_address")
   collabDeliveryDate           DateTime?      @map("collab_delivery_date")
+  collabProductReturnDays      Int?           @map("collab_product_return_days")
+  collabProductReturnAddress   String?        @map("collab_product_return_address")
+  collabProductReturnShippingBy String?       @map("collab_product_return_shipping_by")
+  collabProductNonReturnFee    Decimal?       @map("collab_product_non_return_fee")
 
   deliverables          Deliverable[]
   signatures            Signature[]

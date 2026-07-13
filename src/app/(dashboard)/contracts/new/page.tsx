@@ -1,52 +1,39 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
+import { formatLegalDate, formatUsageLicenseText } from "@/lib/utils";
 
 interface Deliverable {
   type: string;
   quantity: number;
-  duration: string;
-  notes: string;
+  duration?: string;
+  notes?: string;
 }
 
-const STEPS = ["Deliverables", "Rights", "Financial", "Delivery", "Penalties", "Confirm"];
-
-const DELIVERABLE_TYPES = [
-  { label: "Image Post", value: "IMAGE_POST" },
-  { label: "Reel", value: "REEL" },
-  { label: "Story", value: "STORY" },
-  { label: "Carousel Post", value: "CAROUSEL_POST" },
-  { label: "Live Session", value: "LIVE_SESSION" },
-  { label: "Paid Ad Setup", value: "AD" },
-  { label: "YouTube Video", value: "YOUTUBE_VIDEO" },
-  { label: "TikTok Video", value: "TIKTOK_VIDEO" },
-];
-
-const PLATFORMS = ["Instagram", "TikTok", "YouTube", "Facebook", "LinkedIn", "X"];
-
-const USAGE_CATEGORIES = [
-  { label: "Organic Social Post Only", value: "ORGANIC_ONLY" },
-  { label: "Paid Advertising Whitelisting", value: "PAID_AD" },
-  { label: "Print / Billboard Rights", value: "BILLBOARD_PRINT" },
-  { label: "All Media Broadcast License", value: "ALL_MEDIA" },
+const STEPS = [
+  { id: 0, title: "Deliverables & Brief", icon: "📦" },
+  { id: 1, title: "Usage Rights & Scope", icon: "🛡️" },
+  { id: 2, title: "Financials & Payment", icon: "💳" },
+  { id: 3, title: "Delivery & Exclusivity", icon: "⏱️" },
+  { id: 4, title: "Safeguards & NDA", icon: "⚖️" },
+  { id: 5, title: "Confirm & Submit", icon: "📝" },
 ];
 
 export default function NewContractPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const { showToast } = useToast();
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [agencyContracts, setAgencyContracts] = useState<{ id: string; contractNumber: string }[]>([]);
+  const [agencyContracts, setAgencyContracts] = useState<any[]>([]);
 
-  // Setup default contract type dynamically based on user role
+  // Default contract type based on logged-in user role
   const getDefaultContractType = () => {
     if (user?.role === "BRAND") return "BRAND_TO_CREATOR";
-    if (user?.role === "AGENCY") return "AGENCY_TO_BRAND"; // Default agency selection
+    if (user?.role === "AGENCY") return "AGENCY_TO_BRAND";
     return "CREATOR_TO_BRAND";
   };
 
@@ -58,6 +45,12 @@ export default function NewContractPage() {
   const [campaignName, setCampaignName] = useState("");
   const [creatorName, setCreatorName] = useState("");
   const [creatorHandle, setCreatorHandle] = useState("");
+
+  // Authority & NTN Registration fields
+  const [initiatorDesignation, setInitiatorDesignation] = useState("");
+  const [initiatorNtn, setInitiatorNtn] = useState("");
+  const [respondentNtn, setRespondentNtn] = useState("");
+
   const [deliverables, setDeliverables] = useState<Deliverable[]>([
     { type: "REEL", quantity: 1, duration: "", notes: "" },
   ]);
@@ -80,12 +73,17 @@ export default function NewContractPage() {
   const [confidentialityRequired, setConfidentialityRequired] = useState(false);
   const [embargoDate, setEmbargoDate] = useState("");
   const [earlyDisclosurePenalty, setEarlyDisclosurePenalty] = useState("");
+
+  // Bilateral Safeguards & Penalty Caps
   const [latePaymentPenaltyPct, setLatePaymentPenaltyPct] = useState("3");
   const [lateContentPenaltyPct, setLateContentPenaltyPct] = useState("3");
+  const [penaltyCapPct, setPenaltyCapPct] = useState("20");
   const [unauthorizedUsagePenaltyPct, setUnauthorizedUsagePenaltyPct] = useState("50");
   const [advanceRefundable, setAdvanceRefundable] = useState(true);
   const [advanceRefundTimeframeDays, setAdvanceRefundTimeframeDays] = useState("7");
+  const [nonDeliveryCutoffDays, setNonDeliveryCutoffDays] = useState("7");
   const [cancellationFeePct, setCancellationFeePct] = useState("25");
+
   const [contentOwnership, setContentOwnership] = useState(
     "Creator retains copyright; brand receives usage license as defined."
   );
@@ -95,6 +93,12 @@ export default function NewContractPage() {
   const [collabDeliveryAddress, setCollabDeliveryAddress] = useState("");
   const [collabDeliveryDate, setCollabDeliveryDate] = useState("");
 
+  // Product Loan return terms
+  const [collabProductReturnDays, setCollabProductReturnDays] = useState("7");
+  const [collabProductReturnAddress, setCollabProductReturnAddress] = useState("");
+  const [collabProductReturnShippingBy, setCollabProductReturnShippingBy] = useState("Brand");
+  const [collabProductNonReturnFee, setCollabProductNonReturnFee] = useState("");
+
   // Load parent contracts for agency linking
   useEffect(() => {
     if (user?.role === "AGENCY") {
@@ -103,7 +107,6 @@ export default function NewContractPage() {
           const res = await fetch("/api/contracts");
           const data = await res.json();
           if (res.ok) {
-            // Filter only Agency -> Brand contracts to display as parent campaigns
             const brandDeals = (data.contracts || []).filter(
               (c: any) => c.contractType === "AGENCY_TO_BRAND" && c.status !== "CANCELLED"
             );
@@ -117,7 +120,7 @@ export default function NewContractPage() {
     }
   }, [user]);
 
-  // Adjust defaults when role is changed (Only agency role can toggle contract direction)
+  // Adjust defaults when role is changed
   useEffect(() => {
     if (user?.role) {
       const type = user.role === "BRAND"
@@ -146,7 +149,7 @@ export default function NewContractPage() {
 
   const handlePlatformToggle = (platform: string) => {
     if (platformsAllowed.includes(platform)) {
-      if (platformsAllowed.length === 1) return; // Keep at least one platform selected
+      if (platformsAllowed.length === 1) return;
       setPlatformsAllowed(platformsAllowed.filter((p) => p !== platform));
     } else {
       setPlatformsAllowed([...platformsAllowed, platform]);
@@ -155,7 +158,7 @@ export default function NewContractPage() {
 
   const handleUsageTypeToggle = (type: string) => {
     if (usageType.includes(type)) {
-      if (usageType.length === 1) return; // Keep at least one selected
+      if (usageType.length === 1) return;
       setUsageType(usageType.filter((t) => t !== type));
     } else {
       setUsageType([...usageType, type]);
@@ -181,17 +184,17 @@ export default function NewContractPage() {
         return false;
       }
       if (paymentMethod === "BANK_IBAN" && !bankAccountIban) {
-        showToast("Please enter bank IBAN details.", "error");
+        showToast("Please specify bank IBAN account for payout route.", "error");
         return false;
       }
       if (paymentMethod !== "BANK_IBAN" && !mobileWalletNumber) {
-        showToast("Please enter mobile wallet account number.", "error");
+        showToast("Please specify mobile wallet account number.", "error");
         return false;
       }
     }
     if (step === 3) {
       if (!deliveryTimeframeDays || isNaN(Number(deliveryTimeframeDays)) || Number(deliveryTimeframeDays) <= 0) {
-        showToast("Please specify delivery timeframe in days.", "error");
+        showToast("Please enter a valid delivery timeframe in days.", "error");
         return false;
       }
     }
@@ -216,10 +219,17 @@ export default function NewContractPage() {
       campaignName: contractType === "AGENCY_TO_CREATOR" ? campaignName || undefined : undefined,
       creatorName: contractType === "AGENCY_TO_BRAND" ? creatorName || undefined : undefined,
       creatorHandle: contractType === "AGENCY_TO_BRAND" ? creatorHandle || undefined : undefined,
+      initiatorDesignation: initiatorDesignation || undefined,
+      initiatorNtn: initiatorNtn || undefined,
+      respondentNtn: respondentNtn || undefined,
       collabProduct: collabProduct || undefined,
       collabProductProvisionType: collabProductProvisionType || undefined,
       collabDeliveryAddress: collabDeliveryAddress || undefined,
       collabDeliveryDate: collabDeliveryDate || undefined,
+      collabProductReturnDays: collabProductProvisionType === "Product Loan" && collabProductReturnDays ? Number(collabProductReturnDays) : undefined,
+      collabProductReturnAddress: collabProductProvisionType === "Product Loan" ? collabProductReturnAddress || undefined : undefined,
+      collabProductReturnShippingBy: collabProductProvisionType === "Product Loan" ? collabProductReturnShippingBy || undefined : undefined,
+      collabProductNonReturnFee: collabProductProvisionType === "Product Loan" && collabProductNonReturnFee ? Number(collabProductNonReturnFee) : undefined,
       totalAmount: Number(totalAmount),
       advancePayment: advancePayment ? Number(advancePayment) : undefined,
       paymentMethod,
@@ -241,9 +251,11 @@ export default function NewContractPage() {
       earlyDisclosurePenalty: confidentialityRequired && earlyDisclosurePenalty ? Number(earlyDisclosurePenalty) : undefined,
       latePaymentPenaltyPct: Number(latePaymentPenaltyPct),
       lateContentPenaltyPct: Number(lateContentPenaltyPct),
+      penaltyCapPct: Number(penaltyCapPct),
       unauthorizedUsagePenaltyPct: Number(unauthorizedUsagePenaltyPct),
       advanceRefundable,
       advanceRefundTimeframeDays: Number(advanceRefundTimeframeDays),
+      nonDeliveryCutoffDays: Number(nonDeliveryCutoffDays),
       cancellationFeePct: Number(cancellationFeePct),
       contentOwnership,
       taggingRequirements,
@@ -258,14 +270,14 @@ export default function NewContractPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to create contract.");
+      if (res.ok && data.success) {
+        showToast("Agreement draft created successfully!", "success");
+        window.location.href = `/contracts/${data.contract.id}`;
+      } else {
+        showToast(data.error || "Failed to create agreement draft.", "error");
       }
-
-      showToast("Agreement Draft Generated Successfully!", "success");
-      router.push(`/contracts/${data.contract.id}`);
-    } catch (err: any) {
-      showToast(err.message || "Failed to save agreement.", "error");
+    } catch (err) {
+      showToast("Error creating agreement draft.", "error");
     } finally {
       setLoading(false);
     }
@@ -276,7 +288,7 @@ export default function NewContractPage() {
       {/* Title */}
       <div>
         <h1 className="text-3xl font-black text-black">Draft Agreement</h1>
-        <p className="text-xs text-gray-500 mt-1">Specify campaign terms and generate bilateral agreement link.</p>
+        <p className="text-xs text-gray-500 mt-1">Specify campaign terms and generate bilateral agreement link under ETO 2002 rules.</p>
       </div>
 
       {/* Contract direction settings for Agencies */}
@@ -390,76 +402,117 @@ export default function NewContractPage() {
         </div>
       )}
 
-      {/* Mobile Stepper Helper */}
-      <div className="flex flex-col gap-2 md:hidden bg-white border border-gray-200 rounded-2xl p-4 shadow-sm text-center">
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-          Step {step + 1} of {STEPS.length}
-        </span>
-        <h4 className="text-base font-black text-black">{STEPS[step]}</h4>
-        <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-          <div 
-            className="bg-black h-full transition-all duration-300"
-            style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-          />
+      {/* Stepper Header */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {STEPS.map((s) => {
+            const isActive = step === s.id;
+            const isDone = step > s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => isDone && setStep(s.id)}
+                disabled={!isDone && !isActive}
+                className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${
+                  isActive
+                    ? "bg-black text-white border-black shadow"
+                    : isDone
+                    ? "bg-gray-50 text-black border-gray-200 hover:bg-gray-100"
+                    : "bg-white text-gray-300 border-gray-100 cursor-not-allowed"
+                }`}
+              >
+                <span className="text-lg">{s.icon}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-center line-clamp-1">{s.title}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Desktop Stepper */}
-      <div className="hidden md:flex justify-between items-center bg-white border border-gray-200 rounded-2xl p-5 shadow-sm gap-2">
-        {STEPS.map((s, idx) => (
-          <div key={s} className="flex items-center gap-2 flex-1 last:flex-initial">
-            <div className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold transition-all ${
-              idx === step 
-                ? "bg-black text-white border-black shadow" 
-                : idx < step 
-                ? "bg-emerald-50 text-emerald-600 border-emerald-200" 
-                : "bg-white text-gray-400 border-gray-200"
-            }`}>
-              {idx < step ? "✓" : idx + 1}
-            </div>
-            <span className={`text-[10px] font-bold uppercase tracking-wider truncate ${
-              idx === step ? "text-black" : "text-gray-400"
-            }`}>
-              {s}
-            </span>
-            {idx < STEPS.length - 1 && <div className="h-px bg-gray-200 flex-1 mx-2" />}
-          </div>
-        ))}
-      </div>
-
-      {/* Wizard Form Cards */}
+      {/* Stepper Content Card */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm">
+        
         {step === 0 && (
-          /* Step 1: Deliverables */
+          /* Step 1: Deliverables & Party Authority */
           <div className="space-y-6">
-            <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Campaign Deliverables</h3>
+            <div className="border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-black">Campaign Deliverables &amp; Signing Authority</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Specify content formats and party registration details.</p>
+            </div>
+
+            {/* Authority & NTN Inputs */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-black block">Party A Authority &amp; Tax Registration</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Your Job Title / Designation</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Managing Director / Partner"
+                    className="input-field"
+                    value={initiatorDesignation}
+                    onChange={(e) => setInitiatorDesignation(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Your NTN / Reg No (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1234567-8"
+                    className="input-field"
+                    value={initiatorNtn}
+                    onChange={(e) => setInitiatorNtn(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Deliverables List */}
             <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-black">Required Content Deliverables</label>
+                <button
+                  type="button"
+                  onClick={handleAddDeliverable}
+                  className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  + Add Deliverable
+                </button>
+              </div>
+
               {deliverables.map((d, index) => (
-                <div key={index} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-4 relative">
+                <div key={index} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3 relative">
                   {deliverables.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveDeliverable(index)}
-                      className="absolute top-3 right-3 text-xs font-bold text-rose-600 hover:underline"
+                      className="absolute top-3 right-3 text-rose-500 font-bold text-xs hover:underline"
                     >
-                      Delete
+                      Remove
                     </button>
                   )}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-black uppercase tracking-wider">Type</label>
+                      <label className="text-[10px] font-bold uppercase text-gray-400">Platform Format</label>
                       <select
                         className="input-field"
                         value={d.type}
                         onChange={(e) => handleDeliverableChange(index, "type", e.target.value)}
                       >
-                        {DELIVERABLE_TYPES.map((t) => (
-                          <option key={t.value} value={t.value}>{t.label}</option>
-                        ))}
+                        <option value="REEL">Instagram Reel</option>
+                        <option value="STORY">Instagram Story</option>
+                        <option value="IMAGE_POST">Instagram Image Post</option>
+                        <option value="CAROUSEL_POST">Instagram Carousel</option>
+                        <option value="YOUTUBE_VIDEO">YouTube Video</option>
+                        <option value="TIKTOK_VIDEO">TikTok Video</option>
+                        <option value="LIVE_SESSION">Live Stream</option>
+                        <option value="AD">Paid Video Ad</option>
                       </select>
                     </div>
+
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-black uppercase tracking-wider">Quantity</label>
+                      <label className="text-[10px] font-bold uppercase text-gray-400">Quantity</label>
                       <input
                         type="number"
                         min={1}
@@ -468,158 +521,156 @@ export default function NewContractPage() {
                         onChange={(e) => handleDeliverableChange(index, "quantity", parseInt(e.target.value) || 1)}
                       />
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1">
-                      <label className="flex items-center gap-1.5 text-xs font-bold text-black uppercase tracking-wider">
-                        Duration (Optional)
-                        <div className="group relative inline-block cursor-pointer">
-                          <span className="text-gray-400 hover:text-black text-[11px] font-normal transition-colors">ⓘ</span>
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-900 text-white text-[11px] font-normal normal-case p-2.5 rounded-lg shadow-xl z-50 leading-relaxed text-center">
-                            How long the post must remain visible on the creator&apos;s profile before they are allowed to delete or archive it (e.g., 24 hours for a Story, or Permanent for a Reel/Post).
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                          </div>
-                        </div>
-                      </label>
+                      <label className="text-[10px] font-bold uppercase text-gray-400">Retention / Post Duration</label>
                       <input
                         type="text"
-                        placeholder="e.g. 24 hours, Permanent"
+                        placeholder="e.g. 30 Days / Permanent"
                         className="input-field"
-                        value={d.duration}
+                        value={d.duration || ""}
                         onChange={(e) => handleDeliverableChange(index, "duration", e.target.value)}
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="flex items-center gap-1.5 text-xs font-bold text-black uppercase tracking-wider">
-                        Instructions (Optional)
-                        <div className="group relative inline-block cursor-pointer">
-                          <span className="text-gray-400 hover:text-black text-[11px] font-normal transition-colors">ⓘ</span>
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 bg-gray-900 text-white text-[11px] font-normal normal-case p-2.5 rounded-lg shadow-xl z-50 leading-relaxed text-center">
-                            Special rules or directions for the content (e.g., &quot;Put the discount link in your bio&quot; or &quot;Tag the brand logo in the first 3 seconds&quot;).
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                          </div>
-                        </div>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Include link in bio, Tag brand logo"
-                        className="input-field"
-                        value={d.notes}
-                        onChange={(e) => handleDeliverableChange(index, "notes", e.target.value)}
-                      />
-                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-gray-400">Instructions / Creative Brief</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Must feature product in first 3 seconds with unboxing audio"
+                      className="input-field"
+                      value={d.notes || ""}
+                      onChange={(e) => handleDeliverableChange(index, "notes", e.target.value)}
+                    />
                   </div>
                 </div>
               ))}
             </div>
-
-            <button
-              type="button"
-              onClick={handleAddDeliverable}
-              className="w-full border border-dashed border-gray-300 text-xs font-bold text-black hover:bg-gray-50 py-3 rounded-xl transition-all"
-            >
-              + Add Deliverable Row
-            </button>
           </div>
         )}
 
         {step === 1 && (
-          /* Step 2: Usage Rights */
+          /* Step 2: Usage Rights & Scope */
           <div className="space-y-6">
-            <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Campaign Usage Rights</h3>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-black uppercase tracking-wider">Platforms Allowed</label>
+            <div className="border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-black">Usage Rights &amp; Licensing Scope</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Specify allowed platforms and additive commercial usage tiers.</p>
+            </div>
+
+            {/* Platforms Allowed */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-black block">Permitted Platforms</label>
               <div className="flex flex-wrap gap-2">
-                {PLATFORMS.map((platform) => {
-                  const active = platformsAllowed.includes(platform);
+                {["Instagram", "TikTok", "YouTube", "Facebook", "LinkedIn", "X"].map((platform) => {
+                  const isSelected = platformsAllowed.includes(platform);
                   return (
                     <button
                       key={platform}
                       type="button"
                       onClick={() => handlePlatformToggle(platform)}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                        active 
-                          ? "bg-black border-black text-white" 
-                          : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                        isSelected
+                          ? "bg-black text-white border-black shadow-sm"
+                          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                       }`}
                     >
-                      {platform}
+                      {platform} {isSelected && "✓"}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 mt-4">
-              <label className="text-xs font-bold text-black uppercase tracking-wider">Usage Category</label>
-              <div className="flex flex-wrap gap-2">
-                {USAGE_CATEGORIES.map((cat) => {
-                  const active = usageType.includes(cat.value);
+            {/* Usage Type Categories (Refactored non-contradictory additive options) */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-black block">Granted Commercial License Scope</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  { id: "ORGANIC_ONLY", label: "Organic Social Rights", desc: "Native organic posting on creator/brand channels" },
+                  { id: "PAID_AD", label: "Paid Ads & Dark Posting License", desc: "Digital ad boosting & Meta/TikTok whitelisting" },
+                  { id: "BILLBOARD_PRINT", label: "Physical Print & Outdoor License", desc: "Billboards, print media & in-store collateral" },
+                  { id: "ALL_MEDIA", label: "Full Commercial Broadcast License", desc: "TV, streaming, radio & all commercial media" },
+                ].map((type) => {
+                  const isSelected = usageType.includes(type.id);
                   return (
                     <button
-                      key={cat.value}
+                      key={type.id}
                       type="button"
-                      onClick={() => handleUsageTypeToggle(cat.value)}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                        active 
-                          ? "bg-black border-black text-white" 
-                          : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                      onClick={() => handleUsageTypeToggle(type.id)}
+                      className={`p-4 rounded-xl text-left border transition-all flex flex-col justify-between gap-1 ${
+                        isSelected
+                          ? "bg-blue-50/50 border-blue-600 text-black shadow-sm"
+                          : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      {cat.label}
+                      <span className="font-bold text-xs flex items-center justify-between">
+                        {type.label} {isSelected && <span className="text-blue-600 font-black">✓</span>}
+                      </span>
+                      <span className="text-[10px] text-gray-500">{type.desc}</span>
                     </button>
                   );
                 })}
               </div>
+              <p className="text-[10px] text-gray-400 italic mt-1">
+                Note: License types are additive. Selecting Organic Social Rights + Paid Ads grants organic posting plus digital ad whitelisting cleanly without statement contradiction.
+              </p>
             </div>
 
-            <div className="flex flex-col gap-1 mt-4">
-              <label className="text-xs font-bold text-black uppercase tracking-wider">Rights Duration</label>
-              <input
-                type="text"
-                placeholder="e.g. 6 months, 1 year, Permanent"
+            {/* Usage Duration */}
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wider text-black">Rights Duration</label>
+              <select
                 className="input-field"
                 value={usageRightsDuration}
                 onChange={(e) => setUsageRightsDuration(e.target.value)}
-              />
+              >
+                <option value="30 days">30 Days</option>
+                <option value="3 months">3 Months</option>
+                <option value="6 months">6 Months</option>
+                <option value="1 year">1 Year</option>
+                <option value="Permanent">Perpetual / Permanent</option>
+              </select>
             </div>
           </div>
         )}
 
         {step === 2 && (
-          /* Step 3: Financial Terms */
+          /* Step 3: Financials & Payment Route */
           <div className="space-y-6">
-            <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Financial Agreements</h3>
-            
+            <div className="border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-black">Financial Compensation &amp; Payment Route</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Define total valuation, advance payment, and payout account.</p>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Total Amount (PKR)</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-black">Total Campaign Amount (PKR) *</label>
                 <input
-                  type="text"
+                  type="number"
                   placeholder="e.g. 150000"
-                  className="input-field"
+                  className="input-field text-lg font-bold"
                   value={totalAmount}
-                  onChange={(e) => setTotalAmount(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) => setTotalAmount(e.target.value)}
                 />
               </div>
+
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Advance Payment (PKR, Optional)</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-black">Advance Payment (PKR)</label>
                 <input
-                  type="text"
-                  placeholder="e.g. 50000"
-                  className="input-field"
+                  type="number"
+                  placeholder="e.g. 50000 (Optional)"
+                  className="input-field text-lg font-bold"
                   value={advancePayment}
-                  onChange={(e) => setAdvancePayment(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) => setAdvancePayment(e.target.value)}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              {advancePayment && (
+            {advancePayment && Number(advancePayment) > 0 && (
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-black uppercase tracking-wider">Advance Payment Deadline Date</label>
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Advance Payment Due Date</label>
                   <input
                     type="date"
                     className="input-field"
@@ -627,87 +678,91 @@ export default function NewContractPage() {
                     onChange={(e) => setAdvancePaymentDate(e.target.value)}
                   />
                 </div>
-              )}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Remaining Payment Deadline Date</label>
-                <input
-                  type="date"
-                  className="input-field"
-                  value={remainingPaymentDate}
-                  onChange={(e) => setRemainingPaymentDate(e.target.value)}
-                />
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Remaining Balance Payout Date</label>
+                  <input
+                    type="date"
+                    className="input-field"
+                    value={remainingPaymentDate}
+                    onChange={(e) => setRemainingPaymentDate(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="flex flex-col gap-2 mt-4">
-              <label className="text-xs font-bold text-black uppercase tracking-wider">Payment Route Method</label>
-              <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-xl">
+            {/* Payment Method & Account */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
+              <label className="text-xs font-bold uppercase tracking-wider text-black block">Payout Route Method</label>
+              <div className="grid grid-cols-3 gap-2">
                 {[
-                  { label: "Bank Transfer", value: "BANK_IBAN" },
-                  { label: "JazzCash", value: "JAZZCASH" },
-                  { label: "EasyPaisa", value: "EASYPAISA" },
+                  { id: "BANK_IBAN", label: "Bank Transfer (IBAN)" },
+                  { id: "JAZZCASH", label: "JazzCash Mobile" },
+                  { id: "EASYPAISA", label: "EasyPaisa Mobile" },
                 ].map((m) => (
                   <button
-                    key={m.value}
+                    key={m.id}
                     type="button"
-                    onClick={() => setPaymentMethod(m.value)}
-                    className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                      paymentMethod === m.value 
-                        ? "bg-black text-white shadow" 
-                        : "text-gray-500 hover:text-black"
+                    onClick={() => setPaymentMethod(m.id)}
+                    className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                      paymentMethod === m.id
+                        ? "bg-black text-white border-black shadow-sm"
+                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
                     }`}
                   >
                     {m.label}
                   </button>
                 ))}
               </div>
-            </div>
 
-            {paymentMethod === "BANK_IBAN" ? (
-              <div className="flex flex-col gap-1 mt-4">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Bank account IBAN Number</label>
-                <input
-                  type="text"
-                  placeholder="PK00 BANK 0000 0000 0000 0000"
-                  className="input-field uppercase"
-                  value={bankAccountIban}
-                  onChange={(e) => setBankAccountIban(e.target.value)}
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col gap-1 mt-4">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Mobile Wallet Number</label>
-                <input
-                  type="tel"
-                  placeholder="03XXXXXXXXX"
-                  className="input-field"
-                  value={mobileWalletNumber}
-                  onChange={(e) => setMobileWalletNumber(e.target.value)}
-                />
-              </div>
-            )}
+              {paymentMethod === "BANK_IBAN" ? (
+                <div className="flex flex-col gap-1 mt-2">
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Bank Account IBAN *</label>
+                  <input
+                    type="text"
+                    placeholder="PK36MEZN0001000123456789"
+                    className="input-field font-mono"
+                    value={bankAccountIban}
+                    onChange={(e) => setBankAccountIban(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1 mt-2">
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Mobile Wallet Account Number *</label>
+                  <input
+                    type="text"
+                    placeholder="03001234567"
+                    className="input-field font-mono"
+                    value={mobileWalletNumber}
+                    onChange={(e) => setMobileWalletNumber(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {step === 3 && (
-          /* Step 4: Delivery Terms */
+          /* Step 4: Delivery, Product & Exclusivity */
           <div className="space-y-6">
-            <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Delivery Timeframe & Options</h3>
-            
+            <div className="border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-black">Delivery Terms, Product Shipment &amp; Exclusivity</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Set delivery deadlines, 48-hour pre-approval sequencing, product return terms, and exclusivity.</p>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Delivery Timeframe (Days)</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-black">Delivery Timeframe (Days) *</label>
                 <input
-                  type="text"
+                  type="number"
                   placeholder="e.g. 7"
                   className="input-field"
                   value={deliveryTimeframeDays}
-                  onChange={(e) => setDeliveryTimeframeDays(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) => setDeliveryTimeframeDays(e.target.value)}
                 />
-                <span className="text-[10px] text-gray-400">Number of days allowed for content delivery after contract signature.</span>
               </div>
+
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Revision Rounds</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-black">Revision Rounds Included</label>
                 <input
                   type="number"
                   min={1}
@@ -718,155 +773,47 @@ export default function NewContractPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 select-none">
+            {/* Pre-Approval Toggle & Deemed Approval Note */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={brandApprovalRequired}
                   onChange={(e) => setBrandApprovalRequired(e.target.checked)}
-                  className="w-4 h-4 accent-black"
+                  className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black"
                 />
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-black">Approval Required</span>
-                  <span className="text-[10px] text-gray-400">Content must be pre-approved.</span>
-                </div>
+                <span className="text-xs font-bold text-black uppercase tracking-wider">Content Pre-Approval Required</span>
               </label>
-
-              <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 select-none">
-                <input
-                  type="checkbox"
-                  checked={exclusivityClause}
-                  onChange={(e) => setExclusivityClause(e.target.checked)}
-                  className="w-4 h-4 accent-black"
-                />
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-black">Exclusivity Clause</span>
-                  <span className="text-[10px] text-gray-400">Restricts signing with competitor brands.</span>
-                </div>
-              </label>
-            </div>
-
-            {exclusivityClause && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-black uppercase tracking-wider">Exclusivity Duration</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 30 days post-campaign"
-                    className="input-field"
-                    value={exclusivityDuration}
-                    onChange={(e) => setExclusivityDuration(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-black uppercase tracking-wider">Restricted Competitors / Categories</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Apple, OnePlus, Android Smartphones"
-                    className="input-field"
-                    value={exclusivityCompetitors}
-                    onChange={(e) => setExclusivityCompetitors(e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Confidentiality & Pre-Launch NDA Clause */}
-            <div className="border-t border-gray-100 pt-6 mt-4 space-y-4">
-              <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 select-none">
-                <input
-                  type="checkbox"
-                  checked={confidentialityRequired}
-                  onChange={(e) => setConfidentialityRequired(e.target.checked)}
-                  className="w-4 h-4 accent-black"
-                />
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-black">Confidentiality / Pre-Launch NDA Clause</span>
-                  <span className="text-[10px] text-gray-400">Strictly prohibits early disclosure or leaking unreleased product info before official launch.</span>
-                </div>
-              </label>
-
-              {confidentialityRequired && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-black uppercase tracking-wider">Embargo / Launch Date</label>
-                    <input
-                      type="date"
-                      className="input-field"
-                      value={embargoDate}
-                      onChange={(e) => setEmbargoDate(e.target.value)}
-                    />
-                    <span className="text-[10px] text-gray-400">Creator cannot post or disclose product before this date.</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-black uppercase tracking-wider">Early Disclosure Penalty (PKR)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 50000"
-                      className="input-field"
-                      value={earlyDisclosurePenalty}
-                      onChange={(e) => setEarlyDisclosurePenalty(e.target.value.replace(/\D/g, ""))}
-                    />
-                    <span className="text-[10px] text-gray-400">Fine owed if product/content is leaked prior to embargo date.</span>
-                  </div>
-                </div>
+              {brandApprovalRequired && (
+                <p className="text-[10px] text-gray-500 leading-relaxed bg-white p-2.5 rounded border border-gray-200">
+                  ⚡ <strong>48-Hour Deemed Approval Protocol:</strong> Draft content must be submitted to Brand at least 3 business days prior to delivery deadline. Brand must respond within 48 hours. Failure by Brand to respond within 48 hours legally constitutes <strong>Deemed Approval</strong>, authorizing final posting.
+                </p>
               )}
             </div>
 
-            <div className="flex flex-col gap-1 mt-4">
-              <label className="text-xs font-bold text-black uppercase tracking-wider">Tagging / Caption Requirements (Optional)</label>
-              <input
-                type="text"
-                placeholder="e.g. Must tag @brandname, use hashtag #Ad"
-                className="input-field"
-                value={taggingRequirements}
-                onChange={(e) => setTaggingRequirements(e.target.value)}
-              />
-            </div>
+            {/* Product Shipment & Product Loan Return Terms */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-black">Collaboration Product Shipment</label>
+                <select
+                  className="text-xs font-bold bg-white border border-gray-200 p-1.5 rounded-lg"
+                  value={collabProductProvisionType}
+                  onChange={(e) => setCollabProductProvisionType(e.target.value)}
+                >
+                  <option value="Product Provision">Product Provision (Gifted / Retained)</option>
+                  <option value="Product Loan">Product Loan (Must Be Returned)</option>
+                </select>
+              </div>
 
-            {/* Collaboration Product Details (Optional) */}
-            <div className="border-t border-gray-100 pt-6 mt-4 space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Collaboration Product Shipment (Optional)</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-400">Product Name, Description and Qty</label>
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Product Name / Model</label>
                   <input
                     type="text"
                     placeholder="e.g. Samsung Galaxy S27 Ultra"
                     className="input-field"
                     value={collabProduct}
                     onChange={(e) => setCollabProduct(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-400">Provision Type</label>
-                  <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-full">
-                    <button
-                      type="button"
-                      onClick={() => setCollabProductProvisionType("Product Loan")}
-                      className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${collabProductProvisionType === "Product Loan" ? "bg-black text-white shadow" : "text-gray-500 hover:text-black"}`}
-                    >
-                      Product Loan
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCollabProductProvisionType("Product Provision")}
-                      className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${collabProductProvisionType === "Product Provision" ? "bg-black text-white shadow" : "text-gray-500 hover:text-black"}`}
-                    >
-                      Product Provision
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-400">Delivery Address</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 123 Brand Ave, Suite 400"
-                    className="input-field"
-                    value={collabDeliveryAddress}
-                    onChange={(e) => setCollabDeliveryAddress(e.target.value)}
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -878,122 +825,256 @@ export default function NewContractPage() {
                     onChange={(e) => setCollabDeliveryDate(e.target.value)}
                   />
                 </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Shipment Address</label>
+                  <input
+                    type="text"
+                    placeholder="Delivery Address"
+                    className="input-field"
+                    value={collabDeliveryAddress}
+                    onChange={(e) => setCollabDeliveryAddress(e.target.value)}
+                  />
+                </div>
               </div>
+
+              {collabProductProvisionType === "Product Loan" && (
+                <div className="p-3 rounded-lg bg-amber-50/60 border border-amber-200 space-y-3 mt-2">
+                  <span className="text-[10px] font-bold uppercase text-amber-800 block">🔒 Product Loan Return Conditions</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-gray-500">Return Deadline (Days post-deliverable)</label>
+                      <input
+                        type="number"
+                        placeholder="7"
+                        className="input-field"
+                        value={collabProductReturnDays}
+                        onChange={(e) => setCollabProductReturnDays(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-gray-500">Return Shipping Paid By</label>
+                      <select
+                        className="input-field"
+                        value={collabProductReturnShippingBy}
+                        onChange={(e) => setCollabProductReturnShippingBy(e.target.value)}
+                      >
+                        <option value="Brand">Client Brand</option>
+                        <option value="Creator">Creator / Agency</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-gray-500">Non-Return / Damage Fee (PKR)</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 350000"
+                        className="input-field"
+                        value={collabProductNonReturnFee}
+                        onChange={(e) => setCollabProductNonReturnFee(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold text-gray-500">Return Shipping Address</label>
+                    <input
+                      type="text"
+                      placeholder="Address where loaned product must be returned"
+                      className="input-field"
+                      value={collabProductReturnAddress}
+                      onChange={(e) => setCollabProductReturnAddress(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-col gap-1 mt-4">
-              <label className="text-xs font-bold text-black uppercase tracking-wider">Content Ownership Clause</label>
-              <textarea
-                rows={3}
-                className="input-field resize-none"
-                value={contentOwnership}
-                onChange={(e) => setContentOwnership(e.target.value)}
-              />
+            {/* Exclusivity */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={exclusivityClause}
+                  onChange={(e) => setExclusivityClause(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black"
+                />
+                <span className="text-xs font-bold text-black uppercase tracking-wider">Exclusivity Restrictive Clause</span>
+              </label>
+
+              {exclusivityClause && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-200">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-gray-400">Exclusivity Duration (Commences on 1st Post Date)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 30 Days post-campaign"
+                      className="input-field"
+                      value={exclusivityDuration}
+                      onChange={(e) => setExclusivityDuration(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-gray-400">Restricted Competitors / Categories</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Apple, Google, Xiaomi, Vivo"
+                      className="input-field"
+                      value={exclusivityCompetitors}
+                      onChange={(e) => setExclusivityCompetitors(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {step === 4 && (
-          /* Step 5: Penalties */
+          /* Step 5: Safeguards, NDA & Penalties */
           <div className="space-y-6">
-            <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Bilateral Safeguard Penalties</h3>
-            
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 leading-relaxed font-semibold">
-              ⚖️ Bilateral safeguards protect both parties equally across payment delays, content delivery delays, unauthorized content usage, advance refunds, and pre-delivery cancellations.
+            <div className="border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-black">Confidentiality (NDA) &amp; Bilateral Safeguard Penalties</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Set pre-launch product embargo dates, penalty caps, and 7-day non-delivery cutoff rules.</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Late Payment Penalty (%)</label>
+            {/* Confidentiality / NDA */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <input
-                  type="number"
-                  min={0}
-                  className="input-field"
-                  value={latePaymentPenaltyPct}
-                  onChange={(e) => setLatePaymentPenaltyPct(e.target.value)}
+                  type="checkbox"
+                  checked={confidentialityRequired}
+                  onChange={(e) => setConfidentialityRequired(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black"
                 />
-                <span className="text-[10px] text-gray-400">Paid by Brand per day if payment is delayed (default 3%).</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Late Content Penalty (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  className="input-field"
-                  value={lateContentPenaltyPct}
-                  onChange={(e) => setLateContentPenaltyPct(e.target.value)}
-                />
-                <span className="text-[10px] text-gray-400">Paid by Creator per day if delivery is delayed (default 3%).</span>
-              </div>
-            </div>
+                <span className="text-xs font-bold text-black uppercase tracking-wider">Pre-Launch Confidentiality / Product NDA</span>
+              </label>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Unauthorized Usage Penalty (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  className="input-field"
-                  value={unauthorizedUsagePenaltyPct}
-                  onChange={(e) => setUnauthorizedUsagePenaltyPct(e.target.value)}
-                />
-                <span className="text-[10px] text-gray-400">Fee charged to Brand per violation if content is used outside agreed platforms, category, or duration (default 50%).</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">Pre-Delivery Cancellation Fee (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  className="input-field"
-                  value={cancellationFeePct}
-                  onChange={(e) => setCancellationFeePct(e.target.value)}
-                />
-                <span className="text-[10px] text-gray-400">Owed if either party cancels contract after execution but before content delivery (default 25%).</span>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-100 pt-6 mt-4 space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Advance Refund Terms (Non-Delivery Protection)</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 select-none">
-                  <input
-                    type="checkbox"
-                    checked={advanceRefundable}
-                    onChange={(e) => setAdvanceRefundable(e.target.checked)}
-                    className="w-4 h-4 accent-black"
-                  />
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold text-black">Advance Refundable on Non-Delivery</span>
-                    <span className="text-[10px] text-gray-400">Requires creator/agency to return advance payout if deliverables are not provided.</span>
-                  </div>
-                </label>
-
-                {advanceRefundable && (
+              {confidentialityRequired && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-200">
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-black uppercase tracking-wider">Refund Timeframe (Business Days)</label>
+                    <label className="text-[10px] font-bold uppercase text-gray-400">Embargo Launch Threshold Date</label>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={embargoDate}
+                      onChange={(e) => setEmbargoDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-gray-400">Early Disclosure Leak Fine (PKR)</label>
                     <input
                       type="number"
-                      min={1}
+                      placeholder="e.g. 200000"
                       className="input-field"
-                      value={advanceRefundTimeframeDays}
-                      onChange={(e) => setAdvanceRefundTimeframeDays(e.target.value)}
+                      value={earlyDisclosurePenalty}
+                      onChange={(e) => setEarlyDisclosurePenalty(e.target.value)}
                     />
-                    <span className="text-[10px] text-gray-400">Days allowed for refunding advance payout following non-delivery notice.</span>
                   </div>
-                )}
+                </div>
+              )}
+            </div>
+
+            {/* Bilateral Safeguard Penalties */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-black block">Bilateral Safeguard Penalties &amp; Caps</span>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Late Payment Fee (%/day)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    value={latePaymentPenaltyPct}
+                    onChange={(e) => setLatePaymentPenaltyPct(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Late Delivery Fee (%/day)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    value={lateContentPenaltyPct}
+                    onChange={(e) => setLateContentPenaltyPct(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Maximum Penalty Cap (%)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    value={penaltyCapPct}
+                    onChange={(e) => setPenaltyCapPct(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-gray-200 pt-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Unauthorized Re-Use Fee (% total)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    value={unauthorizedUsagePenaltyPct}
+                    onChange={(e) => setUnauthorizedUsagePenaltyPct(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Non-Delivery Cutoff (Days)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    value={nonDeliveryCutoffDays}
+                    onChange={(e) => setNonDeliveryCutoffDays(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Pre-Delivery Cancellation Fee (%)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    value={cancellationFeePct}
+                    onChange={(e) => setCancellationFeePct(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <p className="text-[10px] text-gray-500 leading-relaxed italic">
+                Note: At 3%/day, late fees accumulate up to the {penaltyCapPct}% cap (reached at Day {nonDeliveryCutoffDays}). Delivery delayed beyond {nonDeliveryCutoffDays} calendar days post-deadline legally constitutes Non-Delivery, stopping daily fees and triggering 100% advance refundability with zero enforcement gap.
+              </p>
+            </div>
+
+            {/* Copyright & Tagging */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase text-gray-400">Tagging &amp; Caption Requirements</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Must tag @brand, use hashtag #Ad #BrandBridge"
+                  className="input-field"
+                  value={taggingRequirements}
+                  onChange={(e) => setTaggingRequirements(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase text-gray-400">Content Ownership &amp; Copyright Clause</label>
+                <input
+                  type="text"
+                  className="input-field"
+                  value={contentOwnership}
+                  onChange={(e) => setContentOwnership(e.target.value)}
+                />
               </div>
             </div>
           </div>
         )}
 
         {step === 5 && (
-          /* Step 6: Confirmation */
+          /* Step 6: Confirmation Review */
           <div className="space-y-6 text-left">
             <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Review All Campaign Terms</h3>
             
             {/* 1. Campaign & Parties */}
             <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
-              <span className="text-gray-400 font-bold uppercase tracking-wider block">1. Campaign Direction & Parties</span>
+              <span className="text-gray-400 font-bold uppercase tracking-wider block">1. Campaign Direction, Parties &amp; Authority</span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
                   <span className="font-semibold text-gray-500 block">Direction:</span>
@@ -1012,29 +1093,41 @@ export default function NewContractPage() {
                     <span className="font-bold text-black">{creatorName} {creatorHandle ? `(${creatorHandle})` : ""}</span>
                   </div>
                 )}
+                {initiatorDesignation && (
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Party A Authority Title:</span>
+                    <span className="font-bold text-black">{initiatorDesignation}</span>
+                  </div>
+                )}
+                {initiatorNtn && (
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Party A NTN / Reg No:</span>
+                    <span className="font-bold text-black">{initiatorNtn}</span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* 2. Financial & Payment Route */}
             <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
-              <span className="text-gray-400 font-bold uppercase tracking-wider block">2. Financial Compensation & Payment Route</span>
+              <span className="text-gray-400 font-bold uppercase tracking-wider block">2. Financial Compensation &amp; Payout Route</span>
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div>
                   <span className="font-semibold text-gray-500 block">Total Campaign Value:</span>
                   <span className="font-bold text-black text-sm">PKR {Number(totalAmount).toLocaleString()}</span>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-500 block">Advance Escrow:</span>
+                  <span className="font-semibold text-gray-500 block">Advance Payment:</span>
                   <span className="font-bold text-black">{advancePayment ? `PKR ${Number(advancePayment).toLocaleString()}` : "No Advance"}</span>
-                  {advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {new Date(advancePaymentDate).toLocaleDateString()}</span>}
+                  {advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(advancePaymentDate)}</span>}
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-500 block">Remaining Payout:</span>
+                  <span className="font-semibold text-gray-500 block">Remaining Balance:</span>
                   <span className="font-bold text-black">PKR {(Number(totalAmount) - (Number(advancePayment) || 0)).toLocaleString()}</span>
-                  {remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {new Date(remainingPaymentDate).toLocaleDateString()}</span>}
+                  {remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(remainingPaymentDate)}</span>}
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-500 block">Payment Route Method:</span>
+                  <span className="font-semibold text-gray-500 block">Payout Route Method:</span>
                   <span className="font-bold text-black uppercase">{paymentMethod.replace(/_/g, " ")}</span>
                   <span className="text-[10px] text-gray-500 block font-mono truncate">{paymentMethod === "BANK_IBAN" ? bankAccountIban : mobileWalletNumber}</span>
                 </div>
@@ -1043,15 +1136,15 @@ export default function NewContractPage() {
 
             {/* 3. Usage Rights & Scope */}
             <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
-              <span className="text-gray-400 font-bold uppercase tracking-wider block">3. Usage Rights & Platform Scope</span>
+              <span className="text-gray-400 font-bold uppercase tracking-wider block">3. Usage Rights &amp; Platform Scope</span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <span className="font-semibold text-gray-500 block">Platforms Allowed:</span>
                   <span className="font-bold text-black uppercase">{platformsAllowed.join(", ")}</span>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-500 block">Usage Category:</span>
-                  <span className="font-bold text-black uppercase">{usageType.map(t => t.replace(/_/g, " ")).join(", ")}</span>
+                  <span className="font-semibold text-gray-500 block">Granted License:</span>
+                  <span className="font-bold text-black">{formatUsageLicenseText(usageType)}</span>
                 </div>
                 <div>
                   <span className="font-semibold text-gray-500 block">Rights Duration:</span>
@@ -1063,7 +1156,7 @@ export default function NewContractPage() {
             {/* 4. Delivery, Exclusivity & NDA */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block">4. Delivery Terms & Exclusivity</span>
+                <span className="text-gray-400 font-bold uppercase tracking-wider block">4. Delivery Terms &amp; Exclusivity</span>
                 <div className="flex justify-between">
                   <span className="font-semibold text-gray-500">Delivery Deadline:</span>
                   <span className="font-bold text-black">{deliveryTimeframeDays} Days post-execution</span>
@@ -1073,8 +1166,8 @@ export default function NewContractPage() {
                   <span className="font-bold text-black">{revisionRounds} Rounds</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">Content Pre-Approval:</span>
-                  <span className="font-bold text-black">{brandApprovalRequired ? "Required" : "Not Required"}</span>
+                  <span className="font-semibold text-gray-500">Pre-Approval Protocol:</span>
+                  <span className="font-bold text-black">{brandApprovalRequired ? "Required (48-hr Deemed Approval)" : "Not Required"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-gray-500">Exclusivity Clause:</span>
@@ -1091,14 +1184,14 @@ export default function NewContractPage() {
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2">
                 <span className="text-gray-400 font-bold uppercase tracking-wider block">5. Confidentiality / Pre-Launch NDA</span>
                 <div className="flex justify-between">
-                  <span className="font-semibold text-gray-500">NDA Embargo:</span>
+                  <span className="font-semibold text-gray-500">NDA Status:</span>
                   <span className="font-bold text-black">{confidentialityRequired ? "Strict NDA Active" : "Standard Confidentiality"}</span>
                 </div>
                 {confidentialityRequired && (
                   <>
                     <div className="flex justify-between">
-                      <span className="font-semibold text-gray-500">Embargo / Launch Date:</span>
-                      <span className="font-bold text-black">{embargoDate ? new Date(embargoDate).toLocaleDateString() : "Required until launch"}</span>
+                      <span className="font-semibold text-gray-500">Embargo Launch Date:</span>
+                      <span className="font-bold text-black">{embargoDate ? formatLegalDate(embargoDate) : "Required until launch"}</span>
                     </div>
                     {earlyDisclosurePenalty && (
                       <div className="flex justify-between">
@@ -1113,11 +1206,11 @@ export default function NewContractPage() {
 
             {/* 5. Bilateral Safeguard Penalties */}
             <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
-              <span className="text-gray-400 font-bold uppercase tracking-wider block">6. Bilateral Safeguard Penalties</span>
+              <span className="text-gray-400 font-bold uppercase tracking-wider block">6. Bilateral Safeguard Penalties &amp; Caps</span>
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div>
                   <span className="font-semibold text-gray-500 block">Late Payment / Delivery:</span>
-                  <span className="font-bold text-black">{latePaymentPenaltyPct}% / {lateContentPenaltyPct}% per day</span>
+                  <span className="font-bold text-black">{latePaymentPenaltyPct}% / {lateContentPenaltyPct}% per day (Capped at {penaltyCapPct}%)</span>
                 </div>
                 <div>
                   <span className="font-semibold text-gray-500 block">Unauthorized Brand Usage:</span>
@@ -1128,16 +1221,16 @@ export default function NewContractPage() {
                   <span className="font-bold text-black">{advanceRefundable ? `Yes (${advanceRefundTimeframeDays} days)` : "No"}</span>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-500 block">Pre-Delivery Cancellation Fee:</span>
-                  <span className="font-bold text-black">{cancellationFeePct}% of fee</span>
+                  <span className="font-semibold text-gray-500 block">Non-Delivery Cutoff:</span>
+                  <span className="font-bold text-black">{nonDeliveryCutoffDays} Days post-deadline</span>
                 </div>
               </div>
             </div>
 
-            {/* 6. Product Shipment Details (if present) */}
+            {/* 6. Product Shipment Details */}
             {collabProduct && (
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block">7. Collaboration Product Shipment</span>
+                <span className="text-gray-400 font-bold uppercase tracking-wider block">7. Collaboration Product Shipment &amp; Return Terms</span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
                     <span className="font-semibold text-gray-500 block">Product:</span>
@@ -1145,7 +1238,7 @@ export default function NewContractPage() {
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Expected Arrival:</span>
-                    <span className="font-bold text-black">{collabDeliveryDate ? new Date(collabDeliveryDate).toLocaleDateString() : "Not Specified"}</span>
+                    <span className="font-bold text-black">{collabDeliveryDate ? formatLegalDate(collabDeliveryDate) : "Not Specified"}</span>
                   </div>
                   {collabDeliveryAddress && (
                     <div>
@@ -1154,27 +1247,27 @@ export default function NewContractPage() {
                     </div>
                   )}
                 </div>
+                {collabProductProvisionType === "Product Loan" && (
+                  <div className="mt-2 pt-2 border-t border-gray-200 text-[11px] text-amber-900 font-semibold space-y-1">
+                    <div>• Return Deadline: Within {collabProductReturnDays} days post-campaign.</div>
+                    <div>• Return Shipping Payer: {collabProductReturnShippingBy}</div>
+                    {collabProductNonReturnFee && <div>• Non-Return / Damage Penalty Fee: PKR {Number(collabProductNonReturnFee).toLocaleString()}</div>}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* 7. Tagging & Content Ownership */}
-            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-2 text-xs">
-              <span className="text-gray-400 font-bold uppercase tracking-wider block">8. Tagging & Copyright Terms</span>
-              {taggingRequirements && (
-                <div>
-                  <span className="font-semibold text-gray-500 block">Tagging / Caption Requirements:</span>
-                  <span className="font-bold text-black">{taggingRequirements}</span>
-                </div>
-              )}
-              <div>
-                <span className="font-semibold text-gray-500 block">Copyright Clause:</span>
-                <span className="font-bold text-black">{contentOwnership}</span>
-              </div>
+            {/* 7. Dispute Resolution (ADR) Clause Notice */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-blue-50/50 flex flex-col gap-1 text-xs">
+              <span className="text-blue-900 font-bold uppercase tracking-wider block">8. Governing Law &amp; Dispute Resolution</span>
+              <p className="text-[11px] text-blue-950 leading-relaxed">
+                Governed by the laws of Pakistan. Disputes proceed to 14 days of good-faith negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary court determination; (b) Claims &gt; PKR 500,000 proceed to binding arbitration under the <strong>Arbitration Act 1940 of Pakistan</strong>.
+              </p>
             </div>
 
             {/* 8. Deliverables Table */}
             <div className="p-4 rounded-xl border border-gray-200 bg-white">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">9. Deliverables List & Requirements</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">9. Deliverables List &amp; Requirements</span>
               <table className="w-full text-xs text-left">
                 <thead>
                   <tr className="border-b border-gray-100 text-gray-500 font-bold">

@@ -3,6 +3,7 @@ import chromium from "@sparticuz/chromium";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
+import { formatLegalDate, parseUserAgentString, formatUsageLicenseText } from "@/lib/utils";
 
 export async function generateContractPDF(contractId: string): Promise<{ path: string; buffer: Buffer }> {
   // 1. Fetch full contract specifications with relations
@@ -20,16 +21,6 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
   const getRemainingAmount = () => {
     return Number(contract.totalAmount || 0) - Number(contract.advancePayment || 0);
-  };
-
-  const formatUsageType = (type: any) => {
-    if (Array.isArray(type)) {
-      return type.map((t) => t.replace(/_/g, " ")).join(", ");
-    }
-    if (typeof type === 'string') {
-      return type.replace(/_/g, " ");
-    }
-    return "N/A";
   };
 
   const getSignatureByRole = (role: string) => {
@@ -98,154 +89,102 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           }
           .brand-sub {
             font-size: 8.5pt;
-            color: #475569;
+            color: #64748b;
             margin: 2px 0 0 0;
           }
-          .doc-title-block {
+          .contract-badge {
             text-align: right;
           }
-          .doc-type {
+          .contract-badge-title {
             font-size: 9.5pt;
             font-weight: 800;
-            color: #000000;
-            margin: 0;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: #0f172a;
           }
-          .doc-number {
+          .contract-badge-num {
             font-size: 9pt;
             font-weight: 700;
             color: #2563eb;
-            margin: 2px 0 0 0;
+            margin-top: 2px;
           }
-          .preamble-box {
-            background-color: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 10px 14px;
-            font-size: 9pt;
-            color: #334155;
-            margin-bottom: 16px;
-            line-height: 1.4;
-          }
-          .section-header {
-            font-size: 10.5pt;
+          .section-title {
+            font-size: 10pt;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             color: #0f172a;
             border-bottom: 1.5px solid #0f172a;
-            padding-bottom: 4px;
-            margin-top: 18px;
-            margin-bottom: 10px;
+            padding-bottom: 3px;
+            margin-top: 14px;
+            margin-bottom: 8px;
             page-break-after: avoid;
           }
-          .parties-grid {
+          .grid-2 {
             display: flex;
-            gap: 16px;
-            margin-bottom: 16px;
+            gap: 14px;
+            margin-bottom: 14px;
           }
           .party-card {
             flex: 1;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            padding: 10px 14px;
+            padding: 10px;
+            font-size: 9pt;
             background: #ffffff;
           }
-          .party-title {
-            font-size: 9pt;
+          .party-card-title {
             font-weight: 800;
             text-transform: uppercase;
             color: #475569;
-            margin: 0 0 6px 0;
+            margin-bottom: 6px;
             border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 4px;
+            padding-bottom: 2px;
           }
-          .info-row {
-            margin: 3px 0;
-            font-size: 9.5pt;
-          }
-          .info-row strong {
-            color: #0f172a;
-          }
-          table.data-table {
+          .table-spec {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 14px;
-            font-size: 9.5pt;
+            font-size: 9pt;
+            border: 1px solid #cbd5e1;
           }
-          table.data-table th {
+          .table-spec th {
             background-color: #f1f5f9;
             color: #0f172a;
-            font-weight: 800;
+            padding: 6px 8px;
+            border: 1px solid #cbd5e1;
             text-transform: uppercase;
-            font-size: 8.5pt;
-            padding: 8px 10px;
-            border: 1px solid #cbd5e1;
-            text-align: left;
-          }
-          table.data-table td {
-            padding: 8px 10px;
-            border: 1px solid #cbd5e1;
-            vertical-align: top;
-          }
-          .badge {
-            display: inline-block;
-            background-color: #0f172a;
-            color: #ffffff;
             font-size: 8pt;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            margin-right: 4px;
           }
-          .badge-alert {
-            background-color: #ef4444;
-            color: #ffffff;
+          .table-spec td {
+            padding: 6px 8px;
+            border: 1px solid #cbd5e1;
           }
-          .badge-warn {
-            background-color: #f59e0b;
-            color: #ffffff;
-          }
-          .penalty-box {
-            background-color: #fffbeb;
-            border: 1px solid #fde68a;
+          .box-clause {
+            border: 1px solid #cbd5e1;
             border-radius: 6px;
-            padding: 10px 14px;
+            padding: 10px;
             font-size: 9pt;
-            color: #92400e;
             margin-bottom: 14px;
-            line-height: 1.5;
+            background: #ffffff;
+            line-height: 1.6;
           }
-          .signature-section {
-            margin-top: 26px;
+          .signatures-grid {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
             page-break-inside: avoid;
           }
-          .signature-grid {
-            display: flex;
-            gap: 20px;
-            margin-top: 12px;
-          }
-          .sig-card {
+          .signature-box {
             flex: 1;
             border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 12px;
+            border-radius: 6px;
+            padding: 10px;
             text-align: center;
             background: #ffffff;
           }
-          .sig-img-container {
-            height: 65px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 8px 0;
-          }
-          .sig-img {
-            max-height: 55px;
-            max-width: 180px;
-            object-contain: fit;
+          .signature-img {
+            max-height: 50px;
+            max-width: 160px;
+            object-fit: contain;
           }
           .audit-text {
             font-size: 7.5pt;
@@ -266,10 +205,10 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
       </head>
       <body>
         <!-- Header -->
-        <div className="header" style="display: flex; justify-content: space-between; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 14px;">
           <div>
             <h1 style="font-size: 18pt; font-weight: 900; margin: 0; color: #000;">${process.env.NEXT_PUBLIC_COMPANY_NAME || "SignCollab"}</h1>
-            <p style="margin: 2px 0 0 0; font-size: 8.5pt; color: #475569;">${process.env.NEXT_PUBLIC_LEGAL_COMPANY_INFO || "SignCollab Legal Protocol, Pakistan"}</p>
+            <p style="margin: 2px 0 0 0; font-size: 8.5pt; color: #475569;">${process.env.NEXT_PUBLIC_LEGAL_COMPANY_INFO || "SignCollab Digital Agreement Platform"}</p>
           </div>
           <div style="text-align: right;">
             <div style="font-size: 9pt; font-weight: 800; color: #000; text-transform: uppercase;">${getContractTitle()}</div>
@@ -279,7 +218,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
         <!-- Legal Preamble -->
         <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; font-size: 8.5pt; color: #334155; margin-bottom: 14px;">
-          <strong>LEGAL PREAMBLE & E-SIGN BINDING NOTICE:</strong> This document represents a legally binding electronic agreement executed under the Electronic Transactions Ordinance (ETO 2002) of Pakistan. All parameters, financial consideration, usage licenses, and bilateral penalties set forth herein are legally enforceable upon execution by both parties.
+          <strong>LEGAL PREAMBLE & E-SIGN BINDING NOTICE:</strong> This document represents a legally binding electronic agreement executed under the Electronic Transactions Ordinance (ETO 2002) of Pakistan. SignCollab is a neutral technology platform provider facilitating electronic agreement execution. All parameters, financial consideration, usage licenses, and bilateral penalties set forth herein are legally enforceable upon bilateral execution.
         </div>
 
         <!-- Section 1: Parties & Recitals -->
@@ -289,10 +228,12 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         <div style="display: flex; gap: 14px; margin-bottom: 14px;">
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 9pt;">
             <div style="font-weight: 800; text-transform: uppercase; color: #475569; margin-bottom: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 2px;">PARTY A (AGENCY / INITIATOR)</div>
-            <div style="margin: 2px 0;"><strong>Legal Name:</strong> ${contract.initiator.name}</div>
+            <div style="margin: 2px 0;"><strong>Legal Signer Name:</strong> ${contract.initiator.name}</div>
             <div style="margin: 2px 0;"><strong>Email:</strong> ${contract.initiator.email}</div>
             ${contract.initiator.phone ? `<div style="margin: 2px 0;"><strong>Phone:</strong> ${contract.initiator.phone}</div>` : ""}
             ${(contract.initiator as any).agencyName ? `<div style="margin: 2px 0;"><strong>Company:</strong> ${(contract.initiator as any).agencyName}</div>` : ""}
+            ${contract.initiatorDesignation ? `<div style="margin: 2px 0;"><strong>Signing Capacity:</strong> ${contract.initiatorDesignation}</div>` : ""}
+            ${contract.initiatorNtn ? `<div style="margin: 2px 0;"><strong>NTN / Reg No:</strong> ${contract.initiatorNtn}</div>` : ""}
             ${(contract.initiator as any).agencyAddress ? `<div style="margin: 2px 0;"><strong>Address:</strong> ${(contract.initiator as any).agencyAddress}</div>` : ""}
           </div>
 
@@ -302,7 +243,8 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
             <div style="margin: 2px 0;"><strong>Email:</strong> ${contract.respondentEmail || "Pending Execution"}</div>
             ${contract.respondentPhone ? `<div style="margin: 2px 0;"><strong>Phone:</strong> ${contract.respondentPhone}</div>` : ""}
             ${contract.respondentCompany ? `<div style="margin: 2px 0;"><strong>Brand / Company:</strong> ${contract.respondentCompany}</div>` : ""}
-            ${contract.respondentDesignation ? `<div style="margin: 2px 0;"><strong>Job Title:</strong> ${contract.respondentDesignation}</div>` : ""}
+            ${contract.respondentDesignation ? `<div style="margin: 2px 0;"><strong>Signing Capacity:</strong> ${contract.respondentDesignation}</div>` : ""}
+            ${contract.respondentNtn ? `<div style="margin: 2px 0;"><strong>NTN / Reg No:</strong> ${contract.respondentNtn}</div>` : ""}
             ${contract.respondentAddress ? `<div style="margin: 2px 0;"><strong>Address:</strong> ${contract.respondentAddress}</div>` : ""}
           </div>
         </div>
@@ -320,14 +262,14 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
         <!-- Section 2: Campaign Deliverables Specifications -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          2. CAMPAIGN DELIVERABLES SPECIFICATIONS
+          2. CAMPAIGN DELIVERABLES SPECIFICATIONS &amp; RETENTION ENFORCEMENT
         </div>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 9pt; border: 1px solid #cbd5e1;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 9pt; border: 1px solid #cbd5e1;">
           <thead>
             <tr style="background-color: #f1f5f9; color: #0f172a; text-transform: uppercase; font-size: 8pt;">
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Platform Format</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; width: 60px;">Quantity</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; width: 120px;">Retention / Duration</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; width: 120px;">Retention Duration</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Brief &amp; Instructions</th>
             </tr>
           </thead>
@@ -342,6 +284,9 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
             `).join("")}
           </tbody>
         </table>
+        <div style="font-size: 8pt; color: #475569; margin-bottom: 14px; font-style: italic;">
+          * RETENTION BREACH ENFORCEMENT: Premature deletion, archiving, or hiding of deliverables prior to the agreed retention duration constitutes a material breach, subjecting the breaching party to a mandatory pro-rata refund plus a 25% early-deletion penalty fee.
+        </div>
 
         <!-- Section 3: Usage Rights, Platform Scope & Licensing Terms -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
@@ -349,14 +294,14 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 9pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
           <div style="margin-bottom: 4px;"><strong>Permitted Platforms:</strong> ${contract.platformsAllowed?.map((p: string) => `<span style="background: #0f172a; color: #fff; padding: 1px 5px; border-radius: 3px; font-size: 7.5pt; font-weight: 700; uppercase">${p}</span>`).join(" ")}</div>
-          <div style="margin-bottom: 4px;"><strong>Granted License Category:</strong> <strong>${formatUsageType(contract.usageType)}</strong></div>
+          <div style="margin-bottom: 4px;"><strong>Granted Commercial License:</strong> <strong>${formatUsageLicenseText(contract.usageType)}</strong></div>
           <div style="margin-bottom: 4px;"><strong>Licensed Duration:</strong> <strong>${contract.usageRightsDuration}</strong></div>
           <div style="font-size: 8.5pt; color: #64748b; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
             <em>WITHHELD RIGHTS NOTICE: Party A and Creator reserve all intellectual property rights not expressly granted above. Any commercial re-use, television broadcast, dark-posting, or off-platform print distribution outside the licensed parameters is strictly prohibited without prior written amendment.</em>
           </div>
         </div>
 
-        <!-- Section 4: Financial Compensation, Escrow & Payment Schedule -->
+        <!-- Section 4: Financial Compensation & Payment Schedule -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
           4. FINANCIAL COMPENSATION &amp; PAYMENT SCHEDULE
         </div>
@@ -364,7 +309,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <thead>
             <tr style="background-color: #f1f5f9; color: #0f172a; text-transform: uppercase; font-size: 8pt;">
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Total Campaign Valuation</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Advance Escrow Payout</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Advance Payment</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Remaining Payout</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Payment Method &amp; Route</th>
             </tr>
@@ -374,11 +319,11 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 10pt;">PKR ${Number(contract.totalAmount).toLocaleString()}</td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
                 <strong>PKR ${Number(contract.advancePayment || 0).toLocaleString()}</strong>
-                ${contract.advancePaymentDate ? `<br><span style="font-size: 8pt; color: #64748b;">Due: ${new Date(contract.advancePaymentDate).toLocaleDateString()}</span>` : ""}
+                ${contract.advancePaymentDate ? `<br><span style="font-size: 8pt; color: #64748b;">Due: ${formatLegalDate(contract.advancePaymentDate)}</span>` : ""}
               </td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
                 <strong>PKR ${getRemainingAmount().toLocaleString()}</strong>
-                ${contract.remainingPaymentDate ? `<br><span style="font-size: 8pt; color: #64748b;">Due: ${new Date(contract.remainingPaymentDate).toLocaleDateString()}</span>` : ""}
+                ${contract.remainingPaymentDate ? `<br><span style="font-size: 8pt; color: #64748b;">Due: ${formatLegalDate(contract.remainingPaymentDate)}</span>` : ""}
               </td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
                 <strong>${contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</strong>
@@ -390,12 +335,19 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
         <!-- Section 5: Delivery Timeframe, Revisions & Pre-Approval -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          5. DELIVERY TIMEFRAME, REVISIONS &amp; PRE-APPROVAL
+          5. DELIVERY TIMEFRAME, REVISIONS &amp; PRE-APPROVAL PROTOCOL
         </div>
-        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 9pt; margin-bottom: 14px; background: #ffffff; display: flex; gap: 20px;">
-          <div style="flex: 1;"><strong>Delivery Window:</strong> ${contract.deliveryTimeframeDays} Days post mutual execution</div>
-          <div style="flex: 1;"><strong>Revision Rounds Included:</strong> ${contract.revisionRounds} Rounds</div>
-          <div style="flex: 1;"><strong>Content Pre-Approval:</strong> <strong>${contract.brandApprovalRequired ? "Required prior to posting" : "Not Required"}</strong></div>
+        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 9pt; margin-bottom: 14px; background: #ffffff;">
+          <div style="display: flex; gap: 20px; margin-bottom: 4px;">
+            <div style="flex: 1;"><strong>Delivery Window:</strong> ${contract.deliveryTimeframeDays} Days post mutual execution</div>
+            <div style="flex: 1;"><strong>Revision Rounds:</strong> ${contract.revisionRounds} Rounds</div>
+            <div style="flex: 1;"><strong>Content Pre-Approval:</strong> <strong>${contract.brandApprovalRequired ? "Required (48-Hr Deemed Approval)" : "Not Required"}</strong></div>
+          </div>
+          ${contract.brandApprovalRequired ? `
+            <div style="font-size: 8pt; color: #475569; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
+              ⚡ <strong>48-HOUR DEEMED APPROVAL PROTOCOL:</strong> Draft content must be submitted to Brand at least 3 business days prior to delivery deadline. Brand must respond within 48 hours. Failure by Brand to respond within 48 hours legally constitutes Deemed Approval, authorizing final posting without delay liability.
+            </div>
+          ` : ""}
         </div>
 
         <!-- Section 6: Exclusivity Restrictions & Prohibited Competitors -->
@@ -404,6 +356,9 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 9pt; margin-bottom: 14px; background: #ffffff;">
           <div style="margin-bottom: 4px;"><strong>Exclusivity Clause Status:</strong> <strong>${contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "Not Required"}</strong></div>
+          ${contract.exclusivityClause ? `
+            <div style="font-size: 8pt; color: #475569;">* Exclusivity duration commences on the official post date of the first campaign deliverable.</div>
+          ` : ""}
           ${contract.exclusivityClause && contract.exclusivityCompetitors ? `
             <div style="margin-top: 4px; font-size: 8.5pt; color: #dc2626;"><strong>Prohibited Competitors / Categories:</strong> ${contract.exclusivityCompetitors}</div>
           ` : ""}
@@ -417,23 +372,29 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <div><strong>Confidentiality Status:</strong> <strong>${contract.confidentialityRequired ? "STRICT PRE-LAUNCH NDA ACTIVE" : "Standard Commercial Confidentiality"}</strong></div>
           ${contract.confidentialityRequired ? `
             <div style="margin-top: 4px; font-size: 8.5pt; color: #92400e;">
-              <strong>Embargo Launch Date:</strong> ${contract.embargoDate ? new Date(contract.embargoDate).toLocaleDateString() : "Required until official product launch"}<br>
+              <strong>Embargo Launch Date:</strong> ${contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Required until official product launch"}<br>
               ${contract.earlyDisclosurePenalty ? `<strong>Early Disclosure Leak Penalty:</strong> PKR ${Number(contract.earlyDisclosurePenalty).toLocaleString()} payable upon unauthorized leak or premature posting.` : ""}
             </div>
           ` : ""}
         </div>
 
         ${contract.collabProduct ? `
-        <!-- Section 8: Collaboration Product Shipment -->
+        <!-- Section 8: Collaboration Product Shipment & Return Terms -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          8. COLLABORATION PRODUCT SHIPMENT &amp; PROVISIONING
+          8. COLLABORATION PRODUCT SHIPMENT &amp; LOAN RETURN TERMS
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 9pt; margin-bottom: 14px; background: #ffffff;">
           <div style="display: flex; gap: 20px;">
             <div><strong>Product Details:</strong> ${contract.collabProduct} (${contract.collabProductProvisionType || "Provision"})</div>
-            ${contract.collabDeliveryDate ? `<div><strong>Expected Arrival:</strong> ${new Date(contract.collabDeliveryDate).toLocaleDateString()}</div>` : ""}
+            ${contract.collabDeliveryDate ? `<div><strong>Expected Arrival:</strong> ${formatLegalDate(contract.collabDeliveryDate)}</div>` : ""}
           </div>
           ${contract.collabDeliveryAddress ? `<div style="margin-top: 4px; font-size: 8.5pt; color: #475569;"><strong>Shipment Address:</strong> ${contract.collabDeliveryAddress}</div>` : ""}
+          ${contract.collabProductProvisionType === "Product Loan" ? `
+            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1; font-size: 8.5pt; color: #92400e;">
+              🔒 <strong>PRODUCT LOAN RETURN CONDITIONS:</strong> Loaned product must be returned to Brand within ${contract.collabProductReturnDays || 7} calendar days post-deliverable. Return shipping costs paid by ${contract.collabProductReturnShippingBy || "Brand"}. Failure to return or returning in damaged condition incurs a mandatory non-return penalty of PKR ${Number(contract.collabProductNonReturnFee || 0).toLocaleString()}.
+              ${contract.collabProductReturnAddress ? `<br>Return Address: ${contract.collabProductReturnAddress}` : ""}
+            </div>
+          ` : ""}
         </div>
         ` : ""}
 
@@ -448,14 +409,22 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
         <!-- Section 10: Bilateral Safeguard Penalties & Termination -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          10. BILATERAL SAFEGUARD PENALTIES &amp; TERMINATION
+          10. BILATERAL SAFEGUARD PENALTIES &amp; LIQUIDATED DAMAGES
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #f8fafc; line-height: 1.6;">
-          <div>• <strong>Late Payment Penalty (Charged to Brand):</strong> ${Number(contract.latePaymentPenaltyPct)}% per calendar day of delay.</div>
-          <div>• <strong>Late Content Delivery Penalty (Charged to Agency/Creator):</strong> ${Number(contract.lateContentPenaltyPct)}% per calendar day of delay.</div>
-          <div>• <strong>Unauthorized Brand Re-Use Penalty:</strong> ${Number(contract.unauthorizedUsagePenaltyPct || 50)}% of total contract value per violation outside licensed platforms, duration, or category.</div>
-          <div>• <strong>Non-Delivery Advance Refund:</strong> ${contract.advanceRefundable !== false ? `Advance payment is 100% refundable within ${contract.advanceRefundTimeframeDays || 7} business days of non-delivery notice.` : "Non-refundable advance."}</div>
+          <div>• <strong>Late Payment Penalty (Charged to Brand):</strong> ${Number(contract.latePaymentPenaltyPct)}% per calendar day of delay (capped at max ${Number(contract.penaltyCapPct || 20)}% of total value as agreed liquidated damages under Section 74 Contract Act 1872).</div>
+          <div>• <strong>Late Content Delivery Penalty (Charged to Agency/Creator):</strong> ${Number(contract.lateContentPenaltyPct)}% per calendar day of delay (capped at max ${Number(contract.penaltyCapPct || 20)}% of total value as agreed liquidated damages).</div>
+          <div>• <strong>Non-Delivery Threshold & Cutoff:</strong> Content delivery delayed beyond ${contract.nonDeliveryCutoffDays || 7} calendar days post-deadline legally constitutes Non-Delivery, terminating daily late fees and triggering the 100% advance refundability clause with zero enforcement gap.</div>
+          <div>• <strong>Unauthorized Brand Re-Use Penalty:</strong> ${Number(contract.unauthorizedUsagePenaltyPct || 50)}% of total contract value per violation outside licensed platforms, duration, or scope.</div>
           <div>• <strong>Pre-Delivery Termination Fee:</strong> ${Number(contract.cancellationFeePct || 25)}% of total campaign fee owed if terminated post-execution prior to deliverable hand-off.</div>
+        </div>
+
+        <!-- Section 12: Governing Law & Dispute Resolution (ADR) -->
+        <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
+          12. GOVERNING LAW &amp; ALTERNATIVE DISPUTE RESOLUTION (ADR)
+        </div>
+        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
+          This agreement shall be governed by and construed in accordance with the laws of the Islamic Republic of Pakistan. In the event of any dispute or claim, the parties shall first attempt to resolve the matter through 14 calendar days of good-faith negotiation. If unresolved: (a) Disputes equal to or below PKR 500,000 shall proceed to summary determination in competent local courts; (b) Disputes exceeding PKR 500,000 shall be referred to binding arbitration by a sole arbitrator in Pakistan under the <strong>Arbitration Act 1940</strong> of Pakistan. The prevailing party shall recover reasonable legal fees and arbitration costs.
         </div>
 
         <!-- Section 11: ETO 2002 Bilateral Signature Audit Log & SHA-256 Verification -->
@@ -471,11 +440,12 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               </div>
               <div style="font-size: 7.5pt; color: #475569;">
                 <div>Signer: ${contract.initiator.name} (${contract.initiator.email})</div>
-                <div>IP: ${initiatorSign.ipAddress} | Device: ${initiatorSign.deviceFingerprint ? initiatorSign.deviceFingerprint.slice(0, 12) + "..." : "N/A"}</div>
-                <div>Signed UTC: ${new Date(initiatorSign.signedAt).toUTCString()}</div>
+                <div>Signed for and on behalf of ${(contract.initiator as any).agencyName || contract.initiator.name}</div>
+                <div>IP: ${initiatorSign.ipAddress} | Device: ${parseUserAgentString(initiatorSign.userAgent || initiatorSign.deviceFingerprint)}</div>
+                <div>Signed: ${formatLegalDate(initiatorSign.signedAt)}</div>
               </div>
             ` : `
-              <div style="height: 55px; display: flex; items-center; justify-content: center; color: #94a3b8; font-style: italic; font-size: 8.5pt;">Pending Signature</div>
+              <div style="height: 55px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-style: italic; font-size: 8.5pt;">Pending Signature</div>
             `}
           </div>
 
@@ -487,11 +457,12 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               </div>
               <div style="font-size: 7.5pt; color: #475569;">
                 <div>Signer: ${contract.respondentName} (${contract.respondentEmail})</div>
+                <div>Signed for and on behalf of ${contract.respondentCompany || contract.respondentName}</div>
                 <div>Verified Email OTP: ✓ Verified | IP: ${respondentSign.ipAddress}</div>
-                <div>Signed UTC: ${new Date(respondentSign.signedAt).toUTCString()}</div>
+                <div>Signed: ${formatLegalDate(respondentSign.signedAt)}</div>
               </div>
             ` : `
-              <div style="height: 55px; display: flex; items-center; justify-content: center; color: #94a3b8; font-style: italic; font-size: 8.5pt;">Pending Signature</div>
+              <div style="height: 55px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-style: italic; font-size: 8.5pt;">Pending Signature</div>
             `}
           </div>
         </div>

@@ -6,20 +6,11 @@ import Link from "next/link";
 import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
+import { formatLegalDate, parseUserAgentString, formatUsageLicenseText } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
-
-const formatUsageType = (type: any) => {
-  if (Array.isArray(type)) {
-    return type.map((t) => t.replace(/_/g, " ")).join(", ");
-  }
-  if (typeof type === 'string') {
-    return type.replace(/_/g, " ");
-  }
-  return "N/A";
-};
 
 export default function ContractDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
@@ -74,7 +65,6 @@ export default function ContractDetailPage({ params }: PageProps) {
 
   const handleInitiatorSign = async (signatureB64: string, fingerprint: string) => {
     setActionLoading(true);
-    // Simple document hash correlation
     const documentHash = contract.documentHash || "SHA256-" + contract.shareToken;
     try {
       const res = await fetch(`/api/contracts/${resolvedParams.id}/sign`, {
@@ -101,6 +91,23 @@ export default function ContractDetailPage({ params }: PageProps) {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/contracts/${resolvedParams.id}/pdf`);
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.open(data.url, "_blank");
+      } else {
+        showToast(data.error || "Failed to generate PDF document.", "error");
+      }
+    } catch (err) {
+      showToast("Error downloading PDF file.", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleMarkAdvanceReceived = async () => {
     setActionLoading(true);
     try {
@@ -109,13 +116,13 @@ export default function ContractDetailPage({ params }: PageProps) {
       });
       const data = await res.json();
       if (res.ok) {
-        showToast("Advance payment receipt confirmed!", "success");
+        showToast("Advance payment confirmed!", "success");
         fetchContract();
       } else {
-        showToast(data.error || "Failed to log advance payment receipt.", "error");
+        showToast(data.error || "Failed to log advance payment.", "error");
       }
     } catch (err) {
-      showToast("Error processing advance payment route.", "error");
+      showToast("Error logging payment.", "error");
     } finally {
       setActionLoading(false);
     }
@@ -129,30 +136,13 @@ export default function ContractDetailPage({ params }: PageProps) {
       });
       const data = await res.json();
       if (res.ok) {
-        showToast("Agreement marked completed and closed!", "success");
+        showToast("Campaign marked as completed!", "success");
         fetchContract();
       } else {
-        showToast(data.error || "Failed to close agreement.", "error");
+        showToast(data.error || "Failed to complete agreement.", "error");
       }
     } catch (err) {
-      showToast("Error executing complete transaction.", "error");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleDownloadPDF = async () => {
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/contracts/${resolvedParams.id}/pdf`);
-      const data = await res.json();
-      if (res.ok && data.url) {
-        window.open(data.url, "_blank");
-      } else {
-        showToast(data.error || "Failed to generate download link.", "error");
-      }
-    } catch (err) {
-      showToast("Error retrieving PDF document.", "error");
+      showToast("Error marking completion.", "error");
     } finally {
       setActionLoading(false);
     }
@@ -166,84 +156,52 @@ export default function ContractDetailPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="py-16 flex justify-center items-center flex-col gap-3 bg-white rounded-2xl border border-gray-200 shadow-sm text-left">
-        <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Querying document...</span>
+      <div className="p-8 text-center text-gray-500 font-bold text-sm">
+        Loading agreement data...
       </div>
     );
   }
 
   if (!contract) {
     return (
-      <div className="py-16 text-center bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col items-center justify-center text-left">
-        <h4 className="font-bold text-black text-lg">Document Not Found</h4>
-        <p className="text-xs text-gray-500 mt-1">This agreement record does not exist or has been removed.</p>
-        <Link href="/dashboard" className="mt-5">
-          <button className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2 rounded-xl text-xs uppercase">
-            Back to Dashboard
-          </button>
-        </Link>
+      <div className="p-8 text-center text-rose-600 font-bold text-sm">
+        Agreement record not found.
       </div>
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "DRAFT":
-        return "bg-amber-50 border-amber-200 text-amber-800";
-      case "PENDING_RESPONDENT":
-      case "PENDING_INITIATOR":
-        return "bg-blue-50 border-blue-200 text-blue-800";
-      case "ACTIVE":
-        return "bg-emerald-50 border-emerald-200 text-emerald-800";
-      case "COMPLETED":
-        return "bg-indigo-50 border-indigo-200 text-indigo-800";
-      case "EXPIRED":
-      case "CANCELLED":
-        return "bg-rose-50 border-rose-200 text-rose-800";
-      default:
-        return "bg-gray-50 border-gray-200 text-gray-800";
-    }
-  };
-
-  const isUserInitiator = contract.initiatorId === user?.id;
+  const isUserInitiator = user?.id === contract.initiatorId;
 
   return (
-    <div className="space-y-6 text-left">
-      {/* Top Banner Navigation */}
-      <div className="flex items-center gap-3">
-        <Link href="/dashboard" className="text-xs font-bold text-gray-400 hover:text-black transition-colors">
-          &larr; Dashboard
-        </Link>
-        <span className="text-gray-300">|</span>
-        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-          Agreement {contract.contractNumber}
-        </span>
-      </div>
-
-      {/* Info Status Banner */}
-      <div className={`border rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm ${getStatusColor(contract.status)}`}>
-        <div className="flex flex-col text-left gap-1">
-          <span className="text-[10px] font-black uppercase tracking-wider opacity-70">Deal Current Status</span>
-          <span className="text-lg font-black uppercase">{contract.status.replace(/_/g, " ")}</span>
-          <p className="text-[11px] font-medium opacity-80 mt-1 max-w-xl">
-            {contract.status === "DRAFT" && "This agreement is currently a draft. Review the terms below and submit it to counterparties."}
-            {contract.status === "PENDING_RESPONDENT" && "Awaiting countersignatures from your deal partner. Copy and send the link to them to sign."}
-            {contract.status === "PENDING_INITIATOR" && "Your counterparty has signed! Review their details at the bottom, sign, and activate the deal."}
-            {contract.status === "ACTIVE" && "Contract is fully executed and active. A court-admissible signed PDF record has been locked."}
-            {contract.status === "COMPLETED" && "This partnership campaign has been marked as fully fulfilled and finalized."}
+    <div className="space-y-8 text-left">
+      {/* Header Info Banner */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-black text-blue-600 uppercase tracking-wider font-mono">
+              {contract.contractNumber}
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-800 uppercase tracking-wider">
+              {contract.status.replace(/_/g, " ")}
+            </span>
+          </div>
+          <h1 className="text-2xl font-black text-black mt-1">
+            {contract.campaignName || contract.contractType.replace(/_/g, " ")}
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Created on {formatLegalDate(contract.createdAt)} by {contract.initiator?.name} ({contract.initiator?.email})
           </p>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex flex-wrap gap-2">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-3">
           {contract.status === "DRAFT" && isUserInitiator && (
             <button
               onClick={handleSubmitDraft}
               disabled={actionLoading}
               className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all"
             >
-              {actionLoading ? "Submitting..." : "Submit Agreement ➔"}
+              Publish &amp; Generate Link
             </button>
           )}
 
@@ -262,11 +220,11 @@ export default function ContractDetailPage({ params }: PageProps) {
               disabled={actionLoading}
               className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all"
             >
-              Sign & Activate Contract
+              Sign &amp; Activate Contract
             </button>
           )}
 
-          {(contract.status === "ACTIVE" || contract.status === "COMPLETED") && contract.pdfUrl && (
+          {(contract.status === "ACTIVE" || contract.status === "COMPLETED") && (
             <button
               onClick={handleDownloadPDF}
               disabled={actionLoading}
@@ -278,7 +236,6 @@ export default function ContractDetailPage({ params }: PageProps) {
 
           {contract.status === "ACTIVE" && (
             <>
-              {/* Advance Payment Logging for Creator/Agency */}
               {contract.advancePayment && !contract.advanceReceived && (user?.role === "CREATOR" || user?.role === "AGENCY") && (
                 <button
                   onClick={handleMarkAdvanceReceived}
@@ -288,7 +245,6 @@ export default function ContractDetailPage({ params }: PageProps) {
                   Confirm Advance Payment Received
                 </button>
               )}
-              {/* Completion trigger */}
               <button
                 onClick={handleMarkComplete}
                 disabled={actionLoading}
@@ -307,13 +263,35 @@ export default function ContractDetailPage({ params }: PageProps) {
         {/* Left column: Summary specs */}
         <div className="lg:col-span-1 space-y-4">
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
-            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Campaign Parameters</h4>
+            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Campaign &amp; Authority Specs</h4>
             
             <div className="space-y-3 text-xs">
               <div>
                 <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Contract Type</span>
                 <span className="text-black font-bold uppercase">{contract.contractType.replace(/_/g, " ")}</span>
               </div>
+              
+              {contract.initiatorDesignation && (
+                <>
+                  <hr className="border-gray-50" />
+                  <div>
+                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Party A Designation</span>
+                    <span className="text-black font-bold">{contract.initiatorDesignation}</span>
+                  </div>
+                </>
+              )}
+
+              {(contract.initiatorNtn || contract.respondentNtn) && (
+                <>
+                  <hr className="border-gray-50" />
+                  <div>
+                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Tax / Registration NTN</span>
+                    {contract.initiatorNtn && <div className="text-black font-semibold">Party A NTN: {contract.initiatorNtn}</div>}
+                    {contract.respondentNtn && <div className="text-black font-semibold">Party B NTN: {contract.respondentNtn}</div>}
+                  </div>
+                </>
+              )}
+
               {contract.brandName && (
                 <>
                   <hr className="border-gray-50" />
@@ -343,7 +321,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               <div>
                 <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Platforms Allowed</span>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {contract.platformsAllowed.map((p: string) => (
+                  {contract.platformsAllowed?.map((p: string) => (
                     <span key={p} className="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-800 text-[10px] font-bold">
                       {p}
                     </span>
@@ -352,18 +330,17 @@ export default function ContractDetailPage({ params }: PageProps) {
               </div>
               <hr className="border-gray-50" />
               <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Usage rights</span>
-                <span className="text-black font-bold">{contract.usageRightsDuration} ({formatUsageType(contract.usageType)})</span>
+                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Usage Rights</span>
+                <span className="text-black font-bold">{contract.usageRightsDuration}</span>
+                <span className="text-[10px] text-gray-500 block font-semibold mt-0.5">{formatUsageLicenseText(contract.usageType)}</span>
               </div>
               <hr className="border-gray-50" />
               <div>
                 <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Delivery Window</span>
                 <span className="text-black font-bold">{contract.deliveryTimeframeDays} Days post-execution</span>
-              </div>
-              <hr className="border-gray-50" />
-              <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Revision Cap</span>
-                <span className="text-black font-bold">{contract.revisionRounds} Rounds allowed</span>
+                {contract.brandApprovalRequired && (
+                  <span className="text-[10px] text-blue-700 block font-semibold mt-0.5">⚡ 48-Hr Deemed Approval Active</span>
+                )}
               </div>
               <hr className="border-gray-50" />
               <div>
@@ -387,7 +364,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                     </span>
                     {contract.embargoDate && (
                       <span className="text-[10px] text-gray-500 font-semibold block mt-1">
-                        Embargo Until: {new Date(contract.embargoDate).toLocaleDateString()}
+                        Embargo Until: {formatLegalDate(contract.embargoDate)}
                       </span>
                     )}
                     {contract.earlyDisclosurePenalty && (
@@ -398,16 +375,6 @@ export default function ContractDetailPage({ params }: PageProps) {
                   </div>
                 </>
               )}
-              <hr className="border-gray-50" />
-              <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Bilateral Safeguards & Penalties</span>
-                <div className="text-[11px] text-black font-medium space-y-1 mt-1">
-                  <div>• Late Payment: <strong>{Number(contract.latePaymentPenaltyPct)}%/day</strong> | Late Content: <strong>{Number(contract.lateContentPenaltyPct)}%/day</strong></div>
-                  <div>• Brand Unauthorized Usage: <strong>{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of total fee</strong></div>
-                  <div>• Non-Delivery Advance Refund: <strong>{contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</strong></div>
-                  <div>• Pre-Delivery Cancellation Fee: <strong>{Number(contract.cancellationFeePct || 25)}% of fee</strong></div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -425,13 +392,13 @@ export default function ContractDetailPage({ params }: PageProps) {
               </div>
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col justify-between min-h-[90px]">
                 <div>
-                  <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Advance Escrow</span>
+                  <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Advance Payment</span>
                   <span className="text-base font-black text-black">
                     {contract.advancePayment ? `PKR ${Number(contract.advancePayment).toLocaleString()}` : "PKR 0"}
                   </span>
                   {contract.advancePaymentDate && (
                     <span className="text-[10px] text-gray-500 block mt-1">
-                      Due: {new Date(contract.advancePaymentDate).toLocaleDateString()}
+                      Due: {formatLegalDate(contract.advancePaymentDate)}
                     </span>
                   )}
                 </div>
@@ -447,12 +414,12 @@ export default function ContractDetailPage({ params }: PageProps) {
               </div>
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
                 <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Remaining Payout</span>
-                <span className="text-base font-black text-black font-sans">
+                <span className="text-base font-black text-black">
                   PKR {Number(contract.remainingAmount || 0).toLocaleString()}
                 </span>
                 {contract.remainingPaymentDate && (
                   <span className="text-[10px] text-gray-500 block mt-1">
-                    Due: {new Date(contract.remainingPaymentDate).toLocaleDateString()}
+                    Due: {formatLegalDate(contract.remainingPaymentDate)}
                   </span>
                 )}
               </div>
@@ -493,21 +460,21 @@ export default function ContractDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Collaboration Product Details (if present) */}
+          {/* Collaboration Product Details & Loan Return Terms */}
           {contract.collabProduct && (
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-xs space-y-4">
-              <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Collaboration Product Shipment</h4>
+              <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Collaboration Product Shipment &amp; Return Terms</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Product details</span>
+                  <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Product Details</span>
                   <span className="text-black font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 block">
-                    {contract.collabProduct} ({contract.collabProductProvisionType})
+                    {contract.collabProduct} ({contract.collabProductProvisionType || "Provision"})
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Expected Arrival Date</span>
                   <span className="text-black font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 block">
-                    {contract.collabDeliveryDate ? new Date(contract.collabDeliveryDate).toLocaleDateString() : "Not Specified"}
+                    {contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate) : "Not Specified"}
                   </span>
                 </div>
               </div>
@@ -517,57 +484,47 @@ export default function ContractDetailPage({ params }: PageProps) {
                   <p className="text-black leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-200">{contract.collabDeliveryAddress}</p>
                 </div>
               )}
+
+              {contract.collabProductProvisionType === "Product Loan" && (
+                <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 text-xs space-y-2">
+                  <span className="font-bold text-amber-900 uppercase tracking-wider block">🔒 Product Loan Return Terms</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-amber-950">
+                    <div>• Return Deadline: Within <strong>{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
+                    <div>• Shipping Paid By: <strong>{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
+                    {contract.collabProductNonReturnFee && <div>• Loss / Non-Return Penalty Fee: <strong>PKR {Number(contract.collabProductNonReturnFee).toLocaleString()}</strong></div>}
+                  </div>
+                  {contract.collabProductReturnAddress && (
+                    <div className="text-[11px] text-amber-900">Return Address: {contract.collabProductReturnAddress}</div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Text clauses detail */}
+          {/* Bilateral Safeguards & Dispute Resolution */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-xs space-y-4">
-            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Additional Legal Clauses & Bilateral Safeguards</h4>
+            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Bilateral Safeguard Penalties &amp; Governing Law</h4>
             
-            {contract.taggingRequirements && (
-              <div>
-                <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Caption / Tagging Requirements</span>
-                <p className="text-black font-semibold bg-gray-50 p-3 rounded-lg border border-gray-200">{contract.taggingRequirements}</p>
-              </div>
-            )}
-
-            {contract.exclusivityClause && (
-              <div>
-                <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Exclusivity Restrictive Clause</span>
-                <div className="text-black font-semibold bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-1">
-                  <div>Required Exclusivity Duration: <strong>{contract.exclusivityDuration || "Active"}</strong></div>
-                  {contract.exclusivityCompetitors && (
-                    <div className="text-gray-600">Restricted Competitors / Categories: <strong>{contract.exclusivityCompetitors}</strong></div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {contract.confidentialityRequired && (
-              <div>
-                <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Confidentiality / Pre-Launch NDA</span>
-                <div className="text-black font-semibold bg-amber-50/50 p-3 rounded-lg border border-amber-200 space-y-1">
-                  <div>Embargo Launch Threshold: <strong>{contract.embargoDate ? new Date(contract.embargoDate).toLocaleDateString() : "Required until official launch"}</strong></div>
-                  {contract.earlyDisclosurePenalty && (
-                    <div className="text-rose-700">Early Disclosure Leak Fine: <strong>PKR {Number(contract.earlyDisclosurePenalty).toLocaleString()}</strong></div>
-                  )}
-                </div>
-              </div>
-            )}
-
             <div>
               <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Bilateral Safeguard Penalties</span>
-              <div className="text-black font-medium bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-1.5">
-                <div>• Late Payment Delay Penalty (Charged to Brand): <strong>{Number(contract.latePaymentPenaltyPct)}% per day</strong></div>
-                <div>• Late Content Delivery Penalty (Charged to Creator): <strong>{Number(contract.lateContentPenaltyPct)}% per day</strong></div>
+              <div className="text-black font-medium bg-gray-50 p-3.5 rounded-lg border border-gray-200 space-y-1.5 leading-relaxed">
+                <div>• Late Payment Delay Penalty (Charged to Brand): <strong>{Number(contract.latePaymentPenaltyPct)}%/day</strong> (Capped at <strong>{Number(contract.penaltyCapPct || 20)}%</strong>)</div>
+                <div>• Late Content Delivery Penalty (Charged to Creator): <strong>{Number(contract.lateContentPenaltyPct)}%/day</strong> (Capped at <strong>{Number(contract.penaltyCapPct || 20)}%</strong>)</div>
+                <div>• Non-Delivery Cutoff: Content delayed beyond <strong>{contract.nonDeliveryCutoffDays || 7} calendar days</strong> legally constitutes Non-Delivery, stopping daily fees and triggering 100% advance refundability.</div>
                 <div>• Unauthorized Brand Re-Use Penalty: <strong>{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of contract value per violation</strong></div>
-                <div>• Non-Delivery Advance Refund: <strong>{contract.advanceRefundable !== false ? `100% Refundable within ${contract.advanceRefundTimeframeDays || 7} business days` : "Non-refundable"}</strong></div>
-                <div>• Pre-Delivery Termination Fee: <strong>{Number(contract.cancellationFeePct || 25)}% of total fee</strong></div>
+                <div>• Pre-Delivery Termination Fee: <strong>{Number(contract.cancellationFeePct || 25)}% of fee</strong></div>
               </div>
             </div>
 
             <div>
-              <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Content Ownership & License Terms</span>
+              <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Section 12: Governing Law &amp; Dispute Resolution (ADR)</span>
+              <div className="text-blue-950 font-medium bg-blue-50/60 p-3.5 rounded-lg border border-blue-200 leading-relaxed">
+                Governed by the laws of Pakistan. Any dispute proceeds to 14 days of good-faith executive negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary determination in local courts; (b) Claims &gt; PKR 500,000 proceed to binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>. Prevailing party recovers legal costs.
+              </div>
+            </div>
+
+            <div>
+              <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Content Ownership &amp; License Terms</span>
               <p className="text-black leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-200">{contract.contentOwnership}</p>
             </div>
           </div>
@@ -581,21 +538,17 @@ export default function ContractDetailPage({ params }: PageProps) {
           <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">ETO 2002 Bilateral Signature Audit Log</h4>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Render counterparts signature */}
             {contract.signatures?.map((sig: any) => {
-              const date = new Date(sig.signedAt).toLocaleString();
               return (
                 <div key={sig.id} className="p-5 rounded-2xl border border-gray-200 bg-gray-50/50 flex flex-col gap-3 relative overflow-hidden">
                   <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider block">
                     Signed Counterparty ({sig.signerRole})
                   </span>
                   
-                  {/* Signature display block */}
                   <div className="w-full h-24 bg-white border border-gray-200 rounded-xl flex items-center justify-center p-2">
                     <img src={sig.signatureImageUrl} alt="Signature canvas" className="h-full object-contain max-w-full" />
                   </div>
 
-                  {/* Audit Metadata */}
                   <div className="space-y-1 text-[10px] text-gray-500 font-semibold leading-relaxed mt-2">
                     <div className="flex justify-between">
                       <span>Signer Verified Email:</span>
@@ -603,26 +556,25 @@ export default function ContractDetailPage({ params }: PageProps) {
                     </div>
                     <div className="flex justify-between">
                       <span>Verification Date:</span>
-                      <span className="text-black">{date}</span>
+                      <span className="text-black">{formatLegalDate(sig.signedAt)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>IP Address:</span>
                       <span className="text-black">{sig.ipAddress}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Device Fingerprint:</span>
-                      <span className="text-black font-mono truncate max-w-[120px]" title={sig.deviceFingerprint || "N/A"}>{sig.deviceFingerprint || "N/A"}</span>
+                      <span>Device / Browser:</span>
+                      <span className="text-black font-semibold truncate max-w-[160px]" title={sig.userAgent || sig.deviceFingerprint}>{parseUserAgentString(sig.userAgent || sig.deviceFingerprint)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Bilateral SHA-256:</span>
-                      <span className="text-black font-mono truncate max-w-[100px]">{sig.documentHash.slice(0, 20)}...</span>
+                      <span className="text-black font-mono truncate max-w-[110px]">{sig.documentHash?.slice(0, 20)}...</span>
                     </div>
                   </div>
                 </div>
               );
             })}
 
-            {/* If counterparty has signed but initiator hasn't, show initiator empty block */}
             {contract.status === "PENDING_INITIATOR" && isUserInitiator && (
               <div className="p-5 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center py-8">
                 <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-4">
