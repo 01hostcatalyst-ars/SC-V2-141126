@@ -5,7 +5,11 @@ import pg from "pg";
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 // Initialize connection pool and adapter for Postgres database
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const connectionString = process.env.DATABASE_URL;
+const pool = new pg.Pool({
+  connectionString,
+  ssl: connectionString?.includes("supabase") || connectionString?.includes("pooler") ? { rejectUnauthorized: false } : undefined,
+});
 const adapter = new PrismaPg(pool);
 
 export const prisma =
