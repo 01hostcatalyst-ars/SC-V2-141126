@@ -31,6 +31,11 @@ export default function PublicSigningPage({ params }: PageProps) {
   const [respondentNtn, setRespondentNtn] = useState("");
   const [collabDetails, setCollabDetails] = useState("");
 
+  // Payout details for Creator respondents
+  const [paymentMethod, setPaymentMethod] = useState("BANK_IBAN");
+  const [bankAccountIban, setBankAccountIban] = useState("");
+  const [mobileWalletNumber, setMobileWalletNumber] = useState("");
+
   // OTP identity state
   const [otpDispatched, setOtpDispatched] = useState(false);
   const [otpCode, setOtpCode] = useState("");
@@ -44,8 +49,18 @@ export default function PublicSigningPage({ params }: PageProps) {
         const data = await res.json();
         if (res.ok && data.success) {
           setContract(data.contract);
+          if (data.contract.respondentEmail) setRespondentEmail(data.contract.respondentEmail);
+          if (data.contract.respondentName) setRespondentName(data.contract.respondentName);
+          if (data.contract.respondentPhone) setRespondentPhone(data.contract.respondentPhone);
+          if (data.contract.respondentCompany) setRespondentCompany(data.contract.respondentCompany);
+          if (data.contract.respondentAddress) setRespondentAddress(data.contract.respondentAddress);
+          if (data.contract.respondentDesignation) setRespondentDesignation(data.contract.respondentDesignation);
+          if (data.contract.respondentNtn) setRespondentNtn(data.contract.respondentNtn);
+          if (data.contract.paymentMethod) setPaymentMethod(data.contract.paymentMethod);
+          if (data.contract.bankAccountIban) setBankAccountIban(data.contract.bankAccountIban);
+          if (data.contract.mobileWalletNumber) setMobileWalletNumber(data.contract.mobileWalletNumber);
         } else {
-          showToast(data.error || "Agreement is not accepting signatures.", "error");
+          showToast(data.error || "Agreement link invalid or expired.", "error");
         }
       } catch (err) {
         showToast("Error retrieving campaign details.", "error");
@@ -63,9 +78,10 @@ export default function PublicSigningPage({ params }: PageProps) {
     respondentEmail &&
     respondentPhone &&
     respondentName &&
-    (isRespondentBrand ? respondentCompany : true) &&
+    (isRespondentBrand ? respondentCompany : collabDetails) &&
     respondentAddress &&
-    respondentDesignation
+    respondentDesignation &&
+    (isRespondentBrand || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
   );
 
   const handleSendOTP = async () => {
@@ -175,6 +191,9 @@ export default function PublicSigningPage({ params }: PageProps) {
           respondentAddress,
           respondentNtn,
           collabDetails: !isRespondentBrand ? collabDetails : undefined,
+          paymentMethod: !isRespondentBrand ? paymentMethod : undefined,
+          bankAccountIban: !isRespondentBrand && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
+          mobileWalletNumber: !isRespondentBrand && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
           signatureB64,
           fingerprint,
         }),
@@ -390,6 +409,64 @@ export default function PublicSigningPage({ params }: PageProps) {
                   className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                 />
               </div>
+
+              {/* Payout Account Route Selection for Creator Respondents */}
+              {!isRespondentBrand && (
+                <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2 space-y-3">
+                  <span className="text-xs font-bold text-black uppercase tracking-wider block">
+                    Your Payout Account Details (Required for Campaign Payouts) <span className="text-rose-500">*</span>
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: "BANK_IBAN", label: "Bank Transfer (IBAN)" },
+                      { id: "JAZZCASH", label: "JazzCash Mobile" },
+                      { id: "EASYPAISA", label: "EasyPaisa Mobile" },
+                    ].map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        disabled={otpDispatched || otpVerified}
+                        onClick={() => setPaymentMethod(m.id)}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                          paymentMethod === m.id
+                            ? "bg-black text-white border-black shadow-sm"
+                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {paymentMethod === "BANK_IBAN" ? (
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-gray-500">Bank IBAN Number *</label>
+                      <input
+                        type="text"
+                        required
+                        disabled={otpDispatched || otpVerified}
+                        placeholder="PK36 MEZN 0000 1234 5678 9012"
+                        className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                        value={bankAccountIban}
+                        onChange={(e) => setBankAccountIban(e.target.value)}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-gray-500">Mobile Account Number *</label>
+                      <input
+                        type="text"
+                        required
+                        disabled={otpDispatched || otpVerified}
+                        placeholder="0300 1234567"
+                        className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                        value={mobileWalletNumber}
+                        onChange={(e) => setMobileWalletNumber(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* OTP Action Trigger */}
               <div className="flex flex-col justify-end sm:col-span-2 mt-2">

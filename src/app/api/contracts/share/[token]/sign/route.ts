@@ -17,6 +17,9 @@ export async function POST(
     const address = body.address || body.respondentAddress;
     const designation = body.designation || body.respondentDesignation;
     const ntn = body.ntn || body.respondentNtn;
+    const paymentMethod = body.paymentMethod;
+    const bankAccountIban = body.bankAccountIban;
+    const mobileWalletNumber = body.mobileWalletNumber;
     const documentHash = body.documentHash || "SHA256_PENDING_FINAL_PDF";
 
     if (!signatureB64 || !email) {
@@ -87,6 +90,9 @@ export async function POST(
           respondentAddress: address || contract.respondentAddress,
           respondentDesignation: designation || contract.respondentDesignation,
           respondentNtn: ntn || contract.respondentNtn,
+          paymentMethod: paymentMethod || contract.paymentMethod,
+          bankAccountIban: bankAccountIban || contract.bankAccountIban,
+          mobileWalletNumber: mobileWalletNumber || contract.mobileWalletNumber,
         },
       }),
       prisma.auditLog.create({

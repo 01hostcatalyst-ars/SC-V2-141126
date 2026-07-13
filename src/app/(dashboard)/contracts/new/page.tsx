@@ -240,6 +240,18 @@ export default function NewContractPage() {
 
   const validateStep = () => {
     if (step === 0) {
+      if (contractType === "AGENCY_TO_BRAND") {
+        if (!creatorName.trim() || !creatorHandle.trim()) {
+          showToast("Creator Name and Creator Handle are required for Agency to Brand deals.", "error");
+          return false;
+        }
+      }
+      if (contractType === "AGENCY_TO_CREATOR") {
+        if (!brandName.trim() || !campaignName.trim()) {
+          showToast("Brand Name and Campaign Name are required for Agency to Creator deals.", "error");
+          return false;
+        }
+      }
       if (!deliverables || deliverables.length === 0) {
         showToast("At least one deliverable is required.", "error");
         return false;
@@ -460,12 +472,13 @@ export default function NewContractPage() {
 
           {contractType === "AGENCY_TO_BRAND" && (
             <div className="border-t border-gray-100 pt-4 mt-3 space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Creator Details</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Target Creator Details <span className="text-rose-500">*</span></h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-400">Creator Name</label>
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Creator Full Name <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
+                    required
                     placeholder="e.g. Jane Doe"
                     className="input-field"
                     value={creatorName}
@@ -473,9 +486,10 @@ export default function NewContractPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-400">Creator Handle</label>
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Creator Handle / Username <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
+                    required
                     placeholder="e.g. @janedoe"
                     className="input-field"
                     value={creatorHandle}
@@ -739,53 +753,59 @@ export default function NewContractPage() {
             )}
 
             {/* Payment Method & Account */}
-            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
-              <label className="text-xs font-bold uppercase tracking-wider text-black block">Payout Route Method</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: "BANK_IBAN", label: "Bank Transfer (IBAN)" },
-                  { id: "JAZZCASH", label: "JazzCash Mobile" },
-                  { id: "EASYPAISA", label: "EasyPaisa Mobile" },
-                ].map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setPaymentMethod(m.id)}
-                    className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
-                      paymentMethod === m.id
-                        ? "bg-black text-white border-black shadow-sm"
-                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
+            {contractType === "AGENCY_TO_CREATOR" || contractType === "BRAND_TO_CREATOR" ? (
+              <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/70 text-xs text-blue-950 leading-relaxed font-semibold">
+                • <strong>Payout Route Notice:</strong> For Creator sponsorship deals, payout route selection (Bank Transfer / JazzCash / EasyPaisa) and account numbers will be entered directly by the Creator on their recipient signing link.
               </div>
+            ) : (
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-black block">Payout Route Method</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: "BANK_IBAN", label: "Bank Transfer (IBAN)" },
+                    { id: "JAZZCASH", label: "JazzCash Mobile" },
+                    { id: "EASYPAISA", label: "EasyPaisa Mobile" },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setPaymentMethod(m.id)}
+                      className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                        paymentMethod === m.id
+                          ? "bg-black text-white border-black shadow-sm"
+                          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
 
-              {paymentMethod === "BANK_IBAN" ? (
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-[10px] font-bold uppercase text-gray-500">Bank IBAN Number</label>
-                  <input
-                    type="text"
-                    placeholder="PK36 MEZN 0000 1234 5678 9012"
-                    className="input-field font-mono"
-                    value={bankAccountIban}
-                    onChange={(e) => setBankAccountIban(e.target.value)}
-                  />
-                </div>
-              ) : (
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-[10px] font-bold uppercase text-gray-500">Mobile Account Number</label>
-                  <input
-                    type="text"
-                    placeholder="0300 1234567"
-                    className="input-field font-mono"
-                    value={mobileWalletNumber}
-                    onChange={(e) => setMobileWalletNumber(e.target.value)}
-                  />
-                </div>
-              )}
-            </div>
+                {paymentMethod === "BANK_IBAN" ? (
+                  <div className="flex flex-col gap-1 mt-2">
+                    <label className="text-[10px] font-bold uppercase text-gray-500">Bank IBAN Number</label>
+                    <input
+                      type="text"
+                      placeholder="PK36 MEZN 0000 1234 5678 9012"
+                      className="input-field font-mono"
+                      value={bankAccountIban}
+                      onChange={(e) => setBankAccountIban(e.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1 mt-2">
+                    <label className="text-[10px] font-bold uppercase text-gray-500">Mobile Account Number</label>
+                    <input
+                      type="text"
+                      placeholder="0300 1234567"
+                      className="input-field font-mono"
+                      value={mobileWalletNumber}
+                      onChange={(e) => setMobileWalletNumber(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
