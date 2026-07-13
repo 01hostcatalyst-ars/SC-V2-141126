@@ -138,6 +138,7 @@ model Contract {
 
   // Revision & Approval
   revisionRounds        Int            @default(1) @map("revision_rounds")
+  revisionTurnaroundDays Int           @default(5) @map("revision_turnaround_days")
   brandApprovalRequired Boolean        @default(false) @map("brand_approval_required")
 
   // Exclusivity & NDA

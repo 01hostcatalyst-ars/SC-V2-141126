@@ -38,6 +38,7 @@ export async function POST(req: Request) {
       usageType, // Array of UsageType
       usageRightsDuration,
       revisionRounds,
+      revisionTurnaroundDays,
       brandApprovalRequired,
       exclusivityClause,
       exclusivityDuration,
@@ -105,6 +106,7 @@ export async function POST(req: Request) {
         usageType,
         usageRightsDuration,
         revisionRounds,
+        revisionTurnaroundDays: revisionTurnaroundDays ? Number(revisionTurnaroundDays) : 5,
         brandApprovalRequired,
         exclusivityClause,
         exclusivityDuration,

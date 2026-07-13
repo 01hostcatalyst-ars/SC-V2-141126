@@ -568,11 +568,11 @@ export default function PublicSigningPage({ params }: PageProps) {
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Delivery Window &amp; Pre-Approval Protocol</span>
                   <div className="flex justify-between">
                     <span className="font-semibold text-gray-500">Delivery Deadline:</span>
-                    <span className="font-bold text-black">{contract.deliveryTimeframeDays} Days post-execution</span>
+                    <span className="font-bold text-black">{contract.deliveryTimeframeDays} Days (post product/advance)</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-semibold text-gray-500">Revision Rounds:</span>
-                    <span className="font-bold text-black">{contract.revisionRounds} Rounds</span>
+                    <span className="font-bold text-black">{contract.revisionRounds} Rounds ({contract.revisionTurnaroundDays || 5} days/round)</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-semibold text-gray-500">Pre-Approval Protocol:</span>

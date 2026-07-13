@@ -336,8 +336,11 @@ export default function ContractDetailPage({ params }: PageProps) {
               </div>
               <hr className="border-gray-50" />
               <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Delivery Window</span>
-                <span className="text-black font-bold">{contract.deliveryTimeframeDays} Days post-execution</span>
+                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Delivery &amp; Revision Protocol</span>
+                <span className="text-black font-bold">{contract.deliveryTimeframeDays} Days (Round 1 Draft)</span>
+                <span className="text-[10px] text-gray-500 block font-semibold mt-0.5">
+                  Starts post product/advance receipt. Revisions: {contract.revisionRounds || 1} Rounds ({contract.revisionTurnaroundDays || 5} days/round).
+                </span>
                 {contract.brandApprovalRequired && (
                   <span className="text-[10px] text-blue-700 block font-semibold mt-0.5">48-Hr Deemed Approval Active</span>
                 )}

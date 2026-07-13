@@ -339,15 +339,13 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 9pt; margin-bottom: 14px; background: #ffffff;">
           <div style="display: flex; gap: 20px; margin-bottom: 4px;">
-            <div style="flex: 1;"><strong>Delivery Window:</strong> ${contract.deliveryTimeframeDays} Days post mutual execution</div>
-            <div style="flex: 1;"><strong>Revision Rounds:</strong> ${contract.revisionRounds} Rounds</div>
+            <div style="flex: 1;"><strong>Initial Delivery Window:</strong> ${contract.deliveryTimeframeDays} Days (commences post product/advance receipt)</div>
+            <div style="flex: 1;"><strong>Revision Rounds:</strong> ${contract.revisionRounds} Rounds (${contract.revisionTurnaroundDays || 5} Days/Round)</div>
             <div style="flex: 1;"><strong>Content Pre-Approval:</strong> <strong>${contract.brandApprovalRequired ? "Required (48-Hr Deemed Approval)" : "Not Required"}</strong></div>
           </div>
-          ${contract.brandApprovalRequired ? `
-            <div style="font-size: 8pt; color: #475569; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
-              <strong>48-HOUR DEEMED APPROVAL PROTOCOL:</strong> Draft content must be submitted to Brand at least 3 business days prior to delivery deadline. Brand must respond within 48 hours. Failure by Brand to respond within 48 hours legally constitutes Deemed Approval, authorizing final posting without delay liability.
-            </div>
-          ` : ""}
+          <div style="font-size: 8pt; color: #475569; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
+            <strong>DELIVERY &amp; NDA PUBLISHING PROTOCOL:</strong> Delivery timeframe starts post physical product receipt (if product shipment is agreed) or post advance payment receipt (if no product loan/shipment), counted as Round 1. If draft revisions are requested, revised drafts must be submitted within ${contract.revisionTurnaroundDays || 5} calendar days per round. Content shall not be published prior to an active NDA Embargo Launch Threshold Date regardless of pre-approval.
+          </div>
         </div>
 
         <!-- Section 6: Exclusivity Restrictions & Prohibited Competitors -->
