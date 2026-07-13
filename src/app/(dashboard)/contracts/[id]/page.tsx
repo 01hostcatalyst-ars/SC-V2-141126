@@ -108,6 +108,23 @@ export default function ContractDetailPage({ params }: PageProps) {
     }
   };
 
+  const handleDownloadCertificate = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/contracts/${resolvedParams.id}/certificate`);
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.open(data.url, "_blank");
+      } else {
+        showToast(data.error || "Failed to generate audit certificate.", "error");
+      }
+    } catch (err) {
+      showToast("Error downloading audit certificate.", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleMarkAdvanceReceived = async () => {
     setActionLoading(true);
     try {
@@ -225,13 +242,22 @@ export default function ContractDetailPage({ params }: PageProps) {
           )}
 
           {(contract.status === "ACTIVE" || contract.status === "COMPLETED") && (
-            <button
-              onClick={handleDownloadPDF}
-              disabled={actionLoading}
-              className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all text-center"
-            >
-              Download Signed PDF
-            </button>
+            <>
+              <button
+                onClick={handleDownloadPDF}
+                disabled={actionLoading}
+                className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all text-center"
+              >
+                Download Signed PDF
+              </button>
+              <button
+                onClick={handleDownloadCertificate}
+                disabled={actionLoading}
+                className="bg-slate-800 text-white hover:bg-slate-900 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all text-center"
+              >
+                Download Audit Certificate
+              </button>
+            </>
           )}
 
           {contract.status === "ACTIVE" && (

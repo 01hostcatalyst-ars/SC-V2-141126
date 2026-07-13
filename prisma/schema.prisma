@@ -93,6 +93,7 @@ model User {
 model Contract {
   id                    String         @id @default(uuid())
   contractNumber        String         @unique @map("contract_number")
+  verifyToken           String         @default(uuid()) @unique @map("verify_token")
   contractType          ContractType   @map("contract_type")
 
   // Parties
