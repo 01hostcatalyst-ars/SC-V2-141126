@@ -1,6 +1,6 @@
 import React from "react";
 import { getCompanyConfig } from "@/lib/config";
-import { formatLegalDate, parseUserAgentString, formatUsageLicenseText } from "@/lib/utils";
+import { formatLegalDate, parseUserAgentString, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
 
 interface PDFTemplateProps {
   contract: any;
@@ -114,7 +114,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         <tbody>
           {contract.deliverables?.map((d: any) => (
             <tr key={d.id}>
-              <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1", fontWeight: "bold" }}>{d.type.replace(/_/g, " ")}</td>
+              <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1", fontWeight: "bold" }}>{formatDeliverableTypeName(d.type)}</td>
               <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "center", fontWeight: "bold" }}>{d.quantity}</td>
               <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "center", color: "#475569" }}>{d.duration || "Permanent"}</td>
               <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1", color: "#334155" }}>{d.notes || "Standard creative execution as agreed."}</td>
@@ -131,7 +131,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         3. USAGE RIGHTS, PLATFORM SCOPE &amp; LICENSING TERMS
       </div>
       <div style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "10px", fontSize: "11px", marginBottom: "14px", backgroundColor: "#ffffff", lineHeight: "1.6" }}>
-        <div style={{ marginBottom: "4px" }}><strong>Permitted Platforms:</strong> {contract.platformsAllowed?.join(", ")}</div>
+        <div style={{ marginBottom: "4px" }}><strong>Permitted Platforms:</strong> {contract.platformsAllowed?.map((p: string) => (p === "X_TWITTER" ? "X (TWITTER)" : p)).join(", ")}</div>
         <div style={{ marginBottom: "4px" }}><strong>Granted Commercial License:</strong> <strong>{formatUsageLicenseText(contract.usageType)}</strong></div>
         <div style={{ marginBottom: "4px" }}><strong>Licensed Duration:</strong> <strong>{contract.usageRightsDuration}</strong></div>
         <div style={{ fontSize: "10px", color: "#64748b", marginTop: "6px", borderTop: "1px dashed #cbd5e1", paddingTop: "4px" }}>

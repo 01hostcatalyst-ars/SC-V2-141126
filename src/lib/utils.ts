@@ -67,3 +67,30 @@ export function formatUsageLicenseText(usageTypes: string[] | string | null | un
 
   return `${grantedRights.join(" + ")} (Content may be published natively and utilized across agreed digital ad & media campaigns)`;
 }
+
+/**
+ * Format raw deliverable type enum into clean short name (Reel, Story, Post, Carousel, Video, Short Video, Live Stream, Paid Ad)
+ */
+export function formatDeliverableTypeName(type: string | null | undefined): string {
+  if (!type) return "Deliverable";
+  switch (type.toUpperCase()) {
+    case "REEL":
+      return "Reel";
+    case "STORY":
+      return "Story";
+    case "IMAGE_POST":
+      return "Post";
+    case "CAROUSEL_POST":
+      return "Carousel";
+    case "YOUTUBE_VIDEO":
+      return "Video";
+    case "TIKTOK_VIDEO":
+      return "Short Video";
+    case "LIVE_SESSION":
+      return "Live Stream";
+    case "AD":
+      return "Paid Ad";
+    default:
+      return type.replace(/_/g, " ");
+  }
+}

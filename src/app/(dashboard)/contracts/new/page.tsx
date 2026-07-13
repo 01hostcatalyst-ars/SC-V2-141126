@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
-import { formatLegalDate, formatUsageLicenseText } from "@/lib/utils";
+import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
 
 interface DeliverableItem {
   type: string;
@@ -123,6 +123,11 @@ export default function NewContractPage() {
     }
     return () => clearInterval(timer);
   }, [initiatorResendTimer]);
+
+  // Smooth scroll to top when changing wizard steps
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
 
   // Fetch Agency deals for linking
   useEffect(() => {
@@ -311,7 +316,7 @@ export default function NewContractPage() {
     setLoading(true);
     const payload = {
       contractType,
-      linkedContractId: contractType === "AGENCY_TO_CREATOR" ? linkedContractId : undefined,
+      linkedContractId: contractType === "AGENCY_TO_CREATOR" && linkedContractId && linkedContractId.trim() !== "" ? linkedContractId : undefined,
       brandName: contractType === "AGENCY_TO_CREATOR" ? brandName : undefined,
       brandHandle: contractType === "AGENCY_TO_CREATOR" ? brandHandle : undefined,
       campaignName: contractType === "AGENCY_TO_CREATOR" ? campaignName : undefined,
@@ -562,14 +567,14 @@ export default function NewContractPage() {
                         value={d.type}
                         onChange={(e) => handleDeliverableChange(index, "type", e.target.value)}
                       >
-                        <option value="REEL">Instagram Reel</option>
-                        <option value="STORY">Instagram Story</option>
-                        <option value="IMAGE_POST">Instagram Image Post</option>
-                        <option value="CAROUSEL_POST">Instagram Carousel</option>
-                        <option value="YOUTUBE_VIDEO">YouTube Video</option>
-                        <option value="TIKTOK_VIDEO">TikTok Video</option>
+                        <option value="REEL">Reel</option>
+                        <option value="STORY">Story</option>
+                        <option value="IMAGE_POST">Post</option>
+                        <option value="CAROUSEL_POST">Carousel</option>
+                        <option value="YOUTUBE_VIDEO">Video</option>
+                        <option value="TIKTOK_VIDEO">Short Video</option>
                         <option value="LIVE_SESSION">Live Stream</option>
-                        <option value="AD">Paid Video Ad</option>
+                        <option value="AD">Paid Ad</option>
                       </select>
                     </div>
 
@@ -633,7 +638,7 @@ export default function NewContractPage() {
             <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
               <label className="text-xs font-bold uppercase tracking-wider text-black block">Permitted Platforms</label>
               <div className="flex flex-wrap gap-2">
-                {["INSTAGRAM", "TIKTOK", "YOUTUBE", "FACEBOOK", "LINKEDIN"].map((platform) => {
+                {["INSTAGRAM", "TIKTOK", "YOUTUBE", "FACEBOOK", "LINKEDIN", "X_TWITTER"].map((platform) => {
                   const isSelected = platformsAllowed.includes(platform);
                   return (
                     <button
@@ -646,7 +651,7 @@ export default function NewContractPage() {
                           : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
                       }`}
                     >
-                      {platform}
+                      {platform === "X_TWITTER" ? "X (TWITTER)" : platform}
                     </button>
                   );
                 })}
@@ -842,7 +847,7 @@ export default function NewContractPage() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-black">Revision Turnaround (Days/Round) *</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-black">Revision Turnaround (Days) *</label>
                 <input
                   type="number"
                   min={1}
@@ -1486,7 +1491,7 @@ export default function NewContractPage() {
                 <tbody>
                   {deliverables.map((d, i) => (
                     <tr key={i} className="border-b border-gray-50 text-black">
-                      <td className="py-2 font-bold">{d.type.replace(/_/g, " ")}</td>
+                      <td className="py-2 font-bold">{formatDeliverableTypeName(d.type)}</td>
                       <td className="py-2 font-bold text-center">{d.quantity}</td>
                       <td className="py-2 text-gray-500 font-semibold text-center">{d.duration || "Permanent"}</td>
                       <td className="py-2 text-gray-500 max-w-xs">{d.notes || "No notes"}</td>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getCompanyConfig } from "@/lib/config";
 import { useToast } from "@/components/ui/Toast";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
-import { formatLegalDate, formatUsageLicenseText } from "@/lib/utils";
+import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -605,7 +605,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <tbody>
                       {contract.deliverables?.map((d: any) => (
                         <tr key={d.id} className="border-b border-gray-50 text-black">
-                          <td className="py-2 font-bold">{d.type.replace(/_/g, " ")}</td>
+                          <td className="py-2 font-bold">{formatDeliverableTypeName(d.type)}</td>
                           <td className="py-2 font-bold text-center">{d.quantity}</td>
                           <td className="py-2 text-gray-500 font-semibold text-center">{d.duration || "Permanent"}</td>
                           <td className="py-2 text-gray-500 max-w-xs">{d.notes || "No notes"}</td>

@@ -3,7 +3,7 @@ import chromium from "@sparticuz/chromium";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
-import { formatLegalDate, parseUserAgentString, formatUsageLicenseText } from "@/lib/utils";
+import { formatLegalDate, parseUserAgentString, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
 
 export async function generateContractPDF(contractId: string): Promise<{ path: string; buffer: Buffer }> {
   // 1. Fetch full contract specifications with relations
@@ -276,7 +276,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <tbody>
             ${contract.deliverables?.map((d: any) => `
               <tr>
-                <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold;">${d.type.replace(/_/g, " ")}</td>
+                <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold;">${formatDeliverableTypeName(d.type)}</td>
                 <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">${d.quantity}</td>
                 <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; color: #475569;">${d.duration || "Permanent"}</td>
                 <td style="padding: 6px 8px; border: 1px solid #cbd5e1; color: #334155;">${d.notes || "Standard creative execution as agreed."}</td>
@@ -293,7 +293,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           3. USAGE RIGHTS, PLATFORM SCOPE &amp; LICENSING TERMS
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 9pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
-          <div style="margin-bottom: 4px;"><strong>Permitted Platforms:</strong> ${contract.platformsAllowed?.map((p: string) => `<span style="background: #0f172a; color: #fff; padding: 1px 5px; border-radius: 3px; font-size: 7.5pt; font-weight: 700; uppercase">${p}</span>`).join(" ")}</div>
+          <div style="margin-bottom: 4px;"><strong>Permitted Platforms:</strong> ${contract.platformsAllowed?.map((p: string) => `<span style="background: #0f172a; color: #fff; padding: 1px 5px; border-radius: 3px; font-size: 7.5pt; font-weight: 700; uppercase">${p === "X_TWITTER" ? "X (TWITTER)" : p}</span>`).join(" ")}</div>
           <div style="margin-bottom: 4px;"><strong>Granted Commercial License:</strong> <strong>${formatUsageLicenseText(contract.usageType)}</strong></div>
           <div style="margin-bottom: 4px;"><strong>Licensed Duration:</strong> <strong>${contract.usageRightsDuration}</strong></div>
           <div style="font-size: 8.5pt; color: #64748b; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">

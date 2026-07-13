@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
-import { formatLegalDate, parseUserAgentString, formatUsageLicenseText } from "@/lib/utils";
+import { formatLegalDate, formatUsageLicenseText, parseUserAgentString, formatDeliverableTypeName } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -452,7 +452,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                 <tbody>
                   {contract.deliverables?.map((d: any) => (
                     <tr key={d.id} className="border-b border-gray-50 text-black">
-                      <td className="py-3 font-bold">{d.type.replace(/_/g, " ")}</td>
+                      <td className="py-3 font-bold">{formatDeliverableTypeName(d.type)}</td>
                       <td className="py-3 font-bold text-center">{d.quantity}</td>
                       <td className="py-3 font-bold text-center text-gray-500">{d.duration || "Permanent"}</td>
                       <td className="py-3 text-gray-500">{d.notes || "No notes"}</td>

@@ -84,7 +84,7 @@ export async function POST(req: Request) {
         contractNumber,
         contractType,
         initiatorId: dbUser.id,
-        linkedContractId: contractType === ContractType.AGENCY_TO_CREATOR ? linkedContractId : undefined,
+        linkedContractId: contractType === ContractType.AGENCY_TO_CREATOR && linkedContractId && typeof linkedContractId === "string" && linkedContractId.trim() !== "" ? linkedContractId : undefined,
         brandName: contractType === ContractType.AGENCY_TO_CREATOR ? brandName : undefined,
         brandHandle: contractType === ContractType.AGENCY_TO_CREATOR ? brandHandle : undefined,
         campaignName: contractType === ContractType.AGENCY_TO_CREATOR ? campaignName : undefined,
