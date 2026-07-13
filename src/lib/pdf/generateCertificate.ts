@@ -26,10 +26,10 @@ export async function generateAuditCertificatePDF(contractId: string) {
   const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 120 });
 
   const initiatorSignature = contract.signatures.find(
-    (s) => s.signerRole === "CREATOR" || s.signerRole === "AGENCY" || s.userId === contract.initiatorId
+    (s) => s.signerRole === "CREATOR" || s.signerRole === "AGENCY" || s.signerId === contract.initiatorId
   );
   const respondentSignature = contract.signatures.find(
-    (s) => s.signerRole === "BRAND" || (contract.respondentId && s.userId === contract.respondentId)
+    (s) => s.signerRole === "BRAND" || (contract.respondentId && s.signerId === contract.respondentId)
   );
 
   const getContractTitle = (type: string) => {
