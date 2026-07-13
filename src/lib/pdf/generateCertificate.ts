@@ -165,12 +165,12 @@ export async function generateAuditCertificatePDF(contractId: string) {
           </tr>
           <tr>
             <th>Bilateral Execution Date</th>
-            <td>${formatLegalDate(contract.executedAt || contract.updatedAt)}</td>
+            <td>${formatLegalDate(contract.activatedAt || contract.updatedAt)}</td>
           </tr>
         </table>
 
         <!-- Signer Identity Records -->
-        <div class="section-title">1. BILATERAL SIGNER IDENTITY & OTP AUDIT RECAP</div>
+        <div class="section-title">1. BILATERAL SIGNER IDENTITY &amp; OTP AUDIT RECAP</div>
         <div style="display: flex; gap: 10px; margin-bottom: 12px;">
           <!-- Party A -->
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; background: #f8fafc; font-size: 8.5pt;">
@@ -193,7 +193,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
             <div><strong>Email:</strong> ${contract.respondentEmail || contract.respondent?.email || "N/A"}</div>
             <div><strong>IP Address:</strong> ${respondentSignature?.ipAddress || "Record Logged"}</div>
             <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
-            <div><strong>Timestamp:</strong> ${formatLegalDate(respondentSignature?.createdAt || contract.executedAt)}</div>
+            <div><strong>Timestamp:</strong> ${formatLegalDate(respondentSignature?.createdAt || contract.activatedAt)}</div>
           </div>
         </div>
 

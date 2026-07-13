@@ -127,7 +127,7 @@ export async function POST(req: Request) {
       title: getTitle(contract.contractType),
       contractType: contract.contractType,
       dealLifecycle: contract.status, // ACTIVE, COMPLETED, CANCELLED
-      executedAt: contract.executedAt || contract.updatedAt,
+      executedAt: contract.activatedAt || contract.updatedAt,
       createdAt: contract.createdAt,
       
       // Dynamic NDA Protected Names
