@@ -94,3 +94,106 @@ export function formatDeliverableTypeName(type: string | null | undefined): stri
       return type.replace(/_/g, " ");
   }
 }
+
+/**
+ * Build a deterministic canonical JSON representation of all substantive contract terms
+ */
+export function buildCanonicalContractPayload(contract: any): string {
+  if (!contract) return "";
+
+  const canonicalObj = {
+    contractNumber: contract.contractNumber || "",
+    contractType: contract.contractType || "",
+    initiator: {
+      designation: contract.initiatorDesignation || "",
+      ntn: contract.initiatorNtn || "",
+    },
+    respondent: {
+      name: contract.respondentName || "",
+      email: contract.respondentEmail || "",
+      company: contract.respondentCompany || "",
+      address: contract.respondentAddress || "",
+      designation: contract.respondentDesignation || "",
+      ntn: contract.respondentNtn || "",
+    },
+    brand: {
+      name: contract.brandName || "",
+      handle: contract.brandHandle || "",
+      campaignName: contract.campaignName || "",
+    },
+    creator: {
+      name: contract.creatorName || "",
+      handle: contract.creatorHandle || "",
+    },
+    financials: {
+      totalAmount: contract.totalAmount ? String(contract.totalAmount) : "0",
+      advancePayment: contract.advancePayment ? String(contract.advancePayment) : "0",
+      paymentMethod: contract.paymentMethod || "",
+      bankAccountIban: contract.bankAccountIban || "",
+      mobileWalletNumber: contract.mobileWalletNumber || "",
+    },
+    deliverables: Array.isArray(contract.deliverables)
+      ? contract.deliverables
+          .map((d: any) => ({
+            type: d.type || "",
+            quantity: Number(d.quantity || 1),
+            duration: d.duration || "",
+            notes: d.notes || "",
+          }))
+          .sort((a: any, b: any) => (a.type || "").localeCompare(b.type || ""))
+      : [],
+    rights: {
+      platformsAllowed: Array.isArray(contract.platformsAllowed) ? [...contract.platformsAllowed].sort() : [],
+      usageType: Array.isArray(contract.usageType) ? [...contract.usageType].sort() : [],
+      usageRightsDuration: contract.usageRightsDuration || "",
+    },
+    terms: {
+      deliveryTimeframeDays: Number(contract.deliveryTimeframeDays || 0),
+      revisionRounds: Number(contract.revisionRounds || 1),
+      revisionTurnaroundDays: Number(contract.revisionTurnaroundDays || 5),
+      brandApprovalRequired: Boolean(contract.brandApprovalRequired),
+      exclusivityClause: Boolean(contract.exclusivityClause),
+      exclusivityDuration: contract.exclusivityDuration || "",
+      exclusivityCompetitors: contract.exclusivityCompetitors || "",
+      confidentialityRequired: Boolean(contract.confidentialityRequired),
+      embargoDate: contract.embargoDate ? new Date(contract.embargoDate).toISOString() : "",
+      earlyDisclosurePenalty: contract.earlyDisclosurePenalty ? String(contract.earlyDisclosurePenalty) : "0",
+      latePaymentPenaltyPct: String(contract.latePaymentPenaltyPct || 3),
+      lateContentPenaltyPct: String(contract.lateContentPenaltyPct || 3),
+      penaltyCapPct: String(contract.penaltyCapPct || 20),
+    },
+    collabProduct: contract.collabProduct ? {
+      name: contract.collabProduct || "",
+      provisionType: contract.collabProductProvisionType || "",
+      deliveryAddress: contract.collabDeliveryAddress || "",
+      deliveryDate: contract.collabDeliveryDate ? new Date(contract.collabDeliveryDate).toISOString() : "",
+      returnDays: contract.collabProductReturnDays ? Number(contract.collabProductReturnDays) : null,
+      returnAddress: contract.collabProductReturnAddress || "",
+      returnShippingBy: contract.collabProductReturnShippingBy || "",
+      nonReturnFee: contract.collabProductNonReturnFee ? String(contract.collabProductNonReturnFee) : null,
+    } : null,
+  };
+
+  return JSON.stringify(canonicalObj);
+}
+
+/**
+ * Compute SHA-256 hash of canonical contract JSON payload
+ */
+export function computeContentHash(contract: any): string {
+  const payload = buildCanonicalContractPayload(contract);
+  try {
+    const nodeCrypto = require("crypto");
+    if (nodeCrypto && nodeCrypto.createHash) {
+      return nodeCrypto.createHash("sha256").update(payload).digest("hex");
+    }
+  } catch (_) {}
+  
+  let hash = 0;
+  for (let i = 0; i < payload.length; i++) {
+    const char = payload.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+  return "SHA256-" + Math.abs(hash).toString(16).padStart(12, "0");
+}

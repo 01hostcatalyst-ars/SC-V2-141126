@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { getAuthUser } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { ContractStatus, SignerRole } from "@prisma/client";
 import { generateContractPDF } from "@/lib/pdf/generate";
 import { sendEmailNotification } from "@/lib/notifications";
+import { computeContentHash } from "@/lib/utils";
 
 export async function POST(
   req: Request,
@@ -25,7 +27,7 @@ export async function POST(
 
     const { signatureB64, documentHash, fingerprint } = await req.json();
 
-    if (!signatureB64 || !documentHash || !fingerprint) {
+    if (!signatureB64 || !fingerprint) {
       return NextResponse.json({ error: "Missing signature parameters" }, { status: 400 });
     }
 
@@ -33,6 +35,7 @@ export async function POST(
 
     const contract = await prisma.contract.findUnique({
       where: { id },
+      include: { deliverables: true, signatures: true },
     });
 
     if (!contract) {
@@ -49,7 +52,24 @@ export async function POST(
     const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
-    // Write final execution signature (Prisma Transaction)
+    // 1. Compute Canonical Content Hash
+    const contentHash = computeContentHash(contract);
+
+    // 2. Compute Party A's immutable Signing Event Hash
+    const signingEventHash = crypto.createHash("sha256")
+      .update(`${contentHash}-${dbUser.email}-${ipAddress}-${userAgent}-${fingerprint}`)
+      .digest("hex");
+
+    // 3. Find Party B's signing event hash
+    const partyBSig = contract.signatures?.find((s) => s.signerRole !== signerRole);
+    const partyBSigningEventHash = partyBSig?.signingEventHash || "PENDING_PARTY_B";
+
+    // 4. Compute Final Bilateral Executed Document Hash
+    const finalDocumentHash = crypto.createHash("sha256")
+      .update(`${contentHash}-${partyBSigningEventHash}-${signingEventHash}`)
+      .digest("hex");
+
+    // Write final execution signature & save pre-computed finalDocumentHash (Prisma Transaction)
     await prisma.$transaction([
       prisma.signature.create({
         data: {
@@ -59,7 +79,8 @@ export async function POST(
           ipAddress,
           userAgent,
           deviceFingerprint: fingerprint,
-          documentHash,
+          documentHash: finalDocumentHash,
+          signingEventHash,
           otpVerified: true,
           otpEmail: dbUser.email,
         },
@@ -69,6 +90,9 @@ export async function POST(
         data: {
           status: ContractStatus.ACTIVE,
           activatedAt: new Date(),
+          contentHash,
+          finalDocumentHash,
+          documentHash: finalDocumentHash,
         },
       }),
       prisma.auditLog.create({
@@ -80,6 +104,7 @@ export async function POST(
             signerRole,
             ipAddress,
             fingerprint,
+            finalDocumentHash,
           },
           ipAddress,
           userAgent,

@@ -312,7 +312,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
       {/* Footer SHA-256 Checksum */}
       <div style={{ borderTop: "1.5px solid #0f172a", marginTop: "20px", paddingTop: "8px", textAlign: "center", fontSize: "9px", color: "#475569" }}>
         <div>This agreement is a tamper-evident legal record stored in SignCollab Vault under Pakistan ETO 2002 Ordinance standards.</div>
-        <div style={{ fontFamily: "monospace", fontWeight: "bold", marginTop: "2px" }}>DOCUMENT SHA-256 HASH: <span style={{ color: "#2563eb" }}>{contract.documentHash || "COMPUTING INTEGRITY HASH..."}</span></div>
+        <div style={{ fontFamily: "monospace", fontWeight: "bold", marginTop: "2px" }}>BILATERAL EXECUTED SHA-256: <span style={{ color: "#2563eb" }}>{contract.finalDocumentHash || contract.documentHash || "SHA256_PENDING_BILATERAL_EXECUTION"}</span></div>
       </div>
     </div>
   );

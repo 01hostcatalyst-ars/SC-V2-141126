@@ -570,8 +570,14 @@ export default function ContractDetailPage({ params }: PageProps) {
                       <span className="text-black font-semibold truncate max-w-[160px]" title={sig.userAgent || sig.deviceFingerprint}>{parseUserAgentString(sig.userAgent || sig.deviceFingerprint)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Bilateral SHA-256:</span>
-                      <span className="text-black font-mono truncate max-w-[110px]">{sig.documentHash?.slice(0, 20)}...</span>
+                      <span>Signing Snapshot Hash:</span>
+                      <span className="text-black font-mono truncate max-w-[120px]" title={sig.signingEventHash || "Immutable signing event hash"}>{sig.signingEventHash ? `${sig.signingEventHash.slice(0, 16)}...` : "Verified"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Bilateral Executed Hash:</span>
+                      <span className="text-black font-mono truncate max-w-[120px]" title={contract.finalDocumentHash || contract.documentHash}>
+                        {(contract.finalDocumentHash || contract.documentHash) ? `${(contract.finalDocumentHash || contract.documentHash).slice(0, 16)}...` : "Pending Execution"}
+                      </span>
                     </div>
                   </div>
                 </div>

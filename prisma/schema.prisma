@@ -196,6 +196,11 @@ model Contract {
   collabProductReturnShippingBy String?       @map("collab_product_return_shipping_by")
   collabProductNonReturnFee    Decimal?       @map("collab_product_non_return_fee")
 
+  // Cryptographic Hashes (3-Hash Architecture)
+  contentHash                  String?        @map("content_hash")
+  finalDocumentHash            String?        @map("final_document_hash")
+  pdfBinaryHash                String?        @map("pdf_binary_hash")
+
   deliverables          Deliverable[]
   signatures            Signature[]
   auditLogs             AuditLog[]
@@ -229,6 +234,7 @@ model Signature {
   userAgent         String    @map("user_agent")
   deviceFingerprint String?   @map("device_fingerprint")
   documentHash      String    @map("document_hash")
+  signingEventHash  String?   @map("signing_event_hash")
   otpVerified       Boolean   @default(false) @map("otp_verified")
   otpEmail          String?   @map("otp_email")
   consentRecorded   Boolean   @default(true) @map("consent_recorded")

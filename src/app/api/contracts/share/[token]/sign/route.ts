@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { ContractStatus, SignerRole } from "@prisma/client";
+import { computeContentHash } from "@/lib/utils";
 
 export async function POST(
   req: Request,
@@ -8,19 +10,7 @@ export async function POST(
 ) {
   try {
     const body = await req.json();
-    const signatureB64 = body.signatureB64;
-    const fingerprint = body.fingerprint || "browser-fingerprint";
-    const email = body.email || body.respondentEmail;
-    const name = body.name || body.respondentName;
-    const phone = body.phone || body.respondentPhone;
-    const company = body.company || body.respondentCompany;
-    const address = body.address || body.respondentAddress;
-    const designation = body.designation || body.respondentDesignation;
-    const ntn = body.ntn || body.respondentNtn;
-    const paymentMethod = body.paymentMethod;
-    const bankAccountIban = body.bankAccountIban;
-    const mobileWalletNumber = body.mobileWalletNumber;
-    const documentHash = body.documentHash || "SHA256_PENDING_FINAL_PDF";
+    const { signatureB64, documentHash, fingerprint = "browser-fingerprint", email, name, phone, company, address, designation, ntn, paymentMethod, bankAccountIban, mobileWalletNumber } = body;
 
     if (!signatureB64 || !email) {
       return NextResponse.json({ error: "Missing signature or email parameters" }, { status: 400 });
@@ -30,7 +20,7 @@ export async function POST(
 
     const contract = await prisma.contract.findUnique({
       where: { shareToken: token },
-      include: { initiator: true },
+      include: { initiator: true, deliverables: true },
     });
 
     if (!contract) {
@@ -64,6 +54,24 @@ export async function POST(
     const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
+    // Compute immutable Signing Event Hash at the exact instant of signing
+    const contentHashAtSigning = computeContentHash({
+      ...contract,
+      respondentName: name || contract.respondentName,
+      respondentEmail: email || contract.respondentEmail,
+      respondentCompany: company || contract.respondentCompany,
+      respondentAddress: address || contract.respondentAddress,
+      respondentDesignation: designation || contract.respondentDesignation,
+      respondentNtn: ntn || contract.respondentNtn,
+      paymentMethod: paymentMethod || contract.paymentMethod,
+      bankAccountIban: bankAccountIban || contract.bankAccountIban,
+      mobileWalletNumber: mobileWalletNumber || contract.mobileWalletNumber,
+    });
+
+    const signingEventHash = crypto.createHash("sha256")
+      .update(`${contentHashAtSigning}-${email}-${ipAddress}-${userAgent}-${fingerprint || ""}`)
+      .digest("hex");
+
     // 3. Write Signature & metadata in database (Prisma Transaction)
     await prisma.$transaction([
       prisma.signature.create({
@@ -74,7 +82,8 @@ export async function POST(
           ipAddress,
           userAgent,
           deviceFingerprint: fingerprint,
-          documentHash: contract.documentHash || documentHash,
+          documentHash: contract.documentHash || documentHash || "SHA256_PENDING_FINAL_PDF",
+          signingEventHash,
           otpVerified: true,
           otpEmail: email,
         },
