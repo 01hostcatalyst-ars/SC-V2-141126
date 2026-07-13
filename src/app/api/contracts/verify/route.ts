@@ -108,13 +108,23 @@ export async function POST(req: Request) {
       return `${hashStr.substring(0, 10)}...${hashStr.substring(hashStr.length - 8)}`;
     };
 
+    const getTitle = (type: string) => {
+      switch (type) {
+        case "AGENCY_TO_BRAND": return "Agency to Brand Influencer Marketing Agreement";
+        case "AGENCY_TO_CREATOR": return "Agency to Creator Content Service Agreement";
+        case "BRAND_TO_CREATOR": return "Brand to Creator Direct Sponsorship Agreement";
+        case "CREATOR_TO_BRAND": return "Creator to Brand Engagement Agreement";
+        default: return "Mutual Collaboration & Licensing Agreement";
+      }
+    };
+
     // PRIVACY FIREWALL: Retain ONLY public safe metadata
     return NextResponse.json({
       state: "EXECUTED_VERIFIED",
       message: "This agreement has been bilaterally executed and verified in SignCollab Vault.",
       contractNumber: contract.contractNumber,
       verifyToken: contract.verifyToken,
-      title: contract.title,
+      title: getTitle(contract.contractType),
       contractType: contract.contractType,
       dealLifecycle: contract.status, // ACTIVE, COMPLETED, CANCELLED
       executedAt: contract.executedAt || contract.updatedAt,

@@ -37,7 +37,7 @@ function VerifyContent() {
     if (tokenParam) {
       setLookupToken(tokenParam);
       setActiveTab("lookup");
-      handleTokenLookup(tokenParam);
+      performVerification({ token: tokenParam.trim() });
     }
   }, [emailParam, tokenParam]);
 

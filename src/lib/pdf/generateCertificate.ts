@@ -32,12 +32,14 @@ export async function generateAuditCertificatePDF(contractId: string) {
     (s) => s.signerRole === "BRAND" || (contract.respondentId && s.userId === contract.respondentId)
   );
 
-  const formatLegalDate = (date: Date | null | undefined) => {
-    if (!date) return "N/A";
-    return new Date(date).toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "medium",
-    });
+  const getContractTitle = (type: string) => {
+    switch (type) {
+      case "AGENCY_TO_BRAND": return "AGENCY TO BRAND INFLUENCER MARKETING & CONTENT LICENSING AGREEMENT";
+      case "AGENCY_TO_CREATOR": return "AGENCY TO CREATOR CONTENT PRODUCTION & SERVICE AGREEMENT";
+      case "BRAND_TO_CREATOR": return "BRAND TO CREATOR DIRECT SPONSORSHIP AGREEMENT";
+      case "CREATOR_TO_BRAND": return "CREATOR TO BRAND DIRECT CONTENT ENGAGEMENT AGREEMENT";
+      default: return "MUTUAL COLLABORATION & CONTENT LICENSING AGREEMENT";
+    }
   };
 
   const certificateHtml = `
@@ -126,7 +128,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
               CERTIFICATE OF COMPLETION
             </h1>
             <p style="margin: 2px 0 0 0; font-size: 8.5pt; color: #475569;">
-              Cryptographic Audit Trail & ETO 2002 Proof of Execution
+              Cryptographic Audit Trail &amp; ETO 2002 Proof of Execution
             </p>
           </div>
           <div style="text-align: right;">
@@ -147,7 +149,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
           </tr>
           <tr>
             <th>Contract Title</th>
-            <td>${contract.title}</td>
+            <td>${getContractTitle(contract.contractType)}</td>
           </tr>
           <tr>
             <th>Execution Status</th>
