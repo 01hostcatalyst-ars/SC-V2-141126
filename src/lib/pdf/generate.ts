@@ -207,18 +207,17 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
       </head>
       <body>
         <!-- Header -->
-        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 16px;">
           <div>
-            <h1 style="font-size: 18pt; font-weight: 900; margin: 0; color: #000;">${process.env.NEXT_PUBLIC_COMPANY_NAME || "SignCollab"}</h1>
+            <h1 style="font-size: 18pt; font-weight: 900; margin: 0; color: #000; letter-spacing: -0.5px;">${process.env.NEXT_PUBLIC_COMPANY_NAME || "SignCollab"}</h1>
             <p style="margin: 2px 0 0 0; font-size: 8.5pt; color: #475569;">${process.env.NEXT_PUBLIC_LEGAL_COMPANY_INFO || "SignCollab Digital Agreement Platform"}</p>
           </div>
           <div style="text-align: right;">
-            <div style="font-size: 9pt; font-weight: 800; color: #000; text-transform: uppercase;">${getContractTitle()}</div>
-            <div style="font-size: 9pt; font-weight: 700; color: #2563eb; margin-top: 2px;">Ref No: ${contract.contractNumber}</div>
-        <div style="border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 16px;">
-          <div style="font-size: 14pt; font-weight: 900; color: #0f172a; text-transform: uppercase;">SIGNCOLLAB LEGAL VAULT</div>
-          <div style="font-size: 11pt; font-weight: 700; color: #334155; margin-top: 2px;">${getContractTitle()}</div>
-          <div style="font-size: 8.5pt; color: #64748b; margin-top: 4px;">Ref No: <strong>${contract.contractNumber}</strong> | Created: ${formatLegalDate(contract.createdAt)} | ETO 2002 Ordinance Verified</div>
+            <div style="font-size: 9.5pt; font-weight: 800; color: #0f172a; text-transform: uppercase;">${getContractTitle()}</div>
+            <div style="font-size: 8.5pt; color: #64748b; margin-top: 2px;">
+              Ref No: <strong style="color: #2563eb;">${contract.contractNumber}</strong> | Created: ${formatLegalDate(contract.createdAt)} | ETO 2002 Ordinance Verified
+            </div>
+          </div>
         </div>
 
         <!-- Section 1: Parties -->
