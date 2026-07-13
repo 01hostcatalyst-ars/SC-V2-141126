@@ -49,6 +49,13 @@ export default function NewContractPage() {
   const [initiatorDesignation, setInitiatorDesignation] = useState(user?.agencyName || "");
   const [initiatorNtn, setInitiatorNtn] = useState("");
 
+  // Party A Initiator OTP Verification State
+  const [initiatorOtpDispatched, setInitiatorOtpDispatched] = useState(false);
+  const [initiatorOtpVerified, setInitiatorOtpVerified] = useState(false);
+  const [initiatorOtpCode, setInitiatorOtpCode] = useState("");
+  const [initiatorOtpLoading, setInitiatorOtpLoading] = useState(false);
+  const [initiatorResendTimer, setInitiatorResendTimer] = useState(0);
+
   // Financial
   const [totalAmount, setTotalAmount] = useState("");
   const [advancePayment, setAdvancePayment] = useState("");
@@ -108,6 +115,15 @@ export default function NewContractPage() {
     { type: "REEL", quantity: 1, duration: "Permanent", notes: "" },
   ]);
 
+  // Resend timer countdown
+  useEffect(() => {
+    let timer: any;
+    if (initiatorResendTimer > 0) {
+      timer = setInterval(() => setInitiatorResendTimer((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [initiatorResendTimer]);
+
   // Fetch Agency deals for linking
   useEffect(() => {
     if (user?.role === "AGENCY") {
@@ -158,6 +174,70 @@ export default function NewContractPage() {
     }
   };
 
+  const handleSendInitiatorOTP = async () => {
+    if (!initiatorDesignation.trim()) {
+      showToast("Please enter your Job Title / Signing Capacity first.", "error");
+      return;
+    }
+
+    setInitiatorOtpLoading(true);
+    try {
+      const res = await fetch("/api/contracts/initiator-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "send",
+          designation: initiatorDesignation,
+          ntn: initiatorNtn,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setInitiatorOtpDispatched(true);
+        setInitiatorResendTimer(60);
+        showToast(data.message || `Verification code sent to ${user?.email}`, "success");
+      } else {
+        showToast(data.error || "Failed to send verification code.", "error");
+      }
+    } catch (err) {
+      showToast("Error sending verification code.", "error");
+    } finally {
+      setInitiatorOtpLoading(false);
+    }
+  };
+
+  const handleVerifyInitiatorOTP = async () => {
+    if (!initiatorOtpCode || initiatorOtpCode.length !== 6) {
+      showToast("Please enter the 6-digit OTP code sent to your email.", "error");
+      return;
+    }
+
+    setInitiatorOtpLoading(true);
+    try {
+      const res = await fetch("/api/contracts/initiator-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "verify",
+          code: initiatorOtpCode,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setInitiatorOtpVerified(true);
+        showToast("Email identity verified! You may now publish & generate shared link.", "success");
+      } else {
+        showToast(data.error || "Invalid or expired OTP code.", "error");
+      }
+    } catch (err) {
+      showToast("Error verifying identity code.", "error");
+    } finally {
+      setInitiatorOtpLoading(false);
+    }
+  };
+
   const validateStep = () => {
     if (step === 0) {
       if (!deliverables || deliverables.length === 0) {
@@ -188,6 +268,16 @@ export default function NewContractPage() {
       }
       if (!revisionTurnaroundDays || Number(revisionTurnaroundDays) <= 0) {
         showToast("Please enter a valid revision turnaround window.", "error");
+        return false;
+      }
+    }
+    if (step === 5) {
+      if (!initiatorDesignation.trim()) {
+        showToast("Please enter your Job Title / Signing Capacity.", "error");
+        return false;
+      }
+      if (!initiatorOtpVerified) {
+        showToast("Please verify your email via OTP before publishing.", "error");
         return false;
       }
     }
@@ -1072,16 +1162,41 @@ export default function NewContractPage() {
           <div className="space-y-6 text-left">
             <h3 className="text-lg font-black text-black border-b border-gray-100 pb-2">Review &amp; Execute Agreement Details</h3>
             
-            {/* Signing Authority Section (Moved to Confirm Page) */}
-            <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-sm space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-black block">Party A Signing Authority &amp; Registration</span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Signing Authority Section & Email OTP Verification (Mandatory before Publish & Generate Link) */}
+            <div className="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+                <div>
+                  <span className="text-xs font-black uppercase tracking-wider text-black block">Party A Signing Authority &amp; Identity Verification</span>
+                  <p className="text-[11px] text-gray-500 mt-0.5">Verify your email via OTP to unlock contract publishing &amp; link generation.</p>
+                </div>
+                {initiatorOtpVerified ? (
+                  <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-black uppercase rounded-full w-fit">
+                    ✓ Email Identity Verified
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-black uppercase rounded-full w-fit">
+                    OTP Verification Required
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Your Registered Email Address</label>
+                  <input
+                    type="text"
+                    disabled
+                    className="input-field bg-gray-50 text-gray-600 font-medium cursor-not-allowed"
+                    value={user?.email || ""}
+                  />
+                </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-gray-500 uppercase">Your Job Title / Signing Capacity *</label>
                   <input
                     type="text"
+                    disabled={initiatorOtpDispatched || initiatorOtpVerified}
                     placeholder="e.g. Managing Director / Partner"
-                    className="input-field"
+                    className={`input-field ${initiatorOtpDispatched || initiatorOtpVerified ? "bg-gray-50" : ""}`}
                     value={initiatorDesignation}
                     onChange={(e) => setInitiatorDesignation(e.target.value)}
                   />
@@ -1090,13 +1205,69 @@ export default function NewContractPage() {
                   <label className="text-[10px] font-bold text-gray-500 uppercase">Your NTN / Reg No (Optional)</label>
                   <input
                     type="text"
+                    disabled={initiatorOtpDispatched || initiatorOtpVerified}
                     placeholder="e.g. 1234567-8"
-                    className="input-field"
+                    className={`input-field ${initiatorOtpDispatched || initiatorOtpVerified ? "bg-gray-50" : ""}`}
                     value={initiatorNtn}
                     onChange={(e) => setInitiatorNtn(e.target.value)}
                   />
                 </div>
               </div>
+
+              {/* Send OTP Button / Verification Code Input */}
+              {!initiatorOtpVerified && (
+                <div className="pt-2 space-y-3 border-t border-gray-100">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleSendInitiatorOTP}
+                      disabled={initiatorOtpLoading || !initiatorDesignation.trim() || initiatorResendTimer > 0}
+                      className={`py-2.5 px-5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm ${
+                        initiatorDesignation.trim() && initiatorResendTimer === 0
+                          ? "bg-black text-white hover:bg-black/90 cursor-pointer"
+                          : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+                      }`}
+                    >
+                      {initiatorOtpLoading
+                        ? "Sending..."
+                        : initiatorResendTimer > 0
+                        ? `Resend Code in ${initiatorResendTimer}s`
+                        : initiatorOtpDispatched
+                        ? "Resend Verification Code"
+                        : "Send OTP to Email"}
+                    </button>
+                    <span className="text-[11px] text-gray-500 font-medium">
+                      {initiatorOtpDispatched ? `Verification code sent to ${user?.email}` : "Click Send OTP to receive your 6-digit code before publishing."}
+                    </span>
+                  </div>
+
+                  {/* 6-Digit OTP Code Input Box */}
+                  {initiatorOtpDispatched && (
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row items-center gap-3">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder="Enter 6-digit code"
+                        className="input-field font-mono text-center tracking-widest text-base uppercase bg-white max-w-[220px]"
+                        value={initiatorOtpCode}
+                        onChange={(e) => setInitiatorOtpCode(e.target.value.replace(/\D/g, ""))}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyInitiatorOTP}
+                        disabled={initiatorOtpLoading || initiatorOtpCode.length !== 6}
+                        className={`py-2.5 px-6 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+                          initiatorOtpCode.length === 6
+                            ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm cursor-pointer"
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        }`}
+                      >
+                        {initiatorOtpLoading ? "Verifying..." : "Verify OTP Code"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* 1. Campaign & Parties */}
@@ -1336,10 +1507,18 @@ export default function NewContractPage() {
             <button
               type="button"
               onClick={handleSubmitContract}
-              disabled={loading}
-              className="bg-emerald-600 text-white hover:bg-emerald-700 font-bold px-8 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2"
+              disabled={loading || !initiatorOtpVerified}
+              className={`font-bold px-8 py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 ${
+                initiatorOtpVerified
+                  ? "bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer"
+                  : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+              }`}
             >
-              {loading ? "Generating Link..." : "Create & Generate Shared Link ➔"}
+              {loading
+                ? "Generating Link..."
+                : initiatorOtpVerified
+                ? "Publish & Generate Shared Link ➔"
+                : "🔒 Verify Email via OTP Above to Publish & Generate Link"}
             </button>
           )}
         </div>
