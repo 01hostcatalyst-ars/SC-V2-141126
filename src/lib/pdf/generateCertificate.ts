@@ -12,7 +12,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
       respondent: true,
       signatures: true,
       auditLogs: {
-        orderBy: { timestamp: "asc" },
+        orderBy: { createdAt: "asc" },
       },
     },
   });
@@ -226,9 +226,9 @@ export async function generateAuditCertificatePDF(contractId: string) {
                     .map(
                       (log) => `
               <tr>
-                <td>${formatLegalDate(log.timestamp)}</td>
+                <td>${formatLegalDate(log.createdAt)}</td>
                 <td><strong>${log.action}</strong></td>
-                <td>${log.details || "System Event"}</td>
+                <td>${typeof log.details === "object" && log.details !== null ? JSON.stringify(log.details) : log.details || "System Event"}</td>
                 <td><code>${log.ipAddress || "127.0.0.1"}</code></td>
               </tr>
             `
