@@ -80,6 +80,12 @@ export default function PublicSigningPage({ params }: PageProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          email: respondentEmail,
+          phone: respondentPhone,
+          name: respondentName,
+          company: isRespondentBrand ? respondentCompany : collabDetails,
+          address: respondentAddress,
+          designation: respondentDesignation,
           respondentEmail,
           respondentPhone,
           respondentName,

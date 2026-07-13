@@ -8,7 +8,14 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { email, phone, name, company: respondentCompany, address, designation, collabDetails } = await req.json();
+    const body = await req.json();
+    const email = body.email || body.respondentEmail;
+    const phone = body.phone || body.respondentPhone;
+    const name = body.name || body.respondentName;
+    const respondentCompany = body.company || body.respondentCompany;
+    const address = body.address || body.respondentAddress;
+    const designation = body.designation || body.respondentDesignation;
+    const collabDetails = body.collabDetails;
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
