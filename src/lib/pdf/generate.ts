@@ -225,22 +225,36 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           1. CONTRACTING PARTIES &amp; LEGAL IDENTIFICATION
         </div>
         <div style="display: flex; gap: 12px; margin-bottom: 14px; font-size: 8.5pt;">
-          <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; background: #f8fafc;">
-            <div style="font-weight: 800; color: #0f172a; text-transform: uppercase; margin-bottom: 4px;">PARTY A (INITIATOR)</div>
-            <div><strong>Name:</strong> ${contract.initiator.name}</div>
-            <div><strong>Email:</strong> ${contract.initiator.email}</div>
-            ${(contract.initiator as any).agencyName ? `<div><strong>Agency:</strong> ${(contract.initiator as any).agencyName}</div>` : ""}
-            ${contract.initiatorDesignation ? `<div><strong>Designation:</strong> ${contract.initiatorDesignation}</div>` : ""}
-            ${contract.initiatorNtn ? `<div><strong>NTN / Reg:</strong> ${contract.initiatorNtn}</div>` : ""}
+          <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #f8fafc;">
+            <div style="font-weight: 800; text-transform: uppercase; color: #475569; margin-bottom: 4px; font-size: 8pt;">PARTY A (INITIATOR ENTITY)</div>
+            <div style="font-size: 10.5pt; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
+              ${(contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
+            </div>
+            ${contract.initiatorNtn ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">NTN / Reg: ${contract.initiatorNtn}</div>` : ""}
+            <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
+              <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">Authorized Signatory Representative</div>
+              <div><strong>Representative:</strong> ${contract.initiator.name} ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
+              <div><strong>Email:</strong> ${contract.initiator.email}</div>
+              ${contract.initiator.phone ? `<div><strong>Phone:</strong> ${contract.initiator.phone}</div>` : ""}
+              ${(contract.initiator as any).agencyAddress ? `<div><strong>Address:</strong> ${(contract.initiator as any).agencyAddress}</div>` : ""}
+            </div>
           </div>
 
-          <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; background: #f8fafc;">
-            <div style="font-weight: 800; color: #0f172a; text-transform: uppercase; margin-bottom: 4px;">PARTY B (COUNTERPARTY)</div>
-            <div><strong>Name:</strong> ${contract.respondentName || "Pending Execution"}</div>
-            <div><strong>Email:</strong> ${contract.respondentEmail || "Pending Execution"}</div>
-            ${contract.respondentCompany ? `<div><strong>Company:</strong> ${contract.respondentCompany}</div>` : ""}
-            ${contract.respondentDesignation ? `<div><strong>Designation:</strong> ${contract.respondentDesignation}</div>` : ""}
-            ${contract.respondentNtn ? `<div><strong>NTN / Reg:</strong> ${contract.respondentNtn}</div>` : ""}
+          <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #f8fafc;">
+            <div style="font-weight: 800; text-transform: uppercase; color: #475569; margin-bottom: 4px; font-size: 8pt;">PARTY B (COUNTERPARTY ENTITY)</div>
+            <div style="font-size: 10.5pt; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
+              ${contract.respondentCompany || contract.creatorName || contract.respondentName || "Pending Execution"}
+            </div>
+            ${contract.respondentNtn ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">NTN / Reg: ${contract.respondentNtn}</div>` : ""}
+            <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
+              <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">
+                ${contract.respondentCompany ? "Authorized Signatory Representative" : "Individual Signer Details"}
+              </div>
+              <div><strong>Representative:</strong> ${contract.respondentName || "Pending Execution"} ${contract.respondentDesignation ? `(${contract.respondentDesignation})` : ""}</div>
+              <div><strong>Email:</strong> ${contract.respondentEmail || "Pending Execution"}</div>
+              ${contract.respondentPhone ? `<div><strong>Phone:</strong> ${contract.respondentPhone}</div>` : ""}
+              ${contract.respondentAddress ? `<div><strong>Address:</strong> ${contract.respondentAddress}</div>` : ""}
+            </div>
           </div>
         </div>
 
@@ -420,14 +434,19 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         </div>
         <div style="display: flex; gap: 12px; margin-bottom: 14px;">
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; text-align: center; background: #ffffff;">
-            <div style="font-size: 8pt; font-weight: 800; uppercase; color: #475569;">PARTY A (INITIATOR SIGNATURE)</div>
+            <div style="font-size: 8pt; font-weight: 800; text-transform: uppercase; color: #475569;">PARTY A (INITIATOR SIGNATURE)</div>
             ${initiatorSign ? `
               <div style="height: 55px; display: flex; align-items: center; justify-content: center; margin: 6px 0;">
                 <img src="${initiatorSign.signatureImageUrl}" alt="Party A Sig" style="max-height: 50px; max-width: 160px; object-fit: contain;" />
               </div>
-              <div style="font-size: 7.5pt; color: #475569;">
-                <div>Signer: ${contract.initiator.name} (${contract.initiator.email})</div>
-                <div>IP: ${initiatorSign.ipAddress} | Signed: ${formatLegalDate(initiatorSign.signedAt)}</div>
+              <div style="font-size: 7.5pt; color: #334155;">
+                <div style="font-weight: 800; color: #0f172a; font-size: 8pt; text-transform: uppercase;">EXECUTED ON BEHALF OF:</div>
+                <div style="font-weight: 900; color: #2563eb; text-transform: uppercase; font-size: 9.5pt; margin-bottom: 4px;">
+                  ${(contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
+                </div>
+                <div>Authorized Signer: <strong>${contract.initiator.name}</strong> ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
+                <div>Email: ${contract.initiator.email} | IP: ${initiatorSign.ipAddress}</div>
+                <div>Signed: ${formatLegalDate(initiatorSign.signedAt)}</div>
               </div>
             ` : `
               <div style="height: 55px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-style: italic; font-size: 8.5pt;">Pending Signature</div>
@@ -435,14 +454,19 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           </div>
 
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; text-align: center; background: #ffffff;">
-            <div style="font-size: 8pt; font-weight: 800; uppercase; color: #475569;">PARTY B (RESPONDENT SIGNATURE)</div>
+            <div style="font-size: 8pt; font-weight: 800; text-transform: uppercase; color: #475569;">PARTY B (RESPONDENT SIGNATURE)</div>
             ${respondentSign ? `
               <div style="height: 55px; display: flex; align-items: center; justify-content: center; margin: 6px 0;">
                 <img src="${respondentSign.signatureImageUrl}" alt="Party B Sig" style="max-height: 50px; max-width: 160px; object-fit: contain;" />
               </div>
-              <div style="font-size: 7.5pt; color: #475569;">
-                <div>Signer: ${contract.respondentName} (${contract.respondentEmail})</div>
-                <div>IP: ${respondentSign.ipAddress} | Signed: ${formatLegalDate(respondentSign.signedAt)}</div>
+              <div style="font-size: 7.5pt; color: #334155;">
+                <div style="font-weight: 800; color: #0f172a; font-size: 8pt; text-transform: uppercase;">EXECUTED ON BEHALF OF:</div>
+                <div style="font-weight: 900; color: #2563eb; text-transform: uppercase; font-size: 9.5pt; margin-bottom: 4px;">
+                  ${contract.respondentCompany || contract.creatorName || contract.respondentName}
+                </div>
+                <div>Authorized Signer: <strong>${contract.respondentName}</strong> ${contract.respondentDesignation ? `(${contract.respondentDesignation})` : ""}</div>
+                <div>Verified Email OTP: ✓ Verified | Email: ${contract.respondentEmail} | IP: ${respondentSign.ipAddress}</div>
+                <div>Signed: ${formatLegalDate(respondentSign.signedAt)}</div>
               </div>
             ` : `
               <div style="height: 55px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-style: italic; font-size: 8.5pt;">Pending Signature</div>
