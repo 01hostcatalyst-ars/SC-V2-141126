@@ -12,6 +12,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
       respondent: true,
       signatures: true,
       auditLogs: {
+        include: { user: true },
         orderBy: { createdAt: "asc" },
       },
     },
@@ -38,6 +39,37 @@ export async function generateAuditCertificatePDF(contractId: string) {
       dateStyle: "medium",
       timeStyle: "medium",
     });
+  };
+
+  const formatActorDetails = (log: any) => {
+    let details: any = log.details;
+    if (typeof details === "string") {
+      try {
+        details = JSON.parse(details);
+      } catch (e) {
+        // keep string
+      }
+    }
+
+    if (log.user?.email || log.user?.name) {
+      const nameOrEmail = log.user.name ? `${log.user.name} (${log.user.email})` : log.user.email;
+      const roleStr = log.user.role ? ` - ${log.user.role}` : "";
+      return `<strong>${nameOrEmail}</strong>${roleStr}`;
+    }
+
+    if (typeof details === "object" && details !== null) {
+      const email = details.email || details.userEmail || details.signerEmail || "";
+      const role = details.signerRole || details.role || "";
+      if (email || role) {
+        return `<div><strong>${email}</strong> ${role ? `<span style="color: #475569;">(${role})</span>` : ""}</div>`;
+      }
+    }
+
+    if (typeof details === "string" && details.trim()) {
+      return details;
+    }
+
+    return "System Recorded Event";
   };
 
   const getContractTitle = (type: string) => {
@@ -236,8 +268,8 @@ export async function generateAuditCertificatePDF(contractId: string) {
               <tr>
                 <td>${formatLegalDate(log.createdAt)}</td>
                 <td><strong>${log.action}</strong></td>
-                <td>${typeof log.details === "object" && log.details !== null ? JSON.stringify(log.details) : log.details || "System Event"}</td>
-                <td><code>${log.ipAddress || "127.0.0.1"}</code></td>
+                <td>${formatActorDetails(log)}</td>
+                <td><code>${log.ipAddress || (typeof log.details === "object" && (log.details as any)?.ipAddress) || "Logged"}</code></td>
               </tr>
             `
                     )
