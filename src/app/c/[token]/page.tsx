@@ -784,7 +784,11 @@ export default function PublicSigningPage({ params }: PageProps) {
         <span className="text-xs text-gray-500 font-semibold">
           © {new Date().getFullYear()} {company.name}. Powered by ETO 2002 legal security layer.
         </span>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
+          <Link href="/terms" target="_blank" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
+            Terms of Service &amp; Privacy
+          </Link>
+          <span className="text-gray-300">|</span>
           <a href={`mailto:${company.supportEmail}`} className="text-xs text-gray-500 hover:text-black font-semibold transition-colors">
             Support: {company.supportEmail}
           </a>

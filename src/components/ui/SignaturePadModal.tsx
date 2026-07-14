@@ -104,7 +104,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
         <div className="overflow-y-auto space-y-4 pr-1.5 flex-1 custom-scrollbar">
           {/* ETO 2002 Legal Warning */}
           <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed font-semibold">
-            <strong>Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by Pakistan&apos;s Electronic Transactions Ordinance (ETO 2002).
+            <strong>Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by Pakistan&apos;s Electronic Transactions Ordinance (ETO 2002) and SignCollab&apos;s <a href="/terms" target="_blank" className="underline font-bold text-blue-950 hover:text-black">Terms of Service &amp; Privacy Notice</a>.
           </div>
 
           {/* Consent Checkbox */}
