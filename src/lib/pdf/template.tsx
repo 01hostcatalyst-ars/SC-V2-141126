@@ -56,6 +56,12 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         </div>
       </div>
 
+      {contract.status === "DRAFT" && (
+        <div style={{ background: "#fffbebf0", border: "1.5px solid #f59e0b", borderRadius: "6px", padding: "6px 12px", fontSize: "10px", fontWeight: "800", color: "#b45309", textAlign: "center", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "12px" }}>
+          ⚠️ DRAFT PREVIEW — UNEXECUTED &amp; UNVERIFIED DOCUMENT (FOR REVIEW ONLY)
+        </div>
+      )}
+
       {/* Preamble */}
       <div style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "8px 12px", fontSize: "10px", color: "#334155", marginBottom: "14px" }}>
         <strong>LEGAL PREAMBLE & E-SIGN BINDING NOTICE:</strong> This document represents a legally binding electronic agreement executed under the Electronic Transactions Ordinance (ETO 2002) of Pakistan. SignCollab is a neutral technology platform provider facilitating electronic agreement execution. All parameters, financial consideration, usage licenses, and bilateral penalties set forth herein are legally enforceable upon bilateral execution.

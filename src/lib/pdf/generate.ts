@@ -220,6 +220,12 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           </div>
         </div>
 
+        ${contract.status === "DRAFT" ? `
+          <div style="background: #fffbebf0; border: 1.5px solid #f59e0b; border-radius: 6px; padding: 6px 12px; font-size: 8pt; font-weight: 800; color: #b45309; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+            ⚠️ DRAFT PREVIEW — UNEXECUTED &amp; UNVERIFIED DOCUMENT (FOR REVIEW ONLY)
+          </div>
+        ` : ""}
+
         <!-- Section 1: Parties -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-bottom: 8px;">
           1. CONTRACTING PARTIES &amp; LEGAL IDENTIFICATION

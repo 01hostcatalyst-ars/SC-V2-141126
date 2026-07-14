@@ -306,13 +306,22 @@ export default function ContractDetailPage({ params }: PageProps) {
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-3">
           {contract.status === "DRAFT" && isUserInitiator && (
-            <button
-              onClick={() => setIsPublishModalOpen(true)}
-              disabled={actionLoading}
-              className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
-            >
-              🔒 Publish &amp; Verify Identity to Share
-            </button>
+            <>
+              <button
+                onClick={() => setIsPublishModalOpen(true)}
+                disabled={actionLoading}
+                className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
+              >
+                🔒 Publish &amp; Verify Identity to Share
+              </button>
+              <button
+                onClick={handleDownloadPDF}
+                disabled={actionLoading}
+                className="bg-white border border-gray-300 hover:bg-gray-50 text-black font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
+              >
+                📄 Download Draft PDF Preview
+              </button>
+            </>
           )}
 
           {contract.status === "PENDING_RESPONDENT" && (
