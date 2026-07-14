@@ -119,7 +119,7 @@ export function renderEmailTemplate(
           <p>Both signatures have been logged and verified. Your mutual collaboration agreement (<strong>No: ${data.contractNumber}</strong>) is now officially <strong>ACTIVE</strong>.</p>
           <p>Copies of the <strong>Executed Contract PDF</strong> and the <strong>Standalone Audit Certificate PDF</strong> are attached to this email. You can also view or download them anytime from your dashboard.</p>
           <div style="${footerStyles}">
-            <p>This document is secure and admissible under Pakistan's ETO 2002 guidelines.</p>
+            <p>Executed using SignCollab E-Signature Vault structured under ETO 2002 guidelines.</p>
             <p>Powered by ${company.name} | ${company.legalInfo}</p>
           </div>
         </div>

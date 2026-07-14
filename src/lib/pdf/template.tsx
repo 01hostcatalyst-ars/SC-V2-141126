@@ -50,7 +50,9 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         </div>
         <div style={{ textAlign: "right" }}>
           <h4 style={{ margin: "0", fontSize: "11px", fontWeight: "800", textTransform: "uppercase" }}>{getContractTitle()}</h4>
-          <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: "#2563eb", fontWeight: "700" }}>Ref No: {contract.contractNumber}</p>
+          <p style={{ margin: "2px 0 0 0", fontSize: "9.5px", color: "#64748b" }}>
+            Ref No: <strong style={{ color: "#2563eb" }}>{contract.contractNumber}</strong> | Structured under ETO 2002
+          </p>
         </div>
       </div>
 
@@ -329,7 +331,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
 
       {/* Footer SHA-256 Checksum */}
       <div style={{ borderTop: "1.5px solid #0f172a", marginTop: "20px", paddingTop: "8px", textAlign: "center", fontSize: "9px", color: "#475569" }}>
-        <div>This agreement is a tamper-evident legal record stored in SignCollab Vault under Pakistan ETO 2002 Ordinance standards.</div>
+        <div style={{ fontSize: "8px", lineHeight: "1.35", color: "#64748b", maxWidth: "95%", margin: "0 auto 4px auto" }}>PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging under Electronic Transactions Ordinance (ETO 2002) guidelines. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
         <div style={{ fontFamily: "monospace", fontWeight: "bold", marginTop: "2px" }}>BILATERAL EXECUTED SHA-256: <span style={{ color: "#2563eb" }}>{contract.finalDocumentHash || contract.documentHash || "SHA256_PENDING_BILATERAL_EXECUTION"}</span></div>
       </div>
     </div>

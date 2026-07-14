@@ -295,8 +295,8 @@ export async function generateAuditCertificatePDF(contractId: string) {
 
         <!-- Certificate Footer -->
         <div style="border-top: 1.5px solid #0f172a; margin-top: 18px; padding-top: 8px; font-size: 7.5pt; color: #475569; text-align: center;">
-          This Audit Certificate is an immutable proof of completion issued by SignCollab Vault under the Electronic Transactions Ordinance (ETO 2002) framework.<br />
-          Verify authenticity online at: <strong>${verifyUrl}</strong>
+          <div style="font-size: 6.8pt; line-height: 1.35; color: #64748b; max-width: 95%; margin: 0 auto 4px auto;">PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging under Electronic Transactions Ordinance (ETO 2002) guidelines. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
+          <div>Verify authenticity online at: <strong>${verifyUrl}</strong></div>
         </div>
       </body>
     </html>

@@ -214,8 +214,8 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           </div>
           <div style="text-align: right;">
             <div style="font-size: 9.5pt; font-weight: 800; color: #0f172a; text-transform: uppercase;">${getContractTitle()}</div>
-            <div style="font-size: 8.5pt; color: #64748b; margin-top: 2px;">
-              Ref No: <strong style="color: #2563eb;">${contract.contractNumber}</strong> | Created: ${formatLegalDate(contract.createdAt)} | ETO 2002 Ordinance Verified
+            <div style="font-size: 7.2pt; color: #64748b; margin-top: 2px;">
+              Ref No: <strong style="color: #2563eb;">${contract.contractNumber}</strong> | Created: ${formatLegalDate(contract.createdAt)} | Structured under ETO 2002
             </div>
           </div>
         </div>
@@ -476,7 +476,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
         <!-- SHA-256 Footer Checksum Bar -->
         <div style="border-top: 1.5px solid #0f172a; margin-top: 20px; padding-top: 8px; text-align: center; font-size: 7.5pt; color: #475569; page-break-inside: avoid;">
-          <div>This agreement is a tamper-evident legal record stored in SignCollab Vault under Pakistan ETO 2002 Ordinance standards.</div>
+          <div style="font-size: 6.8pt; line-height: 1.35; color: #64748b; max-width: 95%; margin: 0 auto 4px auto;">PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging under Electronic Transactions Ordinance (ETO 2002) guidelines. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
           <div style="font-family: monospace; font-weight: bold; margin-top: 2px;">BILATERAL EXECUTED SHA-256: <span style="color: #2563eb;">${finalDocHash}</span></div>
         </div>
       </body>
