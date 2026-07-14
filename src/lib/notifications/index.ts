@@ -10,6 +10,7 @@ interface EmailPayload {
   template: "contract_link" | "signed_notification" | "contract_active" | "reminder" | "expired" | "otp";
   data: Record<string, string>;
   pdfBuffer?: Buffer;
+  attachments?: Array<{ filename: string; content: Buffer }>;
 }
 
 export async function sendEmailNotification(payload: EmailPayload) {
@@ -22,13 +23,15 @@ export async function sendEmailNotification(payload: EmailPayload) {
       SUBJECT: ${payload.subject}
       TEMPLATE: ${payload.template}
       DATA: ${JSON.stringify(payload.data)}
-      HAS_ATTACHMENT: ${!!payload.pdfBuffer}
+      ATTACHMENTS_COUNT: ${payload.attachments ? payload.attachments.length : payload.pdfBuffer ? 1 : 0}
     `);
     return { success: true, message: "Mock email printed to console." };
   }
 
   const htmlContent = renderEmailTemplate(payload.template, payload.data);
-  const attachments = payload.pdfBuffer
+  const attachments = payload.attachments
+    ? payload.attachments
+    : payload.pdfBuffer
     ? [
         {
           filename: `Agreement-${payload.data.contractNumber}.pdf`,

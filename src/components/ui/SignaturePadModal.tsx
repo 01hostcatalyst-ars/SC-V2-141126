@@ -91,22 +91,22 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal Card */}
-      <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden z-10 border border-gray-200 animate-slide-in p-6 text-left">
+      <div className="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden z-10 border border-gray-200 animate-slide-in p-6 md:p-8 text-left">
         <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
           <h3 className="text-base font-black text-black uppercase tracking-wider">Execute Digital Signature</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-black font-bold text-lg focus:outline-none">
+          <button onClick={onClose} className="text-gray-400 hover:text-black font-bold text-xl focus:outline-none">
             ×
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* ETO 2002 Legal Warning */}
-          <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-[11px] text-blue-800 leading-relaxed font-semibold">
+          <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed font-semibold">
             <strong>Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by Pakistan&apos;s Electronic Transactions Ordinance (ETO 2002).
           </div>
 
           {/* Consent Checkbox */}
-          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 select-none">
+          <label className="flex items-start gap-3 p-4 rounded-2xl border border-gray-200 cursor-pointer hover:bg-gray-50 select-none transition-all">
             <input
               type="checkbox"
               checked={consent}
@@ -114,18 +114,18 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
               className="w-4 h-4 accent-black mt-0.5"
             />
             <div className="flex flex-col text-left">
-              <span className="text-[11px] font-bold text-black leading-tight">
+              <span className="text-xs font-bold text-black leading-tight">
                 I agree to execute this agreement electronically and verify the details.
               </span>
             </div>
           </label>
 
           {/* Drawing Canvas */}
-          <div className="flex flex-col gap-1.5 mt-2">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+          <div className="flex flex-col gap-2 mt-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
               Draw Signature Inside Box
             </label>
-            <div className="w-full h-40 border border-gray-200 rounded-xl bg-gray-50 overflow-hidden relative touch-none">
+            <div className="w-full h-56 md:h-72 border-2 border-gray-200 hover:border-gray-400 transition-all rounded-2xl bg-gray-50/50 overflow-hidden relative touch-none shadow-inner">
               <canvas
                 ref={canvasRef}
                 className="w-full h-full block cursor-crosshair"
@@ -134,9 +134,9 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
               <button
                 type="button"
                 onClick={handleClear}
-                className="absolute bottom-2 right-2 px-3 py-1 bg-white hover:bg-gray-100 border border-gray-200 text-[10px] font-bold text-gray-500 rounded-lg shadow-sm focus:outline-none"
+                className="absolute bottom-3 right-3 px-4 py-1.5 bg-white hover:bg-gray-100 border border-gray-300 text-xs font-bold text-gray-700 rounded-xl shadow-md focus:outline-none transition-all"
               >
-                Clear
+                Clear Drawing
               </button>
             </div>
           </div>

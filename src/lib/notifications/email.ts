@@ -116,8 +116,8 @@ export function renderEmailTemplate(
             <h2 style="margin: 0; color: #22c55e;">Agreement Activated & Active</h2>
           </div>
           <p>Hello,</p>
-          <p>Great news! Both signatures have been logged and verified. Your mutual collaboration agreement (<strong>No: ${data.contractNumber}</strong>) is now officially <strong>ACTIVE</strong>.</p>
-          <p>A copy of the signed agreement is attached to this email as a PDF. You can also view/download it anytime by logging into your dashboard.</p>
+          <p>Both signatures have been logged and verified. Your mutual collaboration agreement (<strong>No: ${data.contractNumber}</strong>) is now officially <strong>ACTIVE</strong>.</p>
+          <p>Copies of the <strong>Executed Contract PDF</strong> and the <strong>Standalone Audit Certificate PDF</strong> are attached to this email. You can also view or download them anytime from your dashboard.</p>
           <div style="${footerStyles}">
             <p>This document is secure and admissible under Pakistan's ETO 2002 guidelines.</p>
             <p>Powered by ${company.name} | ${company.legalInfo}</p>

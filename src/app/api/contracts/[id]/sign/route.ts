@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { ContractStatus, SignerRole } from "@prisma/client";
 import { generateContractPDF } from "@/lib/pdf/generate";
+import { generateAuditCertificatePDF } from "@/lib/pdf/generateCertificate";
 import { sendEmailNotification } from "@/lib/notifications";
 import { computeContentHash } from "@/lib/utils";
 
@@ -112,9 +113,15 @@ export async function POST(
       }),
     ]);
 
-    // Trigger PDF engine to render static contract containing BOTH signatures
+    // Trigger PDF engine to render static contract containing BOTH signatures and generate standalone Audit Certificate
     try {
       const pdfResult = await generateContractPDF(contract.id);
+      let certResult;
+      try {
+        certResult = await generateAuditCertificatePDF(contract.id);
+      } catch (certErr) {
+        console.error("Failed to generate audit certificate PDF during signing:", certErr);
+      }
       
       const fullContract = await prisma.contract.findUnique({
         where: { id: contract.id },
@@ -122,26 +129,41 @@ export async function POST(
       });
 
       if (fullContract && fullContract.respondentEmail) {
-        // 1. Dispatch active contract with PDF attachment to Initiator
+        const attachments = [
+          {
+            filename: `Contract-${fullContract.contractNumber}.pdf`,
+            content: pdfResult.buffer,
+          },
+          ...(certResult?.buffer
+            ? [
+                {
+                  filename: `Audit-Certificate-${fullContract.contractNumber}.pdf`,
+                  content: certResult.buffer,
+                },
+              ]
+            : []),
+        ];
+
+        // 1. Dispatch active contract with PDF attachments to Initiator
         await sendEmailNotification({
           to: fullContract.initiator.email,
-          subject: `Active Collaboration Contract - ${fullContract.contractNumber}`,
+          subject: `Active Agreement & Audit Certificate - ${fullContract.contractNumber}`,
           template: "contract_active",
           data: {
             contractNumber: fullContract.contractNumber,
           },
-          pdfBuffer: pdfResult.buffer,
+          attachments,
         });
 
-        // 2. Dispatch active contract with PDF attachment to Respondent
+        // 2. Dispatch active contract with PDF attachments to Respondent
         await sendEmailNotification({
           to: fullContract.respondentEmail,
-          subject: `Active Collaboration Contract - ${fullContract.contractNumber}`,
+          subject: `Active Agreement & Audit Certificate - ${fullContract.contractNumber}`,
           template: "contract_active",
           data: {
             contractNumber: fullContract.contractNumber,
           },
-          pdfBuffer: pdfResult.buffer,
+          attachments,
         });
       }
     } catch (pdfErr) {
