@@ -51,18 +51,16 @@ export async function generateAuditCertificatePDF(contractId: string) {
       }
     }
 
-    if (log.user?.email || log.user?.name) {
-      const nameOrEmail = log.user.name ? `${log.user.name} (${log.user.email})` : log.user.email;
-      const roleStr = log.user.role ? ` - ${log.user.role}` : "";
-      return `<strong>${nameOrEmail}</strong>${roleStr}`;
-    }
+    const email = log.user?.email || details?.email || details?.userEmail || details?.signerEmail || "";
+    const role = log.user?.role || details?.signerRole || details?.role || "";
+    const name = log.user?.name || details?.name || "";
+    const company = (log.user as any)?.agencyName || (log.user as any)?.companyName || details?.company || details?.agencyName || "";
 
-    if (typeof details === "object" && details !== null) {
-      const email = details.email || details.userEmail || details.signerEmail || "";
-      const role = details.signerRole || details.role || "";
-      if (email || role) {
-        return `<div><strong>${email}</strong> ${role ? `<span style="color: #475569;">(${role})</span>` : ""}</div>`;
-      }
+    if (name || email) {
+      const displayName = name ? `<strong>${name}</strong> (${email})` : `<strong>${email}</strong>`;
+      const roleStr = role ? `<span style="color: #2563eb; font-weight: bold;"> [${role}]</span>` : "";
+      const companyStr = company ? `<div style="font-size: 7.5pt; color: #475569; margin-top: 1px;">Rep: <strong>${company}</strong></div>` : "";
+      return `<div>${displayName}${roleStr}${companyStr}</div>`;
     }
 
     if (typeof details === "string" && details.trim()) {
@@ -215,25 +213,37 @@ export async function generateAuditCertificatePDF(contractId: string) {
           <!-- Party A -->
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; background: #f8fafc; font-size: 8.5pt;">
             <div style="font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px;">
-              PARTY A (INITIATOR)
+              PARTY A (INITIATOR ENTITY)
             </div>
-            <div><strong>Name:</strong> ${contract.initiator.name}</div>
-            <div><strong>Email:</strong> ${contract.initiator.email}</div>
-            <div><strong>IP Address:</strong> ${initiatorSignature?.ipAddress || "Record Logged"}</div>
-            <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
-            <div><strong>Timestamp:</strong> ${formatLegalDate(initiatorSignature?.signedAt || contract.createdAt)}</div>
+            <div style="font-weight: 900; font-size: 9.5pt; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
+              ${(contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
+            </div>
+            ${contract.initiatorNtn ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">NTN / Reg: ${contract.initiatorNtn}</div>` : ""}
+            <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
+              <div><strong>Authorized Signer:</strong> ${contract.initiator.name} ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
+              <div><strong>Email:</strong> ${contract.initiator.email}</div>
+              <div><strong>IP Address:</strong> ${initiatorSignature?.ipAddress || "Record Logged"}</div>
+              <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
+              <div><strong>Signed:</strong> ${formatLegalDate(initiatorSignature?.signedAt || contract.createdAt)}</div>
+            </div>
           </div>
 
           <!-- Party B -->
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; background: #f8fafc; font-size: 8.5pt;">
             <div style="font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px;">
-              PARTY B (RESPONDENT)
+              PARTY B (COUNTERPARTY ENTITY)
             </div>
-            <div><strong>Name:</strong> ${contract.respondentName || contract.respondent?.name || "N/A"}</div>
-            <div><strong>Email:</strong> ${contract.respondentEmail || contract.respondent?.email || "N/A"}</div>
-            <div><strong>IP Address:</strong> ${respondentSignature?.ipAddress || "Record Logged"}</div>
-            <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
-            <div><strong>Timestamp:</strong> ${formatLegalDate(respondentSignature?.signedAt || contract.activatedAt)}</div>
+            <div style="font-weight: 900; font-size: 9.5pt; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
+              ${contract.respondentCompany || contract.creatorName || contract.respondentName || "N/A"}
+            </div>
+            ${contract.respondentNtn ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">NTN / Reg: ${contract.respondentNtn}</div>` : ""}
+            <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
+              <div><strong>Authorized Signer:</strong> ${contract.respondentName || contract.respondent?.name || "N/A"} ${contract.respondentDesignation ? `(${contract.respondentDesignation})` : ""}</div>
+              <div><strong>Email:</strong> ${contract.respondentEmail || contract.respondent?.email || "N/A"}</div>
+              <div><strong>IP Address:</strong> ${respondentSignature?.ipAddress || "Record Logged"}</div>
+              <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
+              <div><strong>Signed:</strong> ${formatLegalDate(respondentSignature?.signedAt || contract.activatedAt)}</div>
+            </div>
           </div>
         </div>
 

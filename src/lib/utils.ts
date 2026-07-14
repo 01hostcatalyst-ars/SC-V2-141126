@@ -105,8 +105,11 @@ export function buildCanonicalContractPayload(contract: any): string {
     contractNumber: contract.contractNumber || "",
     contractType: contract.contractType || "",
     initiator: {
-      designation: contract.initiatorDesignation || "",
-      ntn: contract.initiatorNtn || "",
+      name: contract.initiator?.name || "",
+      email: contract.initiator?.email || "",
+      company: contract.initiator?.companyName || contract.initiator?.agencyName || "",
+      designation: contract.initiatorDesignation || contract.initiator?.designation || "",
+      ntn: contract.initiatorNtn || contract.initiator?.ntn || "",
     },
     respondent: {
       name: contract.respondentName || "",

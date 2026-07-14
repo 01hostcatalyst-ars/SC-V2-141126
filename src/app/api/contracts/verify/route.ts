@@ -96,11 +96,11 @@ export async function POST(req: Request) {
 
     const partyAName = isEmbargoActive
       ? "[Confidential — Under NDA]"
-      : contract.initiator.agencyName || contract.initiator.name;
+      : (contract.initiator as any).agencyName || (contract.initiator as any).companyName || contract.initiator.name;
 
     const partyBName = isEmbargoActive
       ? `[Confidential — Product Embargo active until ${new Date(contract.embargoDate!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}]`
-      : contract.respondentCompany || contract.respondentName || contract.respondent?.name || "Counterparty";
+      : contract.respondentCompany || contract.creatorName || contract.respondentName || contract.respondent?.name || "Counterparty";
 
     const formatHashTruncated = (hashStr: string | null) => {
       if (!hashStr) return "N/A";
