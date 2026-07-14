@@ -262,12 +262,240 @@ export default function PublicSigningPage({ params }: PageProps) {
 
         <form onSubmit={handleReviewAndSign} className="space-y-8">
           
-          {/* SECTION 1: VERIFICATION & IDENTITY */}
+          {/* SECTION 1: REVIEW CAMPAIGN TERMS */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
+            <div className="border-b border-gray-100 pb-3 text-left">
+              <h2 className="text-base font-black text-black uppercase tracking-wider">
+                1. Review Campaign Terms
+              </h2>
+              <p className="text-xs text-gray-500 font-medium mt-1">
+                Please review all campaign parameters below. If terms match your negotiated values, complete your profile details and execute your digital signature below.
+              </p>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              
+              {/* Card 1: Overview & Parties */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Campaign &amp; Parties Overview</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Direction:</span>
+                    <span className="font-bold text-black uppercase">{contract.contractType.replace(/_/g, " ")}</span>
+                  </div>
+                  {contract.brandName && (
+                    <div>
+                      <span className="font-semibold text-gray-500 block">Client Brand:</span>
+                      <span className="font-bold text-black">{contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</span>
+                      {contract.campaignName && <span className="text-[10px] text-gray-500 block">Campaign: {contract.campaignName}</span>}
+                    </div>
+                  )}
+                  {contract.creatorName && (
+                    <div>
+                      <span className="font-semibold text-gray-500 block">Creator:</span>
+                      <span className="font-bold text-black">{contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Card 2: Financial Compensation */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Financial Compensation &amp; Payout Terms</span>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Total Valuation:</span>
+                    <span className="font-black text-black text-sm">PKR {Number(contract.totalAmount).toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Advance Payment:</span>
+                    <span className="font-bold text-black">{contract.advancePayment ? `PKR ${Number(contract.advancePayment).toLocaleString()}` : "No Advance"}</span>
+                    {contract.advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.advancePaymentDate)}</span>}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Remaining Payout:</span>
+                    <span className="font-bold text-black">PKR {Number(contract.remainingAmount || 0).toLocaleString()}</span>
+                    {contract.remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.remainingPaymentDate)}</span>}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Payment Route Method:</span>
+                    <span className="font-bold text-black uppercase">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
+                    <span className="text-[10px] text-gray-500 font-mono block truncate">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Deliverables Requirements */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-2">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Campaign Deliverables Table</span>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead>
+                      <tr className="border-b border-gray-100 text-gray-500 font-bold">
+                        <th className="py-2">Platform Format</th>
+                        <th className="py-2 text-center">Qty</th>
+                        <th className="py-2 text-center">Retention Duration</th>
+                        <th className="py-2">Instructions / Brief</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {contract.deliverables?.map((d: any) => (
+                        <tr key={d.id} className="border-b border-gray-50 text-black">
+                          <td className="py-2 font-bold">{formatDeliverableTypeName(d.type)}</td>
+                          <td className="py-2 font-bold text-center">{d.quantity}</td>
+                          <td className="py-2 text-gray-500 font-semibold text-center">{d.duration || "Permanent"}</td>
+                          <td className="py-2 text-gray-500 max-w-xs">{d.notes || "No notes"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Card 4: Usage Rights & Scope */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Usage Rights &amp; Platform Scope</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <span className="font-semibold text-gray-500 block mb-1">Platforms Allowed:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {contract.platformsAllowed?.map((p: string) => (
+                        <span key={p} className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-bold">{p}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-500 block mb-1">Granted License:</span>
+                    <span className="font-bold text-black">{formatUsageLicenseText(contract.usageType)}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-500 block mb-1">Rights Duration:</span>
+                    <span className="font-bold text-black">{contract.usageRightsDuration}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 5: Delivery, Exclusivity & NDA */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Delivery Window &amp; Pre-Approval Protocol</span>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-500">Delivery Deadline:</span>
+                    <span className="font-bold text-black">{contract.deliveryTimeframeDays} Days (post product/advance)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-500">Revision Rounds:</span>
+                    <span className="font-bold text-black">{contract.revisionRounds} Rounds ({contract.revisionTurnaroundDays || 5} days/round)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-500">Pre-Approval Protocol:</span>
+                    <span className="font-bold text-black">{contract.brandApprovalRequired ? "Required (48-hr Deemed Approval)" : "Not Required"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-500">Exclusivity Clause:</span>
+                    <span className="font-bold text-black">{contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "No"}</span>
+                  </div>
+                  {contract.exclusivityClause && contract.exclusivityCompetitors && (
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-gray-500">Prohibited Competitors:</span>
+                      <span className="font-bold text-black truncate max-w-[180px]" title={contract.exclusivityCompetitors}>{contract.exclusivityCompetitors}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Confidentiality / Pre-Launch NDA</span>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-500">NDA Embargo Status:</span>
+                    <span className="font-bold text-black">{contract.confidentialityRequired ? "Strict NDA Active" : "Standard Confidentiality"}</span>
+                  </div>
+                  {contract.confidentialityRequired && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-gray-500">Embargo Launch Date:</span>
+                        <span className="font-bold text-black">{contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Required until official launch"}</span>
+                      </div>
+                      {contract.earlyDisclosurePenalty && (
+                        <div className="flex justify-between">
+                          <span className="font-semibold text-gray-500">Early Leak Penalty:</span>
+                          <span className="font-bold text-rose-600">PKR {Number(contract.earlyDisclosurePenalty).toLocaleString()}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Card 6: Collaboration Product & Loan Return Terms (if present) */}
+              {contract.collabProduct && (
+                <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Collaboration Product Shipment &amp; Return Terms</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div>
+                      <span className="font-semibold text-gray-500 block">Product:</span>
+                      <span className="font-bold text-black">{contract.collabProduct} ({contract.collabProductProvisionType})</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-500 block">Expected Arrival:</span>
+                      <span className="font-bold text-black">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate) : "Not Specified"}</span>
+                    </div>
+                    {contract.collabDeliveryAddress && (
+                      <div>
+                        <span className="font-semibold text-gray-500 block">Delivery Address:</span>
+                        <span className="font-bold text-black block">{contract.collabDeliveryAddress}</span>
+                      </div>
+                    )}
+                  </div>
+                  {contract.collabProductProvisionType === "Product Loan" && (
+                    <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-950 space-y-1 mt-2">
+                      <div>• Product Loan Return Deadline: Within <strong>{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
+                      <div>• Return Shipping Paid By: <strong>{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
+                      {contract.collabProductNonReturnFee && <div>• Loss / Non-Return Fee: <strong>PKR {Number(contract.collabProductNonReturnFee).toLocaleString()}</strong></div>}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Card 7: Bilateral Safeguard Penalties */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Bilateral Safeguard Penalties &amp; Caps</span>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Late Payment / Delivery:</span>
+                    <span className="font-bold text-black">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Unauthorized Brand Re-Use:</span>
+                    <span className="font-bold text-black">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of fee</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Non-Delivery Advance Refund:</span>
+                    <span className="font-bold text-black">{contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-500 block">Non-Delivery Cutoff:</span>
+                    <span className="font-bold text-black">{contract.nonDeliveryCutoffDays || 7} Days post-deadline</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 8: Dispute Resolution (ADR) Clause */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-blue-50/50 space-y-1 text-[11px] text-blue-950">
+                <span className="font-bold uppercase tracking-wider block text-blue-900">Section 11: Governing Law &amp; Dispute Resolution</span>
+                <p className="leading-relaxed">
+                  Governed by the laws of Pakistan. Disputes proceed to 14 days of good-faith negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary determination in local courts; (b) Claims &gt; PKR 500,000 proceed to binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          {/* SECTION 2: VERIFICATION & IDENTITY */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
                 <h2 className="text-base font-black text-black uppercase tracking-wider">
-                  1. Counterparty Verification &amp; Profile Details
+                  2. Counterparty Verification &amp; Profile Details
                 </h2>
                 <p className="text-[11px] text-gray-400 font-medium">
                   Fill all verification fields below to enable Send OTP button. Profile fields will lock once OTP is dispatched.
@@ -518,237 +746,9 @@ export default function PublicSigningPage({ params }: PageProps) {
                 ) : (
                   <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
                     <span>✓</span>
-                    <span>Identity Verified via Email OTP code! You may now review terms below and execute signature.</span>
+                    <span>Identity Verified via Email OTP code! You may now execute signature below.</span>
                   </div>
                 )}
-              </div>
-
-            </div>
-          </div>
-
-          {/* SECTION 2: REVIEW AGREEMENT TERMS */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
-            <div className="border-b border-gray-100 pb-3 text-left">
-              <h2 className="text-base font-black text-black uppercase tracking-wider">
-                2. Review Campaign Terms
-              </h2>
-              <p className="text-xs text-gray-500 font-medium mt-1">
-                Please review all campaign parameters below. If terms match your negotiated values, execute your digital signature.
-              </p>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              
-              {/* Card 1: Overview & Parties */}
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Campaign &amp; Parties Overview</span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <div>
-                    <span className="font-semibold text-gray-500 block">Direction:</span>
-                    <span className="font-bold text-black uppercase">{contract.contractType.replace(/_/g, " ")}</span>
-                  </div>
-                  {contract.brandName && (
-                    <div>
-                      <span className="font-semibold text-gray-500 block">Client Brand:</span>
-                      <span className="font-bold text-black">{contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</span>
-                      {contract.campaignName && <span className="text-[10px] text-gray-500 block">Campaign: {contract.campaignName}</span>}
-                    </div>
-                  )}
-                  {contract.creatorName && (
-                    <div>
-                      <span className="font-semibold text-gray-500 block">Creator:</span>
-                      <span className="font-bold text-black">{contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Card 2: Financial Compensation */}
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Financial Compensation &amp; Payout Terms</span>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <div>
-                    <span className="font-semibold text-gray-500 block">Total Valuation:</span>
-                    <span className="font-black text-black text-sm">PKR {Number(contract.totalAmount).toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-500 block">Advance Payment:</span>
-                    <span className="font-bold text-black">{contract.advancePayment ? `PKR ${Number(contract.advancePayment).toLocaleString()}` : "No Advance"}</span>
-                    {contract.advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.advancePaymentDate)}</span>}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-500 block">Remaining Payout:</span>
-                    <span className="font-bold text-black">PKR {Number(contract.remainingAmount || 0).toLocaleString()}</span>
-                    {contract.remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.remainingPaymentDate)}</span>}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-500 block">Payment Route Method:</span>
-                    <span className="font-bold text-black uppercase">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
-                    <span className="text-[10px] text-gray-500 font-mono block truncate">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3: Deliverables Requirements */}
-              <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Campaign Deliverables Table</span>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-gray-500 font-bold">
-                        <th className="py-2">Platform Format</th>
-                        <th className="py-2 text-center">Qty</th>
-                        <th className="py-2 text-center">Retention Duration</th>
-                        <th className="py-2">Instructions / Brief</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {contract.deliverables?.map((d: any) => (
-                        <tr key={d.id} className="border-b border-gray-50 text-black">
-                          <td className="py-2 font-bold">{formatDeliverableTypeName(d.type)}</td>
-                          <td className="py-2 font-bold text-center">{d.quantity}</td>
-                          <td className="py-2 text-gray-500 font-semibold text-center">{d.duration || "Permanent"}</td>
-                          <td className="py-2 text-gray-500 max-w-xs">{d.notes || "No notes"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Card 4: Usage Rights & Scope */}
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Usage Rights &amp; Platform Scope</span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <span className="font-semibold text-gray-500 block mb-1">Platforms Allowed:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {contract.platformsAllowed?.map((p: string) => (
-                        <span key={p} className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-bold">{p}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-500 block mb-1">Granted License:</span>
-                    <span className="font-bold text-black">{formatUsageLicenseText(contract.usageType)}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-500 block mb-1">Rights Duration:</span>
-                    <span className="font-bold text-black">{contract.usageRightsDuration}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 5: Delivery, Exclusivity & NDA */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Delivery Window &amp; Pre-Approval Protocol</span>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-gray-500">Delivery Deadline:</span>
-                    <span className="font-bold text-black">{contract.deliveryTimeframeDays} Days (post product/advance)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-gray-500">Revision Rounds:</span>
-                    <span className="font-bold text-black">{contract.revisionRounds} Rounds ({contract.revisionTurnaroundDays || 5} days/round)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-gray-500">Pre-Approval Protocol:</span>
-                    <span className="font-bold text-black">{contract.brandApprovalRequired ? "Required (48-hr Deemed Approval)" : "Not Required"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-gray-500">Exclusivity Clause:</span>
-                    <span className="font-bold text-black">{contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "No"}</span>
-                  </div>
-                  {contract.exclusivityClause && contract.exclusivityCompetitors && (
-                    <div className="flex justify-between">
-                      <span className="font-semibold text-gray-500">Prohibited Competitors:</span>
-                      <span className="font-bold text-black truncate max-w-[180px]" title={contract.exclusivityCompetitors}>{contract.exclusivityCompetitors}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Confidentiality / Pre-Launch NDA</span>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-gray-500">NDA Embargo Status:</span>
-                    <span className="font-bold text-black">{contract.confidentialityRequired ? "Strict NDA Active" : "Standard Confidentiality"}</span>
-                  </div>
-                  {contract.confidentialityRequired && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="font-semibold text-gray-500">Embargo Launch Date:</span>
-                        <span className="font-bold text-black">{contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Required until official launch"}</span>
-                      </div>
-                      {contract.earlyDisclosurePenalty && (
-                        <div className="flex justify-between">
-                          <span className="font-semibold text-gray-500">Early Leak Penalty:</span>
-                          <span className="font-bold text-rose-600">PKR {Number(contract.earlyDisclosurePenalty).toLocaleString()}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Card 6: Collaboration Product & Loan Return Terms (if present) */}
-              {contract.collabProduct && (
-                <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Collaboration Product Shipment &amp; Return Terms</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <div>
-                      <span className="font-semibold text-gray-500 block">Product:</span>
-                      <span className="font-bold text-black">{contract.collabProduct} ({contract.collabProductProvisionType})</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold text-gray-500 block">Expected Arrival:</span>
-                      <span className="font-bold text-black">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate) : "Not Specified"}</span>
-                    </div>
-                    {contract.collabDeliveryAddress && (
-                      <div>
-                        <span className="font-semibold text-gray-500 block">Delivery Address:</span>
-                        <span className="font-bold text-black block">{contract.collabDeliveryAddress}</span>
-                      </div>
-                    )}
-                  </div>
-                  {contract.collabProductProvisionType === "Product Loan" && (
-                    <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-950 space-y-1 mt-2">
-                      <div>• Product Loan Return Deadline: Within <strong>{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
-                      <div>• Return Shipping Paid By: <strong>{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
-                      {contract.collabProductNonReturnFee && <div>• Loss / Non-Return Fee: <strong>PKR {Number(contract.collabProductNonReturnFee).toLocaleString()}</strong></div>}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Card 7: Bilateral Safeguard Penalties */}
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Bilateral Safeguard Penalties &amp; Caps</span>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <div>
-                    <span className="font-semibold text-gray-500 block">Late Payment / Delivery:</span>
-                    <span className="font-bold text-black">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-500 block">Unauthorized Brand Re-Use:</span>
-                    <span className="font-bold text-black">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of fee</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-500 block">Non-Delivery Advance Refund:</span>
-                    <span className="font-bold text-black">{contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-500 block">Non-Delivery Cutoff:</span>
-                    <span className="font-bold text-black">{contract.nonDeliveryCutoffDays || 7} Days post-deadline</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 8: Dispute Resolution (ADR) Clause */}
-              <div className="p-4 rounded-xl border border-gray-200 bg-blue-50/50 space-y-1 text-[11px] text-blue-950">
-                <span className="font-bold uppercase tracking-wider block text-blue-900">Section 11: Governing Law &amp; Dispute Resolution</span>
-                <p className="leading-relaxed">
-                  Governed by the laws of Pakistan. Disputes proceed to 14 days of good-faith negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary determination in local courts; (b) Claims &gt; PKR 500,000 proceed to binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>.
-                </p>
               </div>
 
             </div>
