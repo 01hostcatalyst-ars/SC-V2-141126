@@ -497,9 +497,9 @@ export default function NewContractPage() {
         </div>
       )}
 
-      {/* Stepper Header Bar (Unified Tab Style, No Numbers, No Truncation) */}
+      {/* Stepper Header Bar (Unified Tab Style, Horizontal Scroll on Mobile) */}
       <div className="bg-gray-100/80 border border-gray-200/80 rounded-2xl p-1.5 shadow-sm">
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-1">
+        <div className="flex overflow-x-auto no-scrollbar sm:grid sm:grid-cols-6 gap-1 pb-1 sm:pb-0">
           {STEPS.map((s) => {
             const isActive = step === s.id;
             const isDone = step > s.id;
@@ -509,7 +509,7 @@ export default function NewContractPage() {
                 type="button"
                 onClick={() => (isDone || isActive) && setStep(s.id)}
                 disabled={!isDone && !isActive}
-                className={`py-3 px-2 rounded-xl text-xs font-bold transition-all text-center whitespace-nowrap ${
+                className={`py-3 px-3 sm:px-2 rounded-xl text-xs font-bold transition-all text-center whitespace-nowrap flex-shrink-0 sm:flex-shrink ${
                   isActive
                     ? "bg-black text-white shadow-md"
                     : isDone
@@ -755,7 +755,7 @@ export default function NewContractPage() {
             ) : (
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
                 <label className="text-xs font-bold uppercase tracking-wider text-black block">Payout Route Method</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
                     { id: "BANK_IBAN", label: "Bank Transfer (IBAN)" },
                     { id: "JAZZCASH", label: "JazzCash Mobile" },
@@ -765,7 +765,7 @@ export default function NewContractPage() {
                       key={m.id}
                       type="button"
                       onClick={() => setPaymentMethod(m.id)}
-                      className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                      className={`py-2.5 px-3 rounded-lg text-xs font-bold border transition-all text-center ${
                         paymentMethod === m.id
                           ? "bg-black text-white border-black shadow-sm"
                           : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
@@ -876,10 +876,10 @@ export default function NewContractPage() {
 
             {/* Product Shipment & Product Loan Return Terms */}
             <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-black">Collaboration Product Shipment</label>
                 <select
-                  className="text-xs font-bold bg-white border border-gray-200 p-1.5 rounded-lg"
+                  className="text-xs font-bold bg-white border border-gray-200 p-2 rounded-lg w-full sm:w-auto"
                   value={collabProductProvisionType}
                   onChange={(e) => setCollabProductProvisionType(e.target.value)}
                 >
