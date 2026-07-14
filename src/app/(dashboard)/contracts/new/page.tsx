@@ -288,16 +288,6 @@ export default function NewContractPage() {
         return false;
       }
     }
-    if (step === 5) {
-      if (!initiatorDesignation.trim()) {
-        showToast("Please enter your Job Title / Signing Capacity.", "error");
-        return false;
-      }
-      if (!initiatorOtpVerified) {
-        showToast("Please verify your email via OTP before publishing.", "error");
-        return false;
-      }
-    }
     return true;
   };
 
@@ -1501,8 +1491,8 @@ export default function NewContractPage() {
               </table>
             </div>
 
-            <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-800 leading-relaxed font-semibold">
-              Once submitted, this generates a unique shared agreement link. The counterparty must verify their email via OTP before signing first.
+            <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed font-semibold">
+              Saving this agreement will store it in your dashboard as a <strong>DRAFT</strong>. You can view, edit, or publish it and verify your identity via OTP when ready to share with the counterparty.
             </div>
           </div>
         )}
@@ -1532,18 +1522,10 @@ export default function NewContractPage() {
             <button
               type="button"
               onClick={handleSubmitContract}
-              disabled={loading || !initiatorOtpVerified}
-              className={`font-bold px-8 py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 ${
-                initiatorOtpVerified
-                  ? "bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer"
-                  : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
-              }`}
+              disabled={loading}
+              className="bg-black text-white hover:bg-black/90 font-bold px-8 py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2"
             >
-              {loading
-                ? "Generating Link..."
-                : initiatorOtpVerified
-                ? "Publish & Generate Shared Link ➔"
-                : "🔒 Verify Email via OTP Above to Publish & Generate Link"}
+              {loading ? "Saving Draft..." : "Save Agreement Draft ➔"}
             </button>
           )}
         </div>

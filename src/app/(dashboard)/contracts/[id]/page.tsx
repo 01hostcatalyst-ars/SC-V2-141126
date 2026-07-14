@@ -23,12 +23,27 @@ export default function ContractDetailPage({ params }: PageProps) {
   const [actionLoading, setActionLoading] = useState(false);
   const [isSignModalOpen, setIsSignModalOpen] = useState(false);
 
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [publishDesignation, setPublishDesignation] = useState("");
+  const [publishNtn, setPublishNtn] = useState("");
+  const [otpDispatched, setOtpDispatched] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+
   const fetchContract = useCallback(async () => {
     try {
       const res = await fetch(`/api/contracts/${resolvedParams.id}`);
       const data = await res.json();
       if (res.ok && data.success) {
         setContract(data.contract);
+        if (data.contract.initiatorDesignation) {
+          setPublishDesignation(data.contract.initiatorDesignation);
+        }
+        if (data.contract.initiatorNtn) {
+          setPublishNtn(data.contract.initiatorNtn);
+        }
       } else {
         showToast(data.error || "Failed to load agreement details.", "error");
       }
@@ -43,18 +58,96 @@ export default function ContractDetailPage({ params }: PageProps) {
     fetchContract();
   }, [fetchContract]);
 
-  const handleSubmitDraft = async () => {
+  useEffect(() => {
+    let timer: any;
+    if (resendTimer > 0) {
+      timer = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendTimer]);
+
+  const handleSendPublishOTP = async () => {
+    if (!publishDesignation.trim()) {
+      showToast("Please enter your Job Title / Signing Capacity first.", "error");
+      return;
+    }
+    setOtpLoading(true);
+    try {
+      const res = await fetch("/api/contracts/initiator-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "send",
+          designation: publishDesignation,
+          ntn: publishNtn,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setOtpDispatched(true);
+        setResendTimer(60);
+        showToast(data.message || `Verification code sent to ${user?.email}`, "success");
+      } else {
+        showToast(data.error || "Failed to send verification code.", "error");
+      }
+    } catch (err) {
+      showToast("Error sending verification code.", "error");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyPublishOTP = async () => {
+    if (!otpCode || otpCode.length !== 6) {
+      showToast("Please enter the 6-digit OTP code sent to your email.", "error");
+      return;
+    }
+    setOtpLoading(true);
+    try {
+      const res = await fetch("/api/contracts/initiator-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "verify",
+          code: otpCode,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setOtpVerified(true);
+        showToast("Email identity verified! You may now lock terms & generate shared link.", "success");
+      } else {
+        showToast(data.error || "Invalid or expired OTP code.", "error");
+      }
+    } catch (err) {
+      showToast("Error verifying identity code.", "error");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handlePublishSubmit = async () => {
+    if (!otpVerified) {
+      showToast("Please verify your email via OTP before publishing.", "error");
+      return;
+    }
     setActionLoading(true);
     try {
       const res = await fetch(`/api/contracts/${resolvedParams.id}/submit`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          initiatorDesignation: publishDesignation,
+          initiatorNtn: publishNtn,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
-        showToast("Agreement submitted! Public signing link generated.", "success");
+        showToast("Agreement published & counterparty link activated!", "success");
+        setIsPublishModalOpen(false);
         fetchContract();
       } else {
-        showToast(data.error || "Failed to submit draft.", "error");
+        showToast(data.error || "Failed to publish draft.", "error");
       }
     } catch (err) {
       showToast("Error executing draft submission.", "error");
@@ -214,11 +307,11 @@ export default function ContractDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center gap-3">
           {contract.status === "DRAFT" && isUserInitiator && (
             <button
-              onClick={handleSubmitDraft}
+              onClick={() => setIsPublishModalOpen(true)}
               disabled={actionLoading}
-              className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all"
+              className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
             >
-              Publish &amp; Generate Link
+              🔒 Publish &amp; Verify Identity to Share
             </button>
           )}
 
@@ -626,6 +719,113 @@ export default function ContractDetailPage({ params }: PageProps) {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Publish & Identity Verification Modal */}
+      {isPublishModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsPublishModalOpen(false)} />
+          <div className="relative bg-white w-full max-w-lg max-h-[90vh] flex flex-col rounded-3xl shadow-2xl overflow-hidden z-10 border border-gray-200 p-6 text-left animate-slide-in">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4 shrink-0">
+              <h3 className="text-base font-black text-black uppercase tracking-wider">Identity Verification &amp; Publish Link</h3>
+              <button onClick={() => setIsPublishModalOpen(false)} className="text-gray-400 hover:text-black font-bold text-xl focus:outline-none">
+                ×
+              </button>
+            </div>
+
+            <div className="overflow-y-auto space-y-4 pr-1.5 flex-1 custom-scrollbar">
+              <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed font-semibold">
+                <strong>Identity Verification Notice:</strong> Under Pakistan ETO 2002 guidelines, verifying your email via OTP binds your signing authority to this agreement draft and locks all campaign specifications.
+              </div>
+
+              {/* Designation & NTN Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="font-bold text-gray-700 block mb-1">Signing Capacity / Title *</label>
+                  <input
+                    type="text"
+                    value={publishDesignation}
+                    onChange={(e) => setPublishDesignation(e.target.value)}
+                    placeholder="e.g. Head of Marketing"
+                    disabled={otpVerified}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl font-semibold text-black bg-gray-50 focus:outline-none focus:bg-white focus:border-black transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-gray-700 block mb-1">NTN / Reg No (Optional)</label>
+                  <input
+                    type="text"
+                    value={publishNtn}
+                    onChange={(e) => setPublishNtn(e.target.value)}
+                    placeholder="e.g. 1234567-8"
+                    disabled={otpVerified}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl font-semibold text-black bg-gray-50 focus:outline-none focus:bg-white focus:border-black transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* OTP Dispatches Box */}
+              {!otpVerified ? (
+                <div className="p-4 border border-gray-200 rounded-2xl bg-gray-50 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-xs text-black block">Email Security Passcode</span>
+                      <span className="text-[11px] text-gray-500">Code will be sent to <strong>{user?.email}</strong></span>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={otpLoading || resendTimer > 0}
+                      onClick={handleSendPublishOTP}
+                      className="px-3.5 py-1.5 bg-black hover:bg-black/90 text-white font-bold text-xs uppercase rounded-xl transition-all disabled:opacity-50"
+                    >
+                      {otpLoading ? "Sending..." : resendTimer > 0 ? `Resend (${resendTimer}s)` : otpDispatched ? "Resend Code" : "Send OTP"}
+                    </button>
+                  </div>
+
+                  {otpDispatched && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                        placeholder="6-digit OTP"
+                        className="w-32 px-3 py-1.5 border border-gray-300 rounded-xl font-mono font-bold text-center text-sm focus:outline-none focus:border-black"
+                      />
+                      <button
+                        type="button"
+                        disabled={otpLoading || otpCode.length !== 6}
+                        onClick={handleVerifyPublishOTP}
+                        className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase rounded-xl transition-all disabled:opacity-50"
+                      >
+                        {otpLoading ? "Verifying..." : "Verify OTP"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-bold flex items-center gap-2">
+                  <span>✓</span>
+                  <span>Email Identity Verified! Terms ready to be locked &amp; shared.</span>
+                </div>
+              )}
+
+              {/* Publish Submit Action */}
+              <button
+                type="button"
+                disabled={actionLoading || !otpVerified}
+                onClick={handlePublishSubmit}
+                className={`w-full font-bold text-xs uppercase py-3 rounded-xl transition-all shadow-md mt-4 ${
+                  otpVerified
+                    ? "bg-black text-white hover:bg-black/90 cursor-pointer"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {actionLoading ? "Locking Terms & Publishing..." : "Lock Terms & Activate Public Signing Link ➔"}
+              </button>
+            </div>
           </div>
         </div>
       )}
