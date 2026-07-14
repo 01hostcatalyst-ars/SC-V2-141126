@@ -490,15 +490,15 @@ export default function PublicSigningPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* SECTION 2: VERIFICATION & IDENTITY */}
+          {/* SECTION 2: VERIFICATION & DIGITAL SIGNATURE EXECUTION */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
                 <h2 className="text-base font-black text-black uppercase tracking-wider">
-                  2. Counterparty Verification &amp; Profile Details
+                  2. Counterparty Verification &amp; Digital Signature Execution
                 </h2>
                 <p className="text-[11px] text-gray-400 font-medium">
-                  Fill all verification fields below to enable Send OTP button. Profile fields will lock once OTP is dispatched.
+                  Complete your profile details, verify your email identity via OTP, and click Review &amp; Sign to execute.
                 </p>
               </div>
               {otpVerified && (
@@ -746,38 +746,34 @@ export default function PublicSigningPage({ params }: PageProps) {
                 ) : (
                   <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
                     <span>✓</span>
-                    <span>Identity Verified via Email OTP code! You may now execute signature below.</span>
+                    <span>Identity Verified via Email OTP code! You may now execute digital signature below.</span>
                   </div>
                 )}
               </div>
 
+              {/* INTEGRATED SIGNATURE & EXECUTION BUTTON */}
+              <div className="sm:col-span-2 pt-4 border-t border-gray-100 flex flex-col items-center text-center gap-3">
+                <p className="text-xs text-gray-500 max-w-lg mx-auto">
+                  By clicking below, your digital signature will be recorded along with an ETO 2002 audit log containing your verified email, IP address, and cryptographic timestamp.
+                </p>
+                <button
+                  type="submit"
+                  disabled={signing || !otpVerified}
+                  className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center gap-2 ${
+                    otpVerified
+                      ? "bg-black text-white hover:bg-black/90 cursor-pointer"
+                      : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+                  }`}
+                >
+                  {signing
+                    ? "Processing Signature..."
+                    : otpVerified
+                    ? "REVIEW & SIGN AGREEMENT ➔"
+                    : "🔒 Verify Email via OTP Above to Unlock Signature"}
+                </button>
+              </div>
+
             </div>
-          </div>
-
-          {/* SECTION 3: SIGNATURE & EXECUTION BUTTON */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md text-center space-y-4">
-            <h2 className="text-base font-black text-black uppercase tracking-wider">
-              3. Execute Digital Signature
-            </h2>
-            <p className="text-xs text-gray-500 max-w-lg mx-auto">
-              By clicking below, your digital signature will be recorded along with an ETO 2002 audit log containing your verified email, IP address, and cryptographic timestamp.
-            </p>
-
-            <button
-              type="submit"
-              disabled={signing || !otpVerified}
-              className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center gap-2 ${
-                otpVerified
-                  ? "bg-black text-white hover:bg-black/90 cursor-pointer"
-                  : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
-              }`}
-            >
-              {signing
-                ? "Processing Signature..."
-                : otpVerified
-                ? "REVIEW & SIGN AGREEMENT ➔"
-                : "Verify Email via OTP Above to Unlock Signature"}
-            </button>
           </div>
 
         </form>
