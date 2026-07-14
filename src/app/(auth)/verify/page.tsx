@@ -459,6 +459,8 @@ function VerifyContent() {
 }
 
 export default function VerifyPage() {
+  const company = getCompanyConfig();
+
   return (
     <Suspense
       fallback={
@@ -470,8 +472,57 @@ export default function VerifyPage() {
         </div>
       }
     >
-      <div className="min-h-screen bg-theme-gradient flex items-center justify-center p-4 md:p-8">
-        <VerifyContent />
+      <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
+        {/* Background ambient glow shapes */}
+        <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
+        <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
+
+        {/* Header */}
+        <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-6 z-10 sticky top-0">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base">
+              {company.name[0]}
+            </span>
+            <span className="font-bold text-lg text-black tracking-tight uppercase">
+              {company.name}
+            </span>
+          </Link>
+          <Link
+            href="/"
+            className="text-xs font-semibold px-4 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors"
+          >
+            ← Back to Home
+          </Link>
+        </header>
+
+        {/* Main Body */}
+        <main className="flex-1 flex items-center justify-center p-6 md:p-12 z-10">
+          <VerifyContent />
+        </main>
+
+        {/* Footer */}
+        <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-6 flex flex-col md:flex-row items-center justify-between px-6 gap-4 z-10">
+          <span className="text-xs text-gray-500 font-semibold">
+            © {new Date().getFullYear()} {company.name}. All rights reserved.
+          </span>
+          <div className="flex gap-4 items-center flex-wrap justify-center">
+            <Link href="/features" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
+              Features
+            </Link>
+            <span className="text-gray-300">|</span>
+            <Link href="/verify" className="text-xs text-black font-bold hover:underline">
+              Verify Document
+            </Link>
+            <span className="text-gray-300">|</span>
+            <Link href="/terms" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
+              Terms &amp; Privacy
+            </Link>
+            <span className="text-gray-300">|</span>
+            <a href={`mailto:${company.supportEmail}`} className="text-xs text-gray-500 hover:text-black font-semibold transition-colors">
+              Support: {company.supportEmail}
+            </a>
+          </div>
+        </footer>
       </div>
     </Suspense>
   );
