@@ -168,7 +168,13 @@ export default function Home() {
             {company.name}
           </span>
         </Link>
-        <div>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/instant"
+            className="text-xs font-bold px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm flex items-center gap-1.5"
+          >
+            <span>⚡ Instant Contract (No Signup)</span>
+          </Link>
           <button 
             onClick={() => setAuthTab(authTab === "signin" ? "signup" : "signin")} 
             className="text-xs font-semibold px-4 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors"
@@ -184,8 +190,8 @@ export default function Home() {
           
           {/* Column 1: Info Column */}
           <div className="flex flex-col text-left space-y-6">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100/70 text-blue-800 border border-blue-200 w-fit">
-              Safe & bilaterally signed campaign proofs
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100/80 text-emerald-900 border border-emerald-300 w-fit">
+              ⚡ Instant 1-Page Contracts Now Available • No Signup Required
             </span>
             <h1 className="text-4xl md:text-5xl font-black text-black leading-tight tracking-tight">
               Bilateral Contracts.<br />
@@ -195,6 +201,17 @@ export default function Home() {
               Stop executing commercial social media partnerships via transient chat logs. 
               <strong> {company.name}</strong> provides a simple, bilateral proof-layer with tamper-proof signature logs. Admissible under Pakistan&apos;s ETO 2002.
             </p>
+
+            {/* Quick Action Button */}
+            <div className="pt-1">
+              <Link
+                href="/instant"
+                className="inline-flex items-center justify-center gap-2 bg-black hover:bg-black/90 text-white font-bold px-6 py-3.5 rounded-2xl text-sm transition-all shadow-xl hover:scale-[1.02]"
+              >
+                <span>⚡ Create Instant Agreement (Guest Mode)</span>
+                <span>➔</span>
+              </Link>
+            </div>
 
             {/* Badges system - using Gen-Z/Professional favorite color codes */}
             <div className="flex flex-wrap gap-2 pt-2">
@@ -217,8 +234,8 @@ export default function Home() {
 
             <div className="grid grid-cols-2 gap-4 border-t border-gray-200/80 pt-6 mt-4">
               <div>
-                <h4 className="text-xl font-bold text-black">100% Free</h4>
-                <p className="text-xs text-gray-500 mt-1">Unlimited draft generation, OTP verification, and storage.</p>
+                <h4 className="text-xl font-bold text-black">Guest Mode</h4>
+                <p className="text-xs text-gray-500 mt-1">2 free instant contracts per day per email without signing up.</p>
               </div>
               <div>
                 <h4 className="text-xl font-bold text-black">Audit Trails</h4>

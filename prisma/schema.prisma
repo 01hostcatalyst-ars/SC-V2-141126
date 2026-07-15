@@ -17,8 +17,10 @@ enum Role {
 enum ContractType {
   CREATOR_TO_BRAND
   BRAND_TO_CREATOR
+  BRAND_TO_AGENCY
   AGENCY_TO_BRAND
   AGENCY_TO_CREATOR
+  CREATOR_TO_AGENCY
 }
 
 enum ContractStatus {
@@ -74,7 +76,7 @@ model User {
   instagramHandle String?  @map("instagram_handle")
   cnicNumber      String?  @map("cnic_number")
   cnicPhotoUrl    String?  @map("cnic_photo_url")
-  supabaseAuthId  String   @unique @map("supabase_auth_id")
+  supabaseAuthId  String?  @unique @map("supabase_auth_id")
   role            Role
   agencyName      String?  @map("agency_name")
   agencyAddress   String?  @map("agency_address")

@@ -32,16 +32,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Auth user registration failed" }, { status: 500 });
     }
 
-    // 2. Insert user details in database profile table via Prisma
-    const dbUser = await prisma.user.create({
-      data: {
+    // 2. Insert or update user profile via Prisma (auto-claiming past guest contracts)
+    const dbUser = await prisma.user.upsert({
+      where: { email },
+      update: {
+        name,
+        phone: phone || undefined,
+        role,
+        instagramHandle: instagramHandle || undefined,
+        cnicNumber: cnicNumber || undefined,
+        agencyName: agencyName || undefined,
+        agencyAddress: agencyAddress || undefined,
+        supabaseAuthId: authData.user.id,
+      },
+      create: {
         name,
         email,
-        phone,
+        phone: phone || undefined,
         role,
-        instagramHandle,
-        agencyName,
-        agencyAddress,
+        instagramHandle: instagramHandle || undefined,
+        cnicNumber: cnicNumber || undefined,
+        agencyName: agencyName || undefined,
+        agencyAddress: agencyAddress || undefined,
         supabaseAuthId: authData.user.id,
       },
     });

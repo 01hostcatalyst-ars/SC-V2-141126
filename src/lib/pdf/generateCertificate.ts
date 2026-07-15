@@ -27,10 +27,10 @@ export async function generateAuditCertificatePDF(contractId: string) {
   const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 120 });
 
   const initiatorSignature = contract.signatures.find(
-    (s) => s.signerRole === "CREATOR" || s.signerRole === "AGENCY" || s.signerId === contract.initiatorId
+    (s) => s.signerId === contract.initiatorId
   );
   const respondentSignature = contract.signatures.find(
-    (s) => s.signerRole === "BRAND" || (contract.respondentId && s.signerId === contract.respondentId)
+    (s) => s.signerId !== contract.initiatorId
   );
 
   const formatLegalDate = (date: Date | null | undefined) => {
@@ -75,7 +75,9 @@ export async function generateAuditCertificatePDF(contractId: string) {
       case "AGENCY_TO_BRAND": return "AGENCY TO BRAND INFLUENCER MARKETING & CONTENT LICENSING AGREEMENT";
       case "AGENCY_TO_CREATOR": return "AGENCY TO CREATOR CONTENT PRODUCTION & SERVICE AGREEMENT";
       case "BRAND_TO_CREATOR": return "BRAND TO CREATOR DIRECT SPONSORSHIP AGREEMENT";
+      case "BRAND_TO_AGENCY": return "BRAND TO AGENCY CAMPAIGN MANAGEMENT & SERVICE AGREEMENT";
       case "CREATOR_TO_BRAND": return "CREATOR TO BRAND DIRECT CONTENT ENGAGEMENT AGREEMENT";
+      case "CREATOR_TO_AGENCY": return "CREATOR TO AGENCY CONTENT COLLABORATION & SERVICE AGREEMENT";
       default: return "MUTUAL COLLABORATION & CONTENT LICENSING AGREEMENT";
     }
   };

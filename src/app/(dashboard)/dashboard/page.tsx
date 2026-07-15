@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"all" | "brand" | "creator">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "brand" | "creator" | "agency">("all");
 
   useEffect(() => {
     const fetchContracts = async () => {
@@ -98,20 +98,34 @@ export default function DashboardPage() {
         return <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">Creator ➔ Brand</span>;
       case "BRAND_TO_CREATOR":
         return <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">Brand ➔ Creator</span>;
+      case "BRAND_TO_AGENCY":
+        return <span className="text-[10px] font-bold bg-teal-50 text-teal-700 px-2 py-0.5 rounded border border-teal-200">Brand ➔ Agency</span>;
       case "AGENCY_TO_BRAND":
         return <span className="text-[10px] font-bold bg-orange-50 text-orange-700 px-2 py-0.5 rounded border border-orange-200">Agency ➔ Brand</span>;
       case "AGENCY_TO_CREATOR":
         return <span className="text-[10px] font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-200">Agency ➔ Creator</span>;
+      case "CREATOR_TO_AGENCY":
+        return <span className="text-[10px] font-bold bg-violet-50 text-violet-700 px-2 py-0.5 rounded border border-violet-200">Creator ➔ Agency</span>;
       default:
         return <span className="text-[10px] font-bold bg-gray-50 text-gray-700 px-2 py-0.5 rounded border border-gray-200">{type}</span>;
     }
   };
 
-  // Filtered list for Agency tabs
+  // Filtered list for role-specific tabs
   const filteredContracts = contracts.filter((c) => {
-    if (user?.role !== "AGENCY" || activeTab === "all") return true;
-    if (activeTab === "brand") return c.contractType === "AGENCY_TO_BRAND";
-    if (activeTab === "creator") return c.contractType === "AGENCY_TO_CREATOR";
+    if (activeTab === "all") return true;
+    if (user?.role === "AGENCY") {
+      if (activeTab === "brand") return c.contractType === "AGENCY_TO_BRAND";
+      if (activeTab === "creator") return c.contractType === "AGENCY_TO_CREATOR";
+    }
+    if (user?.role === "BRAND") {
+      if (activeTab === "creator") return c.contractType === "BRAND_TO_CREATOR";
+      if (activeTab === "agency") return c.contractType === "BRAND_TO_AGENCY";
+    }
+    if (user?.role === "CREATOR") {
+      if (activeTab === "brand") return c.contractType === "CREATOR_TO_BRAND";
+      if (activeTab === "agency") return c.contractType === "CREATOR_TO_AGENCY";
+    }
     return true;
   });
 
@@ -178,6 +192,66 @@ export default function DashboardPage() {
             }`}
           >
             Creator Deals
+          </button>
+        </div>
+      )}
+
+      {/* Role specific tabs for Brands */}
+      {user?.role === "BRAND" && (
+        <div className="flex border-b border-gray-200 bg-white p-1 rounded-xl border max-w-md">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+              activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+            }`}
+          >
+            All Deals
+          </button>
+          <button
+            onClick={() => setActiveTab("creator")}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+              activeTab === "creator" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+            }`}
+          >
+            Creator Deals
+          </button>
+          <button
+            onClick={() => setActiveTab("agency")}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+              activeTab === "agency" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+            }`}
+          >
+            Agency Deals
+          </button>
+        </div>
+      )}
+
+      {/* Role specific tabs for Creators */}
+      {user?.role === "CREATOR" && (
+        <div className="flex border-b border-gray-200 bg-white p-1 rounded-xl border max-w-md">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+              activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+            }`}
+          >
+            All Deals
+          </button>
+          <button
+            onClick={() => setActiveTab("brand")}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+              activeTab === "brand" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+            }`}
+          >
+            Brand Deals
+          </button>
+          <button
+            onClick={() => setActiveTab("agency")}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+              activeTab === "agency" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+            }`}
+          >
+            Agency Deals
           </button>
         </div>
       )}

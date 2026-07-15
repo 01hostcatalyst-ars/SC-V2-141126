@@ -18,8 +18,10 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
   };
 
   const respondentSign = getSignatureByRole(
-    contract.contractType === "BRAND_TO_CREATOR" || contract.contractType === "AGENCY_TO_CREATOR"
+    contract.contractType.endsWith("_CREATOR")
       ? "CREATOR"
+      : contract.contractType.endsWith("_AGENCY")
+      ? "AGENCY"
       : "BRAND"
   );
 
@@ -33,8 +35,12 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         return "AGENCY TO CREATOR CONTENT PRODUCTION & SERVICE AGREEMENT";
       case "BRAND_TO_CREATOR":
         return "BRAND TO CREATOR DIRECT SPONSORSHIP AGREEMENT";
+      case "BRAND_TO_AGENCY":
+        return "BRAND TO AGENCY CAMPAIGN MANAGEMENT & SERVICE AGREEMENT";
       case "CREATOR_TO_BRAND":
         return "CREATOR TO BRAND DIRECT CONTENT ENGAGEMENT AGREEMENT";
+      case "CREATOR_TO_AGENCY":
+        return "CREATOR TO AGENCY CONTENT COLLABORATION & SERVICE AGREEMENT";
       default:
         return "MUTUAL COLLABORATION & CONTENT LICENSING AGREEMENT";
     }

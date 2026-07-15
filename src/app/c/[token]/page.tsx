@@ -71,14 +71,16 @@ export default function PublicSigningPage({ params }: PageProps) {
     fetchSharedContract();
   }, [resolvedParams.token, showToast]);
 
-  const isRespondentBrand = contract?.contractType?.endsWith("BRAND") ?? true;
+  const isRespondentBrand = contract?.contractType?.endsWith("_BRAND") ?? false;
+  const isRespondentAgency = contract?.contractType?.endsWith("_AGENCY") ?? false;
+  const isRespondentCreator = !isRespondentBrand && !isRespondentAgency;
 
   // Validation check: Send OTP button is enabled only when all required fields have data
   const isFormValid = Boolean(
     respondentEmail &&
     respondentPhone &&
     respondentName &&
-    (isRespondentBrand ? respondentCompany : collabDetails) &&
+    (isRespondentBrand ? respondentCompany : isRespondentAgency ? respondentCompany : collabDetails) &&
     respondentAddress &&
     respondentDesignation &&
     (isRespondentBrand || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
@@ -99,17 +101,17 @@ export default function PublicSigningPage({ params }: PageProps) {
           email: respondentEmail,
           phone: respondentPhone,
           name: respondentName,
-          company: isRespondentBrand ? respondentCompany : collabDetails,
+          company: (isRespondentBrand || isRespondentAgency) ? respondentCompany : collabDetails,
           address: respondentAddress,
           designation: respondentDesignation,
           respondentEmail,
           respondentPhone,
           respondentName,
-          respondentCompany: isRespondentBrand ? respondentCompany : collabDetails,
+          respondentCompany: (isRespondentBrand || isRespondentAgency) ? respondentCompany : collabDetails,
           respondentAddress,
           respondentDesignation,
           respondentNtn,
-          collabDetails: !isRespondentBrand ? collabDetails : undefined,
+          collabDetails: isRespondentCreator ? collabDetails : undefined,
         }),
       });
 
@@ -179,18 +181,18 @@ export default function PublicSigningPage({ params }: PageProps) {
           email: respondentEmail,
           name: respondentName,
           phone: respondentPhone,
-          company: isRespondentBrand ? respondentCompany : undefined,
+          company: (isRespondentBrand || isRespondentAgency) ? respondentCompany : undefined,
           address: respondentAddress,
           designation: respondentDesignation,
           ntn: respondentNtn,
           respondentName,
           respondentEmail,
           respondentPhone,
-          respondentCompany: isRespondentBrand ? respondentCompany : undefined,
+          respondentCompany: (isRespondentBrand || isRespondentAgency) ? respondentCompany : undefined,
           respondentDesignation,
           respondentAddress,
           respondentNtn,
-          collabDetails: !isRespondentBrand ? collabDetails : undefined,
+          collabDetails: isRespondentCreator ? collabDetails : undefined,
           paymentMethod: !isRespondentBrand ? paymentMethod : undefined,
           bankAccountIban: !isRespondentBrand && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
           mobileWalletNumber: !isRespondentBrand && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
@@ -574,6 +576,21 @@ export default function PublicSigningPage({ params }: PageProps) {
                       className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                     />
                   </>
+                ) : isRespondentAgency ? (
+                  <>
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">
+                      Agency Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Creative Hub Agency"
+                      value={respondentCompany}
+                      onChange={(e) => setRespondentCompany(e.target.value)}
+                      disabled={otpDispatched || otpVerified}
+                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                    />
+                  </>
                 ) : (
                   <>
                     <label className="text-xs font-bold text-black uppercase tracking-wider">
@@ -595,7 +612,7 @@ export default function PublicSigningPage({ params }: PageProps) {
               {/* 5. Brand / Company Address * */}
               <div className="flex flex-col gap-1 sm:col-span-2">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  Brand / Company Address <span className="text-rose-500">*</span>
+                  {isRespondentAgency ? "Agency Address" : "Brand / Company Address"} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -638,11 +655,11 @@ export default function PublicSigningPage({ params }: PageProps) {
                 />
               </div>
 
-              {/* Payout Account Route Selection for Creator Respondents */}
+              {/* Payout Account Route Selection for Creator and Agency Respondents */}
               {!isRespondentBrand && (
                 <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2 space-y-3">
                   <span className="text-xs font-bold text-black uppercase tracking-wider block">
-                    Your Payout Account Details (Required for Campaign Payouts) <span className="text-rose-500">*</span>
+                    {isRespondentAgency ? "Agency Payout Account Details" : "Your Payout Account Details"} (Required for Campaign Payouts) <span className="text-rose-500">*</span>
                   </span>
                   <div className="grid grid-cols-3 gap-2">
                     {[

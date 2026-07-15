@@ -48,6 +48,8 @@ export async function POST(
     let signerRole: SignerRole = SignerRole.BRAND;
     if (contract.contractType === "BRAND_TO_CREATOR" || contract.contractType === "AGENCY_TO_CREATOR") {
       signerRole = SignerRole.CREATOR;
+    } else if (contract.contractType === "BRAND_TO_AGENCY" || contract.contractType === "CREATOR_TO_AGENCY") {
+      signerRole = SignerRole.AGENCY;
     }
 
     // Extract headers for audit log parameters

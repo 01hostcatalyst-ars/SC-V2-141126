@@ -245,15 +245,33 @@ export default function NewContractPage() {
 
   const validateStep = () => {
     if (step === 0) {
-      if (contractType === "AGENCY_TO_BRAND") {
+      if (contractType === "AGENCY_TO_BRAND" || contractType === "BRAND_TO_CREATOR") {
         if (!creatorName.trim() || !creatorHandle.trim()) {
-          showToast("Creator Name and Creator Handle are required for Agency to Brand deals.", "error");
+          showToast("Creator Name and Creator Handle are required.", "error");
+          return false;
+        }
+      }
+      if (contractType === "BRAND_TO_AGENCY") {
+        if (!creatorName.trim() || !creatorHandle.trim()) {
+          showToast("Creator Name and Creator Handle are required.", "error");
           return false;
         }
       }
       if (contractType === "AGENCY_TO_CREATOR") {
         if (!brandName.trim() || !campaignName.trim()) {
           showToast("Brand Name and Campaign Name are required for Agency to Creator deals.", "error");
+          return false;
+        }
+      }
+      if (contractType === "CREATOR_TO_BRAND") {
+        if (!brandName.trim() || !brandHandle.trim()) {
+          showToast("Brand Name and Brand Handle are required.", "error");
+          return false;
+        }
+      }
+      if (contractType === "CREATOR_TO_AGENCY") {
+        if (!brandName.trim() || !campaignName.trim()) {
+          showToast("Brand Name and Campaign Name are required.", "error");
           return false;
         }
       }
@@ -307,11 +325,11 @@ export default function NewContractPage() {
     const payload = {
       contractType,
       linkedContractId: contractType === "AGENCY_TO_CREATOR" && linkedContractId && linkedContractId.trim() !== "" ? linkedContractId : undefined,
-      brandName: contractType === "AGENCY_TO_CREATOR" ? brandName : undefined,
-      brandHandle: contractType === "AGENCY_TO_CREATOR" ? brandHandle : undefined,
-      campaignName: contractType === "AGENCY_TO_CREATOR" ? campaignName : undefined,
-      creatorName: contractType === "AGENCY_TO_BRAND" ? creatorName : undefined,
-      creatorHandle: contractType === "AGENCY_TO_BRAND" ? creatorHandle : undefined,
+      brandName: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandName : undefined,
+      brandHandle: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandHandle : undefined,
+      campaignName: ["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY"].includes(contractType) ? campaignName : undefined,
+      creatorName: ["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) ? creatorName : undefined,
+      creatorHandle: ["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) ? creatorHandle : undefined,
       initiatorDesignation: initiatorDesignation || undefined,
       initiatorNtn: initiatorNtn || undefined,
       collabProduct: collabProduct || undefined,
@@ -489,6 +507,174 @@ export default function NewContractPage() {
                     className="input-field"
                     value={creatorHandle}
                     onChange={(e) => setCreatorHandle(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Contract direction settings for Brands */}
+      {user?.role === "BRAND" && step === 0 && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <label className="text-xs font-bold uppercase tracking-wider text-black block">Campaign Direction</label>
+          <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setContractType("BRAND_TO_CREATOR")}
+              className={`py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                contractType === "BRAND_TO_CREATOR" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
+            >
+              Brand ➔ Creator
+            </button>
+            <button
+              type="button"
+              onClick={() => setContractType("BRAND_TO_AGENCY")}
+              className={`py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                contractType === "BRAND_TO_AGENCY" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
+            >
+              Brand ➔ Agency
+            </button>
+          </div>
+
+          {(contractType === "BRAND_TO_CREATOR" || contractType === "BRAND_TO_AGENCY") && (
+            <div className="border-t border-gray-100 pt-4 mt-3 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Target Creator Details <span className="text-rose-500">*</span></h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Creator Full Name <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Jane Doe"
+                    className="input-field"
+                    value={creatorName}
+                    onChange={(e) => setCreatorName(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Creator Handle / Username <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. @janedoe"
+                    className="input-field"
+                    value={creatorHandle}
+                    onChange={(e) => setCreatorHandle(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {contractType === "BRAND_TO_AGENCY" && (
+            <div className="border-t border-gray-100 pt-4 mt-3 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Campaign Details</h4>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase text-gray-400">Campaign Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Summer Collection Launch"
+                  className="input-field"
+                  value={campaignName}
+                  onChange={(e) => setCampaignName(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Contract direction settings for Creators */}
+      {user?.role === "CREATOR" && step === 0 && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <label className="text-xs font-bold uppercase tracking-wider text-black block">Campaign Direction</label>
+          <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setContractType("CREATOR_TO_BRAND")}
+              className={`py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                contractType === "CREATOR_TO_BRAND" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
+            >
+              Creator ➔ Brand
+            </button>
+            <button
+              type="button"
+              onClick={() => setContractType("CREATOR_TO_AGENCY")}
+              className={`py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                contractType === "CREATOR_TO_AGENCY" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
+            >
+              Creator ➔ Agency
+            </button>
+          </div>
+
+          {contractType === "CREATOR_TO_BRAND" && (
+            <div className="border-t border-gray-100 pt-4 mt-3 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Target Brand Details <span className="text-rose-500">*</span></h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Brand Name <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Samsung Pakistan"
+                    className="input-field"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Brand Handle / Website <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. @samsungpk"
+                    className="input-field"
+                    value={brandHandle}
+                    onChange={(e) => setBrandHandle(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {contractType === "CREATOR_TO_AGENCY" && (
+            <div className="border-t border-gray-100 pt-4 mt-3 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Client Brand Details</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Brand Name <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Samsung"
+                    className="input-field"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Brand IG / Website</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. @samsungpk"
+                    className="input-field"
+                    value={brandHandle}
+                    onChange={(e) => setBrandHandle(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-400">Campaign Name <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Galaxy S27 Launch"
+                    className="input-field"
+                    value={campaignName}
+                    onChange={(e) => setCampaignName(e.target.value)}
                   />
                 </div>
               </div>
