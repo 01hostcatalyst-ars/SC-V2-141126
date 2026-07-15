@@ -47,6 +47,17 @@ export default function InstantContractPage() {
   const [initiatorDesignation, setInitiatorDesignation] = useState("");
   const [initiatorNtn, setInitiatorNtn] = useState("");
 
+  // Auto-sync Platform Role based on Contract Workflow
+  React.useEffect(() => {
+    if (contractType.startsWith("CREATOR_")) {
+      setInitiatorRole("CREATOR");
+    } else if (contractType.startsWith("BRAND_")) {
+      setInitiatorRole("BRAND");
+    } else if (contractType.startsWith("AGENCY_")) {
+      setInitiatorRole("AGENCY");
+    }
+  }, [contractType]);
+
   // Counterparty fields (Reactive based on contractType)
   const [brandName, setBrandName] = useState("");
   const [brandHandle, setBrandHandle] = useState("");
@@ -167,6 +178,11 @@ export default function InstantContractPage() {
 
     if (!initiatorName.trim() || !initiatorEmail.trim()) {
       setErrorMsg("Please enter your name and email address.");
+      return;
+    }
+
+    if (!initiatorDesignation.trim() || !initiatorNtn.trim()) {
+      setErrorMsg("Please fill in your Job Title / Capacity and NTN/CNIC.");
       return;
     }
 
@@ -463,7 +479,7 @@ export default function InstantContractPage() {
                   <input
                     type="email"
                     required
-                    placeholder="sarah@agency.com"
+                    placeholder="sarah@example.com"
                     value={initiatorEmail}
                     onChange={(e) => setInitiatorEmail(e.target.value)}
                     className="input-field"
@@ -472,21 +488,20 @@ export default function InstantContractPage() {
 
                 <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">Your Platform Role</label>
-                  <select
-                    value={initiatorRole}
-                    onChange={(e: any) => setInitiatorRole(e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="AGENCY">Agency Representative</option>
-                    <option value="BRAND">Brand Representative</option>
-                    <option value="CREATOR">Creator / Influencer</option>
-                  </select>
+                  <div className="input-field bg-gray-100/90 border-gray-200 text-gray-900 font-bold flex items-center justify-between cursor-not-allowed">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      {initiatorRole === "CREATOR" ? "Creator / Influencer" : initiatorRole === "BRAND" ? "Brand Representative" : "Agency Representative"}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-normal ml-2">Auto-fixed</span>
+                  </div>
                 </div>
 
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Your Job Title / Capacity</label>
+                  <label className="text-xs font-bold text-gray-700">Your Job Title / Capacity *</label>
                   <input
                     type="text"
+                    required
                     placeholder="e.g. Senior Campaign Manager"
                     value={initiatorDesignation}
                     onChange={(e) => setInitiatorDesignation(e.target.value)}
@@ -494,24 +509,14 @@ export default function InstantContractPage() {
                   />
                 </div>
 
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Initiator NTN (Optional)</label>
+                <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-700">Initiator NTN / CNIC *</label>
                   <input
                     type="text"
-                    placeholder="e.g. 1234567-8"
+                    required
+                    placeholder="e.g. 1234567-8 or 42101-0000000-0"
                     value={initiatorNtn}
                     onChange={(e) => setInitiatorNtn(e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Respondent NTN (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 8765432-1"
-                    value={respondentNtn}
-                    onChange={(e) => setRespondentNtn(e.target.value)}
                     className="input-field"
                   />
                 </div>
@@ -519,11 +524,10 @@ export default function InstantContractPage() {
                 {/* REACTIVE COUNTERPARTY FIELDS BASED ON WORKFLOW */}
                 {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
                   <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">
-                      Brand Name {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? "*" : ""}
-                    </label>
+                    <label className="text-xs font-bold text-gray-700">Brand Name *</label>
                     <input
                       type="text"
+                      required
                       placeholder="e.g. Sapphire / Nexus"
                       value={brandName}
                       onChange={(e) => setBrandName(e.target.value)}
@@ -547,11 +551,10 @@ export default function InstantContractPage() {
 
                 {["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY", "AGENCY_TO_BRAND"].includes(contractType) && (
                   <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">
-                      Campaign Name {["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY"].includes(contractType) ? "*" : ""}
-                    </label>
+                    <label className="text-xs font-bold text-gray-700">Campaign Name *</label>
                     <input
                       type="text"
+                      required
                       placeholder="e.g. Summer Lawn Campaign 2026"
                       value={campaignName}
                       onChange={(e) => setCampaignName(e.target.value)}
@@ -565,6 +568,7 @@ export default function InstantContractPage() {
                     <label className="text-xs font-bold text-gray-700">Creator Name *</label>
                     <input
                       type="text"
+                      required
                       placeholder="e.g. Mohammad Ali"
                       value={creatorName}
                       onChange={(e) => setCreatorName(e.target.value)}
@@ -578,6 +582,7 @@ export default function InstantContractPage() {
                     <label className="text-xs font-bold text-gray-700">Creator Handle *</label>
                     <input
                       type="text"
+                      required
                       placeholder="e.g. @alibeats"
                       value={creatorHandle}
                       onChange={(e) => setCreatorHandle(e.target.value)}
@@ -585,6 +590,18 @@ export default function InstantContractPage() {
                     />
                   </div>
                 )}
+
+                {/* CONTEXTUAL NOTICE BADGE */}
+                <div className="sm:col-span-2 p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-left">
+                  <p className="text-xs text-blue-900 font-medium flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">ℹ</span>
+                    <span>
+                      {["CREATOR_TO_BRAND", "AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY"].includes(contractType)
+                        ? "Brand representative verification details, company address, and official authority will be collected directly from the Brand when they open the Contract Link."
+                        : "Creator verification details, CNIC photo, and bank payout details will be collected directly from the Creator when they open the Contract Link."}
+                    </span>
+                  </p>
+                </div>
               </div>
             </div>
 
