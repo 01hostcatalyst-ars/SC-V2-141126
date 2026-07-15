@@ -596,9 +596,11 @@ export default function InstantContractPage() {
                   <p className="text-xs text-blue-900 font-medium flex items-start gap-2">
                     <span className="text-blue-600 font-bold">ℹ</span>
                     <span>
-                      {["CREATOR_TO_BRAND", "AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY"].includes(contractType)
+                      {contractType === "AGENCY_TO_CREATOR" || contractType === "BRAND_TO_CREATOR"
+                        ? "Creator representative verification details, CNIC photo, and payout details will be collected directly from the Creator when they open the Contract Link."
+                        : contractType === "CREATOR_TO_BRAND" || contractType === "AGENCY_TO_BRAND"
                         ? "Brand representative verification details, company address, and official authority will be collected directly from the Brand when they open the Contract Link."
-                        : "Creator verification details, CNIC photo, and bank payout details will be collected directly from the Creator when they open the Contract Link."}
+                        : "Agency representative verification details, office address, and official authority will be collected directly from the Agency when they open the Contract Link."}
                     </span>
                   </p>
                 </div>
