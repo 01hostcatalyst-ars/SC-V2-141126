@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { getCompanyConfig } from "@/lib/config";
 
 interface DeliverableItem {
@@ -12,43 +11,108 @@ interface DeliverableItem {
   notes: string;
 }
 
+const WORKFLOW_OPTIONS = [
+  { value: "CREATOR_TO_BRAND", label: "Creator ➔ Brand (Direct Deal)" },
+  { value: "BRAND_TO_CREATOR", label: "Brand ➔ Creator (Sponsorship Offer)" },
+  { value: "AGENCY_TO_CREATOR", label: "Agency ➔ Creator (Campaign Delegation)" },
+  { value: "AGENCY_TO_BRAND", label: "Agency ➔ Brand (Master Services Agreement)" },
+  { value: "BRAND_TO_AGENCY", label: "Brand ➔ Agency (Agency Retainer/Campaign)" },
+  { value: "CREATOR_TO_AGENCY", label: "Creator ➔ Agency (Representation Deal)" },
+];
+
+const PLATFORM_OPTIONS = [
+  { id: "INSTAGRAM", label: "Instagram" },
+  { id: "TIKTOK", label: "TikTok" },
+  { id: "YOUTUBE", label: "YouTube" },
+  { id: "FACEBOOK", label: "Facebook" },
+  { id: "WEB_PRINT", label: "Web / Billboard / Print" },
+];
+
+const USAGE_TYPE_OPTIONS = [
+  { id: "ORGANIC_ONLY", label: "Organic Social Only" },
+  { id: "PAID_AD", label: "Paid Ad / Spark Ads" },
+  { id: "BILLBOARD_PRINT", label: "Print & Billboard" },
+  { id: "ALL_MEDIA", label: "All Media Unlimited" },
+];
+
 export default function InstantContractPage() {
-  const router = useRouter();
   const company = getCompanyConfig();
 
-  // Initiator details
+  // Section 1: Workflow & Parties
+  const [contractType, setContractType] = useState<string>("AGENCY_TO_CREATOR");
   const [initiatorName, setInitiatorName] = useState("");
   const [initiatorEmail, setInitiatorEmail] = useState("");
   const [initiatorPhone, setInitiatorPhone] = useState("");
-  const [initiatorRole, setInitiatorRole] = useState<"CREATOR" | "BRAND" | "AGENCY">("CREATOR");
+  const [initiatorRole, setInitiatorRole] = useState<"CREATOR" | "BRAND" | "AGENCY">("AGENCY");
+  const [initiatorDesignation, setInitiatorDesignation] = useState("");
+  const [initiatorNtn, setInitiatorNtn] = useState("");
 
-  // Contract Scope
-  const [contractType, setContractType] = useState<string>("CREATOR_TO_BRAND");
+  // Counterparty fields (Reactive based on contractType)
   const [brandName, setBrandName] = useState("");
   const [brandHandle, setBrandHandle] = useState("");
+  const [campaignName, setCampaignName] = useState("");
   const [creatorName, setCreatorName] = useState("");
   const [creatorHandle, setCreatorHandle] = useState("");
+  const [respondentNtn, setRespondentNtn] = useState("");
 
-  // Financials & Delivery
+  // Section 2: Campaign Deliverables & Tagging
+  const [deliverables, setDeliverables] = useState<DeliverableItem[]>([
+    { type: "REEL", quantity: 1, duration: "Permanent", notes: "" },
+  ]);
+  const [taggingRequirements, setTaggingRequirements] = useState("");
+  const [contentOwnership, setContentOwnership] = useState(
+    "Creator retains underlying IP copyright; brand receives licensed commercial usage rights as specified herein."
+  );
+
+  // Section 3: Usage Rights & Licensing
+  const [platformsAllowed, setPlatformsAllowed] = useState<string[]>(["INSTAGRAM", "TIKTOK"]);
+  const [usageType, setUsageType] = useState<string[]>(["ORGANIC_ONLY"]);
+  const [usageRightsDuration, setUsageRightsDuration] = useState("12 Months");
+
+  // Section 4: Financial & Payment Terms
   const [totalAmount, setTotalAmount] = useState("");
   const [advancePayment, setAdvancePayment] = useState("");
-  const [deliveryTimeframeDays, setDeliveryTimeframeDays] = useState("7");
+  const [advancePaymentDate, setAdvancePaymentDate] = useState("");
+  const [remainingPaymentDate, setRemainingPaymentDate] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("BANK_IBAN");
   const [bankAccountIban, setBankAccountIban] = useState("");
   const [mobileWalletNumber, setMobileWalletNumber] = useState("");
 
-  // Usage Rights & Rules
-  const [usageRightsDuration, setUsageRightsDuration] = useState("30 Days");
+  // Section 5: Delivery, Revisions & Product Provisions
+  const [deliveryTimeframeDays, setDeliveryTimeframeDays] = useState("7");
   const [revisionRounds, setRevisionRounds] = useState("1");
+  const [revisionTurnaroundDays, setRevisionTurnaroundDays] = useState("5");
+  const [brandApprovalRequired, setBrandApprovalRequired] = useState(true);
+
+  // Product Provision / Loan details
+  const [collabProduct, setCollabProduct] = useState("");
+  const [collabProductProvisionType, setCollabProductProvisionType] = useState("Product Provision");
+  const [collabDeliveryAddress, setCollabDeliveryAddress] = useState("");
+  const [collabDeliveryDate, setCollabDeliveryDate] = useState("");
+  const [collabProductReturnDays, setCollabProductReturnDays] = useState("7");
+  const [collabProductReturnAddress, setCollabProductReturnAddress] = useState("");
+  const [collabProductReturnShippingBy, setCollabProductReturnShippingBy] = useState("Brand");
+  const [collabProductNonReturnFee, setCollabProductNonReturnFee] = useState("");
+
+  // Section 6: Safeguards, Penalties & Exclusivity
+  const [latePaymentPenaltyPct, setLatePaymentPenaltyPct] = useState("3");
+  const [lateContentPenaltyPct, setLateContentPenaltyPct] = useState("3");
+  const [penaltyCapPct, setPenaltyCapPct] = useState("20");
+  const [unauthorizedUsagePenaltyPct, setUnauthorizedUsagePenaltyPct] = useState("50");
+  const [advanceRefundable, setAdvanceRefundable] = useState(true);
+  const [advanceRefundTimeframeDays, setAdvanceRefundTimeframeDays] = useState("7");
+  const [nonDeliveryCutoffDays, setNonDeliveryCutoffDays] = useState("7");
+  const [cancellationFeePct, setCancellationFeePct] = useState("25");
+
   const [exclusivityClause, setExclusivityClause] = useState(false);
+  const [exclusivityDuration, setExclusivityDuration] = useState("30 Days");
+  const [exclusivityCompetitors, setExclusivityCompetitors] = useState("");
+
   const [confidentialityRequired, setConfidentialityRequired] = useState(false);
+  const [embargoDate, setEmbargoDate] = useState("");
+  const [earlyDisclosurePenalty, setEarlyDisclosurePenalty] = useState("");
 
-  // Deliverables
-  const [deliverables, setDeliverables] = useState<DeliverableItem[]>([
-    { type: "REEL", quantity: 1, duration: "Permanent", notes: "" },
-  ]);
-
-  // Form Submission State
+  // Submission state
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [createdResult, setCreatedResult] = useState<{
@@ -59,6 +123,7 @@ export default function InstantContractPage() {
 
   const [copied, setCopied] = useState(false);
 
+  // Helpers for deliverables & platforms
   const handleAddDeliverable = () => {
     setDeliverables([
       ...deliverables,
@@ -77,6 +142,25 @@ export default function InstantContractPage() {
     setDeliverables(updated);
   };
 
+  const togglePlatform = (pId: string) => {
+    if (platformsAllowed.includes(pId)) {
+      if (platformsAllowed.length === 1) return;
+      setPlatformsAllowed(platformsAllowed.filter((p) => p !== pId));
+    } else {
+      setPlatformsAllowed([...platformsAllowed, pId]);
+    }
+  };
+
+  const toggleUsageType = (uId: string) => {
+    if (usageType.includes(uId)) {
+      if (usageType.length === 1) return;
+      setUsageType(usageType.filter((u) => u !== uId));
+    } else {
+      setUsageType([...usageType, uId]);
+    }
+  };
+
+  // Submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
@@ -86,13 +170,35 @@ export default function InstantContractPage() {
       return;
     }
 
+    // Workflow-specific validations
+    if (contractType === "AGENCY_TO_CREATOR" && (!brandName.trim() || !campaignName.trim())) {
+      setErrorMsg("Brand Name and Campaign Name are required for Agency ➔ Creator workflow.");
+      return;
+    }
+    if (contractType === "CREATOR_TO_BRAND" && (!brandName.trim() || !brandHandle.trim())) {
+      setErrorMsg("Brand Name and Brand Handle are required for Creator ➔ Brand workflow.");
+      return;
+    }
+    if (contractType === "BRAND_TO_CREATOR" && (!creatorName.trim() || !creatorHandle.trim())) {
+      setErrorMsg("Creator Name and Creator Handle are required for Brand ➔ Creator workflow.");
+      return;
+    }
+    if (contractType === "AGENCY_TO_BRAND" && (!creatorName.trim() || !creatorHandle.trim())) {
+      setErrorMsg("Creator Name and Creator Handle are required for Agency ➔ Brand workflow.");
+      return;
+    }
+    if (contractType === "CREATOR_TO_AGENCY" && (!brandName.trim() || !campaignName.trim())) {
+      setErrorMsg("Brand Name and Campaign Name are required for Creator ➔ Agency workflow.");
+      return;
+    }
+
     if (!totalAmount || Number(totalAmount) <= 0) {
-      setErrorMsg("Please enter a valid total contract amount.");
+      setErrorMsg("Please enter a valid total contract valuation amount.");
       return;
     }
 
     if (!deliveryTimeframeDays || Number(deliveryTimeframeDays) <= 0) {
-      setErrorMsg("Please specify the delivery timeframe in days.");
+      setErrorMsg("Please enter a valid delivery timeframe in days.");
       return;
     }
 
@@ -105,23 +211,53 @@ export default function InstantContractPage() {
         initiatorEmail: initiatorEmail.trim().toLowerCase(),
         initiatorPhone,
         initiatorRole,
-        brandName,
-        brandHandle,
-        creatorName,
-        creatorHandle,
+        initiatorDesignation,
+        initiatorNtn,
+        respondentNtn,
+        brandName: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandName : undefined,
+        brandHandle: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandHandle : undefined,
+        campaignName: ["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY"].includes(contractType) ? campaignName : undefined,
+        creatorName: ["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) ? creatorName : undefined,
+        creatorHandle: ["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) ? creatorHandle : undefined,
         totalAmount: Number(totalAmount),
         advancePayment: advancePayment ? Number(advancePayment) : 0,
+        advancePaymentDate: advancePaymentDate || undefined,
+        remainingPaymentDate: remainingPaymentDate || undefined,
         paymentMethod,
-        bankAccountIban,
-        mobileWalletNumber,
+        bankAccountIban: paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
+        mobileWalletNumber: paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
         deliveryTimeframeDays: Number(deliveryTimeframeDays),
-        usageRightsDuration,
         revisionRounds: Number(revisionRounds),
+        revisionTurnaroundDays: Number(revisionTurnaroundDays),
+        brandApprovalRequired,
+        platformsAllowed,
+        usageType,
+        usageRightsDuration,
+        collabProduct: collabProduct || undefined,
+        collabProductProvisionType,
+        collabDeliveryAddress: collabDeliveryAddress || undefined,
+        collabDeliveryDate: collabDeliveryDate || undefined,
+        collabProductReturnDays: collabProductProvisionType === "Product Loan" ? Number(collabProductReturnDays) : undefined,
+        collabProductReturnAddress: collabProductProvisionType === "Product Loan" ? collabProductReturnAddress : undefined,
+        collabProductReturnShippingBy: collabProductProvisionType === "Product Loan" ? collabProductReturnShippingBy : undefined,
+        collabProductNonReturnFee: collabProductProvisionType === "Product Loan" && collabProductNonReturnFee ? Number(collabProductNonReturnFee) : undefined,
+        latePaymentPenaltyPct: Number(latePaymentPenaltyPct),
+        lateContentPenaltyPct: Number(lateContentPenaltyPct),
+        penaltyCapPct: Number(penaltyCapPct),
+        unauthorizedUsagePenaltyPct: Number(unauthorizedUsagePenaltyPct),
+        advanceRefundable,
+        advanceRefundTimeframeDays: Number(advanceRefundTimeframeDays),
+        nonDeliveryCutoffDays: Number(nonDeliveryCutoffDays),
+        cancellationFeePct: Number(cancellationFeePct),
         exclusivityClause,
+        exclusivityDuration: exclusivityClause ? exclusivityDuration : undefined,
+        exclusivityCompetitors: exclusivityClause ? exclusivityCompetitors : undefined,
         confidentialityRequired,
+        embargoDate: confidentialityRequired && embargoDate ? embargoDate : undefined,
+        earlyDisclosurePenalty: confidentialityRequired && earlyDisclosurePenalty ? Number(earlyDisclosurePenalty) : undefined,
+        contentOwnership,
+        taggingRequirements,
         deliverables,
-        platformsAllowed: ["INSTAGRAM", "TIKTOK"],
-        usageType: ["ORGANIC_ONLY"],
       };
 
       const res = await fetch("/api/guest/contracts", {
@@ -133,7 +269,7 @@ export default function InstantContractPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to create guest contract.");
+        throw new Error(data.error || "Failed to generate instant contract.");
       }
 
       setCreatedResult({
@@ -142,7 +278,7 @@ export default function InstantContractPage() {
         contractNumber: data.contract.contractNumber,
       });
     } catch (err: any) {
-      setErrorMsg(err.message || "An error occurred while creating the contract.");
+      setErrorMsg(err.message || "An error occurred while generating the contract.");
     } finally {
       setLoading(false);
     }
@@ -158,11 +294,11 @@ export default function InstantContractPage() {
 
   return (
     <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden">
-      {/* Glow elements */}
+      {/* Glow shapes */}
       <div className="absolute top-[5%] left-[-5%] w-[70%] h-[40%] rounded-full ambient-glow-purple pointer-events-none z-0" />
       <div className="absolute bottom-[5%] right-[-5%] w-[70%] h-[40%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
-      {/* Navigation Header */}
+      {/* Header */}
       <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-6 z-10 sticky top-0">
         <Link href="/" className="flex items-center gap-2">
           <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base">
@@ -186,10 +322,10 @@ export default function InstantContractPage() {
         </div>
       </header>
 
-      {/* Main Form Container */}
+      {/* Main Form Body */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-8 lg:p-12 z-10">
         {createdResult ? (
-          /* SUCCESS VIEW */
+          /* SUCCESS SCREEN */
           <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-2xl space-y-8 animate-fadeIn">
             <div className="text-center space-y-3">
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl font-bold mx-auto">
@@ -197,11 +333,10 @@ export default function InstantContractPage() {
               </div>
               <h2 className="text-3xl font-black text-black">Instant Contract Ready!</h2>
               <p className="text-sm text-gray-600 max-w-md mx-auto">
-                Contract <strong>#{createdResult.contractNumber}</strong> has been generated. Share this link with the counterparty to review and sign.
+                Contract <strong>#{createdResult.contractNumber}</strong> has been created with full legal terms. Send the link below to the counterparty to review &amp; sign.
               </p>
             </div>
 
-            {/* Share Token Input & Button */}
             <div className="bg-gray-50 p-4 md:p-6 rounded-2xl border border-gray-200 space-y-3">
               <label className="text-xs font-bold text-black uppercase tracking-wider block">
                 Shareable Signing Link (Send to Counterparty)
@@ -222,7 +357,6 @@ export default function InstantContractPage() {
               </div>
             </div>
 
-            {/* Up-Sell Banner */}
             <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-6 md:p-8 rounded-2xl shadow-lg space-y-4">
               <div className="flex items-start justify-between">
                 <div>
@@ -259,30 +393,29 @@ export default function InstantContractPage() {
             </div>
           </div>
         ) : (
-          /* CONTRACT GENERATOR FORM */
-          <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-xl space-y-8">
+          /* FULL FORM GENERATOR */
+          <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-xl space-y-10">
             
             {/* Header Banner */}
             <div className="border-b border-gray-100 pb-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100/70 text-blue-800 border border-blue-200">
-                    Instant 1-Page Agreement
+                    Full Parity 1-Page Instant Agreement
                   </span>
                   <h1 className="text-2xl md:text-3xl font-black text-black tracking-tight mt-2">
-                    Create Legally Enforceable Contract
+                    Create Complete Commercial Contract
                   </h1>
                 </div>
                 <div className="text-xs text-gray-500 font-semibold bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl self-start sm:self-auto">
-                  ⚡ No login required • 2 per day limit
+                  ⚡ No signup required • 2 per day
                 </div>
               </div>
               <p className="text-xs md:text-sm text-gray-600 mt-1">
-                Fill out the essential agreement terms below to generate a court-admissible bilateral proof link.
+                Fill in all campaign terms, licensing rights, payment dates, and penalty safeguards.
               </p>
             </div>
 
-            {/* Error Banner */}
             {errorMsg && (
               <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs md:text-sm font-semibold flex items-center gap-2">
                 <span>⚠</span>
@@ -290,13 +423,29 @@ export default function InstantContractPage() {
               </div>
             )}
 
-            {/* SECTION 1: Initiator Information */}
+            {/* SECTION 1: Workflow & Parties (Reactive) */}
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
-                1. Your Details (Agreement Initiator)
+              <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center justify-between">
+                <span>1. Contract Workflow &amp; Parties</span>
+                <span className="text-[10px] font-normal text-blue-600">Reactive Fields</span>
               </h3>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-800">Contract Workflow *</label>
+                  <select
+                    value={contractType}
+                    onChange={(e) => setContractType(e.target.value)}
+                    className="input-field border-black font-semibold text-black bg-blue-50/50"
+                  >
+                    {WORKFLOW_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">Your Full Name *</label>
                   <input
@@ -314,7 +463,7 @@ export default function InstantContractPage() {
                   <input
                     type="email"
                     required
-                    placeholder="sarah@domain.com"
+                    placeholder="sarah@agency.com"
                     value={initiatorEmail}
                     onChange={(e) => setInitiatorEmail(e.target.value)}
                     className="input-field"
@@ -322,81 +471,128 @@ export default function InstantContractPage() {
                 </div>
 
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Your Role</label>
+                  <label className="text-xs font-bold text-gray-700">Your Platform Role</label>
                   <select
                     value={initiatorRole}
                     onChange={(e: any) => setInitiatorRole(e.target.value)}
                     className="input-field"
                   >
+                    <option value="AGENCY">Agency Representative</option>
+                    <option value="BRAND">Brand Representative</option>
                     <option value="CREATOR">Creator / Influencer</option>
-                    <option value="BRAND">Brand / Sponsor</option>
-                    <option value="AGENCY">Marketing Agency</option>
                   </select>
                 </div>
 
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Phone / WhatsApp (Optional)</label>
-                  <input
-                    type="tel"
-                    placeholder="03XXXXXXXXX"
-                    value={initiatorPhone}
-                    onChange={(e) => setInitiatorPhone(e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* SECTION 2: Agreement Type & Counterparty */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
-                2. Contract Type &amp; Parties
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col text-left gap-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-gray-700">Contract Workflow</label>
-                  <select
-                    value={contractType}
-                    onChange={(e) => setContractType(e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="CREATOR_TO_BRAND">Creator ➔ Brand (Direct Collaboration)</option>
-                    <option value="BRAND_TO_CREATOR">Brand ➔ Creator (Sponsorship Offer)</option>
-                    <option value="AGENCY_TO_CREATOR">Agency ➔ Creator (Campaign Delegation)</option>
-                    <option value="AGENCY_TO_BRAND">Agency ➔ Brand (Master Services Agreement)</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Brand Name</label>
+                  <label className="text-xs font-bold text-gray-700">Your Job Title / Capacity</label>
                   <input
                     type="text"
-                    placeholder="e.g. Nexus Tech"
-                    value={brandName}
-                    onChange={(e) => setBrandName(e.target.value)}
+                    placeholder="e.g. Senior Campaign Manager"
+                    value={initiatorDesignation}
+                    onChange={(e) => setInitiatorDesignation(e.target.value)}
                     className="input-field"
                   />
                 </div>
 
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Creator Name / Handle</label>
+                  <label className="text-xs font-bold text-gray-700">Initiator NTN (Optional)</label>
                   <input
                     type="text"
-                    placeholder="e.g. @creative_ali"
-                    value={creatorName}
-                    onChange={(e) => setCreatorName(e.target.value)}
+                    placeholder="e.g. 1234567-8"
+                    value={initiatorNtn}
+                    onChange={(e) => setInitiatorNtn(e.target.value)}
                     className="input-field"
                   />
                 </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Respondent NTN (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 8765432-1"
+                    value={respondentNtn}
+                    onChange={(e) => setRespondentNtn(e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+
+                {/* REACTIVE COUNTERPARTY FIELDS BASED ON WORKFLOW */}
+                {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">
+                      Brand Name {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? "*" : ""}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Sapphire / Nexus"
+                      value={brandName}
+                      onChange={(e) => setBrandName(e.target.value)}
+                      className="input-field border-blue-200"
+                    />
+                  </div>
+                )}
+
+                {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">Brand Instagram Handle</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. @sapphirepk"
+                      value={brandHandle}
+                      onChange={(e) => setBrandHandle(e.target.value)}
+                      className="input-field border-blue-200"
+                    />
+                  </div>
+                )}
+
+                {["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY", "AGENCY_TO_BRAND"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">
+                      Campaign Name {["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY"].includes(contractType) ? "*" : ""}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Summer Lawn Campaign 2026"
+                      value={campaignName}
+                      onChange={(e) => setCampaignName(e.target.value)}
+                      className="input-field border-blue-200"
+                    />
+                  </div>
+                )}
+
+                {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">Creator Name *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Mohammad Ali"
+                      value={creatorName}
+                      onChange={(e) => setCreatorName(e.target.value)}
+                      className="input-field border-blue-200"
+                    />
+                  </div>
+                )}
+
+                {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">Creator Handle *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. @alibeats"
+                      value={creatorHandle}
+                      onChange={(e) => setCreatorHandle(e.target.value)}
+                      className="input-field border-blue-200"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* SECTION 3: Deliverables */}
+            {/* SECTION 2: Deliverables & Guidelines */}
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                 <h3 className="text-xs font-bold text-black uppercase tracking-wider">
-                  3. Campaign Deliverables
+                  2. Campaign Deliverables &amp; Guidelines
                 </h3>
                 <button
                   type="button"
@@ -410,7 +606,7 @@ export default function InstantContractPage() {
               {deliverables.map((item, idx) => (
                 <div key={idx} className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-500 uppercase">Deliverable #{idx + 1}</span>
+                    <span className="text-xs font-bold text-gray-600 uppercase">Deliverable #{idx + 1}</span>
                     {deliverables.length > 1 && (
                       <button
                         type="button"
@@ -421,9 +617,9 @@ export default function InstantContractPage() {
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Content Format</label>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Format</label>
                       <select
                         value={item.type}
                         onChange={(e) => handleDeliverableChange(idx, "type", e.target.value)}
@@ -434,7 +630,8 @@ export default function InstantContractPage() {
                         <option value="CAROUSEL_POST">Carousel Post</option>
                         <option value="IMAGE_POST">Single Image Post</option>
                         <option value="TIKTOK_VIDEO">TikTok Video</option>
-                        <option value="YOUTUBE_VIDEO">YouTube Video / Integration</option>
+                        <option value="YOUTUBE_VIDEO">YouTube Integration</option>
+                        <option value="LIVE_SESSION">Live Session</option>
                       </select>
                     </div>
 
@@ -450,10 +647,21 @@ export default function InstantContractPage() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Notes (Optional)</label>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Duration</label>
                       <input
                         type="text"
-                        placeholder="e.g. Tag @brand, link in bio"
+                        placeholder="Permanent / 30s"
+                        value={item.duration}
+                        onChange={(e) => handleDeliverableChange(idx, "duration", e.target.value)}
+                        className="input-field text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Notes</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Link in bio"
                         value={item.notes}
                         onChange={(e) => handleDeliverableChange(idx, "notes", e.target.value)}
                         className="input-field text-xs"
@@ -462,24 +670,111 @@ export default function InstantContractPage() {
                   </div>
                 </div>
               ))}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Tagging &amp; Collaboration Requirements</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Must tag @brand, use #SummerCollection, add collab tag"
+                    value={taggingRequirements}
+                    onChange={(e) => setTaggingRequirements(e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Content IP Ownership Terms</label>
+                  <input
+                    type="text"
+                    value={contentOwnership}
+                    onChange={(e) => setContentOwnership(e.target.value)}
+                    className="input-field text-xs"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* SECTION 4: Financial Terms */}
+            {/* SECTION 3: Usage Rights & Licensing */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
-                4. Financial &amp; Payment Terms
+                3. Usage Rights &amp; Media Scope
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-xs font-bold text-gray-800 block mb-2">Platforms Allowed</label>
+                  <div className="flex flex-wrap gap-2">
+                    {PLATFORM_OPTIONS.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => togglePlatform(p.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                          platformsAllowed.includes(p.id)
+                            ? "bg-black text-white border-black"
+                            : "bg-gray-50 text-gray-600 border-gray-200 hover:border-black"
+                        }`}
+                      >
+                        {platformsAllowed.includes(p.id) ? "✓ " : ""}{p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-gray-800 block mb-2">Usage License Tiers</label>
+                  <div className="flex flex-wrap gap-2">
+                    {USAGE_TYPE_OPTIONS.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => toggleUsageType(u.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                          usageType.includes(u.id)
+                            ? "bg-black text-white border-black"
+                            : "bg-gray-50 text-gray-600 border-gray-200 hover:border-black"
+                        }`}
+                      >
+                        {usageType.includes(u.id) ? "✓ " : ""}{u.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col text-left gap-1 pt-2">
+                <label className="text-xs font-bold text-gray-700">License Duration</label>
+                <select
+                  value={usageRightsDuration}
+                  onChange={(e) => setUsageRightsDuration(e.target.value)}
+                  className="input-field"
+                >
+                  <option value="30 Days">30 Days</option>
+                  <option value="90 Days">90 Days</option>
+                  <option value="6 Months">6 Months</option>
+                  <option value="12 Months">12 Months</option>
+                  <option value="Perpetual">Perpetual Commercial Usage</option>
+                </select>
+              </div>
+            </div>
+
+            {/* SECTION 4: Financial & Payment Terms */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
+                4. Financial &amp; Payment Schedule
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Total Contract Amount *</label>
+                  <label className="text-xs font-bold text-gray-700">Total Valuation Amount *</label>
                   <input
                     type="number"
                     required
-                    placeholder="e.g. 50000"
+                    placeholder="e.g. 100000"
                     value={totalAmount}
                     onChange={(e) => setTotalAmount(e.target.value)}
-                    className="input-field"
+                    className="input-field font-bold text-black"
                   />
                 </div>
 
@@ -487,7 +782,7 @@ export default function InstantContractPage() {
                   <label className="text-xs font-bold text-gray-700">Advance Payment (Optional)</label>
                   <input
                     type="number"
-                    placeholder="e.g. 25000"
+                    placeholder="e.g. 50000"
                     value={advancePayment}
                     onChange={(e) => setAdvancePayment(e.target.value)}
                     className="input-field"
@@ -495,76 +790,272 @@ export default function InstantContractPage() {
                 </div>
 
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Delivery Timeframe (Days) *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    placeholder="7"
-                    value={deliveryTimeframeDays}
-                    onChange={(e) => setDeliveryTimeframeDays(e.target.value)}
+                  <label className="text-xs font-bold text-gray-700">Payment Method</label>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
                     className="input-field"
+                  >
+                    <option value="BANK_IBAN">Bank IBAN Transfer</option>
+                    <option value="JAZZCASH">JazzCash Wallet</option>
+                    <option value="EASYPAISA">EasyPaisa Wallet</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                {paymentMethod === "BANK_IBAN" ? (
+                  <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                    <label className="text-xs font-bold text-gray-700">Bank IBAN Account</label>
+                    <input
+                      type="text"
+                      placeholder="PK00XXXX0000000000000000"
+                      value={bankAccountIban}
+                      onChange={(e) => setBankAccountIban(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                    <label className="text-xs font-bold text-gray-700">Mobile Wallet Number ({paymentMethod})</label>
+                    <input
+                      type="text"
+                      placeholder="03XXXXXXXXX"
+                      value={mobileWalletNumber}
+                      onChange={(e) => setMobileWalletNumber(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Advance Date</label>
+                  <input
+                    type="date"
+                    value={advancePaymentDate}
+                    onChange={(e) => setAdvancePaymentDate(e.target.value)}
+                    className="input-field text-xs"
                   />
                 </div>
               </div>
             </div>
 
-            {/* SECTION 5: Usage Rights & Safeguards */}
+            {/* SECTION 5: Delivery, Revisions & Product Provisions */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
-                5. Usage License &amp; Safeguards
+                5. Delivery, Revisions &amp; Product Loans
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Usage Rights License Duration</label>
-                  <select
-                    value={usageRightsDuration}
-                    onChange={(e) => setUsageRightsDuration(e.target.value)}
+                  <label className="text-xs font-bold text-gray-700">Delivery Timeframe (Days) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={deliveryTimeframeDays}
+                    onChange={(e) => setDeliveryTimeframeDays(e.target.value)}
                     className="input-field"
-                  >
-                    <option value="30 Days">30 Days</option>
-                    <option value="90 Days">90 Days</option>
-                    <option value="6 Months">6 Months</option>
-                    <option value="12 Months">12 Months</option>
-                    <option value="Perpetual">Perpetual Commercial License</option>
-                  </select>
+                  />
                 </div>
 
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Max Revision Rounds</label>
+                  <label className="text-xs font-bold text-gray-700">Revision Rounds</label>
                   <select
                     value={revisionRounds}
                     onChange={(e) => setRevisionRounds(e.target.value)}
                     className="input-field"
                   >
-                    <option value="1">1 Round of Revisions</option>
-                    <option value="2">2 Rounds of Revisions</option>
-                    <option value="3">3 Rounds of Revisions</option>
+                    <option value="1">1 Round</option>
+                    <option value="2">2 Rounds</option>
+                    <option value="3">3 Rounds</option>
                   </select>
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Revision Turnaround (Days)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={revisionTurnaroundDays}
+                    onChange={(e) => setRevisionTurnaroundDays(e.target.value)}
+                    className="input-field"
+                  />
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-800">
-                  <input
-                    type="checkbox"
-                    checked={exclusivityClause}
-                    onChange={(e) => setExclusivityClause(e.target.checked)}
-                    className="w-4 h-4 rounded text-black focus:ring-black"
-                  />
-                  <span>Category Exclusivity Clause</span>
-                </label>
+              {/* Collab Product Details */}
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-3 mt-4">
+                <span className="text-xs font-bold text-gray-800 uppercase block">Product Provisioning / Loan Details</span>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase">Product Description</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Lawn Unstitched 3-pc suit / Camera Kit"
+                      value={collabProduct}
+                      onChange={(e) => setCollabProduct(e.target.value)}
+                      className="input-field text-xs"
+                    />
+                  </div>
 
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-800">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase">Provision Type</label>
+                    <select
+                      value={collabProductProvisionType}
+                      onChange={(e) => setCollabProductProvisionType(e.target.value)}
+                      className="input-field text-xs"
+                    >
+                      <option value="Product Provision">Gift / Complimentary Provision</option>
+                      <option value="Product Loan">Product Loan (Must Be Returned)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {collabProductProvisionType === "Product Loan" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-gray-200">
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Return Timeframe (Days)</label>
+                      <input
+                        type="number"
+                        value={collabProductReturnDays}
+                        onChange={(e) => setCollabProductReturnDays(e.target.value)}
+                        className="input-field text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Return Shipping Paid By</label>
+                      <select
+                        value={collabProductReturnShippingBy}
+                        onChange={(e) => setCollabProductReturnShippingBy(e.target.value)}
+                        className="input-field text-xs"
+                      >
+                        <option value="Brand">Brand / Agency</option>
+                        <option value="Creator">Creator</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Non-Return Penalty Fee</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 15000"
+                        value={collabProductNonReturnFee}
+                        onChange={(e) => setCollabProductNonReturnFee(e.target.value)}
+                        className="input-field text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* SECTION 6: Safeguards, Penalties & NDA */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
+                6. Safeguards, Penalties &amp; Exclusivity
+              </h3>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Late Pay Penalty (%/wk)</label>
                   <input
-                    type="checkbox"
-                    checked={confidentialityRequired}
-                    onChange={(e) => setConfidentialityRequired(e.target.checked)}
-                    className="w-4 h-4 rounded text-black focus:ring-black"
+                    type="number"
+                    value={latePaymentPenaltyPct}
+                    onChange={(e) => setLatePaymentPenaltyPct(e.target.value)}
+                    className="input-field text-xs"
                   />
-                  <span>Confidentiality / NDA Clause</span>
-                </label>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Late Content (%/wk)</label>
+                  <input
+                    type="number"
+                    value={lateContentPenaltyPct}
+                    onChange={(e) => setLateContentPenaltyPct(e.target.value)}
+                    className="input-field text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Max Penalty Cap (%)</label>
+                  <input
+                    type="number"
+                    value={penaltyCapPct}
+                    onChange={(e) => setPenaltyCapPct(e.target.value)}
+                    className="input-field text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Unauth Usage Fee (%)</label>
+                  <input
+                    type="number"
+                    value={unauthorizedUsagePenaltyPct}
+                    onChange={(e) => setUnauthorizedUsagePenaltyPct(e.target.value)}
+                    className="input-field text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-800">
+                    <input
+                      type="checkbox"
+                      checked={exclusivityClause}
+                      onChange={(e) => setExclusivityClause(e.target.checked)}
+                      className="w-4 h-4 rounded text-black focus:ring-black"
+                    />
+                    <span>Category Exclusivity Clause</span>
+                  </label>
+                  {exclusivityClause && (
+                    <div className="space-y-2 pt-1">
+                      <input
+                        type="text"
+                        placeholder="Exclusivity Duration (e.g. 30 Days)"
+                        value={exclusivityDuration}
+                        onChange={(e) => setExclusivityDuration(e.target.value)}
+                        className="input-field text-xs"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Excluded Competitors (e.g. Brand X, Brand Y)"
+                        value={exclusivityCompetitors}
+                        onChange={(e) => setExclusivityCompetitors(e.target.value)}
+                        className="input-field text-xs"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-800">
+                    <input
+                      type="checkbox"
+                      checked={confidentialityRequired}
+                      onChange={(e) => setConfidentialityRequired(e.target.checked)}
+                      className="w-4 h-4 rounded text-black focus:ring-black"
+                    />
+                    <span>Confidentiality &amp; NDA</span>
+                  </label>
+                  {confidentialityRequired && (
+                    <div className="space-y-2 pt-1">
+                      <input
+                        type="date"
+                        value={embargoDate}
+                        onChange={(e) => setEmbargoDate(e.target.value)}
+                        className="input-field text-xs"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Early Disclosure Penalty (PKR)"
+                        value={earlyDisclosurePenalty}
+                        onChange={(e) => setEarlyDisclosurePenalty(e.target.value)}
+                        className="input-field text-xs"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -574,14 +1065,14 @@ export default function InstantContractPage() {
               disabled={loading}
               className="w-full bg-black hover:bg-black/90 text-white font-black py-4 px-6 rounded-2xl text-base shadow-xl transition-all flex items-center justify-center gap-2"
             >
-              {loading ? "Generating Instant Link..." : "⚡ Generate Instant Agreement Link"}
+              {loading ? "Generating Full Contract Link..." : "⚡ Generate Complete Instant Contract Link"}
             </button>
 
           </form>
         )}
       </main>
 
-      {/* Simple Footer */}
+      {/* Footer */}
       <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-4 text-center text-xs text-gray-500 font-semibold z-10">
         © {new Date().getFullYear()} {company.name}. Safe &amp; Bilateral Legal Agreements.
       </footer>
