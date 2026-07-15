@@ -25,14 +25,15 @@ const PLATFORM_OPTIONS = [
   { id: "TIKTOK", label: "TikTok" },
   { id: "YOUTUBE", label: "YouTube" },
   { id: "FACEBOOK", label: "Facebook" },
-  { id: "WEB_PRINT", label: "Web / Billboard / Print" },
+  { id: "LINKEDIN", label: "LinkedIn" },
+  { id: "X_TWITTER", label: "X (Twitter)" },
 ];
 
 const USAGE_TYPE_OPTIONS = [
-  { id: "ORGANIC_ONLY", label: "Organic Social Only" },
-  { id: "PAID_AD", label: "Paid Ad / Spark Ads" },
-  { id: "BILLBOARD_PRINT", label: "Print & Billboard" },
-  { id: "ALL_MEDIA", label: "All Media Unlimited" },
+  { id: "ORGANIC_ONLY", label: "Organic Social Post" },
+  { id: "PAID_AD", label: "Paid Social Media Ads" },
+  { id: "BILLBOARD_PRINT", label: "Print and Billboard" },
+  { id: "ALL_MEDIA", label: "Full Commercial Broadcast" },
 ];
 
 export default function InstantContractPage() {
@@ -210,6 +211,16 @@ export default function InstantContractPage() {
 
     if (!totalAmount || Number(totalAmount) <= 0) {
       setErrorMsg("Please enter a valid total contract valuation amount.");
+      return;
+    }
+
+    if (advancePayment && Number(advancePayment) > 0 && !advancePaymentDate) {
+      setErrorMsg("Please select the advance payment date.");
+      return;
+    }
+
+    if (!remainingPaymentDate) {
+      setErrorMsg("Please select the remaining payment date.");
       return;
     }
 
@@ -549,7 +560,7 @@ export default function InstantContractPage() {
                   </div>
                 )}
 
-                {["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY", "AGENCY_TO_BRAND"].includes(contractType) && (
+                {["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY"].includes(contractType) && (
                   <div className="flex flex-col text-left gap-1">
                     <label className="text-xs font-bold text-gray-700">Campaign Name *</label>
                     <input
@@ -742,7 +753,7 @@ export default function InstantContractPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-800 block mb-2">Usage License Tiers</label>
+                  <label className="text-xs font-bold text-gray-800 block mb-2">Granted Commercial License Tiers</label>
                   <div className="flex flex-wrap gap-2">
                     {USAGE_TYPE_OPTIONS.map((u) => (
                       <button
@@ -824,7 +835,7 @@ export default function InstantContractPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 {paymentMethod === "BANK_IBAN" ? (
-                  <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                  <div className="flex flex-col text-left gap-1">
                     <label className="text-xs font-bold text-gray-700">Bank IBAN Account</label>
                     <input
                       type="text"
@@ -835,7 +846,7 @@ export default function InstantContractPage() {
                     />
                   </div>
                 ) : (
-                  <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                  <div className="flex flex-col text-left gap-1">
                     <label className="text-xs font-bold text-gray-700">Mobile Wallet Number ({paymentMethod})</label>
                     <input
                       type="text"
@@ -848,11 +859,25 @@ export default function InstantContractPage() {
                 )}
 
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Advance Date</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    Advance Payment Date {advancePayment && Number(advancePayment) > 0 ? "*" : ""}
+                  </label>
                   <input
                     type="date"
+                    required={Boolean(advancePayment && Number(advancePayment) > 0)}
                     value={advancePaymentDate}
                     onChange={(e) => setAdvancePaymentDate(e.target.value)}
+                    className="input-field text-xs"
+                  />
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Remaining Payment Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={remainingPaymentDate}
+                    onChange={(e) => setRemainingPaymentDate(e.target.value)}
                     className="input-field text-xs"
                   />
                 </div>
@@ -907,7 +932,7 @@ export default function InstantContractPage() {
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-3 mt-4">
                 <span className="text-xs font-bold text-gray-800 uppercase block">Product Provisioning / Loan Details</span>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase">Product Description</label>
                     <input
@@ -930,16 +955,38 @@ export default function InstantContractPage() {
                       <option value="Product Loan">Product Loan (Must Be Returned)</option>
                     </select>
                   </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase">Shipping / Delivery Address</label>
+                    <input
+                      type="text"
+                      placeholder="Shipping Address for product delivery"
+                      value={collabDeliveryAddress}
+                      onChange={(e) => setCollabDeliveryAddress(e.target.value)}
+                      className="input-field text-xs"
+                    />
+                  </div>
                 </div>
 
                 {collabProductProvisionType === "Product Loan" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-gray-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 border-t border-gray-200">
                     <div>
                       <label className="text-[10px] font-bold text-gray-500 uppercase">Return Timeframe (Days)</label>
                       <input
                         type="number"
                         value={collabProductReturnDays}
                         onChange={(e) => setCollabProductReturnDays(e.target.value)}
+                        className="input-field text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Return Address</label>
+                      <input
+                        type="text"
+                        placeholder="Address to return the product"
+                        value={collabProductReturnAddress}
+                        onChange={(e) => setCollabProductReturnAddress(e.target.value)}
                         className="input-field text-xs"
                       />
                     </div>
