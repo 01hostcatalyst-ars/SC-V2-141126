@@ -39,7 +39,64 @@ const USAGE_TYPE_OPTIONS = [
 export default function InstantContractPage() {
   const company = getCompanyConfig();
 
-  // Section 1: Workflow & Parties
+  // Section 1: Campaign Deliverables & Tagging
+  const [deliverables, setDeliverables] = useState<DeliverableItem[]>([
+    { type: "REEL", quantity: 1, duration: "Permanent", notes: "" },
+  ]);
+  const [taggingRequirements, setTaggingRequirements] = useState("");
+  const [contentOwnership, setContentOwnership] = useState(
+    "Creator retains underlying IP copyright; brand receives licensed commercial usage rights as specified herein."
+  );
+
+  // Section 2: Usage Rights & Licensing
+  const [platformsAllowed, setPlatformsAllowed] = useState<string[]>(["INSTAGRAM", "TIKTOK"]);
+  const [usageType, setUsageType] = useState<string[]>(["ORGANIC_ONLY"]);
+  const [usageRightsDuration, setUsageRightsDuration] = useState("12 Months");
+
+  // Section 3: Financial & Payment Terms
+  const [totalAmount, setTotalAmount] = useState("");
+  const [advancePayment, setAdvancePayment] = useState("");
+  const [advancePaymentDate, setAdvancePaymentDate] = useState("");
+  const [remainingPaymentDate, setRemainingPaymentDate] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("BANK_IBAN");
+  const [bankAccountIban, setBankAccountIban] = useState("");
+  const [mobileWalletNumber, setMobileWalletNumber] = useState("");
+
+  // Section 4: Delivery, Revisions & Product Provisions
+  const [deliveryTimeframeDays, setDeliveryTimeframeDays] = useState("7");
+  const [revisionRounds, setRevisionRounds] = useState("1");
+  const [revisionTurnaroundDays, setRevisionTurnaroundDays] = useState("5");
+  const [brandApprovalRequired, setBrandApprovalRequired] = useState(true);
+
+  // Product Provision / Loan details
+  const [collabProduct, setCollabProduct] = useState("");
+  const [collabProductProvisionType, setCollabProductProvisionType] = useState("Product Provision");
+  const [collabDeliveryAddress, setCollabDeliveryAddress] = useState("");
+  const [collabDeliveryDate, setCollabDeliveryDate] = useState("");
+  const [collabProductReturnDays, setCollabProductReturnDays] = useState("7");
+  const [collabProductReturnAddress, setCollabProductReturnAddress] = useState("");
+  const [collabProductReturnShippingBy, setCollabProductReturnShippingBy] = useState("Brand");
+  const [collabProductNonReturnFee, setCollabProductNonReturnFee] = useState("");
+
+  // Section 5: Safeguards, Penalties & Exclusivity
+  const [latePaymentPenaltyPct, setLatePaymentPenaltyPct] = useState("3");
+  const [lateContentPenaltyPct, setLateContentPenaltyPct] = useState("3");
+  const [penaltyCapPct, setPenaltyCapPct] = useState("20");
+  const [unauthorizedUsagePenaltyPct, setUnauthorizedUsagePenaltyPct] = useState("50");
+  const [advanceRefundable, setAdvanceRefundable] = useState(true);
+  const [advanceRefundTimeframeDays, setAdvanceRefundTimeframeDays] = useState("7");
+  const [nonDeliveryCutoffDays, setNonDeliveryCutoffDays] = useState("7");
+  const [cancellationFeePct, setCancellationFeePct] = useState("25");
+
+  const [exclusivityClause, setExclusivityClause] = useState(false);
+  const [exclusivityDuration, setExclusivityDuration] = useState("30 Days");
+  const [exclusivityCompetitors, setExclusivityCompetitors] = useState("");
+
+  const [confidentialityRequired, setConfidentialityRequired] = useState(false);
+  const [embargoDate, setEmbargoDate] = useState("");
+  const [earlyDisclosurePenalty, setEarlyDisclosurePenalty] = useState("");
+
+  // Section 6: Workflow & Parties (Final Section)
   const [contractType, setContractType] = useState<string>("AGENCY_TO_CREATOR");
   const [initiatorName, setInitiatorName] = useState("");
   const [initiatorEmail, setInitiatorEmail] = useState("");
@@ -67,62 +124,11 @@ export default function InstantContractPage() {
   const [creatorHandle, setCreatorHandle] = useState("");
   const [respondentNtn, setRespondentNtn] = useState("");
 
-  // Section 2: Campaign Deliverables & Tagging
-  const [deliverables, setDeliverables] = useState<DeliverableItem[]>([
-    { type: "REEL", quantity: 1, duration: "Permanent", notes: "" },
-  ]);
-  const [taggingRequirements, setTaggingRequirements] = useState("");
-  const [contentOwnership, setContentOwnership] = useState(
-    "Creator retains underlying IP copyright; brand receives licensed commercial usage rights as specified herein."
-  );
-
-  // Section 3: Usage Rights & Licensing
-  const [platformsAllowed, setPlatformsAllowed] = useState<string[]>(["INSTAGRAM", "TIKTOK"]);
-  const [usageType, setUsageType] = useState<string[]>(["ORGANIC_ONLY"]);
-  const [usageRightsDuration, setUsageRightsDuration] = useState("12 Months");
-
-  // Section 4: Financial & Payment Terms
-  const [totalAmount, setTotalAmount] = useState("");
-  const [advancePayment, setAdvancePayment] = useState("");
-  const [advancePaymentDate, setAdvancePaymentDate] = useState("");
-  const [remainingPaymentDate, setRemainingPaymentDate] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("BANK_IBAN");
-  const [bankAccountIban, setBankAccountIban] = useState("");
-  const [mobileWalletNumber, setMobileWalletNumber] = useState("");
-
-  // Section 5: Delivery, Revisions & Product Provisions
-  const [deliveryTimeframeDays, setDeliveryTimeframeDays] = useState("7");
-  const [revisionRounds, setRevisionRounds] = useState("1");
-  const [revisionTurnaroundDays, setRevisionTurnaroundDays] = useState("5");
-  const [brandApprovalRequired, setBrandApprovalRequired] = useState(true);
-
-  // Product Provision / Loan details
-  const [collabProduct, setCollabProduct] = useState("");
-  const [collabProductProvisionType, setCollabProductProvisionType] = useState("Product Provision");
-  const [collabDeliveryAddress, setCollabDeliveryAddress] = useState("");
-  const [collabDeliveryDate, setCollabDeliveryDate] = useState("");
-  const [collabProductReturnDays, setCollabProductReturnDays] = useState("7");
-  const [collabProductReturnAddress, setCollabProductReturnAddress] = useState("");
-  const [collabProductReturnShippingBy, setCollabProductReturnShippingBy] = useState("Brand");
-  const [collabProductNonReturnFee, setCollabProductNonReturnFee] = useState("");
-
-  // Section 6: Safeguards, Penalties & Exclusivity
-  const [latePaymentPenaltyPct, setLatePaymentPenaltyPct] = useState("3");
-  const [lateContentPenaltyPct, setLateContentPenaltyPct] = useState("3");
-  const [penaltyCapPct, setPenaltyCapPct] = useState("20");
-  const [unauthorizedUsagePenaltyPct, setUnauthorizedUsagePenaltyPct] = useState("50");
-  const [advanceRefundable, setAdvanceRefundable] = useState(true);
-  const [advanceRefundTimeframeDays, setAdvanceRefundTimeframeDays] = useState("7");
-  const [nonDeliveryCutoffDays, setNonDeliveryCutoffDays] = useState("7");
-  const [cancellationFeePct, setCancellationFeePct] = useState("25");
-
-  const [exclusivityClause, setExclusivityClause] = useState(false);
-  const [exclusivityDuration, setExclusivityDuration] = useState("30 Days");
-  const [exclusivityCompetitors, setExclusivityCompetitors] = useState("");
-
-  const [confidentialityRequired, setConfidentialityRequired] = useState(false);
-  const [embargoDate, setEmbargoDate] = useState("");
-  const [earlyDisclosurePenalty, setEarlyDisclosurePenalty] = useState("");
+  // Party 1 Initiator OTP states
+  const [initiatorOtpDispatched, setInitiatorOtpDispatched] = useState(false);
+  const [initiatorOtpVerified, setInitiatorOtpVerified] = useState(false);
+  const [initiatorOtpCode, setInitiatorOtpCode] = useState("");
+  const [initiatorOtpLoading, setInitiatorOtpLoading] = useState(false);
 
   // Submission state
   const [loading, setLoading] = useState(false);
@@ -172,6 +178,78 @@ export default function InstantContractPage() {
     }
   };
 
+  // OTP Sending logic for Initiator (Party 1)
+  const handleSendInitiatorOtp = async () => {
+    if (!initiatorEmail || !initiatorEmail.trim()) {
+      setErrorMsg("Please enter your email address first.");
+      return;
+    }
+    if (!initiatorName.trim() || !initiatorDesignation.trim()) {
+      setErrorMsg("Please fill in your Name and Job Title / Capacity first.");
+      return;
+    }
+
+    setInitiatorOtpLoading(true);
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/guest/otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "send",
+          email: initiatorEmail,
+          name: initiatorName,
+          designation: initiatorDesignation,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setInitiatorOtpDispatched(true);
+      } else {
+        setErrorMsg(data.error || "Failed to send verification code.");
+      }
+    } catch (err: any) {
+      setErrorMsg("Error sending verification code.");
+    } finally {
+      setInitiatorOtpLoading(false);
+    }
+  };
+
+  const handleVerifyInitiatorOtp = async () => {
+    if (!initiatorOtpCode || initiatorOtpCode.length !== 6) {
+      setErrorMsg("Please enter the 6-digit OTP code sent to your email.");
+      return;
+    }
+
+    setInitiatorOtpLoading(true);
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/guest/otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "verify",
+          email: initiatorEmail,
+          code: initiatorOtpCode,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setInitiatorOtpVerified(true);
+      } else {
+        setErrorMsg(data.error || "Invalid or expired OTP code.");
+      }
+    } catch (err: any) {
+      setErrorMsg("Error verifying identity code.");
+    } finally {
+      setInitiatorOtpLoading(false);
+    }
+  };
+
   // Submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,6 +262,11 @@ export default function InstantContractPage() {
 
     if (!initiatorDesignation.trim() || !initiatorNtn.trim()) {
       setErrorMsg("Please fill in your Job Title / Capacity and NTN/CNIC.");
+      return;
+    }
+
+    if (!initiatorOtpVerified) {
+      setErrorMsg("Please complete your email OTP identity verification in Section 6 to sign and unlock the contract link.");
       return;
     }
 
@@ -358,9 +441,9 @@ export default function InstantContractPage() {
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl font-bold mx-auto">
                 ✓
               </div>
-              <h2 className="text-3xl font-black text-black">Instant Contract Ready!</h2>
+              <h2 className="text-3xl font-black text-black">Instant Contract Signed &amp; Ready!</h2>
               <p className="text-sm text-gray-600 max-w-md mx-auto">
-                Contract <strong>#{createdResult.contractNumber}</strong> has been created with full legal terms. Send the link below to the counterparty to review &amp; sign.
+                Contract <strong>#{createdResult.contractNumber}</strong> has been signed by you via OTP. Send the link below to the counterparty to review &amp; sign.
               </p>
             </div>
 
@@ -411,6 +494,9 @@ export default function InstantContractPage() {
                     setInitiatorEmail("");
                     setTotalAmount("");
                     setAdvancePayment("");
+                    setInitiatorOtpVerified(false);
+                    setInitiatorOtpDispatched(false);
+                    setInitiatorOtpCode("");
                   }}
                   className="text-xs text-blue-200 hover:text-white underline font-medium px-2 py-1"
                 >
@@ -439,7 +525,7 @@ export default function InstantContractPage() {
                 </div>
               </div>
               <p className="text-xs md:text-sm text-gray-600 mt-1">
-                Fill in all campaign terms, licensing rights, payment dates, and penalty safeguards.
+                Fill in campaign terms first, then verify your identity via OTP in the final step to generate the signing link.
               </p>
             </div>
 
@@ -450,179 +536,11 @@ export default function InstantContractPage() {
               </div>
             )}
 
-            {/* SECTION 1: Workflow & Parties (Reactive) */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center justify-between">
-                <span>1. Contract Workflow &amp; Parties</span>
-                <span className="text-[10px] font-normal text-blue-600">Reactive Fields</span>
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col text-left gap-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-gray-800">Contract Workflow *</label>
-                  <select
-                    value={contractType}
-                    onChange={(e) => setContractType(e.target.value)}
-                    className="input-field border-black font-semibold text-black bg-blue-50/50"
-                  >
-                    {WORKFLOW_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Your Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Sarah Khan"
-                    value={initiatorName}
-                    onChange={(e) => setInitiatorName(e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Your Email Address *</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="sarah@example.com"
-                    value={initiatorEmail}
-                    onChange={(e) => setInitiatorEmail(e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Your Platform Role</label>
-                  <div className="input-field bg-gray-100/90 border-gray-200 text-gray-900 font-bold flex items-center justify-between cursor-not-allowed">
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      {initiatorRole === "CREATOR" ? "Creator / Influencer" : initiatorRole === "BRAND" ? "Brand Representative" : "Agency Representative"}
-                    </span>
-                    <span className="text-[10px] text-gray-400 font-normal ml-2">Auto-fixed</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Your Job Title / Capacity *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Senior Campaign Manager"
-                    value={initiatorDesignation}
-                    onChange={(e) => setInitiatorDesignation(e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-
-                <div className="flex flex-col text-left gap-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-gray-700">Initiator NTN / CNIC *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 1234567-8 or 42101-0000000-0"
-                    value={initiatorNtn}
-                    onChange={(e) => setInitiatorNtn(e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-
-                {/* REACTIVE COUNTERPARTY FIELDS BASED ON WORKFLOW */}
-                {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Brand Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Sapphire / Nexus"
-                      value={brandName}
-                      onChange={(e) => setBrandName(e.target.value)}
-                      className="input-field border-blue-200"
-                    />
-                  </div>
-                )}
-
-                {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Brand Instagram Handle</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. @sapphirepk"
-                      value={brandHandle}
-                      onChange={(e) => setBrandHandle(e.target.value)}
-                      className="input-field border-blue-200"
-                    />
-                  </div>
-                )}
-
-                {["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Campaign Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Summer Lawn Campaign 2026"
-                      value={campaignName}
-                      onChange={(e) => setCampaignName(e.target.value)}
-                      className="input-field border-blue-200"
-                    />
-                  </div>
-                )}
-
-                {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Creator Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Mohammad Ali"
-                      value={creatorName}
-                      onChange={(e) => setCreatorName(e.target.value)}
-                      className="input-field border-blue-200"
-                    />
-                  </div>
-                )}
-
-                {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Creator Handle *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. @alibeats"
-                      value={creatorHandle}
-                      onChange={(e) => setCreatorHandle(e.target.value)}
-                      className="input-field border-blue-200"
-                    />
-                  </div>
-                )}
-
-                {/* CONTEXTUAL NOTICE BADGE */}
-                <div className="sm:col-span-2 p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-left">
-                  <p className="text-xs text-blue-900 font-medium flex items-start gap-2">
-                    <span className="text-blue-600 font-bold">ℹ</span>
-                    <span>
-                      {contractType === "AGENCY_TO_CREATOR" || contractType === "BRAND_TO_CREATOR"
-                        ? "Creator representative verification details, CNIC photo, and payout details will be collected directly from the Creator when they open the Contract Link."
-                        : contractType === "CREATOR_TO_BRAND" || contractType === "AGENCY_TO_BRAND"
-                        ? "Brand representative verification details, company address, and official authority will be collected directly from the Brand when they open the Contract Link."
-                        : "Agency representative verification details, office address, and official authority will be collected directly from the Agency when they open the Contract Link."}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* SECTION 2: Deliverables & Guidelines */}
+            {/* SECTION 1: Campaign Deliverables & Guidelines */}
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                 <h3 className="text-xs font-bold text-black uppercase tracking-wider">
-                  2. Campaign Deliverables &amp; Guidelines
+                  1. Campaign Deliverables &amp; Guidelines
                 </h3>
                 <button
                   type="button"
@@ -725,10 +643,10 @@ export default function InstantContractPage() {
               </div>
             </div>
 
-            {/* SECTION 3: Usage Rights & Licensing */}
+            {/* SECTION 2: Granted Commercial License Tiers & Media Scope */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
-                3. Usage Rights &amp; Media Scope
+                2. Granted Commercial License Tiers &amp; Media Scope
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -789,10 +707,10 @@ export default function InstantContractPage() {
               </div>
             </div>
 
-            {/* SECTION 4: Financial & Payment Terms */}
+            {/* SECTION 3: Financial & Payment Schedule */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
-                4. Financial &amp; Payment Schedule
+                3. Financial &amp; Payment Schedule
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -884,10 +802,10 @@ export default function InstantContractPage() {
               </div>
             </div>
 
-            {/* SECTION 5: Delivery, Revisions & Product Provisions */}
+            {/* SECTION 4: Delivery, Revisions & Product Loans */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
-                5. Delivery, Revisions &amp; Product Loans
+                4. Delivery, Revisions &amp; Product Loans
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1018,10 +936,10 @@ export default function InstantContractPage() {
               </div>
             </div>
 
-            {/* SECTION 6: Safeguards, Penalties & NDA */}
+            {/* SECTION 5: Safeguards, Penalties & NDA */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
-                6. Safeguards, Penalties &amp; Exclusivity
+                5. Safeguards, Penalties &amp; Exclusivity
               </h3>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1125,13 +1043,263 @@ export default function InstantContractPage() {
               </div>
             </div>
 
+            {/* SECTION 6: Contract Workflow & Parties (Final Section with OTP Verification) */}
+            <div className="space-y-4 border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                <h3 className="text-xs font-bold text-black uppercase tracking-wider">
+                  6. Contract Workflow &amp; Initiator Digital Signature Execution
+                </h3>
+                {initiatorOtpVerified && (
+                  <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-wider">
+                    ✓ Identity Verified &amp; Signed
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-800">Contract Workflow *</label>
+                  <select
+                    value={contractType}
+                    disabled={initiatorOtpVerified}
+                    onChange={(e) => setContractType(e.target.value)}
+                    className="input-field border-black font-semibold text-black bg-blue-50/50 disabled:bg-gray-100"
+                  >
+                    {WORKFLOW_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Your Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    disabled={initiatorOtpVerified}
+                    placeholder="e.g. Sarah Khan"
+                    value={initiatorName}
+                    onChange={(e) => setInitiatorName(e.target.value)}
+                    className="input-field disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Your Email Address *</label>
+                  <input
+                    type="email"
+                    required
+                    disabled={initiatorOtpVerified || initiatorOtpDispatched}
+                    placeholder="sarah@example.com"
+                    value={initiatorEmail}
+                    onChange={(e) => setInitiatorEmail(e.target.value)}
+                    className="input-field disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Your Platform Role</label>
+                  <div className="input-field bg-gray-100/90 border-gray-200 text-gray-900 font-bold flex items-center justify-between cursor-not-allowed">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      {initiatorRole === "CREATOR" ? "Creator / Influencer" : initiatorRole === "BRAND" ? "Brand Representative" : "Agency Representative"}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-normal ml-2">Auto-fixed</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Your Job Title / Capacity *</label>
+                  <input
+                    type="text"
+                    required
+                    disabled={initiatorOtpVerified}
+                    placeholder="e.g. Senior Campaign Manager"
+                    value={initiatorDesignation}
+                    onChange={(e) => setInitiatorDesignation(e.target.value)}
+                    className="input-field disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-700">Initiator NTN / CNIC *</label>
+                  <input
+                    type="text"
+                    required
+                    disabled={initiatorOtpVerified}
+                    placeholder="e.g. 1234567-8 or 42101-0000000-0"
+                    value={initiatorNtn}
+                    onChange={(e) => setInitiatorNtn(e.target.value)}
+                    className="input-field disabled:bg-gray-100"
+                  />
+                </div>
+
+                {/* REACTIVE COUNTERPARTY FIELDS BASED ON WORKFLOW */}
+                {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">Brand Name *</label>
+                    <input
+                      type="text"
+                      required
+                      disabled={initiatorOtpVerified}
+                      placeholder="e.g. Sapphire / Nexus"
+                      value={brandName}
+                      onChange={(e) => setBrandName(e.target.value)}
+                      className="input-field border-blue-200 disabled:bg-gray-100"
+                    />
+                  </div>
+                )}
+
+                {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">Brand Instagram Handle</label>
+                    <input
+                      type="text"
+                      disabled={initiatorOtpVerified}
+                      placeholder="e.g. @sapphirepk"
+                      value={brandHandle}
+                      onChange={(e) => setBrandHandle(e.target.value)}
+                      className="input-field border-blue-200 disabled:bg-gray-100"
+                    />
+                  </div>
+                )}
+
+                {["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">Campaign Name *</label>
+                    <input
+                      type="text"
+                      required
+                      disabled={initiatorOtpVerified}
+                      placeholder="e.g. Summer Lawn Campaign 2026"
+                      value={campaignName}
+                      onChange={(e) => setCampaignName(e.target.value)}
+                      className="input-field border-blue-200 disabled:bg-gray-100"
+                    />
+                  </div>
+                )}
+
+                {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">Creator Name *</label>
+                    <input
+                      type="text"
+                      required
+                      disabled={initiatorOtpVerified}
+                      placeholder="e.g. Mohammad Ali"
+                      value={creatorName}
+                      onChange={(e) => setCreatorName(e.target.value)}
+                      className="input-field border-blue-200 disabled:bg-gray-100"
+                    />
+                  </div>
+                )}
+
+                {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-700">Creator Handle *</label>
+                    <input
+                      type="text"
+                      required
+                      disabled={initiatorOtpVerified}
+                      placeholder="e.g. @alibeats"
+                      value={creatorHandle}
+                      onChange={(e) => setCreatorHandle(e.target.value)}
+                      className="input-field border-blue-200 disabled:bg-gray-100"
+                    />
+                  </div>
+                )}
+
+                {/* CONTEXTUAL NOTICE BADGE */}
+                <div className="sm:col-span-2 p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-left">
+                  <p className="text-xs text-blue-900 font-medium flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">ℹ</span>
+                    <span>
+                      {contractType === "AGENCY_TO_CREATOR" || contractType === "BRAND_TO_CREATOR"
+                        ? "Creator representative verification details, CNIC photo, and payout details will be collected directly from the Creator when they open the Contract Link."
+                        : contractType === "CREATOR_TO_BRAND" || contractType === "AGENCY_TO_BRAND"
+                        ? "Brand representative verification details, company address, and official authority will be collected directly from the Brand when they open the Contract Link."
+                        : "Agency representative verification details, office address, and official authority will be collected directly from the Agency when they open the Contract Link."}
+                    </span>
+                  </p>
+                </div>
+
+                {/* OTP VERIFICATION ACTION BOX FOR PARTY 1 */}
+                <div className="sm:col-span-2 pt-2">
+                  {!initiatorOtpVerified ? (
+                    <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="flex flex-col text-left">
+                        <span className="text-xs font-bold text-black uppercase tracking-wider">
+                          Step 1: Verify Email Identity via OTP to Execute Signature
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          {initiatorOtpDispatched
+                            ? `Code sent to ${initiatorEmail}. Enter 6-digit verification code below.`
+                            : "Enter your name, email, job title, and NTN/CNIC above, then click Send OTP."}
+                        </span>
+                      </div>
+
+                      {!initiatorOtpDispatched ? (
+                        <button
+                          type="button"
+                          onClick={handleSendInitiatorOtp}
+                          disabled={!initiatorEmail || !initiatorName || !initiatorDesignation || initiatorOtpLoading}
+                          className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
+                            initiatorEmail && initiatorName && initiatorDesignation && !initiatorOtpLoading
+                              ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
+                              : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
+                          }`}
+                        >
+                          {initiatorOtpLoading ? "Sending..." : "Send OTP ➔"}
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <input
+                            type="text"
+                            maxLength={6}
+                            placeholder="123456"
+                            value={initiatorOtpCode}
+                            onChange={(e) => setInitiatorOtpCode(e.target.value.replace(/\D/g, ""))}
+                            className="input-field text-center font-mono font-bold tracking-widest text-sm py-2 max-w-[120px]"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleVerifyInitiatorOtp}
+                            disabled={initiatorOtpLoading || !initiatorOtpCode}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase shadow transition-all whitespace-nowrap"
+                          >
+                            {initiatorOtpLoading ? "..." : "Verify OTP"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
+                      <span>✓</span>
+                      <span>Initiator identity verified &amp; digital signature prepared! You may now activate and generate the contract link below.</span>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </div>
+
             {/* SUBMIT BUTTON */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-black hover:bg-black/90 text-white font-black py-4 px-6 rounded-2xl text-base shadow-xl transition-all flex items-center justify-center gap-2"
+              disabled={loading || !initiatorOtpVerified}
+              className={`w-full font-black py-4 px-6 rounded-2xl text-base shadow-xl transition-all flex items-center justify-center gap-2 ${
+                initiatorOtpVerified
+                  ? "bg-black hover:bg-black/90 text-white cursor-pointer"
+                  : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+              }`}
             >
-              {loading ? "Generating Full Contract Link..." : "⚡ Generate Complete Instant Contract Link"}
+              {loading
+                ? "Generating Complete Instant Contract Link..."
+                : initiatorOtpVerified
+                ? "⚡ Generate Complete Instant Contract Link"
+                : "🔒 Complete Email OTP Verification Above to Generate Link"}
             </button>
 
           </form>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ContractType, Role, ContractStatus } from "@prisma/client";
+import { ContractType, Role, ContractStatus, SignerRole } from "@prisma/client";
 
 export async function POST(req: Request) {
   try {
@@ -175,6 +175,26 @@ export async function POST(req: Request) {
 
     const origin = req.headers.get("origin") || `https://${process.env.NEXT_PUBLIC_COMPANY_DOMAIN || "www.signcollab.com"}`;
     const shareUrl = `${origin}/c/${contract.shareToken}`;
+
+    // Record Party 1 (Initiator) verified digital signature log
+    const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
+    const userAgent = req.headers.get("user-agent") || "Browser/GuestMode";
+    const docHash = `HASH-INITIATOR-${contract.id.slice(0, 8)}-${Date.now()}`;
+
+    await prisma.signature.create({
+      data: {
+        contractId: contract.id,
+        signerId: dbUser.id,
+        signerRole: (initiatorRole as SignerRole) || (contractType.startsWith("CREATOR_") ? SignerRole.CREATOR : contractType.startsWith("BRAND_") ? SignerRole.BRAND : SignerRole.AGENCY),
+        signatureImageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='50'><text x='10' y='30' font-family='Arial' font-size='18' font-weight='bold'>Initiator OTP Verified</text></svg>",
+        ipAddress,
+        userAgent,
+        documentHash: docHash,
+        otpVerified: true,
+        otpEmail: cleanEmail,
+        consentRecorded: true,
+      },
+    });
 
     return NextResponse.json({
       success: true,

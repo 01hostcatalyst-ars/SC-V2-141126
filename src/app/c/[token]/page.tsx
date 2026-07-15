@@ -83,6 +83,7 @@ export default function PublicSigningPage({ params }: PageProps) {
     (isRespondentBrand ? respondentCompany : isRespondentAgency ? respondentCompany : collabDetails) &&
     respondentAddress &&
     respondentDesignation &&
+    respondentNtn.trim() &&
     (isRespondentBrand || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
   );
 
@@ -643,11 +644,12 @@ export default function PublicSigningPage({ params }: PageProps) {
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  NTN / Tax Reg No (Optional)
+                  NTN / CNIC <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 1234567-8"
+                  required
+                  placeholder="e.g. 1234567-8 or 42101-0000000-0"
                   value={respondentNtn}
                   onChange={(e) => setRespondentNtn(e.target.value)}
                   disabled={otpDispatched || otpVerified}
