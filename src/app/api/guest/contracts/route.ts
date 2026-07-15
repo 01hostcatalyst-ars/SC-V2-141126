@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ContractType, Role } from "@prisma/client";
+import { ContractType, Role, ContractStatus } from "@prisma/client";
 
 export async function POST(req: Request) {
   try {
@@ -114,6 +114,7 @@ export async function POST(req: Request) {
         contractNumber,
         contractType: contractType as ContractType,
         initiatorId: dbUser.id,
+        status: ContractStatus.PENDING_RESPONDENT,
         brandName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandName : undefined,
         brandHandle: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandHandle : undefined,
         campaignName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_AGENCY, ContractType.BRAND_TO_AGENCY].includes(contractType) ? campaignName : undefined,

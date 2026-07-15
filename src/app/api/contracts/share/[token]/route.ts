@@ -21,6 +21,14 @@ export async function GET(
       return NextResponse.json({ error: "Campaign agreement not found" }, { status: 404 });
     }
 
+    if (contract.status === ContractStatus.DRAFT) {
+      await prisma.contract.update({
+        where: { id: contract.id },
+        data: { status: ContractStatus.PENDING_RESPONDENT },
+      });
+      contract.status = ContractStatus.PENDING_RESPONDENT;
+    }
+
     if (contract.status !== ContractStatus.PENDING_RESPONDENT) {
       return NextResponse.json({ error: "This agreement link has expired or is no longer open for counterparty signing." }, { status: 400 });
     }
