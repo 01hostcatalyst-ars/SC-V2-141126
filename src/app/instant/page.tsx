@@ -450,88 +450,7 @@ export default function InstantContractPage() {
 
       {/* Main Form Body */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-8 lg:p-12 z-10">
-        {createdResult ? (
-          /* SUCCESS SCREEN */
-          <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-2xl space-y-8 animate-fadeIn">
-            <div className="text-center space-y-3">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl font-bold mx-auto">
-                ✓
-              </div>
-              <h2 className="text-3xl font-black text-black">Instant Contract Signed &amp; Ready!</h2>
-              <p className="text-sm text-gray-600 max-w-md mx-auto">
-                Contract <strong>#{createdResult.contractNumber}</strong> has been signed by you via OTP. Send the link below to the counterparty to review &amp; sign.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 p-4 md:p-6 rounded-2xl border border-gray-200 space-y-3">
-              <label className="text-xs font-bold text-black uppercase tracking-wider block">
-                Shareable Signing Link (Send to Counterparty)
-              </label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={createdResult.shareUrl}
-                  className="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-3 text-xs md:text-sm font-mono text-gray-800 select-all focus:outline-none"
-                />
-                <button
-                  onClick={copyToClipboard}
-                  className="bg-black hover:bg-black/90 text-white font-bold px-6 py-3 rounded-xl text-xs md:text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap"
-                >
-                  {copied ? "✓ Copied!" : "📋 Copy Link"}
-                </button>
-                <a
-                  href={createdResult.shareUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-xl text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
-                >
-                  Open Link ↗
-                </a>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-6 md:p-8 rounded-2xl shadow-lg space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white border border-white/20">
-                    Auto-Claim Available
-                  </span>
-                  <h3 className="text-xl font-bold mt-2">Want to manage &amp; track this contract in a permanent dashboard?</h3>
-                  <p className="text-xs text-blue-200 mt-1 max-w-xl leading-relaxed">
-                    Create a free account using <strong>{initiatorEmail}</strong> and this agreement will automatically sync to your dashboard!
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Link
-                  href="/"
-                  className="bg-white text-black hover:bg-gray-100 font-bold px-5 py-2.5 rounded-xl text-xs transition-all shadow-sm"
-                >
-                  Create Free Account Now
-                </Link>
-                <button
-                  onClick={() => {
-                    setCreatedResult(null);
-                    setInitiatorName("");
-                    setInitiatorEmail("");
-                    setTotalAmount("");
-                    setAdvancePayment("");
-                    setInitiatorOtpVerified(false);
-                    setInitiatorOtpDispatched(false);
-                    setInitiatorOtpCode("");
-                  }}
-                  className="text-xs text-blue-200 hover:text-white underline font-medium px-2 py-1"
-                >
-                  Create Another Guest Contract
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* FULL FORM GENERATOR */
-          <form onSubmit={(e) => e.preventDefault()} className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-xl space-y-10">
+        <form onSubmit={(e) => e.preventDefault()} className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-xl space-y-10">
             
             {/* Header Banner */}
             <div className="border-b border-gray-100 pb-6">
@@ -1427,17 +1346,54 @@ export default function InstantContractPage() {
                   ) : (
                     <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
                       <span>✓</span>
-                      <span>Initiator identity verified &amp; contract saved! You may copy the sharing link above.</span>
+                      <span>Initiator identity verified &amp; contract saved! You may copy the sharing link below.</span>
                     </div>
                   )}
                 </div>
+
+                {/* SHAREABLE CONTRACT LINK BOX DIRECTLY BELOW SIGNATURE & OTP */}
+                {createdResult && (
+                  <div className="sm:col-span-2 p-5 bg-gradient-to-r from-emerald-50 to-blue-50 border-2 border-emerald-300 rounded-2xl space-y-3 shadow-lg animate-fadeIn mt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-black uppercase tracking-wider flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Shareable Signing Link (Send to Party 2)
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full uppercase">
+                        Contract #{createdResult.contractNumber}
+                      </span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={createdResult.shareUrl}
+                        className="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-3 text-xs md:text-sm font-mono text-gray-900 select-all focus:outline-none shadow-inner"
+                      />
+                      <button
+                        type="button"
+                        onClick={copyToClipboard}
+                        className="bg-black hover:bg-black/90 text-white font-bold px-6 py-3 rounded-xl text-xs md:text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow"
+                      >
+                        {copied ? "✓ Copied!" : "📋 Copy Contract Link"}
+                      </button>
+                      <a
+                        href={createdResult.shareUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-xl text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 whitespace-nowrap shadow"
+                      >
+                        Open Link ↗
+                      </a>
+                    </div>
+                  </div>
+                )}
 
               </div>
             </div>
 
           </form>
-        )}
-      </main>
+        </main>
 
       {/* Footer */}
       <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-4 text-center text-xs text-gray-500 font-semibold z-10">
