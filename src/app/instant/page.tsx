@@ -584,6 +584,23 @@ export default function InstantContractPage() {
               </div>
             )}
 
+            {/* CONTRACT WORKFLOW SELECTOR */}
+            <div className="flex flex-col text-left gap-1">
+              <label className="text-xs font-bold text-gray-800">Contract Workflow *</label>
+              <select
+                value={contractType}
+                disabled={initiatorOtpVerified}
+                onChange={(e) => setContractType(e.target.value)}
+                className="input-field border-black font-semibold text-black bg-blue-50/50 disabled:bg-gray-100"
+              >
+                {WORKFLOW_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* SECTION 1: Campaign Deliverables & Guidelines */}
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-gray-100 pb-2">
@@ -1116,11 +1133,11 @@ export default function InstantContractPage() {
               </div>
             </div>
 
-            {/* SECTION 6: Contract Workflow & Parties (Final Section with OTP Verification) */}
+            {/* SECTION 6: Initiator Digital Signature Execution */}
             <div className="space-y-4 border-t border-gray-100 pt-6">
               <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                 <h3 className="text-xs font-bold text-black uppercase tracking-wider">
-                  6. Contract Workflow &amp; Initiator Digital Signature Execution
+                  6. Initiator Digital Signature Execution
                 </h3>
                 {initiatorOtpVerified && (
                   <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-wider">
@@ -1130,22 +1147,6 @@ export default function InstantContractPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col text-left gap-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-gray-800">Contract Workflow *</label>
-                  <select
-                    value={contractType}
-                    disabled={initiatorOtpVerified}
-                    onChange={(e) => setContractType(e.target.value)}
-                    className="input-field border-black font-semibold text-black bg-blue-50/50 disabled:bg-gray-100"
-                  >
-                    {WORKFLOW_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">Your Full Name *</label>
                   <input
