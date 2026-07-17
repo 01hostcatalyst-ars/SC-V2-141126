@@ -112,6 +112,9 @@ export default function InstantContractPage() {
   // Derived: is the initiator a business entity (Agency/Brand) or individual (Creator)?
   const isInitiatorBusiness = initiatorRole === "AGENCY" || initiatorRole === "BRAND";
 
+  // Derived: is the initiator receiving payout money? (Agency -> Brand, Creator -> Brand, Creator -> Agency)
+  const isInitiatorPayee = ["AGENCY_TO_BRAND", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType);
+
   // Auto-sync Platform Role based on Contract Workflow
   React.useEffect(() => {
     if (contractType.startsWith("CREATOR_")) {
@@ -364,9 +367,9 @@ export default function InstantContractPage() {
         advancePayment: advancePayment ? Number(advancePayment) : 0,
         advancePaymentDate: advancePaymentDate || undefined,
         remainingPaymentDate: remainingPaymentDate || undefined,
-        paymentMethod,
-        bankAccountIban: paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
-        mobileWalletNumber: paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
+        paymentMethod: isInitiatorPayee ? paymentMethod : undefined,
+        bankAccountIban: isInitiatorPayee && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
+        mobileWalletNumber: isInitiatorPayee && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
         deliveryTimeframeDays: Number(deliveryTimeframeDays),
         revisionRounds: Number(revisionRounds),
         revisionTurnaroundDays: Number(revisionTurnaroundDays),
@@ -783,45 +786,6 @@ export default function InstantContractPage() {
                 </div>
 
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Payment Method</label>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="BANK_IBAN">Bank IBAN Transfer</option>
-                    <option value="JAZZCASH">JazzCash Wallet</option>
-                    <option value="EASYPAISA">EasyPaisa Wallet</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                {paymentMethod === "BANK_IBAN" ? (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Bank IBAN Account</label>
-                    <input
-                      type="text"
-                      placeholder="PK00XXXX0000000000000000"
-                      value={bankAccountIban}
-                      onChange={(e) => setBankAccountIban(e.target.value)}
-                      className="input-field"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Mobile Wallet Number ({paymentMethod})</label>
-                    <input
-                      type="text"
-                      placeholder="03XXXXXXXXX"
-                      value={mobileWalletNumber}
-                      onChange={(e) => setMobileWalletNumber(e.target.value)}
-                      className="input-field"
-                    />
-                  </div>
-                )}
-
-                <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">
                     Advance Payment Date {advancePayment && Number(advancePayment) > 0 ? "*" : ""}
                   </label>
@@ -833,7 +797,9 @@ export default function InstantContractPage() {
                     className="input-field text-xs"
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">Remaining Payment Date *</label>
                   <input
@@ -844,6 +810,58 @@ export default function InstantContractPage() {
                     className="input-field text-xs"
                   />
                 </div>
+
+                {isInitiatorPayee ? (
+                  <>
+                    <div className="flex flex-col text-left gap-1">
+                      <label className="text-xs font-bold text-gray-700">Receiving Payment Method *</label>
+                      <select
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="input-field"
+                      >
+                        <option value="BANK_IBAN">Bank IBAN Transfer</option>
+                        <option value="JAZZCASH">JazzCash Wallet</option>
+                        <option value="EASYPAISA">EasyPaisa Wallet</option>
+                      </select>
+                    </div>
+
+                    {paymentMethod === "BANK_IBAN" ? (
+                      <div className="flex flex-col text-left gap-1">
+                        <label className="text-xs font-bold text-gray-700">Bank IBAN Account *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="PK00XXXX0000000000000000"
+                          value={bankAccountIban}
+                          onChange={(e) => setBankAccountIban(e.target.value)}
+                          className="input-field font-mono"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col text-left gap-1">
+                        <label className="text-xs font-bold text-gray-700">Mobile Wallet ({paymentMethod}) *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="03XXXXXXXXX"
+                          value={mobileWalletNumber}
+                          onChange={(e) => setMobileWalletNumber(e.target.value)}
+                          className="input-field font-mono"
+                        />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="sm:col-span-2 p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-left flex items-center">
+                    <p className="text-xs text-blue-900 font-medium flex items-center gap-2">
+                      <span className="text-blue-600 font-bold">ℹ</span>
+                      <span>
+                        Receiving Payout Account (IBAN / JazzCash) will be collected directly from the receiving counterparty ({contractType.endsWith("_CREATOR") ? "Creator" : "Agency"}) on their signing link.
+                      </span>
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -75,6 +75,7 @@ export default function PublicSigningPage({ params }: PageProps) {
   const isRespondentBrand = contract?.contractType?.endsWith("_BRAND") ?? false;
   const isRespondentAgency = contract?.contractType?.endsWith("_AGENCY") ?? false;
   const isRespondentCreator = !isRespondentBrand && !isRespondentAgency;
+  const isRespondentPayee = ["BRAND_TO_CREATOR", "AGENCY_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contract?.contractType);
 
   // Validation check: Send OTP button is enabled only when all required fields have data
   const isFormValid = Boolean(
@@ -85,7 +86,7 @@ export default function PublicSigningPage({ params }: PageProps) {
     respondentAddress &&
     respondentDesignation &&
     ((isRespondentBrand || isRespondentAgency) ? respondentNtn.trim() : respondentCnic.trim()) &&
-    (!isRespondentCreator || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
+    (!isRespondentPayee || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
   );
 
   const handleSendOTP = async () => {
@@ -198,9 +199,9 @@ export default function PublicSigningPage({ params }: PageProps) {
           respondentNtn: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
           respondentCnic: isRespondentCreator ? respondentCnic : undefined,
           collabDetails: isRespondentCreator ? collabDetails : undefined,
-          paymentMethod: isRespondentCreator ? paymentMethod : undefined,
-          bankAccountIban: isRespondentCreator && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
-          mobileWalletNumber: isRespondentCreator && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
+          paymentMethod: isRespondentPayee ? paymentMethod : undefined,
+          bankAccountIban: isRespondentPayee && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
+          mobileWalletNumber: isRespondentPayee && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
           signatureB64,
           fingerprint,
         }),
@@ -680,8 +681,8 @@ export default function PublicSigningPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* Payout Account Route Selection for Creator Respondents ONLY */}
-              {isRespondentCreator && (
+              {/* Payout Account Route Selection for Counterparty Payee (Creator / Agency) */}
+              {isRespondentPayee && (
                 <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2 space-y-3">
                   <span className="text-xs font-bold text-black uppercase tracking-wider block">
                     {isRespondentAgency ? "Agency Payout Account Details" : "Your Payout Account Details"} (Required for Campaign Payouts) <span className="text-rose-500">*</span>
