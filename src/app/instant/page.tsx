@@ -415,10 +415,13 @@ export default function InstantContractPage() {
         throw new Error(data.error || "Failed to generate instant contract.");
       }
 
+      const shareToken = data.shareToken || data.contract?.shareToken;
+      const shareUrl = `${window.location.origin}/c/${shareToken}`;
+
       setCreatedResult({
-        shareUrl: data.shareUrl,
-        shareToken: data.shareToken,
-        contractNumber: data.contract.contractNumber,
+        shareUrl,
+        shareToken,
+        contractNumber: data.contract?.contractNumber || "BB-INSTANT",
       });
       setIsSignModalOpen(false);
     } catch (err: any) {
@@ -498,6 +501,14 @@ export default function InstantContractPage() {
                 >
                   {copied ? "✓ Copied!" : "📋 Copy Link"}
                 </button>
+                <a
+                  href={createdResult.shareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-xl text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
+                >
+                  Open Link ↗
+                </a>
               </div>
             </div>
 

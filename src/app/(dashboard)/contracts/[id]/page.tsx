@@ -383,6 +383,48 @@ export default function ContractDetailPage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* PENDING RESPONDENT SHAREABLE LINK BANNER */}
+      {contract.status === "PENDING_RESPONDENT" && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 uppercase tracking-wider">
+                ✓ Party 1 Signed &amp; Identity Locked
+              </span>
+              <h3 className="text-base font-black text-black mt-1">
+                Counterparty Signing Link Active &amp; Ready
+              </h3>
+              <p className="text-xs text-gray-600">
+                Share this link with Party 2 (counterparty) to complete their profile verification and execute their digital signature.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+            <input
+              type="text"
+              readOnly
+              value={`${typeof window !== "undefined" ? window.location.origin : ""}/c/${contract.shareToken}`}
+              className="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-xs font-mono text-gray-800 select-all focus:outline-none w-full"
+            />
+            <button
+              onClick={copySigningLink}
+              className="bg-black hover:bg-black/90 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
+            >
+              📋 Copy Link
+            </button>
+            <a
+              href={`/c/${contract.shareToken}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap w-full sm:w-auto"
+            >
+              Open Link ↗
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Main Grid specs layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
