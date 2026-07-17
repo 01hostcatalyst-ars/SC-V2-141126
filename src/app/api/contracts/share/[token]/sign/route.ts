@@ -3,6 +3,9 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { ContractStatus, SignerRole, Role } from "@prisma/client";
 import { computeContentHash } from "@/lib/utils";
+import { generateContractPDF } from "@/lib/pdf/generate";
+import { generateAuditCertificatePDF } from "@/lib/pdf/generateCertificate";
+import { sendEmailNotification } from "@/lib/notifications";
 
 export async function POST(
   req: Request,
@@ -25,7 +28,7 @@ export async function POST(
 
     const contract = await prisma.contract.findUnique({
       where: { shareToken: token },
-      include: { initiator: true, deliverables: true },
+      include: { initiator: true, deliverables: true, signatures: true },
     });
 
     if (!contract) {
@@ -102,8 +105,13 @@ export async function POST(
       .update(`${contentHashAtSigning}-${email}-${ipAddress}-${userAgent}-${fingerprint || ""}`)
       .digest("hex");
 
+    // Check if Initiator has already signed (e.g. Instant Contract flow)
+    const hasInitiatorSigned = contract.signatures?.some(
+      (s) => s.signerId === contract.initiatorId || s.signerRole !== signerRole
+    );
+    const finalStatus = hasInitiatorSigned ? ContractStatus.ACTIVE : ContractStatus.PENDING_INITIATOR;
+
     // 4. Write Signature & metadata in database (Prisma Transaction)
-    // Store respondent payout in SEPARATE fields — never overwrite initiator payment details
     await prisma.$transaction([
       prisma.signature.create({
         data: {
@@ -124,7 +132,8 @@ export async function POST(
       prisma.contract.update({
         where: { id: contract.id },
         data: {
-          status: ContractStatus.PENDING_INITIATOR,
+          status: finalStatus,
+          activatedAt: hasInitiatorSigned ? new Date() : undefined,
           respondentId: respondentUser.id,
           respondentName: name || contract.respondentName,
           respondentEmail: email || contract.respondentEmail,
@@ -135,7 +144,6 @@ export async function POST(
           respondentNtn: isRespondentBusiness ? (ntn || contract.respondentNtn) : contract.respondentNtn,
           respondentCnic: !isRespondentBusiness ? (cnic || ntn) : contract.respondentCnic,
           collabDetails: collabDetails || contract.collabDetails,
-          // Store respondent payout details in SEPARATE fields — never overwrite initiator payment
           respondentPaymentMethod: paymentMethod || undefined,
           respondentBankAccountIban: paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
           respondentMobileWalletNumber: paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
@@ -145,13 +153,14 @@ export async function POST(
         data: {
           contractId: contract.id,
           userId: respondentUser.id,
-          action: "RESPONDENT_SIGNED",
+          action: hasInitiatorSigned ? "CONTRACT_ACTIVATED" : "RESPONDENT_SIGNED",
           details: {
             email,
             signerRole,
             ipAddress,
             fingerprint,
             respondentId: respondentUser.id,
+            finalStatus,
           },
           ipAddress,
           userAgent,
@@ -159,9 +168,64 @@ export async function POST(
       }),
     ]);
 
+    // 5. If contract is now ACTIVE (both parties signed), generate PDFs and send emails to both Initiator and Respondent
+    if (finalStatus === ContractStatus.ACTIVE) {
+      try {
+        const pdfResult = await generateContractPDF(contract.id);
+        let certResult;
+        try {
+          certResult = await generateAuditCertificatePDF(contract.id);
+        } catch (certErr) {
+          console.error("Failed to generate audit certificate PDF during share sign:", certErr);
+        }
+
+        const attachments = [
+          {
+            filename: `Contract-${contract.contractNumber}.pdf`,
+            content: pdfResult.buffer,
+          },
+          ...(certResult?.buffer
+            ? [
+                {
+                  filename: `Audit-Certificate-${contract.contractNumber}.pdf`,
+                  content: certResult.buffer,
+                },
+              ]
+            : []),
+        ];
+
+        // 1. Dispatch active contract with PDF attachments to Initiator
+        await sendEmailNotification({
+          to: contract.initiator.email,
+          subject: `Active Agreement & Audit Certificate - ${contract.contractNumber}`,
+          template: "contract_active",
+          data: {
+            contractNumber: contract.contractNumber,
+          },
+          attachments,
+        });
+
+        // 2. Dispatch active contract with PDF attachments to Respondent
+        await sendEmailNotification({
+          to: cleanEmail,
+          subject: `Active Agreement & Audit Certificate - ${contract.contractNumber}`,
+          template: "contract_active",
+          data: {
+            contractNumber: contract.contractNumber,
+          },
+          attachments,
+        });
+      } catch (pdfErr) {
+        console.error("PDF generation or email dispatch failed during share sign execution:", pdfErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Respondent signature logged successfully",
+      status: finalStatus,
+      message: hasInitiatorSigned
+        ? "Both signatures verified and contract activated. PDFs sent via email."
+        : "Respondent signature logged successfully.",
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
