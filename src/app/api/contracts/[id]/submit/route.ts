@@ -29,7 +29,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       // Body may be empty if called without JSON payload
     }
 
-    const { initiatorDesignation, initiatorNtn } = body;
+    const { initiatorDesignation, initiatorNtn, signatureB64, fingerprint } = body;
 
     const contract = await prisma.contract.findUnique({
       where: { id },
@@ -99,9 +99,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         contractId: contract.id,
         signerId: dbUser.id,
         signerRole,
-        signatureImageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='50'><text x='10' y='30' font-family='Arial' font-size='18' font-weight='bold'>Initiator OTP Verified</text></svg>",
+        signatureImageUrl: signatureB64 || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='50'><text x='10' y='30' font-family='Arial' font-size='18' font-weight='bold'>Initiator OTP Verified</text></svg>",
         ipAddress,
         userAgent,
+        deviceFingerprint: fingerprint || undefined,
         documentHash: contentHash,
         otpVerified: true,
         otpEmail: dbUser.email,

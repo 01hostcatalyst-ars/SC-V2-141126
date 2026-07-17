@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { getCompanyConfig } from "@/lib/config";
+import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
 
 interface DeliverableItem {
   type: string;
@@ -137,6 +138,7 @@ export default function InstantContractPage() {
 
   // Submission state
   const [loading, setLoading] = useState(false);
+  const [isSignModalOpen, setIsSignModalOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [createdResult, setCreatedResult] = useState<{
     shareUrl: string;
@@ -335,8 +337,12 @@ export default function InstantContractPage() {
       return;
     }
 
-    setLoading(true);
+    // Form is valid — open signature pad modal for initiator to draw digital signature
+    setIsSignModalOpen(true);
+  };
 
+  const handleExecuteSignature = async (signatureB64: string, fingerprint: string) => {
+    setLoading(true);
     try {
       const payload = {
         contractType,
@@ -393,6 +399,8 @@ export default function InstantContractPage() {
         contentOwnership,
         taggingRequirements,
         deliverables,
+        signatureB64,
+        fingerprint,
       };
 
       const res = await fetch("/api/guest/contracts", {
@@ -412,6 +420,7 @@ export default function InstantContractPage() {
         shareToken: data.shareToken,
         contractNumber: data.contract.contractNumber,
       });
+      setIsSignModalOpen(false);
     } catch (err: any) {
       setErrorMsg(err.message || "An error occurred while generating the contract.");
     } finally {
@@ -1392,6 +1401,14 @@ export default function InstantContractPage() {
       <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-4 text-center text-xs text-gray-500 font-semibold z-10">
         © {new Date().getFullYear()} {company.name}. Safe &amp; Bilateral Legal Agreements.
       </footer>
+
+      {/* Signature Pad Modal for Initiator */}
+      <SignaturePadModal
+        isOpen={isSignModalOpen}
+        onClose={() => setIsSignModalOpen(false)}
+        onConfirm={handleExecuteSignature}
+        loading={loading}
+      />
     </div>
   );
 }

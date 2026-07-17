@@ -126,53 +126,50 @@ export default function ContractDetailPage({ params }: PageProps) {
     }
   };
 
-  const handlePublishSubmit = async () => {
+  const handleOpenPublishSignModal = () => {
     if (!otpVerified) {
       showToast("Please verify your email via OTP before publishing.", "error");
       return;
     }
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/contracts/${resolvedParams.id}/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          initiatorDesignation: publishDesignation,
-          initiatorNtn: publishNtn,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        showToast("Agreement published & counterparty link activated!", "success");
-        setIsPublishModalOpen(false);
-        fetchContract();
-      } else {
-        showToast(data.error || "Failed to publish draft.", "error");
-      }
-    } catch (err) {
-      showToast("Error executing draft submission.", "error");
-    } finally {
-      setActionLoading(false);
-    }
+    setIsPublishModalOpen(false);
+    setIsSignModalOpen(true);
   };
 
   const handleInitiatorSign = async (signatureB64: string, fingerprint: string) => {
     setActionLoading(true);
     const documentHash = contract.documentHash || "SHA256-" + contract.shareToken;
     try {
-      const res = await fetch(`/api/contracts/${resolvedParams.id}/sign`, {
+      const endpoint = contract.status === "DRAFT" 
+        ? `/api/contracts/${resolvedParams.id}/submit`
+        : `/api/contracts/${resolvedParams.id}/sign`;
+
+      const payload = contract.status === "DRAFT"
+        ? {
+            initiatorDesignation: publishDesignation,
+            initiatorNtn: publishNtn,
+            signatureB64,
+            fingerprint,
+          }
+        : {
+            signatureB64,
+            documentHash,
+            fingerprint,
+          };
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          signatureB64,
-          documentHash,
-          fingerprint,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (res.ok) {
-        showToast("Contract executed and active! Both parties notified.", "success");
+        showToast(
+          contract.status === "DRAFT"
+            ? "Agreement published & digital signature recorded!"
+            : "Contract executed and active! Both parties notified.",
+          "success"
+        );
         fetchContract();
       } else {
         showToast(data.error || "Failed to execute signature transaction.", "error");
@@ -181,6 +178,7 @@ export default function ContractDetailPage({ params }: PageProps) {
       showToast("Error processing signature execution.", "error");
     } finally {
       setActionLoading(false);
+      setIsSignModalOpen(false);
     }
   };
 
@@ -825,14 +823,14 @@ export default function ContractDetailPage({ params }: PageProps) {
               <button
                 type="button"
                 disabled={actionLoading || !otpVerified}
-                onClick={handlePublishSubmit}
+                onClick={handleOpenPublishSignModal}
                 className={`w-full font-bold text-xs uppercase py-3 rounded-xl transition-all shadow-md mt-4 ${
                   otpVerified
                     ? "bg-black text-white hover:bg-black/90 cursor-pointer"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                {actionLoading ? "Locking Terms & Publishing..." : "Lock Terms & Activate Public Signing Link ➔"}
+                {actionLoading ? "Locking Terms & Publishing..." : "Lock Terms & Sign Agreement ➔"}
               </button>
             </div>
           </div>

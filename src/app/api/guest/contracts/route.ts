@@ -59,6 +59,8 @@ export async function POST(req: Request) {
       collabProductReturnAddress,
       collabProductReturnShippingBy,
       collabProductNonReturnFee,
+      signatureB64,
+      fingerprint,
     } = await req.json();
 
     if (!initiatorEmail || !initiatorName || !contractType || !totalAmount || !deliveryTimeframeDays || !deliverables || deliverables.length === 0) {
@@ -191,9 +193,10 @@ export async function POST(req: Request) {
         contractId: contract.id,
         signerId: dbUser.id,
         signerRole: (initiatorRole as SignerRole) || (contractType.startsWith("CREATOR_") ? SignerRole.CREATOR : contractType.startsWith("BRAND_") ? SignerRole.BRAND : SignerRole.AGENCY),
-        signatureImageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='50'><text x='10' y='30' font-family='Arial' font-size='18' font-weight='bold'>Initiator OTP Verified</text></svg>",
+        signatureImageUrl: signatureB64 || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='50'><text x='10' y='30' font-family='Arial' font-size='18' font-weight='bold'>Initiator OTP Verified</text></svg>",
         ipAddress,
         userAgent,
+        deviceFingerprint: fingerprint || undefined,
         documentHash: docHash,
         otpVerified: true,
         otpEmail: cleanEmail,
