@@ -607,13 +607,6 @@ export default function InstantContractPage() {
                 <h3 className="text-xs font-bold text-black uppercase tracking-wider">
                   1. Campaign Deliverables &amp; Guidelines
                 </h3>
-                <button
-                  type="button"
-                  onClick={handleAddDeliverable}
-                  className="text-xs font-bold text-blue-600 hover:text-blue-800"
-                >
-                  + Add Deliverable
-                </button>
               </div>
 
               {deliverables.map((item, idx) => (
@@ -683,6 +676,14 @@ export default function InstantContractPage() {
                   </div>
                 </div>
               ))}
+
+              <button
+                type="button"
+                onClick={handleAddDeliverable}
+                className="w-full py-3 rounded-xl border border-dashed border-gray-300 hover:border-black bg-white hover:bg-gray-50 text-black font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                + Add Deliverable
+              </button>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="flex flex-col text-left gap-1">
