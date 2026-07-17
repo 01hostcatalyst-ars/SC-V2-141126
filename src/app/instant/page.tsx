@@ -135,6 +135,10 @@ export default function InstantContractPage() {
   const [creatorName, setCreatorName] = useState("");
   const [creatorHandle, setCreatorHandle] = useState("");
 
+  // Party 1 Initiator Signature states (Captured before OTP)
+  const [initiatorSignatureB64, setInitiatorSignatureB64] = useState("");
+  const [initiatorFingerprint, setInitiatorFingerprint] = useState("");
+
   // Party 1 Initiator OTP states
   const [initiatorOtpDispatched, setInitiatorOtpDispatched] = useState(false);
   const [initiatorOtpVerified, setInitiatorOtpVerified] = useState(false);
@@ -153,9 +157,9 @@ export default function InstantContractPage() {
 
   const [copied, setCopied] = useState(false);
 
-  // Computed: is the form fully valid and ready to sign?
-  const isFormReady = useMemo(() => {
-    if (!initiatorOtpVerified) return false;
+  // Computed: is the form fully valid and ready to request OTP?
+  const isFormReadyForOtp = useMemo(() => {
+    if (!initiatorSignatureB64) return false;
     if (!initiatorName.trim() || !initiatorEmail.trim() || !initiatorPhone.trim()) return false;
     if (!initiatorDesignation.trim()) return false;
     if (isInitiatorBusiness && (!initiatorNtn.trim() || !initiatorCompanyName.trim())) return false;
@@ -173,7 +177,7 @@ export default function InstantContractPage() {
     if (advancePayment && Number(advancePayment) > 0 && !advancePaymentDate) return false;
     return true;
   }, [
-    initiatorOtpVerified, initiatorName, initiatorEmail, initiatorPhone,
+    initiatorSignatureB64, initiatorName, initiatorEmail, initiatorPhone,
     initiatorDesignation, isInitiatorBusiness, initiatorNtn, initiatorCompanyName,
     initiatorCnic, totalAmount, remainingPaymentDate, deliveryTimeframeDays,
     contractType, brandName, campaignName, brandHandle, creatorName, creatorHandle,
@@ -217,14 +221,25 @@ export default function InstantContractPage() {
     }
   };
 
-  // OTP Sending logic for Initiator (Party 1)
+  // Called when initiator completes signature canvas drawing in modal
+  const handleSaveSignature = (sigB64: string, fPrint: string) => {
+    setInitiatorSignatureB64(sigB64);
+    setInitiatorFingerprint(fPrint);
+    setIsSignModalOpen(false);
+  };
+
+  // OTP Sending logic for Initiator (Party 1) - sends ALL initiator data + signature in email
   const handleSendInitiatorOtp = async () => {
     if (!initiatorEmail || !initiatorEmail.trim()) {
       setErrorMsg("Please enter your email address first.");
       return;
     }
-    if (!initiatorName.trim() || !initiatorDesignation.trim()) {
-      setErrorMsg("Please fill in your Name and Job Title / Capacity first.");
+    if (!initiatorName.trim() || !initiatorPhone.trim() || !initiatorDesignation.trim()) {
+      setErrorMsg("Please fill in your Name, Phone Number, and Job Title / Capacity first.");
+      return;
+    }
+    if (!initiatorSignatureB64) {
+      setErrorMsg("Please draw and apply your Digital Signature first.");
       return;
     }
 
@@ -241,6 +256,18 @@ export default function InstantContractPage() {
           name: initiatorName,
           phone: initiatorPhone,
           designation: initiatorDesignation,
+          companyName: isInitiatorBusiness ? initiatorCompanyName : undefined,
+          companyAddress: isInitiatorBusiness ? initiatorCompanyAddress : undefined,
+          ntn: isInitiatorBusiness ? initiatorNtn : undefined,
+          cnic: !isInitiatorBusiness ? initiatorCnic : undefined,
+          role: initiatorRole,
+          contractType,
+          brandName,
+          brandHandle,
+          campaignName,
+          creatorName,
+          creatorHandle,
+          signatureB64: initiatorSignatureB64,
         }),
       });
 
@@ -257,124 +284,8 @@ export default function InstantContractPage() {
     }
   };
 
-  const handleVerifyInitiatorOtp = async () => {
-    if (!initiatorOtpCode || initiatorOtpCode.length !== 6) {
-      setErrorMsg("Please enter the 6-digit OTP code sent to your email.");
-      return;
-    }
-
-    setInitiatorOtpLoading(true);
-    setErrorMsg("");
-
-    try {
-      const res = await fetch("/api/guest/otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "verify",
-          email: initiatorEmail,
-          code: initiatorOtpCode,
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setInitiatorOtpVerified(true);
-      } else {
-        setErrorMsg(data.error || "Invalid or expired OTP code.");
-      }
-    } catch (err: any) {
-      setErrorMsg("Error verifying identity code.");
-    } finally {
-      setInitiatorOtpLoading(false);
-    }
-  };
-
-  // Submission handler
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg("");
-
-    if (!initiatorName.trim() || !initiatorEmail.trim() || !initiatorPhone.trim()) {
-      setErrorMsg("Please enter your name, email address, and phone number.");
-      return;
-    }
-
-    if (!initiatorDesignation.trim()) {
-      setErrorMsg("Please fill in your Job Title / Capacity.");
-      return;
-    }
-
-    // Validate identity fields based on role type
-    if (isInitiatorBusiness && !initiatorNtn.trim()) {
-      setErrorMsg("Please fill in your NTN (National Tax Number) for business entities.");
-      return;
-    }
-    if (!isInitiatorBusiness && !initiatorCnic.trim()) {
-      setErrorMsg("Please fill in your CNIC number.");
-      return;
-    }
-    if (isInitiatorBusiness && !initiatorCompanyName.trim()) {
-      setErrorMsg("Please fill in your Company / Agency Name.");
-      return;
-    }
-
-    if (!initiatorOtpVerified) {
-      setErrorMsg("Please complete your email OTP identity verification in Section 6 to sign and unlock the contract link.");
-      return;
-    }
-
-    // Workflow-specific validations
-    if (contractType === "AGENCY_TO_CREATOR" && (!brandName.trim() || !campaignName.trim())) {
-      setErrorMsg("Brand Name and Campaign Name are required for Agency ➔ Creator workflow.");
-      return;
-    }
-    if (contractType === "CREATOR_TO_BRAND" && (!brandName.trim() || !brandHandle.trim())) {
-      setErrorMsg("Brand Name and Brand Handle are required for Creator ➔ Brand workflow.");
-      return;
-    }
-    if (contractType === "BRAND_TO_CREATOR" && (!creatorName.trim() || !creatorHandle.trim())) {
-      setErrorMsg("Creator Name and Creator Handle are required for Brand ➔ Creator workflow.");
-      return;
-    }
-    if (contractType === "AGENCY_TO_BRAND" && (!creatorName.trim() || !creatorHandle.trim())) {
-      setErrorMsg("Creator Name and Creator Handle are required for Agency ➔ Brand workflow.");
-      return;
-    }
-    if (contractType === "CREATOR_TO_AGENCY" && (!brandName.trim() || !campaignName.trim())) {
-      setErrorMsg("Brand Name and Campaign Name are required for Creator ➔ Agency workflow.");
-      return;
-    }
-    if (contractType === "BRAND_TO_AGENCY" && (!creatorName.trim() || !campaignName.trim())) {
-      setErrorMsg("Creator Name and Campaign Name are required for Brand ➔ Agency workflow.");
-      return;
-    }
-
-    if (!totalAmount || Number(totalAmount) <= 0) {
-      setErrorMsg("Please enter a valid total contract valuation amount.");
-      return;
-    }
-
-    if (advancePayment && Number(advancePayment) > 0 && !advancePaymentDate) {
-      setErrorMsg("Please select the advance payment date.");
-      return;
-    }
-
-    if (!remainingPaymentDate) {
-      setErrorMsg("Please select the remaining payment date.");
-      return;
-    }
-
-    if (!deliveryTimeframeDays || Number(deliveryTimeframeDays) <= 0) {
-      setErrorMsg("Please enter a valid delivery timeframe in days.");
-      return;
-    }
-
-    // Form is valid — open signature pad modal for initiator to draw digital signature
-    setIsSignModalOpen(true);
-  };
-
-  const handleExecuteSignature = async (signatureB64: string, fingerprint: string) => {
+  // Create Contract in Backend DB after successful OTP verification
+  const handleCreateContractInDb = async (sigB64: string, fPrint: string) => {
     setLoading(true);
     try {
       const payload = {
@@ -432,8 +343,8 @@ export default function InstantContractPage() {
         contentOwnership,
         taggingRequirements,
         deliverables,
-        signatureB64,
-        fingerprint,
+        signatureB64: sigB64,
+        fingerprint: fPrint,
       };
 
       const res = await fetch("/api/guest/contracts", {
@@ -449,15 +360,53 @@ export default function InstantContractPage() {
       }
 
       const shareToken = data.shareToken || data.contract?.shareToken;
-      const shareUrl = `/c/${shareToken}`;
+      const shareUrl = `${window.location.origin}/c/${shareToken}`;
 
-      // Close modal and redirect directly to the contract link
-      setIsSignModalOpen(false);
-      router.push(shareUrl);
+      setCreatedResult({
+        shareUrl,
+        shareToken,
+        contractNumber: data.contract?.contractNumber || "BB-INSTANT",
+      });
     } catch (err: any) {
       setErrorMsg(err.message || "An error occurred while generating the contract.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // OTP Verification logic for Initiator (Party 1)
+  const handleVerifyInitiatorOtp = async () => {
+    if (!initiatorOtpCode || initiatorOtpCode.length !== 6) {
+      setErrorMsg("Please enter the 6-digit OTP code sent to your email.");
+      return;
+    }
+
+    setInitiatorOtpLoading(true);
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/guest/otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "verify",
+          email: initiatorEmail,
+          code: initiatorOtpCode,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setInitiatorOtpVerified(true);
+        // Save contract in backend DB automatically once OTP is verified
+        await handleCreateContractInDb(initiatorSignatureB64, initiatorFingerprint);
+      } else {
+        setErrorMsg(data.error || "Invalid or expired OTP code.");
+      }
+    } catch (err: any) {
+      setErrorMsg("Error verifying identity code.");
+    } finally {
+      setInitiatorOtpLoading(false);
     }
   };
 
@@ -582,7 +531,7 @@ export default function InstantContractPage() {
           </div>
         ) : (
           /* FULL FORM GENERATOR */
-          <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-xl space-y-10">
+          <form onSubmit={(e) => e.preventDefault()} className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-xl space-y-10">
             
             {/* Header Banner */}
             <div className="border-b border-gray-100 pb-6">
@@ -1387,18 +1336,57 @@ export default function InstantContractPage() {
                   </p>
                 </div>
 
+                {/* INITIATOR DIGITAL SIGNATURE STEP (BEFORE OTP) */}
+                <div className="flex flex-col text-left gap-1.5 sm:col-span-2 pt-2">
+                  <label className="text-xs font-bold text-gray-800">Your Digital Signature *</label>
+                  {initiatorSignatureB64 ? (
+                    <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white p-1.5 rounded-xl border border-emerald-200 shadow-sm shrink-0">
+                          <img src={initiatorSignatureB64} alt="Signature Preview" className="h-10 object-contain max-w-[150px]" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-emerald-900 flex items-center gap-1">
+                            <span>✓</span> Digital Signature Captured &amp; Ready
+                          </span>
+                          <span className="text-[10px] text-emerald-700">
+                            Will be embedded in E-Sign Vault &amp; sent in OTP Email
+                          </span>
+                        </div>
+                      </div>
+                      {!initiatorOtpVerified && (
+                        <button
+                          type="button"
+                          onClick={() => setIsSignModalOpen(true)}
+                          className="text-xs font-bold text-blue-600 hover:text-blue-800 underline px-3 py-1.5 bg-white border border-blue-200 rounded-xl shadow-sm"
+                        >
+                          Redraw Signature
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsSignModalOpen(true)}
+                      className="w-full py-4 bg-blue-50 hover:bg-blue-100/90 border-2 border-dashed border-blue-300 hover:border-blue-400 text-blue-900 font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      ✍ Click Here to Draw Your Digital Signature *
+                    </button>
+                  )}
+                </div>
+
                 {/* OTP VERIFICATION ACTION BOX FOR PARTY 1 */}
                 <div className="sm:col-span-2 pt-2">
                   {!initiatorOtpVerified ? (
                     <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
                       <div className="flex flex-col text-left">
                         <span className="text-xs font-bold text-black uppercase tracking-wider">
-                          Step 1: Verify Email Identity via OTP to Execute Signature
+                          Verify Email Identity via OTP to Save Contract &amp; Generate Link
                         </span>
                         <span className="text-[10px] text-gray-500">
                           {initiatorOtpDispatched
                             ? `Code sent to ${initiatorEmail}. Enter 6-digit verification code below.`
-                            : "Enter your name, email, job title, and NTN/CNIC above, then click Send OTP."}
+                            : "Draw your signature above and enter all required details, then click Send OTP."}
                         </span>
                       </div>
 
@@ -1406,14 +1394,14 @@ export default function InstantContractPage() {
                         <button
                           type="button"
                           onClick={handleSendInitiatorOtp}
-                          disabled={!initiatorEmail || !initiatorName || !initiatorDesignation || initiatorOtpLoading}
+                          disabled={!initiatorEmail || !initiatorName || !initiatorPhone || !initiatorDesignation || !initiatorSignatureB64 || initiatorOtpLoading}
                           className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
-                            initiatorEmail && initiatorName && initiatorDesignation && !initiatorOtpLoading
+                            initiatorEmail && initiatorName && initiatorPhone && initiatorDesignation && initiatorSignatureB64 && !initiatorOtpLoading
                               ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
                               : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
                           }`}
                         >
-                          {initiatorOtpLoading ? "Sending..." : "Send OTP ➔"}
+                          {initiatorOtpLoading ? "Sending OTP..." : "Send OTP ➔"}
                         </button>
                       ) : (
                         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -1431,7 +1419,7 @@ export default function InstantContractPage() {
                             disabled={initiatorOtpLoading || !initiatorOtpCode}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase shadow transition-all whitespace-nowrap"
                           >
-                            {initiatorOtpLoading ? "..." : "Verify OTP"}
+                            {initiatorOtpLoading ? "Verifying..." : "Verify OTP & Save Contract"}
                           </button>
                         </div>
                       )}
@@ -1439,32 +1427,13 @@ export default function InstantContractPage() {
                   ) : (
                     <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
                       <span>✓</span>
-                      <span>Initiator identity verified &amp; digital signature prepared! You may now activate and generate the contract link below.</span>
+                      <span>Initiator identity verified &amp; contract saved! You may copy the sharing link above.</span>
                     </div>
                   )}
                 </div>
 
               </div>
             </div>
-
-            {/* SUBMIT BUTTON */}
-            <button
-              type="submit"
-              disabled={loading || !isFormReady}
-              className={`w-full font-black py-4 px-6 rounded-2xl text-base shadow-xl transition-all flex items-center justify-center gap-2 ${
-                isFormReady
-                  ? "bg-black hover:bg-black/90 text-white cursor-pointer"
-                  : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
-              }`}
-            >
-              {loading
-                ? "Generating Complete Instant Contract Link..."
-                : isFormReady
-                ? "⚡ Sign & Generate Instant Contract Link"
-                : !initiatorOtpVerified
-                ? "🔒 Complete OTP Verification to Unlock"
-                : "🔒 Fill All Required Fields to Unlock"}
-            </button>
 
           </form>
         )}
@@ -1479,7 +1448,7 @@ export default function InstantContractPage() {
       <SignaturePadModal
         isOpen={isSignModalOpen}
         onClose={() => setIsSignModalOpen(false)}
-        onConfirm={handleExecuteSignature}
+        onConfirm={handleSaveSignature}
         loading={loading}
       />
     </div>

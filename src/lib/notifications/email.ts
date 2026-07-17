@@ -48,25 +48,36 @@ export function renderEmailTemplate(
       return `
         <div style="${baseStyles}">
           <div style="${headerStyles}">
-            <h2 style="margin: 0; color: #111;">${company.name} Verification Code</h2>
+            <h2 style="margin: 0; color: #111;">${company.name} Initiator Verification Code</h2>
           </div>
           <p>Hello <strong>${data.name || 'Signer'}</strong>,</p>
-          <p>Your one-time passcode (OTP) to verify your email identity and sign the agreement is:</p>
-          <div style="font-size: 32px; font-weight: 900; letter-spacing: 6px; padding: 15px; background-color: #f3f4f6; text-align: center; border-radius: 8px; margin: 20px 0; color: #000;">
+          <p>Your one-time passcode (OTP) to verify your identity and sign your agreement is:</p>
+          <div style="font-size: 34px; font-weight: 900; letter-spacing: 6px; padding: 16px; background-color: #111827; text-align: center; border-radius: 10px; margin: 20px 0; color: #ffffff;">
             ${data.code}
           </div>
           ${data.name && data.name !== 'N/A' ? `
-          <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; line-height: 1.6;">
-            <div style="font-weight: bold; font-size: 11px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">Verified Signer Information</div>
-            <div><strong>Contact Name:</strong> ${data.name}</div>
-            <div><strong>Email Address:</strong> ${data.email}</div>
-            <div><strong>Phone Number:</strong> ${data.phone}</div>
-            ${data.company !== 'N/A' ? `<div><strong>Company / Brand:</strong> ${data.company}</div>` : ''}
-            ${data.designation !== 'N/A' ? `<div><strong>Job Title:</strong> ${data.designation}</div>` : ''}
-            ${data.address !== 'N/A' ? `<div><strong>Address:</strong> ${data.address}</div>` : ''}
+          <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin: 20px 0; font-size: 13px; line-height: 1.6;">
+            <div style="font-weight: bold; font-size: 11px; text-transform: uppercase; color: #4b5563; margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; letter-spacing: 0.5px;">Verified Initiator Legal Identity &amp; E-Signature</div>
+            <div style="margin-bottom: 4px;"><strong>Initiator Name:</strong> ${data.name}</div>
+            <div style="margin-bottom: 4px;"><strong>Email Address:</strong> ${data.email}</div>
+            <div style="margin-bottom: 4px;"><strong>Phone Number:</strong> ${data.phone}</div>
+            <div style="margin-bottom: 4px;"><strong>Capacity / Title:</strong> ${data.designation}</div>
+            ${data.companyName && data.companyName !== 'N/A' ? `<div style="margin-bottom: 4px;"><strong>Company / Agency:</strong> ${data.companyName}</div>` : ''}
+            ${data.companyAddress && data.companyAddress !== 'N/A' ? `<div style="margin-bottom: 4px;"><strong>Address:</strong> ${data.companyAddress}</div>` : ''}
+            ${data.ntn && data.ntn !== 'N/A' ? `<div style="margin-bottom: 4px;"><strong>NTN:</strong> ${data.ntn}</div>` : ''}
+            ${data.cnic && data.cnic !== 'N/A' ? `<div style="margin-bottom: 4px;"><strong>CNIC:</strong> ${data.cnic}</div>` : ''}
+            ${data.brandName && data.brandName !== 'N/A' ? `<div style="margin-bottom: 4px;"><strong>Brand Name:</strong> ${data.brandName} ${data.brandHandle && data.brandHandle !== 'N/A' ? `(${data.brandHandle})` : ''}</div>` : ''}
+            ${data.creatorName && data.creatorName !== 'N/A' ? `<div style="margin-bottom: 4px;"><strong>Creator Name:</strong> ${data.creatorName} ${data.creatorHandle && data.creatorHandle !== 'N/A' ? `(${data.creatorHandle})` : ''}</div>` : ''}
+            ${data.campaignName && data.campaignName !== 'N/A' ? `<div style="margin-bottom: 4px;"><strong>Campaign Name:</strong> ${data.campaignName}</div>` : ''}
+            ${data.signatureB64 ? `
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px dashed #d1d5db;">
+              <div style="font-weight: bold; font-size: 11px; text-transform: uppercase; color: #6b7280; margin-bottom: 6px;">Drawn Digital Signature</div>
+              <img src="${data.signatureB64}" alt="Digital Signature" style="max-height: 70px; border: 1px solid #d1d5db; background-color: #ffffff; border-radius: 6px; padding: 6px;" />
+            </div>
+            ` : ''}
           </div>
           ` : ''}
-          <p>This code is valid for 10 minutes. If you did not request this code, you can safely ignore this email.</p>
+          <p>This code is valid for 10 minutes. Enter this code on the page to complete your signature execution.</p>
           <div style="${footerStyles}">
             <p>This identity verification layer is compliant under Pakistan's ETO 2002 guidelines.</p>
             <p>Powered by ${company.name} | ${company.legalInfo}</p>

@@ -5,7 +5,26 @@ import { getCompanyConfig } from "@/lib/config";
 
 export async function POST(req: Request) {
   try {
-    const { action, email, name, phone, designation, code } = await req.json();
+    const {
+      action,
+      email,
+      name,
+      phone,
+      designation,
+      companyName,
+      companyAddress,
+      ntn,
+      cnic,
+      role,
+      contractType,
+      brandName,
+      brandHandle,
+      campaignName,
+      creatorName,
+      creatorHandle,
+      signatureB64,
+      code,
+    } = await req.json();
 
     if (!email || !email.trim()) {
       return NextResponse.json({ error: "Initiator email is required before requesting OTP." }, { status: 400 });
@@ -22,6 +41,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Job Title / Capacity is required before requesting OTP." }, { status: 400 });
       }
 
+      if (!signatureB64) {
+        return NextResponse.json({ error: "Please draw and apply your Digital Signature before requesting OTP." }, { status: 400 });
+      }
+
       // Generate 6-digit random verification code
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -36,7 +59,7 @@ export async function POST(req: Request) {
 
       const company = getCompanyConfig();
 
-      // Send actual email notification
+      // Send actual email notification with full initiator payload + signature
       await sendEmailNotification({
         to: cleanEmail,
         subject: `Your ${company.name} Initiator E-Sign Verification Code`,
@@ -46,9 +69,19 @@ export async function POST(req: Request) {
           email: cleanEmail,
           phone: phone?.trim() || "N/A",
           name: name.trim(),
-          company: "SignCollab Guest Mode",
-          address: "N/A",
           designation: designation.trim(),
+          companyName: companyName?.trim() || "N/A",
+          companyAddress: companyAddress?.trim() || "N/A",
+          ntn: ntn?.trim() || "N/A",
+          cnic: cnic?.trim() || "N/A",
+          role: role || "N/A",
+          contractType: contractType || "N/A",
+          brandName: brandName?.trim() || "N/A",
+          brandHandle: brandHandle?.trim() || "N/A",
+          campaignName: campaignName?.trim() || "N/A",
+          creatorName: creatorName?.trim() || "N/A",
+          creatorHandle: creatorHandle?.trim() || "N/A",
+          signatureB64: signatureB64 || "",
         },
       });
 

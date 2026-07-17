@@ -80,6 +80,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
     const fingerprint = `UA-${navigator.userAgent.slice(0, 150)}-${screen.width}x${screen.height}`;
     
     onConfirm(dataUrl, fingerprint);
+    onClose();
   };
 
   if (!isOpen) return null;
