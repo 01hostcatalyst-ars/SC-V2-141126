@@ -265,8 +265,8 @@ export default function InstantContractPage() {
     e.preventDefault();
     setErrorMsg("");
 
-    if (!initiatorName.trim() || !initiatorEmail.trim()) {
-      setErrorMsg("Please enter your name and email address.");
+    if (!initiatorName.trim() || !initiatorEmail.trim() || !initiatorPhone.trim()) {
+      setErrorMsg("Please enter your name, email address, and phone number.");
       return;
     }
 
@@ -631,12 +631,12 @@ export default function InstantContractPage() {
                         onChange={(e) => handleDeliverableChange(idx, "type", e.target.value)}
                         className="input-field text-xs"
                       >
-                        <option value="REEL">Instagram Reel</option>
-                        <option value="STORY">Instagram Story</option>
+                        <option value="REEL">Reel</option>
+                        <option value="STORY">Story</option>
                         <option value="CAROUSEL_POST">Carousel Post</option>
-                        <option value="IMAGE_POST">Single Image Post</option>
-                        <option value="TIKTOK_VIDEO">TikTok Video</option>
-                        <option value="YOUTUBE_VIDEO">YouTube Integration</option>
+                        <option value="IMAGE_POST">Single Post</option>
+                        <option value="TIKTOK_VIDEO">Short Video</option>
+                        <option value="YOUTUBE_VIDEO">Long-form Video</option>
                         <option value="LIVE_SESSION">Live Session</option>
                       </select>
                     </div>
@@ -1170,6 +1170,19 @@ export default function InstantContractPage() {
                     placeholder="sarah@example.com"
                     value={initiatorEmail}
                     onChange={(e) => setInitiatorEmail(e.target.value)}
+                    className="input-field disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Your Phone Number *</label>
+                  <input
+                    type="tel"
+                    required
+                    disabled={initiatorOtpVerified}
+                    placeholder="e.g. +92 300 1234567"
+                    value={initiatorPhone}
+                    onChange={(e) => setInitiatorPhone(e.target.value)}
                     className="input-field disabled:bg-gray-100"
                   />
                 </div>
