@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { ContractStatus, SignerRole } from "@prisma/client";
+import { ContractStatus, SignerRole, Role } from "@prisma/client";
 import { computeContentHash } from "@/lib/utils";
 
 export async function POST(
@@ -10,7 +10,12 @@ export async function POST(
 ) {
   try {
     const body = await req.json();
-    const { signatureB64, documentHash, fingerprint = "browser-fingerprint", email, name, phone, company, address, designation, ntn, paymentMethod, bankAccountIban, mobileWalletNumber } = body;
+    const {
+      signatureB64, documentHash, fingerprint = "browser-fingerprint",
+      email, name, phone, company, address, designation, ntn, cnic,
+      collabDetails,
+      paymentMethod, bankAccountIban, mobileWalletNumber,
+    } = body;
 
     if (!signatureB64 || !email) {
       return NextResponse.json({ error: "Missing signature or email parameters" }, { status: 400 });
@@ -46,11 +51,36 @@ export async function POST(
 
     // 2. Map signer role based on contract direction
     let signerRole: SignerRole = SignerRole.BRAND;
+    let respondentUserRole: Role = Role.BRAND;
     if (contract.contractType === "BRAND_TO_CREATOR" || contract.contractType === "AGENCY_TO_CREATOR") {
       signerRole = SignerRole.CREATOR;
+      respondentUserRole = Role.CREATOR;
     } else if (contract.contractType === "BRAND_TO_AGENCY" || contract.contractType === "CREATOR_TO_AGENCY") {
       signerRole = SignerRole.AGENCY;
+      respondentUserRole = Role.AGENCY;
     }
+
+    // 3. Find or create respondent User record and link to contract
+    const cleanEmail = email.trim().toLowerCase();
+    let respondentUser = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+    });
+
+    if (!respondentUser) {
+      respondentUser = await prisma.user.create({
+        data: {
+          name: name || "Respondent",
+          email: cleanEmail,
+          phone: phone || undefined,
+          role: respondentUserRole,
+          agencyName: (signerRole === SignerRole.AGENCY || signerRole === SignerRole.BRAND) ? company : undefined,
+          agencyAddress: (signerRole === SignerRole.AGENCY || signerRole === SignerRole.BRAND) ? address : undefined,
+        },
+      });
+    }
+
+    // Determine if respondent is a business entity (Brand/Agency) or individual (Creator)
+    const isRespondentBusiness = signerRole === SignerRole.BRAND || signerRole === SignerRole.AGENCY;
 
     // Extract headers for audit log parameters
     const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
@@ -64,21 +94,21 @@ export async function POST(
       respondentCompany: company || contract.respondentCompany,
       respondentAddress: address || contract.respondentAddress,
       respondentDesignation: designation || contract.respondentDesignation,
-      respondentNtn: ntn || contract.respondentNtn,
-      paymentMethod: paymentMethod || contract.paymentMethod,
-      bankAccountIban: bankAccountIban || contract.bankAccountIban,
-      mobileWalletNumber: mobileWalletNumber || contract.mobileWalletNumber,
+      respondentNtn: isRespondentBusiness ? (ntn || contract.respondentNtn) : contract.respondentNtn,
+      respondentCnic: !isRespondentBusiness ? (cnic || ntn) : undefined,
     });
 
     const signingEventHash = crypto.createHash("sha256")
       .update(`${contentHashAtSigning}-${email}-${ipAddress}-${userAgent}-${fingerprint || ""}`)
       .digest("hex");
 
-    // 3. Write Signature & metadata in database (Prisma Transaction)
+    // 4. Write Signature & metadata in database (Prisma Transaction)
+    // Store respondent payout in SEPARATE fields — never overwrite initiator payment details
     await prisma.$transaction([
       prisma.signature.create({
         data: {
           contractId: contract.id,
+          signerId: respondentUser.id,
           signerRole,
           signatureImageUrl: signatureB64,
           ipAddress,
@@ -88,33 +118,40 @@ export async function POST(
           signingEventHash,
           otpVerified: true,
           otpEmail: email,
+          consentRecorded: true,
         },
       }),
       prisma.contract.update({
         where: { id: contract.id },
         data: {
           status: ContractStatus.PENDING_INITIATOR,
+          respondentId: respondentUser.id,
           respondentName: name || contract.respondentName,
           respondentEmail: email || contract.respondentEmail,
           respondentPhone: phone || contract.respondentPhone,
           respondentCompany: company || contract.respondentCompany,
           respondentAddress: address || contract.respondentAddress,
           respondentDesignation: designation || contract.respondentDesignation,
-          respondentNtn: ntn || contract.respondentNtn,
-          paymentMethod: paymentMethod || contract.paymentMethod,
-          bankAccountIban: bankAccountIban || contract.bankAccountIban,
-          mobileWalletNumber: mobileWalletNumber || contract.mobileWalletNumber,
+          respondentNtn: isRespondentBusiness ? (ntn || contract.respondentNtn) : contract.respondentNtn,
+          respondentCnic: !isRespondentBusiness ? (cnic || ntn) : contract.respondentCnic,
+          collabDetails: collabDetails || contract.collabDetails,
+          // Store respondent payout details in SEPARATE fields — never overwrite initiator payment
+          respondentPaymentMethod: paymentMethod || undefined,
+          respondentBankAccountIban: paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
+          respondentMobileWalletNumber: paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
         },
       }),
       prisma.auditLog.create({
         data: {
           contractId: contract.id,
+          userId: respondentUser.id,
           action: "RESPONDENT_SIGNED",
           details: {
             email,
             signerRole,
             ipAddress,
             fingerprint,
+            respondentId: respondentUser.id,
           },
           ipAddress,
           userAgent,

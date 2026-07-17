@@ -179,10 +179,24 @@ model Contract {
   documentHash          String?        @map("document_hash")
   pdfUrl                String?        @map("pdf_url")
 
+  // Initiator Party details (Business vs Individual based on role)
+  initiatorDesignation      String?        @map("initiator_designation")
+  initiatorPhone            String?        @map("initiator_phone")
+  initiatorCompanyName      String?        @map("initiator_company_name")
+  initiatorCompanyAddress   String?        @map("initiator_company_address")
+  initiatorNtn              String?        @map("initiator_ntn")
+  initiatorCnic             String?        @map("initiator_cnic")
+
+  // Respondent identity fields
+  respondentNtn             String?        @map("respondent_ntn")
+  respondentCnic            String?        @map("respondent_cnic")
+
+  // Respondent payout details (separate from initiator payment terms)
+  respondentPaymentMethod       PaymentMethod? @map("respondent_payment_method")
+  respondentBankAccountIban     String?        @map("respondent_bank_account_iban")
+  respondentMobileWalletNumber  String?        @map("respondent_mobile_wallet_number")
+
   // Brand Campaign / Creator details for Agency contracts
-  initiatorDesignation  String?        @map("initiator_designation")
-  initiatorNtn          String?        @map("initiator_ntn")
-  respondentNtn         String?        @map("respondent_ntn")
   brandName             String?        @map("brand_name")
   brandHandle           String?        @map("brand_handle")
   campaignName          String?        @map("campaign_name")

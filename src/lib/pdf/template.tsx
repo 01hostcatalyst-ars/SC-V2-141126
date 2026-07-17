@@ -13,19 +13,13 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
     return Number(contract.totalAmount || 0) - Number(contract.advancePayment || 0);
   };
 
-  const getSignatureByRole = (role: string) => {
-    return contract.signatures?.find((s: any) => s.signerRole === role);
-  };
-
-  const respondentSign = getSignatureByRole(
-    contract.contractType.endsWith("_CREATOR")
-      ? "CREATOR"
-      : contract.contractType.endsWith("_AGENCY")
-      ? "AGENCY"
-      : "BRAND"
+  const initiatorSign = contract.signatures?.find(
+    (s: any) => s.signerId === contract.initiatorId || s.signerRole === (contract.contractType?.startsWith("CREATOR_") ? "CREATOR" : contract.contractType?.startsWith("BRAND_") ? "BRAND" : "AGENCY")
   );
 
-  const initiatorSign = getSignatureByRole(contract.initiator.role);
+  const respondentSign = contract.signatures?.find(
+    (s: any) => (s.signerId && s.signerId !== contract.initiatorId) || (s.id !== initiatorSign?.id)
+  );
 
   const getContractTitle = () => {
     switch (contract.contractType as string) {
@@ -81,16 +75,17 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         <div style={{ flex: 1, border: "1px solid #cbd5e1", borderRadius: "6px", padding: "10px", fontSize: "11px", backgroundColor: "#f8fafc" }}>
           <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#475569", marginBottom: "4px", fontSize: "9px" }}>PARTY A (INITIATOR ENTITY)</div>
           <div style={{ fontSize: "13px", fontWeight: "900", color: "#0f172a", textTransform: "uppercase", marginBottom: "2px" }}>
-            {(contract.initiator as any).agencyName || (contract.initiator as any).companyName || contract.initiator.name}
+            {contract.initiatorCompanyName || (contract.initiator as any).agencyName || (contract.initiator as any).companyName || contract.initiator.name}
           </div>
-          {contract.initiatorNtn && <div style={{ margin: "1px 0", fontSize: "10px", color: "#475569", fontWeight: "700" }}>NTN / Reg No: {contract.initiatorNtn}</div>}
+          {contract.initiatorNtn && <div style={{ margin: "1px 0", fontSize: "10px", color: "#475569", fontWeight: "700" }}>NTN: {contract.initiatorNtn}</div>}
+          {contract.initiatorCnic && <div style={{ margin: "1px 0", fontSize: "10px", color: "#475569", fontWeight: "700" }}>CNIC: {contract.initiatorCnic}</div>}
           
           <div style={{ marginTop: "8px", borderTop: "1px solid #e2e8f0", paddingTop: "6px" }}>
             <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#64748b", fontSize: "9px", marginBottom: "3px" }}>Authorized Signatory Representative</div>
             <div style={{ margin: "2px 0" }}><strong>Representative:</strong> {contract.initiator.name} {contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
             <div style={{ margin: "2px 0" }}><strong>Email:</strong> {contract.initiator.email}</div>
-            {contract.initiator.phone && <div style={{ margin: "2px 0" }}><strong>Phone:</strong> {contract.initiator.phone}</div>}
-            {(contract.initiator as any).agencyAddress && <div style={{ margin: "2px 0" }}><strong>Address:</strong> {(contract.initiator as any).agencyAddress}</div>}
+            {(contract.initiatorPhone || contract.initiator.phone) && <div style={{ margin: "2px 0" }}><strong>Phone:</strong> {contract.initiatorPhone || contract.initiator.phone}</div>}
+            {(contract.initiatorCompanyAddress || (contract.initiator as any).agencyAddress) && <div style={{ margin: "2px 0" }}><strong>Address:</strong> {contract.initiatorCompanyAddress || (contract.initiator as any).agencyAddress}</div>}
           </div>
         </div>
 
@@ -99,7 +94,8 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
           <div style={{ fontSize: "13px", fontWeight: "900", color: "#0f172a", textTransform: "uppercase", marginBottom: "2px" }}>
             {contract.respondentCompany || contract.creatorName || contract.respondentName || "Pending Execution"}
           </div>
-          {contract.respondentNtn && <div style={{ margin: "1px 0", fontSize: "10px", color: "#475569", fontWeight: "700" }}>NTN / Reg No: {contract.respondentNtn}</div>}
+          {contract.respondentNtn && <div style={{ margin: "1px 0", fontSize: "10px", color: "#475569", fontWeight: "700" }}>NTN: {contract.respondentNtn}</div>}
+          {contract.respondentCnic && <div style={{ margin: "1px 0", fontSize: "10px", color: "#475569", fontWeight: "700" }}>CNIC: {contract.respondentCnic}</div>}
           
           <div style={{ marginTop: "8px", borderTop: "1px solid #e2e8f0", paddingTop: "6px" }}>
             <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#64748b", fontSize: "9px", marginBottom: "3px" }}>
@@ -344,7 +340,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
       {/* Footer SHA-256 Checksum */}
       <div style={{ borderTop: "1.5px solid #0f172a", marginTop: "20px", paddingTop: "8px", textAlign: "center", fontSize: "9px", color: "#475569" }}>
         <div style={{ fontSize: "8px", lineHeight: "1.35", color: "#64748b", maxWidth: "95%", margin: "0 auto 4px auto" }}>PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging under Electronic Transactions Ordinance (ETO 2002) guidelines. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
-        <div style={{ fontFamily: "monospace", fontWeight: "bold", marginTop: "2px" }}>BILATERAL EXECUTED SHA-256: <span style={{ color: "#2563eb" }}>{contract.finalDocumentHash || contract.documentHash || "SHA256_PENDING_BILATERAL_EXECUTION"}</span></div>
+        <div style={{ fontFamily: "monospace", fontWeight: "bold", marginTop: "2px" }}>BILATERAL EXECUTED SHA-256: <span style={{ color: "#2563eb" }}>{contract.finalDocumentHash || contract.documentHash || contract.contentHash || "SHA256_PENDING_BILATERAL_EXECUTION"}</span></div>
       </div>
     </div>
   );

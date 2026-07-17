@@ -104,6 +104,12 @@ export default function InstantContractPage() {
   const [initiatorRole, setInitiatorRole] = useState<"CREATOR" | "BRAND" | "AGENCY">("AGENCY");
   const [initiatorDesignation, setInitiatorDesignation] = useState("");
   const [initiatorNtn, setInitiatorNtn] = useState("");
+  const [initiatorCnic, setInitiatorCnic] = useState("");
+  const [initiatorCompanyName, setInitiatorCompanyName] = useState("");
+  const [initiatorCompanyAddress, setInitiatorCompanyAddress] = useState("");
+
+  // Derived: is the initiator a business entity (Agency/Brand) or individual (Creator)?
+  const isInitiatorBusiness = initiatorRole === "AGENCY" || initiatorRole === "BRAND";
 
   // Auto-sync Platform Role based on Contract Workflow
   React.useEffect(() => {
@@ -122,7 +128,6 @@ export default function InstantContractPage() {
   const [campaignName, setCampaignName] = useState("");
   const [creatorName, setCreatorName] = useState("");
   const [creatorHandle, setCreatorHandle] = useState("");
-  const [respondentNtn, setRespondentNtn] = useState("");
 
   // Party 1 Initiator OTP states
   const [initiatorOtpDispatched, setInitiatorOtpDispatched] = useState(false);
@@ -260,8 +265,22 @@ export default function InstantContractPage() {
       return;
     }
 
-    if (!initiatorDesignation.trim() || !initiatorNtn.trim()) {
-      setErrorMsg("Please fill in your Job Title / Capacity and NTN/CNIC.");
+    if (!initiatorDesignation.trim()) {
+      setErrorMsg("Please fill in your Job Title / Capacity.");
+      return;
+    }
+
+    // Validate identity fields based on role type
+    if (isInitiatorBusiness && !initiatorNtn.trim()) {
+      setErrorMsg("Please fill in your NTN (National Tax Number) for business entities.");
+      return;
+    }
+    if (!isInitiatorBusiness && !initiatorCnic.trim()) {
+      setErrorMsg("Please fill in your CNIC number.");
+      return;
+    }
+    if (isInitiatorBusiness && !initiatorCompanyName.trim()) {
+      setErrorMsg("Please fill in your Company / Agency Name.");
       return;
     }
 
@@ -289,6 +308,10 @@ export default function InstantContractPage() {
     }
     if (contractType === "CREATOR_TO_AGENCY" && (!brandName.trim() || !campaignName.trim())) {
       setErrorMsg("Brand Name and Campaign Name are required for Creator ➔ Agency workflow.");
+      return;
+    }
+    if (contractType === "BRAND_TO_AGENCY" && (!creatorName.trim() || !campaignName.trim())) {
+      setErrorMsg("Creator Name and Campaign Name are required for Brand ➔ Agency workflow.");
       return;
     }
 
@@ -322,8 +345,10 @@ export default function InstantContractPage() {
         initiatorPhone,
         initiatorRole,
         initiatorDesignation,
-        initiatorNtn,
-        respondentNtn,
+        initiatorNtn: isInitiatorBusiness ? initiatorNtn : undefined,
+        initiatorCnic: !isInitiatorBusiness ? initiatorCnic : undefined,
+        initiatorCompanyName: isInitiatorBusiness ? initiatorCompanyName : undefined,
+        initiatorCompanyAddress: isInitiatorBusiness ? initiatorCompanyAddress : undefined,
         brandName: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandName : undefined,
         brandHandle: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandHandle : undefined,
         campaignName: ["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY"].includes(contractType) ? campaignName : undefined,
@@ -850,7 +875,7 @@ export default function InstantContractPage() {
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-3 mt-4">
                 <span className="text-xs font-bold text-gray-800 uppercase block">Product Provisioning / Loan Details</span>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase">Product Description</label>
                     <input
@@ -881,6 +906,16 @@ export default function InstantContractPage() {
                       placeholder="Shipping Address for product delivery"
                       value={collabDeliveryAddress}
                       onChange={(e) => setCollabDeliveryAddress(e.target.value)}
+                      className="input-field text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase">Expected Product Arrival Date</label>
+                    <input
+                      type="date"
+                      value={collabDeliveryDate}
+                      onChange={(e) => setCollabDeliveryDate(e.target.value)}
                       className="input-field text-xs"
                     />
                   </div>
@@ -1123,18 +1158,65 @@ export default function InstantContractPage() {
                   />
                 </div>
 
-                <div className="flex flex-col text-left gap-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-gray-700">Initiator NTN / CNIC *</label>
-                  <input
-                    type="text"
-                    required
-                    disabled={initiatorOtpVerified}
-                    placeholder="e.g. 1234567-8 or 42101-0000000-0"
-                    value={initiatorNtn}
-                    onChange={(e) => setInitiatorNtn(e.target.value)}
-                    className="input-field disabled:bg-gray-100"
-                  />
-                </div>
+                {/* CONDITIONAL BUSINESS VS INDIVIDUAL IDENTITY FIELDS */}
+                {isInitiatorBusiness ? (
+                  <>
+                    <div className="flex flex-col text-left gap-1">
+                      <label className="text-xs font-bold text-gray-700">
+                        {initiatorRole === "AGENCY" ? "Agency Name" : "Company Name"} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        disabled={initiatorOtpVerified}
+                        placeholder={initiatorRole === "AGENCY" ? "e.g. Creative Hub Agency" : "e.g. Sapphire Retail Ltd."}
+                        value={initiatorCompanyName}
+                        onChange={(e) => setInitiatorCompanyName(e.target.value)}
+                        className="input-field disabled:bg-gray-100"
+                      />
+                    </div>
+
+                    <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                      <label className="text-xs font-bold text-gray-700">
+                        {initiatorRole === "AGENCY" ? "Agency Address" : "Company Address"}
+                      </label>
+                      <input
+                        type="text"
+                        disabled={initiatorOtpVerified}
+                        placeholder="Official registered address, City"
+                        value={initiatorCompanyAddress}
+                        onChange={(e) => setInitiatorCompanyAddress(e.target.value)}
+                        className="input-field disabled:bg-gray-100"
+                      />
+                    </div>
+
+                    <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                      <label className="text-xs font-bold text-gray-700">NTN (National Tax Number) *</label>
+                      <input
+                        type="text"
+                        required
+                        disabled={initiatorOtpVerified}
+                        placeholder="e.g. 1234567-8"
+                        value={initiatorNtn}
+                        onChange={(e) => setInitiatorNtn(e.target.value)}
+                        className="input-field disabled:bg-gray-100"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                    <label className="text-xs font-bold text-gray-700">CNIC (National Identity Card) *</label>
+                    <input
+                      type="text"
+                      required
+                      disabled={initiatorOtpVerified}
+                      placeholder="e.g. 42101-0000000-0"
+                      value={initiatorCnic}
+                      onChange={(e) => setInitiatorCnic(e.target.value)}
+                      className="input-field disabled:bg-gray-100"
+                    />
+                  </div>
+                )}
 
                 {/* REACTIVE COUNTERPARTY FIELDS BASED ON WORKFLOW */}
                 {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (

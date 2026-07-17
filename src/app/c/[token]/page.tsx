@@ -29,6 +29,7 @@ export default function PublicSigningPage({ params }: PageProps) {
   const [respondentDesignation, setRespondentDesignation] = useState("");
   const [respondentAddress, setRespondentAddress] = useState("");
   const [respondentNtn, setRespondentNtn] = useState("");
+  const [respondentCnic, setRespondentCnic] = useState("");
   const [collabDetails, setCollabDetails] = useState("");
 
   // Payout details for Creator respondents
@@ -83,8 +84,8 @@ export default function PublicSigningPage({ params }: PageProps) {
     (isRespondentBrand ? respondentCompany : isRespondentAgency ? respondentCompany : collabDetails) &&
     respondentAddress &&
     respondentDesignation &&
-    respondentNtn.trim() &&
-    (isRespondentBrand || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
+    ((isRespondentBrand || isRespondentAgency) ? respondentNtn.trim() : respondentCnic.trim()) &&
+    (!isRespondentCreator || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
   );
 
   const handleSendOTP = async () => {
@@ -111,7 +112,8 @@ export default function PublicSigningPage({ params }: PageProps) {
           respondentCompany: (isRespondentBrand || isRespondentAgency) ? respondentCompany : collabDetails,
           respondentAddress,
           respondentDesignation,
-          respondentNtn,
+          respondentNtn: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
+          respondentCnic: isRespondentCreator ? respondentCnic : undefined,
           collabDetails: isRespondentCreator ? collabDetails : undefined,
         }),
       });
@@ -185,18 +187,20 @@ export default function PublicSigningPage({ params }: PageProps) {
           company: (isRespondentBrand || isRespondentAgency) ? respondentCompany : undefined,
           address: respondentAddress,
           designation: respondentDesignation,
-          ntn: respondentNtn,
+          ntn: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
+          cnic: isRespondentCreator ? respondentCnic : undefined,
           respondentName,
           respondentEmail,
           respondentPhone,
           respondentCompany: (isRespondentBrand || isRespondentAgency) ? respondentCompany : undefined,
           respondentDesignation,
           respondentAddress,
-          respondentNtn,
+          respondentNtn: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
+          respondentCnic: isRespondentCreator ? respondentCnic : undefined,
           collabDetails: isRespondentCreator ? collabDetails : undefined,
-          paymentMethod: !isRespondentBrand ? paymentMethod : undefined,
-          bankAccountIban: !isRespondentBrand && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
-          mobileWalletNumber: !isRespondentBrand && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
+          paymentMethod: isRespondentCreator ? paymentMethod : undefined,
+          bankAccountIban: isRespondentCreator && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
+          mobileWalletNumber: isRespondentCreator && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
           signatureB64,
           fingerprint,
         }),
@@ -610,10 +614,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* 5. Brand / Company Address * */}
+              {/* 5. Address * */}
               <div className="flex flex-col gap-1 sm:col-span-2">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  {isRespondentAgency ? "Agency Address" : "Brand / Company Address"} <span className="text-rose-500">*</span>
+                  {isRespondentAgency ? "Agency Address" : isRespondentBrand ? "Brand / Company Address" : "Residential / Contact Address"} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -626,15 +630,15 @@ export default function PublicSigningPage({ params }: PageProps) {
                 />
               </div>
 
-              {/* 6. Job Title AND NTN Reg No */}
+              {/* 6. Job Title AND NTN/CNIC */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  Your Job Title <span className="text-rose-500">*</span>
+                  {isRespondentCreator ? "Capacity / Role" : "Your Job Title"} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Head of Marketing / Director"
+                  placeholder={isRespondentCreator ? "e.g. Content Creator / Influencer" : "e.g. Head of Marketing / Director"}
                   value={respondentDesignation}
                   onChange={(e) => setRespondentDesignation(e.target.value)}
                   disabled={otpDispatched || otpVerified}
@@ -643,22 +647,41 @@ export default function PublicSigningPage({ params }: PageProps) {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  NTN / CNIC <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. 1234567-8 or 42101-0000000-0"
-                  value={respondentNtn}
-                  onChange={(e) => setRespondentNtn(e.target.value)}
-                  disabled={otpDispatched || otpVerified}
-                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                />
+                {(isRespondentBrand || isRespondentAgency) ? (
+                  <>
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">
+                      NTN (National Tax Number) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 1234567-8"
+                      value={respondentNtn}
+                      onChange={(e) => setRespondentNtn(e.target.value)}
+                      disabled={otpDispatched || otpVerified}
+                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">
+                      CNIC (National Identity Card) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 42101-0000000-0"
+                      value={respondentCnic}
+                      onChange={(e) => setRespondentCnic(e.target.value)}
+                      disabled={otpDispatched || otpVerified}
+                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                    />
+                  </>
+                )}
               </div>
 
-              {/* Payout Account Route Selection for Creator and Agency Respondents */}
-              {!isRespondentBrand && (
+              {/* Payout Account Route Selection for Creator Respondents ONLY */}
+              {isRespondentCreator && (
                 <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2 space-y-3">
                   <span className="text-xs font-bold text-black uppercase tracking-wider block">
                     {isRespondentAgency ? "Agency Payout Account Details" : "Your Payout Account Details"} (Required for Campaign Payouts) <span className="text-rose-500">*</span>

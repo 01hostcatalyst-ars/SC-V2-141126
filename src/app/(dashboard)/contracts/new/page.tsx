@@ -46,8 +46,11 @@ export default function NewContractPage() {
   const [creatorHandle, setCreatorHandle] = useState("");
 
   // Signing authority fields
-  const [initiatorDesignation, setInitiatorDesignation] = useState(user?.agencyName || "");
+  const [initiatorDesignation, setInitiatorDesignation] = useState("");
   const [initiatorNtn, setInitiatorNtn] = useState("");
+  const [initiatorCnic, setInitiatorCnic] = useState("");
+  const [initiatorCompanyName, setInitiatorCompanyName] = useState(user?.agencyName || "");
+  const [initiatorCompanyAddress, setInitiatorCompanyAddress] = useState(user?.agencyAddress || "");
 
   // Party A Initiator OTP Verification State
   const [initiatorOtpDispatched, setInitiatorOtpDispatched] = useState(false);
@@ -332,6 +335,9 @@ export default function NewContractPage() {
       creatorHandle: ["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) ? creatorHandle : undefined,
       initiatorDesignation: initiatorDesignation || undefined,
       initiatorNtn: initiatorNtn || undefined,
+      initiatorCnic: initiatorCnic || undefined,
+      initiatorCompanyName: initiatorCompanyName || undefined,
+      initiatorCompanyAddress: initiatorCompanyAddress || undefined,
       collabProduct: collabProduct || undefined,
       collabProductProvisionType,
       collabDeliveryAddress: collabDeliveryAddress || undefined,

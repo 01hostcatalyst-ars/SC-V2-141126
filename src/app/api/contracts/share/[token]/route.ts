@@ -69,6 +69,8 @@ export async function PUT(
       respondentCompany,
       respondentAddress,
       respondentDesignation,
+      respondentNtn,
+      respondentCnic,
       collabDetails,
       latePaymentPenaltyPct,
       lateContentPenaltyPct,
@@ -83,6 +85,8 @@ export async function PUT(
         respondentCompany,
         respondentAddress,
         respondentDesignation,
+        respondentNtn,
+        respondentCnic,
         collabDetails,
         // Allow respondent to accept/adjust late penalties
         latePaymentPenaltyPct: latePaymentPenaltyPct ? parseFloat(latePaymentPenaltyPct) : undefined,

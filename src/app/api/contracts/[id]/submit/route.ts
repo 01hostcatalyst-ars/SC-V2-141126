@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { getAuthUser } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { ContractStatus } from "@prisma/client";
+import { ContractStatus, SignerRole } from "@prisma/client";
 import { computeContentHash } from "@/lib/utils";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -10,6 +10,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const authUser = await getAuthUser();
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseAuthId: authUser.id },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
     }
 
     const { id } = await params;
@@ -71,6 +79,33 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       include: {
         deliverables: true,
         initiator: true,
+      },
+    });
+
+    // Determine initiator signer role from contract type
+    let signerRole: SignerRole = SignerRole.AGENCY;
+    if (contract.contractType.startsWith("CREATOR_")) {
+      signerRole = SignerRole.CREATOR;
+    } else if (contract.contractType.startsWith("BRAND_")) {
+      signerRole = SignerRole.BRAND;
+    }
+
+    const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
+    const userAgent = req.headers.get("user-agent") || "Browser/Dashboard";
+
+    // Record Party 1 (Initiator) verified digital signature log — matching Instant flow
+    await prisma.signature.create({
+      data: {
+        contractId: contract.id,
+        signerId: dbUser.id,
+        signerRole,
+        signatureImageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='50'><text x='10' y='30' font-family='Arial' font-size='18' font-weight='bold'>Initiator OTP Verified</text></svg>",
+        ipAddress,
+        userAgent,
+        documentHash: contentHash,
+        otpVerified: true,
+        otpEmail: dbUser.email,
+        consentRecorded: true,
       },
     });
 

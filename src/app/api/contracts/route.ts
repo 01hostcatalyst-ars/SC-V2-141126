@@ -67,7 +67,9 @@ export async function POST(req: Request) {
       collabProductNonReturnFee,
       initiatorDesignation,
       initiatorNtn,
-      respondentNtn,
+      initiatorCnic,
+      initiatorCompanyName,
+      initiatorCompanyAddress,
     } = await req.json();
 
     if (!contractType || !totalAmount || !deliveryTimeframeDays || !deliverables || deliverables.length === 0) {
@@ -92,7 +94,10 @@ export async function POST(req: Request) {
         creatorHandle: [ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY].includes(contractType) ? creatorHandle : undefined,
         initiatorDesignation: initiatorDesignation || undefined,
         initiatorNtn: initiatorNtn || undefined,
-        respondentNtn: respondentNtn || undefined,
+        initiatorCnic: initiatorCnic || undefined,
+        initiatorPhone: dbUser.phone || undefined,
+        initiatorCompanyName: initiatorCompanyName || dbUser.agencyName || undefined,
+        initiatorCompanyAddress: initiatorCompanyAddress || dbUser.agencyAddress || undefined,
         totalAmount,
         advancePayment,
         advancePaymentDate: advancePaymentDate ? new Date(advancePaymentDate) : undefined,

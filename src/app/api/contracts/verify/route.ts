@@ -114,6 +114,8 @@ export async function POST(req: Request) {
         case "AGENCY_TO_CREATOR": return "Agency to Creator Content Service Agreement";
         case "BRAND_TO_CREATOR": return "Brand to Creator Direct Sponsorship Agreement";
         case "CREATOR_TO_BRAND": return "Creator to Brand Engagement Agreement";
+        case "BRAND_TO_AGENCY": return "Brand to Agency Campaign Delegation Agreement";
+        case "CREATOR_TO_AGENCY": return "Creator to Agency Representation Agreement";
         default: return "Mutual Collaboration & Licensing Agreement";
       }
     };
