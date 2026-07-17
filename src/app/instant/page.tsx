@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getCompanyConfig } from "@/lib/config";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
 
@@ -39,6 +40,7 @@ const USAGE_TYPE_OPTIONS = [
 
 export default function InstantContractPage() {
   const company = getCompanyConfig();
+  const router = useRouter();
 
   // Section 1: Campaign Deliverables & Tagging
   const [deliverables, setDeliverables] = useState<DeliverableItem[]>([
@@ -151,6 +153,33 @@ export default function InstantContractPage() {
 
   const [copied, setCopied] = useState(false);
 
+  // Computed: is the form fully valid and ready to sign?
+  const isFormReady = useMemo(() => {
+    if (!initiatorOtpVerified) return false;
+    if (!initiatorName.trim() || !initiatorEmail.trim() || !initiatorPhone.trim()) return false;
+    if (!initiatorDesignation.trim()) return false;
+    if (isInitiatorBusiness && (!initiatorNtn.trim() || !initiatorCompanyName.trim())) return false;
+    if (!isInitiatorBusiness && !initiatorCnic.trim()) return false;
+    if (!totalAmount || Number(totalAmount) <= 0) return false;
+    if (!remainingPaymentDate) return false;
+    if (!deliveryTimeframeDays || Number(deliveryTimeframeDays) <= 0) return false;
+    // Workflow-specific counterparty checks
+    if (contractType === "AGENCY_TO_CREATOR" && (!brandName.trim() || !campaignName.trim())) return false;
+    if (contractType === "CREATOR_TO_BRAND" && (!brandName.trim() || !brandHandle.trim())) return false;
+    if (contractType === "BRAND_TO_CREATOR" && (!creatorName.trim() || !creatorHandle.trim())) return false;
+    if (contractType === "AGENCY_TO_BRAND" && (!creatorName.trim() || !creatorHandle.trim())) return false;
+    if (contractType === "CREATOR_TO_AGENCY" && (!brandName.trim() || !campaignName.trim())) return false;
+    if (contractType === "BRAND_TO_AGENCY" && (!creatorName.trim() || !campaignName.trim())) return false;
+    if (advancePayment && Number(advancePayment) > 0 && !advancePaymentDate) return false;
+    return true;
+  }, [
+    initiatorOtpVerified, initiatorName, initiatorEmail, initiatorPhone,
+    initiatorDesignation, isInitiatorBusiness, initiatorNtn, initiatorCompanyName,
+    initiatorCnic, totalAmount, remainingPaymentDate, deliveryTimeframeDays,
+    contractType, brandName, campaignName, brandHandle, creatorName, creatorHandle,
+    advancePayment, advancePaymentDate,
+  ]);
+
   // Helpers for deliverables & platforms
   const handleAddDeliverable = () => {
     setDeliverables([
@@ -210,6 +239,7 @@ export default function InstantContractPage() {
           action: "send",
           email: initiatorEmail,
           name: initiatorName,
+          phone: initiatorPhone,
           designation: initiatorDesignation,
         }),
       });
@@ -419,14 +449,11 @@ export default function InstantContractPage() {
       }
 
       const shareToken = data.shareToken || data.contract?.shareToken;
-      const shareUrl = `${window.location.origin}/c/${shareToken}`;
+      const shareUrl = `/c/${shareToken}`;
 
-      setCreatedResult({
-        shareUrl,
-        shareToken,
-        contractNumber: data.contract?.contractNumber || "BB-INSTANT",
-      });
+      // Close modal and redirect directly to the contract link
       setIsSignModalOpen(false);
+      router.push(shareUrl);
     } catch (err: any) {
       setErrorMsg(err.message || "An error occurred while generating the contract.");
     } finally {
@@ -1423,18 +1450,20 @@ export default function InstantContractPage() {
             {/* SUBMIT BUTTON */}
             <button
               type="submit"
-              disabled={loading || !initiatorOtpVerified}
+              disabled={loading || !isFormReady}
               className={`w-full font-black py-4 px-6 rounded-2xl text-base shadow-xl transition-all flex items-center justify-center gap-2 ${
-                initiatorOtpVerified
+                isFormReady
                   ? "bg-black hover:bg-black/90 text-white cursor-pointer"
                   : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
               }`}
             >
               {loading
                 ? "Generating Complete Instant Contract Link..."
-                : initiatorOtpVerified
-                ? "⚡ Generate Complete Instant Contract Link"
-                : "🔒 Complete Email OTP Verification Above to Generate Link"}
+                : isFormReady
+                ? "⚡ Sign & Generate Instant Contract Link"
+                : !initiatorOtpVerified
+                ? "🔒 Complete OTP Verification to Unlock"
+                : "🔒 Fill All Required Fields to Unlock"}
             </button>
 
           </form>

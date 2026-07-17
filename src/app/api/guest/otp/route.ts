@@ -5,7 +5,7 @@ import { getCompanyConfig } from "@/lib/config";
 
 export async function POST(req: Request) {
   try {
-    const { action, email, name, designation, code } = await req.json();
+    const { action, email, name, phone, designation, code } = await req.json();
 
     if (!email || !email.trim()) {
       return NextResponse.json({ error: "Initiator email is required before requesting OTP." }, { status: 400 });
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         data: {
           code: otpCode,
           email: cleanEmail,
-          phone: "Guest Initiator",
+          phone: phone?.trim() || "N/A",
           name: name.trim(),
           company: "SignCollab Guest Mode",
           address: "N/A",
