@@ -24,37 +24,48 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Adjust canvas internally for high-DPI touch devices
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
     const ratio = Math.max(window.devicePixelRatio || 1, 1);
-    canvas.width = canvas.offsetWidth * ratio;
-    canvas.height = canvas.offsetHeight * ratio;
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
+
     const context = canvas.getContext("2d");
     if (context) {
-      context.scale(ratio, ratio);
+      // Reset matrix before applying scale so ratio isn't cumulative!
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
 
     if (padRef.current) {
-      padRef.current.clear();
-    } else {
-      padRef.current = new SignaturePad(canvas, {
-        backgroundColor: "rgb(250, 250, 250)",
-        penColor: "rgb(0, 0, 0)",
-      });
+      padRef.current.off();
     }
+
+    padRef.current = new SignaturePad(canvas, {
+      backgroundColor: "rgb(250, 250, 250)",
+      penColor: "rgb(0, 0, 0)",
+      minWidth: 1.5,
+      maxWidth: 3.5,
+    });
   };
 
   useEffect(() => {
     if (isOpen) {
       // Small timeout to allow Modal transition / display block first
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         initPad();
-      }, 200);
+      }, 150);
 
       const handleResize = () => initPad();
       window.addEventListener("resize", handleResize);
 
       return () => {
+        clearTimeout(timer);
         window.removeEventListener("resize", handleResize);
+        if (padRef.current) {
+          padRef.current.off();
+          padRef.current = null;
+        }
       };
     }
   }, [isOpen]);
