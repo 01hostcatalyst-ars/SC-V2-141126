@@ -111,6 +111,17 @@ export async function POST(
     );
     const finalStatus = hasInitiatorSigned ? ContractStatus.ACTIVE : ContractStatus.PENDING_INITIATOR;
 
+    // Find Party A (Initiator) signature and signing event hash
+    const initiatorSig = contract.signatures?.find((s) => s.signerId === contract.initiatorId);
+    const initiatorSigningEventHash = initiatorSig?.signingEventHash || "PENDING_INITIATOR";
+
+    // Compute Final Bilateral Executed Document Hash if both parties signed
+    const finalDocumentHash = hasInitiatorSigned
+      ? crypto.createHash("sha256")
+          .update(`${contentHashAtSigning}-${initiatorSigningEventHash}-${signingEventHash}`)
+          .digest("hex")
+      : undefined;
+
     // 4. Write Signature & metadata in database (Prisma Transaction)
     await prisma.$transaction([
       prisma.signature.create({
@@ -122,7 +133,7 @@ export async function POST(
           ipAddress,
           userAgent,
           deviceFingerprint: fingerprint,
-          documentHash: contract.documentHash || documentHash || "SHA256_PENDING_FINAL_PDF",
+          documentHash: finalDocumentHash || contentHashAtSigning,
           signingEventHash,
           otpVerified: true,
           otpEmail: email,
@@ -134,6 +145,9 @@ export async function POST(
         data: {
           status: finalStatus,
           activatedAt: hasInitiatorSigned ? new Date() : undefined,
+          contentHash: contentHashAtSigning,
+          finalDocumentHash: finalDocumentHash || undefined,
+          documentHash: finalDocumentHash || contentHashAtSigning,
           respondentId: respondentUser.id,
           respondentName: name || contract.respondentName,
           respondentEmail: email || contract.respondentEmail,

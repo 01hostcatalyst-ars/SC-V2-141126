@@ -93,6 +93,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const userAgent = req.headers.get("user-agent") || "Browser/Dashboard";
 
+    // Compute Party 1 (Initiator) signing event hash
+    const signingEventHash = crypto.createHash("sha256")
+      .update(`${contentHash}-${dbUser.email}-${ipAddress}-${userAgent}-${fingerprint || ""}`)
+      .digest("hex");
+
     // Record Party 1 (Initiator) verified digital signature log — matching Instant flow
     await prisma.signature.create({
       data: {
@@ -104,6 +109,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         userAgent,
         deviceFingerprint: fingerprint || undefined,
         documentHash: contentHash,
+        signingEventHash,
         otpVerified: true,
         otpEmail: dbUser.email,
         consentRecorded: true,

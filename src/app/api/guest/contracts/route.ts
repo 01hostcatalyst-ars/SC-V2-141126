@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { ContractType, Role, ContractStatus, SignerRole } from "@prisma/client";
+import { computeContentHash } from "@/lib/utils";
 
 export async function POST(req: Request) {
   try {
@@ -180,13 +182,31 @@ export async function POST(req: Request) {
       },
     });
 
+    const fullContract = await prisma.contract.findUnique({
+      where: { id: contract.id },
+      include: { deliverables: true, initiator: true },
+    });
+
+    const contentHash = computeContentHash(fullContract);
+
+    await prisma.contract.update({
+      where: { id: contract.id },
+      data: {
+        contentHash,
+        documentHash: contentHash,
+      },
+    });
+
     const origin = req.headers.get("origin") || `https://${process.env.NEXT_PUBLIC_COMPANY_DOMAIN || "www.signcollab.com"}`;
     const shareUrl = `${origin}/c/${contract.shareToken}`;
 
     // Record Party 1 (Initiator) verified digital signature log
     const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const userAgent = req.headers.get("user-agent") || "Browser/GuestMode";
-    const docHash = `HASH-INITIATOR-${contract.id.slice(0, 8)}-${Date.now()}`;
+
+    const signingEventHash = crypto.createHash("sha256")
+      .update(`${contentHash}-${cleanEmail}-${ipAddress}-${userAgent}-${fingerprint || ""}`)
+      .digest("hex");
 
     await prisma.signature.create({
       data: {
@@ -197,7 +217,8 @@ export async function POST(req: Request) {
         ipAddress,
         userAgent,
         deviceFingerprint: fingerprint || undefined,
-        documentHash: docHash,
+        documentHash: contentHash,
+        signingEventHash,
         otpVerified: true,
         otpEmail: cleanEmail,
         consentRecorded: true,

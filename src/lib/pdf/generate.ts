@@ -23,17 +23,13 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
     return Number(contract.totalAmount || 0) - Number(contract.advancePayment || 0);
   };
 
-  const getSignatureByRole = (role: string) => {
-    return contract.signatures?.find((s: any) => s.signerRole === role);
-  };
-
-  const respondentSign = getSignatureByRole(
-    contract.contractType === "BRAND_TO_CREATOR" || contract.contractType === "AGENCY_TO_CREATOR"
-      ? "CREATOR"
-      : "BRAND"
+  const initiatorSign = contract.signatures?.find(
+    (s: any) => s.signerId === contract.initiatorId
   );
 
-  const initiatorSign = getSignatureByRole(contract.initiator.role);
+  const respondentSign = contract.signatures?.find(
+    (s: any) => s.signerId !== contract.initiatorId || (contract.respondentId && s.signerId === contract.respondentId)
+  );
 
   // Determine contract direction human readable header
   const getContractTitle = () => {

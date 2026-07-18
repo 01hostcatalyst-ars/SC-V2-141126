@@ -104,20 +104,25 @@ export function buildCanonicalContractPayload(contract: any): string {
   const canonicalObj = {
     contractNumber: contract.contractNumber || "",
     contractType: contract.contractType || "",
+    linkedContractId: contract.linkedContractId || "",
     initiator: {
       name: contract.initiator?.name || "",
       email: contract.initiator?.email || "",
-      company: contract.initiator?.companyName || contract.initiator?.agencyName || "",
+      phone: contract.initiatorPhone || contract.initiator?.phone || "",
+      company: contract.initiator?.companyName || contract.initiator?.agencyName || contract.initiatorCompanyName || "",
       designation: contract.initiatorDesignation || contract.initiator?.designation || "",
       ntn: contract.initiatorNtn || contract.initiator?.ntn || "",
+      cnic: contract.initiatorCnic || contract.initiator?.cnicNumber || "",
     },
     respondent: {
       name: contract.respondentName || "",
       email: contract.respondentEmail || "",
+      phone: contract.respondentPhone || "",
       company: contract.respondentCompany || "",
       address: contract.respondentAddress || "",
       designation: contract.respondentDesignation || "",
       ntn: contract.respondentNtn || "",
+      cnic: contract.respondentCnic || "",
     },
     brand: {
       name: contract.brandName || "",
@@ -131,9 +136,14 @@ export function buildCanonicalContractPayload(contract: any): string {
     financials: {
       totalAmount: contract.totalAmount ? String(contract.totalAmount) : "0",
       advancePayment: contract.advancePayment ? String(contract.advancePayment) : "0",
+      advancePaymentDate: contract.advancePaymentDate ? new Date(contract.advancePaymentDate).toISOString() : "",
+      remainingPaymentDate: contract.remainingPaymentDate ? new Date(contract.remainingPaymentDate).toISOString() : "",
       paymentMethod: contract.paymentMethod || "",
       bankAccountIban: contract.bankAccountIban || "",
       mobileWalletNumber: contract.mobileWalletNumber || "",
+      respondentPaymentMethod: contract.respondentPaymentMethod || "",
+      respondentBankAccountIban: contract.respondentBankAccountIban || "",
+      respondentMobileWalletNumber: contract.respondentMobileWalletNumber || "",
     },
     deliverables: Array.isArray(contract.deliverables)
       ? contract.deliverables
@@ -164,6 +174,13 @@ export function buildCanonicalContractPayload(contract: any): string {
       latePaymentPenaltyPct: String(contract.latePaymentPenaltyPct || 3),
       lateContentPenaltyPct: String(contract.lateContentPenaltyPct || 3),
       penaltyCapPct: String(contract.penaltyCapPct || 20),
+      unauthorizedUsagePenaltyPct: String(contract.unauthorizedUsagePenaltyPct || 50),
+      advanceRefundable: Boolean(contract.advanceRefundable ?? true),
+      advanceRefundTimeframeDays: Number(contract.advanceRefundTimeframeDays || 7),
+      nonDeliveryCutoffDays: Number(contract.nonDeliveryCutoffDays || 7),
+      cancellationFeePct: String(contract.cancellationFeePct || 25),
+      contentOwnership: contract.contentOwnership || "",
+      taggingRequirements: contract.taggingRequirements || "",
     },
     collabProduct: contract.collabProduct ? {
       name: contract.collabProduct || "",
