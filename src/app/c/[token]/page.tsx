@@ -37,7 +37,9 @@ export default function PublicSigningPage({ params }: PageProps) {
   const [bankAccountIban, setBankAccountIban] = useState("");
   const [mobileWalletNumber, setMobileWalletNumber] = useState("");
 
-  // OTP identity state
+  // Signature & OTP identity state
+  const [stagedSignatureB64, setStagedSignatureB64] = useState("");
+  const [stagedFingerprint, setStagedFingerprint] = useState("");
   const [otpDispatched, setOtpDispatched] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
@@ -77,7 +79,7 @@ export default function PublicSigningPage({ params }: PageProps) {
   const isRespondentCreator = !isRespondentBrand && !isRespondentAgency;
   const isRespondentPayee = ["BRAND_TO_CREATOR", "AGENCY_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contract?.contractType);
 
-  // Validation check: Send OTP button is enabled only when all required fields have data
+  // Validation check: Profile form is complete
   const isFormValid = Boolean(
     respondentEmail &&
     respondentPhone &&
@@ -89,9 +91,17 @@ export default function PublicSigningPage({ params }: PageProps) {
     (!isRespondentPayee || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
   );
 
+  // Save drawn signature from modal FIRST
+  const handleSaveSignature = (signatureB64: string, fingerprint: string) => {
+    setStagedSignatureB64(signatureB64);
+    setStagedFingerprint(fingerprint);
+    setIsSignModalOpen(false);
+    showToast("Digital signature recorded! Now request OTP below to authorize & execute.", "success");
+  };
+
   const handleSendOTP = async () => {
-    if (!isFormValid) {
-      showToast("Please complete all profile details before requesting OTP.", "error");
+    if (!isFormValid || !stagedSignatureB64) {
+      showToast("Please complete profile info and draw your signature first.", "error");
       return;
     }
 
@@ -133,9 +143,13 @@ export default function PublicSigningPage({ params }: PageProps) {
     }
   };
 
-  const handleVerifyOTP = async () => {
+  const handleVerifyAndExecuteOTP = async () => {
     if (!otpCode || otpCode.length !== 6) {
       showToast("Please enter the 6-digit OTP code sent to your email.", "error");
+      return;
+    }
+    if (!stagedSignatureB64) {
+      showToast("Please draw your digital signature first.", "error");
       return;
     }
 
@@ -155,24 +169,16 @@ export default function PublicSigningPage({ params }: PageProps) {
       const data = await res.json();
       if (res.ok && data.success) {
         setOtpVerified(true);
-        showToast("Identity verified successfully! You may now review and sign.", "success");
+        showToast("Identity verified! Executing agreement...", "success");
+        await handleExecuteSignature(stagedSignatureB64, stagedFingerprint);
       } else {
         showToast(data.error || "Invalid or expired OTP code.", "error");
+        setOtpLoading(false);
       }
     } catch (err) {
       showToast("Error verifying identity code.", "error");
-    } finally {
       setOtpLoading(false);
     }
-  };
-
-  const handleReviewAndSign = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otpVerified) {
-      showToast("Please complete email OTP identity verification first.", "error");
-      return;
-    }
-    setIsSignModalOpen(true);
   };
 
   const handleExecuteSignature = async (signatureB64: string, fingerprint: string) => {
@@ -218,7 +224,6 @@ export default function PublicSigningPage({ params }: PageProps) {
       showToast("Error processing signature transaction.", "error");
     } finally {
       setSigning(false);
-      setIsSignModalOpen(false);
     }
   };
 
@@ -268,7 +273,7 @@ export default function PublicSigningPage({ params }: PageProps) {
           </p>
         </div>
 
-        <form onSubmit={handleReviewAndSign} className="space-y-8">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
           
           {/* SECTION 1: REVIEW CAMPAIGN TERMS */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
@@ -739,81 +744,99 @@ export default function PublicSigningPage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* OTP Action Trigger */}
-              <div className="flex flex-col justify-end sm:col-span-2 mt-2">
-                {!otpVerified ? (
-                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="flex flex-col text-left">
-                      <span className="text-xs font-bold text-black uppercase tracking-wider">Email OTP Verification Required</span>
-                      <span className="text-[10px] text-gray-500">
-                        {otpDispatched
-                          ? "Code sent to email. Enter 6-digit verification code below."
-                          : "Fill all required fields above to enable Send OTP button."}
-                      </span>
-                    </div>
+              {/* STEP 1: DRAW DIGITAL SIGNATURE FIRST */}
+              <div className="sm:col-span-2 p-4 rounded-xl border border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-bold text-black uppercase tracking-wider">Step 1: Digital Signature</span>
+                  <span className="text-[10px] text-gray-500">
+                    {stagedSignatureB64
+                      ? "Digital signature recorded! Now request OTP below to authorize & execute."
+                      : isFormValid
+                      ? "Complete all required fields above to enable Signature Pad."
+                      : "Fill all required profile fields above to enable Signature Pad."}
+                  </span>
+                </div>
 
-                    {!otpDispatched ? (
-                      <button
-                        type="button"
-                        onClick={handleSendOTP}
-                        disabled={!isFormValid || otpLoading}
-                        className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
-                          isFormValid && !otpLoading
-                            ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
-                            : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
-                        }`}
-                      >
-                        {otpLoading ? "Sending..." : "Send OTP ➔"}
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <input
-                          type="text"
-                          maxLength={6}
-                          placeholder="123456"
-                          value={otpCode}
-                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                          className="input-field text-center font-mono font-bold tracking-widest text-sm py-2 max-w-[120px]"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleVerifyOTP}
-                          disabled={otpLoading || !otpCode}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase shadow transition-all whitespace-nowrap"
-                        >
-                          {otpLoading ? "..." : "Verify OTP"}
-                        </button>
-                      </div>
-                    )}
+                {stagedSignatureB64 ? (
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white border border-gray-200 rounded-lg p-1.5 flex items-center gap-2">
+                      <img src={stagedSignatureB64} alt="Signature Preview" className="h-8 max-w-[120px] object-contain" />
+                      <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded uppercase">✓ Drawn</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsSignModalOpen(true)}
+                      className="text-xs text-gray-600 hover:text-black font-bold underline uppercase"
+                    >
+                      Redraw
+                    </button>
                   </div>
                 ) : (
-                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
-                    <span>✓</span>
-                    <span>Identity Verified via Email OTP code! You may now execute digital signature below.</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsSignModalOpen(true)}
+                    disabled={!isFormValid}
+                    className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
+                      isFormValid
+                        ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
+                        : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
+                    }`}
+                  >
+                    Draw Signature ➔
+                  </button>
                 )}
               </div>
 
-              {/* INTEGRATED SIGNATURE & EXECUTION BUTTON */}
-              <div className="sm:col-span-2 pt-4 border-t border-gray-100 flex flex-col items-center text-center gap-3">
-                <p className="text-xs text-gray-500 max-w-lg mx-auto">
-                  By clicking below, your digital signature will be recorded along with an ETO 2002 audit log containing your verified email, IP address, and cryptographic timestamp.
-                </p>
-                <button
-                  type="submit"
-                  disabled={signing || !otpVerified}
-                  className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center gap-2 ${
-                    otpVerified
-                      ? "bg-black text-white hover:bg-black/90 cursor-pointer"
-                      : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
-                  }`}
-                >
-                  {signing
-                    ? "Processing Signature..."
-                    : otpVerified
-                    ? "REVIEW & SIGN AGREEMENT ➔"
-                    : "🔒 Verify Email via OTP Above to Unlock Signature"}
-                </button>
+              {/* STEP 2: EMAIL OTP IDENTITY AUTHORIZATION & FINAL EXECUTION SECOND */}
+              <div className="sm:col-span-2 p-4 rounded-xl border border-gray-200 bg-gray-50 flex flex-col space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-bold text-black uppercase tracking-wider">Step 2: Email OTP Identity Authorization</span>
+                    <span className="text-[10px] text-gray-500">
+                      {!isFormValid || !stagedSignatureB64
+                        ? "🔒 OTP inactive until complete information and digital signature are done above."
+                        : otpDispatched
+                        ? `Code dispatched to ${respondentEmail}. Enter code to verify & execute contract.`
+                        : `Click Send OTP to dispatch verification passcode to ${respondentEmail}.`}
+                    </span>
+                  </div>
+
+                  {!otpDispatched && (
+                    <button
+                      type="button"
+                      onClick={handleSendOTP}
+                      disabled={!isFormValid || !stagedSignatureB64 || otpLoading}
+                      className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
+                        isFormValid && stagedSignatureB64 && !otpLoading
+                          ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md cursor-pointer"
+                          : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
+                      }`}
+                    >
+                      {otpLoading ? "Sending..." : "Send OTP ➔"}
+                    </button>
+                  )}
+                </div>
+
+                {otpDispatched && (
+                  <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-gray-200">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="6-digit OTP"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                      className="input-field text-center font-mono font-bold tracking-widest text-sm py-2 max-w-[150px]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyAndExecuteOTP}
+                      disabled={otpLoading || otpCode.length !== 6 || signing}
+                      className="w-full sm:w-auto bg-black hover:bg-black/90 text-white font-bold px-6 py-3 rounded-xl text-xs uppercase shadow-md transition-all whitespace-nowrap cursor-pointer disabled:opacity-50"
+                    >
+                      {signing ? "Processing Signature..." : otpLoading ? "Verifying..." : "VERIFY OTP & EXECUTE CONTRACT ➔"}
+                    </button>
+                  </div>
+                )}
               </div>
 
             </div>
@@ -850,7 +873,7 @@ export default function PublicSigningPage({ params }: PageProps) {
       <SignaturePadModal
         isOpen={isSignModalOpen}
         onClose={() => setIsSignModalOpen(false)}
-        onConfirm={handleExecuteSignature}
+        onConfirm={handleSaveSignature}
         loading={signing}
       />
     </div>
