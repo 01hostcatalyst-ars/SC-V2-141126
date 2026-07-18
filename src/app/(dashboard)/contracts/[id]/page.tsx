@@ -803,7 +803,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-gray-700 block mb-1">NTN / Reg No (Optional)</label>
+                  <label className="font-bold text-gray-700 block mb-1">NTN or CNIC (Optional)</label>
                   <input
                     type="text"
                     value={publishNtn}

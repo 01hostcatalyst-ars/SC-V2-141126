@@ -656,7 +656,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                 {(isRespondentBrand || isRespondentAgency) ? (
                   <>
                     <label className="text-xs font-bold text-black uppercase tracking-wider">
-                      NTN (National Tax Number) <span className="text-rose-500">*</span>
+                      NTN or CNIC <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"

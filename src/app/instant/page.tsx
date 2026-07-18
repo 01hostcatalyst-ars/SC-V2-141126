@@ -168,19 +168,19 @@ export default function InstantContractPage() {
     if (!remainingPaymentDate) return false;
     if (!deliveryTimeframeDays || Number(deliveryTimeframeDays) <= 0) return false;
     // Workflow-specific counterparty checks
-    if (contractType === "AGENCY_TO_CREATOR" && (!brandName.trim() || !campaignName.trim())) return false;
+    if (contractType === "AGENCY_TO_CREATOR" && !brandName.trim()) return false;
     if (contractType === "CREATOR_TO_BRAND" && (!brandName.trim() || !brandHandle.trim())) return false;
     if (contractType === "BRAND_TO_CREATOR" && (!creatorName.trim() || !creatorHandle.trim())) return false;
     if (contractType === "AGENCY_TO_BRAND" && (!creatorName.trim() || !creatorHandle.trim())) return false;
-    if (contractType === "CREATOR_TO_AGENCY" && (!brandName.trim() || !campaignName.trim())) return false;
-    if (contractType === "BRAND_TO_AGENCY" && (!creatorName.trim() || !campaignName.trim())) return false;
+    if (contractType === "CREATOR_TO_AGENCY" && !brandName.trim()) return false;
+    if (contractType === "BRAND_TO_AGENCY" && (!creatorName.trim() || !creatorHandle.trim())) return false;
     if (advancePayment && Number(advancePayment) > 0 && !advancePaymentDate) return false;
     return true;
   }, [
     initiatorSignatureB64, initiatorName, initiatorEmail, initiatorPhone,
     initiatorDesignation, isInitiatorBusiness, initiatorNtn, initiatorCompanyName,
     initiatorCnic, totalAmount, remainingPaymentDate, deliveryTimeframeDays,
-    contractType, brandName, campaignName, brandHandle, creatorName, creatorHandle,
+    contractType, brandName, brandHandle, creatorName, creatorHandle,
     advancePayment, advancePaymentDate,
   ]);
 
@@ -549,13 +549,20 @@ export default function InstantContractPage() {
 
                     <div>
                       <label className="text-[10px] font-bold text-gray-500 uppercase">Duration</label>
-                      <input
-                        type="text"
-                        placeholder="Permanent / 30s"
+                      <select
                         value={item.duration}
                         onChange={(e) => handleDeliverableChange(idx, "duration", e.target.value)}
                         className="input-field text-xs"
-                      />
+                      >
+                        <option value="1 Day">1 Day</option>
+                        <option value="1 Week">1 Week</option>
+                        <option value="1 Month">1 Month</option>
+                        <option value="2 Months">2 Months</option>
+                        <option value="3 Months">3 Months</option>
+                        <option value="6 Months">6 Months</option>
+                        <option value="1 Year">1 Year</option>
+                        <option value="Permanent">Permanent</option>
+                      </select>
                     </div>
 
                     <div>
@@ -930,22 +937,30 @@ export default function InstantContractPage() {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">Late Pay Penalty (%/wk)</label>
-                  <input
-                    type="number"
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Late Pay Penalty (%/d)</label>
+                  <select
                     value={latePaymentPenaltyPct}
                     onChange={(e) => setLatePaymentPenaltyPct(e.target.value)}
-                    className="input-field text-xs"
-                  />
+                    className="input-field text-xs font-bold"
+                  >
+                    <option value="0">0%</option>
+                    <option value="0.5">0.5%</option>
+                    <option value="1">1%</option>
+                    <option value="2">2%</option>
+                  </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">Late Content (%/wk)</label>
-                  <input
-                    type="number"
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Late Content (%/d)</label>
+                  <select
                     value={lateContentPenaltyPct}
                     onChange={(e) => setLateContentPenaltyPct(e.target.value)}
-                    className="input-field text-xs"
-                  />
+                    className="input-field text-xs font-bold"
+                  >
+                    <option value="0">0%</option>
+                    <option value="0.5">0.5%</option>
+                    <option value="1">1%</option>
+                    <option value="2">2%</option>
+                  </select>
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase">Max Penalty Cap (%)</label>
@@ -1139,12 +1154,12 @@ export default function InstantContractPage() {
                     </div>
 
                     <div className="flex flex-col text-left gap-1 sm:col-span-2">
-                      <label className="text-xs font-bold text-gray-700">NTN (National Tax Number) *</label>
+                      <label className="text-xs font-bold text-gray-700">NTN or CNIC *</label>
                       <input
                         type="text"
                         required
                         disabled={initiatorOtpVerified}
-                        placeholder="e.g. 1234567-8"
+                        placeholder="e.g. 1234567-8 or 42101-0000000-0"
                         value={initiatorNtn}
                         onChange={(e) => setInitiatorNtn(e.target.value)}
                         className="input-field disabled:bg-gray-100"
@@ -1191,21 +1206,6 @@ export default function InstantContractPage() {
                       placeholder="e.g. @sapphirepk"
                       value={brandHandle}
                       onChange={(e) => setBrandHandle(e.target.value)}
-                      className="input-field border-blue-200 disabled:bg-gray-100"
-                    />
-                  </div>
-                )}
-
-                {["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Campaign Name *</label>
-                    <input
-                      type="text"
-                      required
-                      disabled={initiatorOtpVerified}
-                      placeholder="e.g. Summer Lawn Campaign 2026"
-                      value={campaignName}
-                      onChange={(e) => setCampaignName(e.target.value)}
                       className="input-field border-blue-200 disabled:bg-gray-100"
                     />
                   </div>

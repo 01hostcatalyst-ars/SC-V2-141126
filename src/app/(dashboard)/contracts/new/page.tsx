@@ -261,8 +261,8 @@ export default function NewContractPage() {
         }
       }
       if (contractType === "AGENCY_TO_CREATOR") {
-        if (!brandName.trim() || !campaignName.trim()) {
-          showToast("Brand Name and Campaign Name are required for Agency to Creator deals.", "error");
+        if (!brandName.trim()) {
+          showToast("Brand Name is required for Agency to Creator deals.", "error");
           return false;
         }
       }
@@ -273,8 +273,8 @@ export default function NewContractPage() {
         }
       }
       if (contractType === "CREATOR_TO_AGENCY") {
-        if (!brandName.trim() || !campaignName.trim()) {
-          showToast("Brand Name and Campaign Name are required.", "error");
+        if (!brandName.trim()) {
+          showToast("Brand Name is required.", "error");
           return false;
         }
       }
@@ -454,7 +454,7 @@ export default function NewContractPage() {
           {contractType === "AGENCY_TO_CREATOR" && (
             <div className="border-t border-gray-100 pt-4 mt-3 space-y-4">
               <h4 className="text-xs font-bold uppercase tracking-wider text-black">Client Brand Details</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase text-gray-400">Brand Name</label>
                   <input
@@ -473,16 +473,6 @@ export default function NewContractPage() {
                     className="input-field"
                     value={brandHandle}
                     onChange={(e) => setBrandHandle(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-400">Campaign Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Galaxy S27 Launch"
-                    className="input-field"
-                    value={campaignName}
-                    onChange={(e) => setCampaignName(e.target.value)}
                   />
                 </div>
               </div>
@@ -572,22 +562,6 @@ export default function NewContractPage() {
                     onChange={(e) => setCreatorHandle(e.target.value)}
                   />
                 </div>
-              </div>
-            </div>
-          )}
-
-          {contractType === "BRAND_TO_AGENCY" && (
-            <div className="border-t border-gray-100 pt-4 mt-3 space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-black">Campaign Details</h4>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-gray-400">Campaign Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Summer Collection Launch"
-                  className="input-field"
-                  value={campaignName}
-                  onChange={(e) => setCampaignName(e.target.value)}
-                />
               </div>
             </div>
           )}
@@ -773,13 +747,20 @@ export default function NewContractPage() {
 
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] font-bold uppercase text-gray-400">Retention / Post Duration</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 30 Days / Permanent"
+                      <select
                         className="input-field"
-                        value={d.duration || ""}
+                        value={d.duration || "1 Month"}
                         onChange={(e) => handleDeliverableChange(index, "duration", e.target.value)}
-                      />
+                      >
+                        <option value="1 Day">1 Day</option>
+                        <option value="1 Week">1 Week</option>
+                        <option value="1 Month">1 Month</option>
+                        <option value="2 Months">2 Months</option>
+                        <option value="3 Months">3 Months</option>
+                        <option value="6 Months">6 Months</option>
+                        <option value="1 Year">1 Year</option>
+                        <option value="Permanent">Permanent</option>
+                      </select>
                     </div>
                   </div>
 
@@ -1253,36 +1234,30 @@ export default function NewContractPage() {
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-500">Late Payment Fee (%/day) (0% - 1%)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="1"
-                    className="input-field"
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Late Payment Penalty (%/d)</label>
+                  <select
+                    className="input-field font-bold text-xs"
                     value={latePaymentPenaltyPct}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (isNaN(val)) setLatePaymentPenaltyPct("");
-                      else setLatePaymentPenaltyPct(Math.min(1, Math.max(0, val)).toString());
-                    }}
-                  />
+                    onChange={(e) => setLatePaymentPenaltyPct(e.target.value)}
+                  >
+                    <option value="0">0%</option>
+                    <option value="0.5">0.5%</option>
+                    <option value="1">1%</option>
+                    <option value="2">2%</option>
+                  </select>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-500">Late Delivery Fee (%/day) (0% - 1%)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="1"
-                    className="input-field"
+                  <label className="text-[10px] font-bold uppercase text-gray-500">Late Content Penalty (%/d)</label>
+                  <select
+                    className="input-field font-bold text-xs"
                     value={lateContentPenaltyPct}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (isNaN(val)) setLateContentPenaltyPct("");
-                      else setLateContentPenaltyPct(Math.min(1, Math.max(0, val)).toString());
-                    }}
-                  />
+                    onChange={(e) => setLateContentPenaltyPct(e.target.value)}
+                  >
+                    <option value="0">0%</option>
+                    <option value="0.5">0.5%</option>
+                    <option value="1">1%</option>
+                    <option value="2">2%</option>
+                  </select>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase text-gray-500">Maximum Penalty Cap (%) (0% - 20%)</label>
