@@ -29,7 +29,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       // Body may be empty if called without JSON payload
     }
 
-    const { initiatorDesignation, initiatorNtn, signatureB64, fingerprint } = body;
+    const {
+      initiatorDesignation,
+      initiatorNtn,
+      initiatorCnic,
+      initiatorTaxIdType,
+      initiatorTaxId,
+      initiatorNationalId,
+      paymentRoutingDetails,
+      signatureB64,
+      fingerprint,
+    } = body;
 
     const contract = await prisma.contract.findUnique({
       where: { id },
@@ -58,7 +68,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         shareToken,
         verifyToken,
         initiatorDesignation: initiatorDesignation || contract.initiatorDesignation || undefined,
-        initiatorNtn: initiatorNtn || contract.initiatorNtn || undefined,
+        initiatorNtn: initiatorNtn || initiatorTaxId || contract.initiatorNtn || undefined,
+        initiatorCnic: initiatorCnic || initiatorNationalId || contract.initiatorCnic || undefined,
+        initiatorTaxIdType: initiatorTaxIdType || (contract as any).initiatorTaxIdType || undefined,
+        initiatorTaxId: initiatorTaxId || initiatorNtn || (contract as any).initiatorTaxId || undefined,
+        initiatorNationalId: initiatorNationalId || initiatorCnic || (contract as any).initiatorNationalId || undefined,
+        paymentRoutingDetails: paymentRoutingDetails || (contract as any).paymentRoutingDetails || undefined,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // now + 7 days
       },
       include: {

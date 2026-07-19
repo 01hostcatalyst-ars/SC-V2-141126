@@ -6,6 +6,8 @@ import { getCompanyConfig } from "@/lib/config";
 import { useToast } from "@/components/ui/Toast";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
 import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
+import { getJurisdiction } from "@/lib/config/jurisdictions";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -20,6 +22,10 @@ export default function PublicSigningPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
   const [isSignModalOpen, setIsSignModalOpen] = useState(false);
+
+  const jur = getJurisdiction(contract?.jurisdictionCountryCode || "US");
+  const currCode = contract?.currency || jur.defaultCurrency || "USD";
+
 
   // Respondent details states
   const [respondentName, setRespondentName] = useState("");
@@ -87,7 +93,9 @@ export default function PublicSigningPage({ params }: PageProps) {
     (isRespondentBrand ? respondentCompany : isRespondentAgency ? respondentCompany : collabDetails) &&
     respondentAddress &&
     respondentDesignation &&
-    ((isRespondentBrand || isRespondentAgency) ? respondentNtn.trim() : respondentCnic.trim()) &&
+    ((isRespondentBrand || isRespondentAgency) 
+      ? respondentNtn.trim() 
+      : (jur.nationalIdLabel.toLowerCase().includes("optional") || respondentCnic.trim())) &&
     (!isRespondentPayee || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
   );
 
@@ -268,7 +276,7 @@ export default function PublicSigningPage({ params }: PageProps) {
         {/* Banner Welcome */}
         <div className="space-y-2 text-left">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-800 uppercase">
-            Mutual Legal Agreement Execution (ETO 2002)
+            Mutual Legal Agreement Execution ({jur.lawAbbreviation})
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-black leading-tight">
             Review &amp; Sign Collaboration Agreement
@@ -323,16 +331,16 @@ export default function PublicSigningPage({ params }: PageProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
                     <span className="font-semibold text-gray-500 block">Total Valuation:</span>
-                    <span className="font-black text-black text-sm">PKR {Number(contract.totalAmount).toLocaleString()}</span>
+                    <span className="font-black text-black text-sm">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Advance Payment:</span>
-                    <span className="font-bold text-black">{contract.advancePayment ? `PKR ${Number(contract.advancePayment).toLocaleString()}` : "No Advance"}</span>
+                    <span className="font-bold text-black">{contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : "No Advance"}</span>
                     {contract.advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.advancePaymentDate)}</span>}
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Remaining Payout:</span>
-                    <span className="font-bold text-black">PKR {Number(contract.remainingAmount || 0).toLocaleString()}</span>
+                    <span className="font-bold text-black">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
                     {contract.remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.remainingPaymentDate)}</span>}
                   </div>
                   <div>
@@ -436,7 +444,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                       {contract.earlyDisclosurePenalty && (
                         <div className="flex justify-between">
                           <span className="font-semibold text-gray-500">Early Leak Penalty:</span>
-                          <span className="font-bold text-rose-600">PKR {Number(contract.earlyDisclosurePenalty).toLocaleString()}</span>
+                          <span className="font-bold text-rose-600">{formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}</span>
                         </div>
                       )}
                     </>
@@ -468,7 +476,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-950 space-y-1 mt-2">
                       <div>• Product Loan Return Deadline: Within <strong>{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
                       <div>• Return Shipping Paid By: <strong>{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
-                      {contract.collabProductNonReturnFee && <div>• Loss / Non-Return Fee: <strong>PKR {Number(contract.collabProductNonReturnFee).toLocaleString()}</strong></div>}
+                      {contract.collabProductNonReturnFee && <div>• Loss / Non-Return Fee: <strong>{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
                     </div>
                   )}
                 </div>
@@ -501,12 +509,13 @@ export default function PublicSigningPage({ params }: PageProps) {
               <div className="p-4 rounded-xl border border-gray-200 bg-blue-50/50 space-y-1 text-[11px] text-blue-950">
                 <span className="font-bold uppercase tracking-wider block text-blue-900">Section 11: Governing Law &amp; Dispute Resolution</span>
                 <p className="leading-relaxed">
-                  Governed by the laws of Pakistan. Disputes proceed to 14 days of good-faith negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary determination in local courts; (b) Claims &gt; PKR 500,000 proceed to binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>.
+                  {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>{jur.arbitrationAct}</strong>.
                 </p>
               </div>
 
             </div>
           </div>
+
 
           {/* SECTION 2: VERIFICATION & DIGITAL SIGNATURE EXECUTION */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
@@ -661,12 +670,12 @@ export default function PublicSigningPage({ params }: PageProps) {
                 {(isRespondentBrand || isRespondentAgency) ? (
                   <>
                     <label className="text-xs font-bold text-black uppercase tracking-wider">
-                      NTN or CNIC <span className="text-rose-500">*</span>
+                      {jur.taxIdLabel} <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. 1234567-8"
+                      placeholder={`e.g. Enter your ${jur.taxIdLabel}`}
                       value={respondentNtn}
                       onChange={(e) => setRespondentNtn(e.target.value)}
                       disabled={otpDispatched || otpVerified}
@@ -676,12 +685,12 @@ export default function PublicSigningPage({ params }: PageProps) {
                 ) : (
                   <>
                     <label className="text-xs font-bold text-black uppercase tracking-wider">
-                      CNIC (National Identity Card) <span className="text-rose-500">*</span>
+                      {jur.nationalIdLabel} {!jur.nationalIdLabel.toLowerCase().includes("optional") && <span className="text-rose-500">*</span>}
                     </label>
                     <input
                       type="text"
-                      required
-                      placeholder="e.g. 42101-0000000-0"
+                      required={!jur.nationalIdLabel.toLowerCase().includes("optional")}
+                      placeholder={`e.g. Enter your ${jur.nationalIdLabel.replace(" (Optional)", "")}`}
                       value={respondentCnic}
                       onChange={(e) => setRespondentCnic(e.target.value)}
                       disabled={otpDispatched || otpVerified}

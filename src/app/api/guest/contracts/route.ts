@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { ContractType, Role, ContractStatus, SignerRole, CurrencyCode, TaxTreatmentType, PaymentMethod } from "@prisma/client";
 import { computeContentHash } from "@/lib/utils";
+import { calculateContractTax } from "@/lib/tax";
 
 export async function POST(req: Request) {
   try {
@@ -121,6 +122,12 @@ export async function POST(req: Request) {
     const contractNumber = `BB-GUEST-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
     const remainingAmount = Number(totalAmount) - (Number(advancePayment) || 0);
 
+    const taxCalc = calculateContractTax({
+      totalValuation: Number(totalAmount || 0),
+      taxTreatment: (taxTreatment as any) || "INCLUSIVE",
+      taxRatePct: Number(taxRatePct || 0),
+    }, currency || "USD");
+
     // 4. Create Contract with deliverables
     const contract = await prisma.contract.create({
       data: {
@@ -130,6 +137,8 @@ export async function POST(req: Request) {
         currency: (currency as CurrencyCode) || CurrencyCode.USD,
         taxTreatment: (taxTreatment as TaxTreatmentType) || TaxTreatmentType.INCLUSIVE,
         taxRatePct: taxRatePct ? Number(taxRatePct) : 0,
+        taxAmount: taxCalc.taxAmount,
+        isReverseCharge: taxTreatment === "REVERSE_CHARGE",
         initiatorId: dbUser.id,
         status: ContractStatus.PENDING_RESPONDENT,
         brandName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandName : undefined,
@@ -218,8 +227,15 @@ export async function POST(req: Request) {
     const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const userAgent = req.headers.get("user-agent") || "Browser/GuestMode";
 
+    const signingEventObj = {
+      contentHash,
+      email: cleanEmail,
+      ipAddress,
+      userAgent,
+      deviceFingerprint: fingerprint || "",
+    };
     const signingEventHash = crypto.createHash("sha256")
-      .update(`${contentHash}-${cleanEmail}-${ipAddress}-${userAgent}-${fingerprint || ""}`)
+      .update(JSON.stringify(signingEventObj))
       .digest("hex");
 
     await prisma.signature.create({

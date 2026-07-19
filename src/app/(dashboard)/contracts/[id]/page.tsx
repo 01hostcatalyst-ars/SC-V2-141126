@@ -7,6 +7,8 @@ import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
 import { formatLegalDate, formatUsageLicenseText, parseUserAgentString, formatDeliverableTypeName } from "@/lib/utils";
+import { getJurisdiction } from "@/lib/config/jurisdictions";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -22,6 +24,10 @@ export default function ContractDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [isSignModalOpen, setIsSignModalOpen] = useState(false);
+
+  const jur = getJurisdiction(contract?.jurisdictionCountryCode || "US");
+  const currCode = contract?.currency || jur.defaultCurrency || "USD";
+
 
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [publishDesignation, setPublishDesignation] = useState("");
@@ -540,7 +546,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                     )}
                     {contract.earlyDisclosurePenalty && (
                       <span className="text-[10px] text-rose-600 font-bold block mt-0.5">
-                        Early Leak Fine: PKR {Number(contract.earlyDisclosurePenalty).toLocaleString()}
+                        Early Leak Fine: {formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}
                       </span>
                     )}
                   </div>
@@ -559,13 +565,13 @@ export default function ContractDetailPage({ params }: PageProps) {
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-semibold">
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
                 <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Total Valuation</span>
-                <span className="text-base font-black text-black">PKR {Number(contract.totalAmount).toLocaleString()}</span>
+                <span className="text-base font-black text-black">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
               </div>
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col justify-between min-h-[90px]">
                 <div>
                   <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Advance Payment</span>
                   <span className="text-base font-black text-black">
-                    {contract.advancePayment ? `PKR ${Number(contract.advancePayment).toLocaleString()}` : "PKR 0"}
+                    {contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : formatCurrencyAmount(0, currCode)}
                   </span>
                   {contract.advancePaymentDate && (
                     <span className="text-[10px] text-gray-500 block mt-1">
@@ -586,7 +592,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
                 <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Remaining Payout</span>
                 <span className="text-base font-black text-black">
-                  PKR {Number(contract.remainingAmount || 0).toLocaleString()}
+                  {formatCurrencyAmount(contract.remainingAmount || 0, currCode)}
                 </span>
                 {contract.remainingPaymentDate && (
                   <span className="text-[10px] text-gray-500 block mt-1">
@@ -662,7 +668,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-amber-950">
                     <div>• Return Deadline: Within <strong>{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
                     <div>• Shipping Paid By: <strong>{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
-                    {contract.collabProductNonReturnFee && <div>• Loss / Non-Return Penalty Fee: <strong>PKR {Number(contract.collabProductNonReturnFee).toLocaleString()}</strong></div>}
+                    {contract.collabProductNonReturnFee && <div>• Loss / Non-Return Penalty Fee: <strong>{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
                   </div>
                   {contract.collabProductReturnAddress && (
                     <div className="text-[11px] text-amber-900">Return Address: {contract.collabProductReturnAddress}</div>
@@ -690,9 +696,10 @@ export default function ContractDetailPage({ params }: PageProps) {
             <div>
               <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Section 11: Governing Law &amp; Dispute Resolution (ADR)</span>
               <div className="text-blue-950 font-medium bg-blue-50/60 p-3.5 rounded-lg border border-blue-200 leading-relaxed">
-                Governed by the laws of Pakistan. Any dispute proceeds to 14 days of good-faith executive negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary determination in local courts; (b) Claims &gt; PKR 500,000 proceed to binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>. Prevailing party recovers legal costs.
+                {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>{jur.arbitrationAct}</strong>.
               </div>
             </div>
+
 
             <div>
               <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Content Ownership &amp; License Terms</span>

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { ContractType } from "@prisma/client";
+import { ContractType, CurrencyCode, TaxTreatmentType, TaxIdType } from "@prisma/client";
+import { calculateContractTax } from "@/lib/tax";
 
 export async function POST(req: Request) {
   try {
@@ -20,6 +21,10 @@ export async function POST(req: Request) {
 
     const {
       contractType,
+      jurisdictionCountryCode = "US",
+      currency = "USD",
+      taxTreatment = "INCLUSIVE",
+      taxRatePct = 0,
       linkedContractId,
       brandName,
       brandHandle,
@@ -31,6 +36,7 @@ export async function POST(req: Request) {
       advancePaymentDate,
       remainingPaymentDate,
       paymentMethod,
+      paymentRoutingDetails,
       bankAccountIban,
       mobileWalletNumber,
       deliveryTimeframeDays,
@@ -68,6 +74,9 @@ export async function POST(req: Request) {
       initiatorDesignation,
       initiatorNtn,
       initiatorCnic,
+      initiatorTaxIdType,
+      initiatorTaxId,
+      initiatorNationalId,
       initiatorCompanyName,
       initiatorCompanyAddress,
     } = await req.json();
@@ -81,10 +90,22 @@ export async function POST(req: Request) {
 
     const remainingAmount = Number(totalAmount) - (Number(advancePayment) || 0);
 
+    const taxCalc = calculateContractTax({
+      totalValuation: Number(totalAmount || 0),
+      taxTreatment: (taxTreatment as any) || "INCLUSIVE",
+      taxRatePct: Number(taxRatePct || 0),
+    }, currency || "USD");
+
     const contract = await prisma.contract.create({
       data: {
         contractNumber,
         contractType,
+        jurisdictionCountryCode: jurisdictionCountryCode || "US",
+        currency: (currency as CurrencyCode) || CurrencyCode.USD,
+        taxTreatment: (taxTreatment as TaxTreatmentType) || TaxTreatmentType.INCLUSIVE,
+        taxRatePct: taxRatePct ? Number(taxRatePct) : 0,
+        taxAmount: taxCalc.taxAmount,
+        isReverseCharge: taxTreatment === "REVERSE_CHARGE",
         initiatorId: dbUser.id,
         linkedContractId: contractType === ContractType.AGENCY_TO_CREATOR && linkedContractId && typeof linkedContractId === "string" && linkedContractId.trim() !== "" ? linkedContractId : undefined,
         brandName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandName : undefined,
@@ -93,11 +114,15 @@ export async function POST(req: Request) {
         creatorName: [ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY].includes(contractType) ? creatorName : undefined,
         creatorHandle: [ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY].includes(contractType) ? creatorHandle : undefined,
         initiatorDesignation: initiatorDesignation || undefined,
-        initiatorNtn: initiatorNtn || undefined,
-        initiatorCnic: initiatorCnic || undefined,
+        initiatorNtn: initiatorNtn || initiatorTaxId || undefined,
+        initiatorCnic: initiatorCnic || initiatorNationalId || undefined,
+        initiatorTaxIdType: (initiatorTaxIdType as TaxIdType) || undefined,
+        initiatorTaxId: initiatorTaxId || initiatorNtn || undefined,
+        initiatorNationalId: initiatorNationalId || initiatorCnic || undefined,
         initiatorPhone: dbUser.phone || undefined,
         initiatorCompanyName: initiatorCompanyName || dbUser.agencyName || undefined,
         initiatorCompanyAddress: initiatorCompanyAddress || dbUser.agencyAddress || undefined,
+        paymentRoutingDetails: paymentRoutingDetails || undefined,
         totalAmount,
         advancePayment,
         advancePaymentDate: advancePaymentDate ? new Date(advancePaymentDate) : undefined,

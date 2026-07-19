@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
+import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
+import { CURRENCY_MAP } from "@/lib/currency";
 
 interface DeliverableItem {
   type: string;
@@ -60,6 +62,14 @@ export default function NewContractPage() {
   const [initiatorResendTimer, setInitiatorResendTimer] = useState(0);
 
   // Financial
+  const [jurisdictionCountryCode, setJurisdictionCountryCode] = useState("US");
+  const [currency, setCurrency] = useState("USD");
+  const [taxTreatment, setTaxTreatment] = useState("INCLUSIVE");
+  const [taxRatePct, setTaxRatePct] = useState("0");
+  const [initiatorTaxIdType, setInitiatorTaxIdType] = useState("");
+  const [initiatorTaxId, setInitiatorTaxId] = useState("");
+  const [initiatorNationalId, setInitiatorNationalId] = useState("");
+  const [paymentRoutingDetails, setPaymentRoutingDetails] = useState<any>({});
   const [totalAmount, setTotalAmount] = useState("");
   const [advancePayment, setAdvancePayment] = useState("");
   const [advancePaymentDate, setAdvancePaymentDate] = useState("");
@@ -327,6 +337,16 @@ export default function NewContractPage() {
     setLoading(true);
     const payload = {
       contractType,
+      jurisdictionCountryCode,
+      currency,
+      taxTreatment,
+      taxRatePct: Number(taxRatePct || 0),
+      initiatorTaxIdType: initiatorTaxIdType || undefined,
+      initiatorTaxId: initiatorTaxId || initiatorNtn || undefined,
+      initiatorNationalId: initiatorNationalId || initiatorCnic || undefined,
+      paymentRoutingDetails: paymentMethod === "BANK_IBAN"
+        ? { iban: bankAccountIban }
+        : { mobileWalletNumber },
       linkedContractId: contractType === "AGENCY_TO_CREATOR" && linkedContractId && linkedContractId.trim() !== "" ? linkedContractId : undefined,
       brandName: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandName : undefined,
       brandHandle: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandHandle : undefined,
@@ -399,6 +419,8 @@ export default function NewContractPage() {
       setLoading(false);
     }
   };
+
+  const jur = getJurisdiction(jurisdictionCountryCode);
 
   return (
     <div className="space-y-8 text-left max-w-3xl mx-auto">
@@ -873,20 +895,83 @@ export default function NewContractPage() {
               <p className="text-xs text-gray-500 mt-0.5">Specify campaign fees, advance payment, and payout account details.</p>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pb-4 border-b border-gray-100">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase text-gray-500">Jurisdiction *</label>
+                <select
+                  value={jurisdictionCountryCode}
+                  onChange={(e) => {
+                    setJurisdictionCountryCode(e.target.value);
+                    const selectedJur = getJurisdiction(e.target.value);
+                    setCurrency(selectedJur.defaultCurrency);
+                  }}
+                  className="input-field text-xs font-semibold"
+                >
+                  {Object.values(JURISDICTIONS).map((j) => (
+                    <option key={j.countryCode} value={j.countryCode}>
+                      {j.countryName} ({j.lawAbbreviation})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase text-gray-500">Currency *</label>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="input-field text-xs font-semibold"
+                >
+                  {Object.keys(CURRENCY_MAP).map((code) => (
+                    <option key={code} value={code}>
+                      {code} ({CURRENCY_MAP[code].symbol})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase text-gray-500">Tax Treatment *</label>
+                <select
+                  value={taxTreatment}
+                  onChange={(e) => setTaxTreatment(e.target.value)}
+                  className="input-field text-xs"
+                >
+                  <option value="INCLUSIVE">Tax Inclusive</option>
+                  <option value="EXCLUSIVE">Tax Exclusive</option>
+                  <option value="REVERSE_CHARGE">Reverse Charge</option>
+                  <option value="EXEMPT">Tax Exempt</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase text-gray-500">Tax Rate (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={taxRatePct}
+                  onChange={(e) => setTaxRatePct(e.target.value)}
+                  placeholder="e.g. 18"
+                  className="input-field text-xs"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-black">Total Campaign Valuation (PKR) *</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-black">Total Campaign Valuation ({currency}) *</label>
                 <input
                   type="number"
                   placeholder="e.g. 150000"
-                  className="input-field"
+                  className="input-field font-bold text-black"
                   value={totalAmount}
                   onChange={(e) => setTotalAmount(e.target.value)}
                 />
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-black">Advance Payment (PKR)</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-black">Advance Payment ({currency})</label>
                 <input
                   type="number"
                   placeholder="e.g. 50000 (Optional)"

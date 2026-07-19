@@ -93,11 +93,20 @@ export async function POST(
 
     const respondentTaxIdVal = taxId || ntn || undefined;
     const respondentNationalIdVal = nationalId || cnic || undefined;
-    const routingString = JSON.stringify(paymentRoutingDetails || {});
 
-    // Compute Respondent's immutable Signing Event Hash
+    // Compute Respondent's immutable Signing Event Hash using canonical JSON serialization
+    const signingEventObj = {
+      baseContentHash,
+      email: cleanEmail,
+      taxId: respondentTaxIdVal || "",
+      nationalId: respondentNationalIdVal || "",
+      paymentRoutingDetails: paymentRoutingDetails || {},
+      ipAddress,
+      userAgent,
+      deviceFingerprint: fingerprint || "",
+    };
     const signingEventHash = crypto.createHash("sha256")
-      .update(`${baseContentHash}-${cleanEmail}-${respondentTaxIdVal || ""}-${routingString}-${ipAddress}-${userAgent}-${fingerprint || ""}`)
+      .update(JSON.stringify(signingEventObj))
       .digest("hex");
 
     // Check if Initiator has already signed (e.g. Instant Contract flow)

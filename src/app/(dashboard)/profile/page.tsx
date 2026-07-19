@@ -142,10 +142,10 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">CNIC Number</label>
+                <label className="text-xs font-bold text-black uppercase tracking-wider">National ID Number (CNIC / SSN / Iqama)</label>
                 <input
                   type="text"
-                  placeholder="42101-XXXXXXX-X"
+                  placeholder="Enter National Identity Card, SSN, Iqama or Passport number"
                   className="input-field"
                   value={cnicNumber}
                   onChange={(e) => setCnicNumber(e.target.value)}

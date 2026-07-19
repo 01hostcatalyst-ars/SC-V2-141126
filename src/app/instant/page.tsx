@@ -694,7 +694,7 @@ export default function InstantContractPage() {
                 3. Financial &amp; Payment Schedule
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2 border-b border-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pb-2 border-b border-gray-100">
                 <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">Governing Country Jurisdiction *</label>
                   <select
@@ -704,7 +704,7 @@ export default function InstantContractPage() {
                       const jur = getJurisdiction(e.target.value);
                       setCurrency(jur.defaultCurrency);
                     }}
-                    className="input-field font-semibold"
+                    className="input-field font-semibold text-xs"
                   >
                     {Object.values(JURISDICTIONS).map((j) => (
                       <option key={j.countryCode} value={j.countryCode}>
@@ -719,7 +719,7 @@ export default function InstantContractPage() {
                   <select
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="input-field font-semibold"
+                    className="input-field font-semibold text-xs"
                   >
                     {Object.keys(CURRENCY_MAP).map((code) => (
                       <option key={code} value={code}>
@@ -727,6 +727,33 @@ export default function InstantContractPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Tax Treatment *</label>
+                  <select
+                    value={taxTreatment}
+                    onChange={(e) => setTaxTreatment(e.target.value)}
+                    className="input-field text-xs"
+                  >
+                    <option value="INCLUSIVE">Tax Inclusive</option>
+                    <option value="EXCLUSIVE">Tax Exclusive</option>
+                    <option value="REVERSE_CHARGE">Reverse Charge</option>
+                    <option value="EXEMPT">Tax Exempt</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Tax Rate (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={taxRatePct}
+                    onChange={(e) => setTaxRatePct(e.target.value)}
+                    placeholder="e.g. 18"
+                    className="input-field text-xs"
+                  />
                 </div>
               </div>
 
