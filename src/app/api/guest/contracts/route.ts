@@ -114,9 +114,22 @@ export async function POST(req: Request) {
           email: cleanEmail,
           phone: initiatorPhone || undefined,
           role: (initiatorRole as Role) || Role.CREATOR,
+          agencyName: initiatorCompanyName || undefined,
+          agencyAddress: initiatorCompanyAddress || undefined,
+        },
+      });
+    } else {
+      dbUser = await prisma.user.update({
+        where: { id: dbUser.id },
+        data: {
+          name: initiatorName || dbUser.name,
+          phone: initiatorPhone || dbUser.phone,
+          agencyName: initiatorCompanyName || dbUser.agencyName,
+          agencyAddress: initiatorCompanyAddress || dbUser.agencyAddress,
         },
       });
     }
+
 
     // 3. Generate unique contract number
     const contractNumber = `BB-GUEST-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;

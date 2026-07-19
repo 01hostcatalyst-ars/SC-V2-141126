@@ -226,8 +226,9 @@ export async function generateAuditCertificatePDF(contractId: string) {
               PARTY A (INITIATOR ENTITY)
             </div>
             <div style="font-weight: 900; font-size: 9.5pt; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
-              ${(contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
+              ${(contract as any).initiatorCompanyName || (contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
             </div>
+
             ${partyATaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyATaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
               <div><strong>Authorized Signer:</strong> ${contract.initiator.name} ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>

@@ -283,15 +283,15 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #f8fafc;">
             <div style="font-weight: 800; text-transform: uppercase; color: #475569; margin-bottom: 4px; font-size: 8pt;">PARTY A (INITIATOR ENTITY)</div>
             <div style="font-size: 10.5pt; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
-              ${(contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
+              ${(contract as any).initiatorCompanyName || (contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
             </div>
             ${partyATaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyATaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
               <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">Authorized Signatory Representative</div>
               <div><strong>Representative:</strong> ${contract.initiator.name} ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
               <div><strong>Email:</strong> ${contract.initiator.email}</div>
-              ${contract.initiator.phone ? `<div><strong>Phone:</strong> ${contract.initiator.phone}</div>` : ""}
-              ${(contract.initiator as any).agencyAddress ? `<div><strong>Address:</strong> ${(contract.initiator as any).agencyAddress}</div>` : ""}
+              ${((contract as any).initiatorPhone || contract.initiator.phone) ? `<div><strong>Phone:</strong> ${(contract as any).initiatorPhone || contract.initiator.phone}</div>` : ""}
+              ${((contract as any).initiatorCompanyAddress || (contract.initiator as any).agencyAddress) ? `<div><strong>Address:</strong> ${(contract as any).initiatorCompanyAddress || (contract.initiator as any).agencyAddress}</div>` : ""}
             </div>
           </div>
 
@@ -498,7 +498,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               <div style="font-size: 7.5pt; color: #334155;">
                 <div style="font-weight: 800; color: #0f172a; font-size: 8pt; text-transform: uppercase;">EXECUTED ON BEHALF OF:</div>
                 <div style="font-weight: 900; color: #2563eb; text-transform: uppercase; font-size: 9.5pt; margin-bottom: 4px;">
-                  ${(contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
+                  ${(contract as any).initiatorCompanyName || (contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
                 </div>
                 <div>Authorized Signer: <strong>${contract.initiator.name}</strong> ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
                 <div>Email: ${contract.initiator.email} | IP: ${initiatorSign.ipAddress}</div>

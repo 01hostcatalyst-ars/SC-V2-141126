@@ -282,8 +282,9 @@ export default function PublicSigningPage({ params }: PageProps) {
             Review &amp; Sign Collaboration Agreement
           </h1>
           <p className="text-xs text-gray-600 leading-relaxed max-w-2xl">
-            Agreement requested by <strong className="text-black">{contract.initiator?.name}</strong> ({contract.initiator?.email}). Complete the verification below, review all campaign terms, and execute your digital signature.
+            Agreement requested by <strong className="text-black">{(contract as any).initiatorCompanyName || contract.initiator?.name}</strong> ({contract.initiator?.email}). Complete the verification below, review all campaign terms, and execute your digital signature.
           </p>
+
         </div>
 
         <form onSubmit={(e) => e.preventDefault()} className="space-y-8">

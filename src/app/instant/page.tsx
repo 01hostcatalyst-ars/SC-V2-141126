@@ -1143,7 +1143,7 @@ export default function InstantContractPage() {
                       />
                       <input
                         type="number"
-                        placeholder="Early Disclosure Penalty (PKR)"
+                        placeholder="Early Disclosure Penalty Amount"
                         value={earlyDisclosurePenalty}
                         onChange={(e) => setEarlyDisclosurePenalty(e.target.value)}
                         className="input-field text-xs"
@@ -1265,12 +1265,12 @@ export default function InstantContractPage() {
                     </div>
 
                     <div className="flex flex-col text-left gap-1 sm:col-span-2">
-                      <label className="text-xs font-bold text-gray-700">NTN or CNIC *</label>
+                      <label className="text-xs font-bold text-gray-700">{jur.taxIdLabel} *</label>
                       <input
                         type="text"
                         required
                         disabled={initiatorOtpVerified}
-                        placeholder="e.g. 1234567-8 or 42101-0000000-0"
+                        placeholder={`e.g. Enter your ${jur.taxIdLabel}`}
                         value={initiatorNtn}
                         onChange={(e) => setInitiatorNtn(e.target.value)}
                         className="input-field disabled:bg-gray-100"
@@ -1278,79 +1278,103 @@ export default function InstantContractPage() {
                     </div>
                   </>
                 ) : (
-                  <div className="flex flex-col text-left gap-1 sm:col-span-2">
-                    <label className="text-xs font-bold text-gray-700">CNIC (National Identity Card) *</label>
-                    <input
-                      type="text"
-                      required
-                      disabled={initiatorOtpVerified}
-                      placeholder="e.g. 42101-0000000-0"
-                      value={initiatorCnic}
-                      onChange={(e) => setInitiatorCnic(e.target.value)}
-                      className="input-field disabled:bg-gray-100"
-                    />
-                  </div>
+                  <>
+                    <div className="flex flex-col text-left gap-1">
+                      <label className="text-xs font-bold text-gray-700">Your Instagram / Social Handle *</label>
+                      <input
+                        type="text"
+                        required
+                        disabled={initiatorOtpVerified}
+                        placeholder="e.g. @username"
+                        value={creatorHandle}
+                        onChange={(e) => setCreatorHandle(e.target.value)}
+                        className="input-field disabled:bg-gray-100"
+                      />
+                    </div>
+                    <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                      <label className="text-xs font-bold text-gray-700">
+                        {jur.nationalIdLabel} {!jur.nationalIdLabel.toLowerCase().includes("optional") && "*"}
+                      </label>
+                      <input
+                        type="text"
+                        required={!jur.nationalIdLabel.toLowerCase().includes("optional")}
+                        disabled={initiatorOtpVerified}
+                        placeholder={`e.g. Enter your ${jur.nationalIdLabel.replace(" (Optional)", "")}`}
+                        value={initiatorCnic}
+                        onChange={(e) => setInitiatorCnic(e.target.value)}
+                        className="input-field disabled:bg-gray-100"
+                      />
+                    </div>
+                  </>
                 )}
 
-                {/* REACTIVE COUNTERPARTY FIELDS BASED ON WORKFLOW */}
-                {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Brand Name *</label>
-                    <input
-                      type="text"
-                      required
-                      disabled={initiatorOtpVerified}
-                      placeholder="e.g. Sapphire / Nexus"
-                      value={brandName}
-                      onChange={(e) => setBrandName(e.target.value)}
-                      className="input-field border-blue-200 disabled:bg-gray-100"
-                    />
-                  </div>
-                )}
+                {/* DISTINCT COUNTERPARTY CLIENT INFORMATION HEADER */}
+                <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2">
+                  <span className="text-xs font-extrabold text-blue-900 uppercase tracking-wider block mb-3">
+                    Target Client / Counterparty Information
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
+                      <div className="flex flex-col text-left gap-1">
+                        <label className="text-xs font-bold text-gray-700">
+                          {contractType === "CREATOR_TO_AGENCY" ? "Target Agency Name *" : "Target Brand Name *"}
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          disabled={initiatorOtpVerified}
+                          placeholder={contractType === "CREATOR_TO_AGENCY" ? "e.g. Creative Hub Agency" : "e.g. Sapphire / Nexus"}
+                          value={brandName}
+                          onChange={(e) => setBrandName(e.target.value)}
+                          className="input-field border-blue-200 disabled:bg-gray-100"
+                        />
+                      </div>
+                    )}
 
-                {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Brand Instagram Handle</label>
-                    <input
-                      type="text"
-                      disabled={initiatorOtpVerified}
-                      placeholder="e.g. @sapphirepk"
-                      value={brandHandle}
-                      onChange={(e) => setBrandHandle(e.target.value)}
-                      className="input-field border-blue-200 disabled:bg-gray-100"
-                    />
-                  </div>
-                )}
+                    {["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND"].includes(contractType) && (
+                      <div className="flex flex-col text-left gap-1">
+                        <label className="text-xs font-bold text-gray-700">Target Brand Instagram Handle</label>
+                        <input
+                          type="text"
+                          disabled={initiatorOtpVerified}
+                          placeholder="e.g. @sapphirepk"
+                          value={brandHandle}
+                          onChange={(e) => setBrandHandle(e.target.value)}
+                          className="input-field border-blue-200 disabled:bg-gray-100"
+                        />
+                      </div>
+                    )}
 
-                {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Creator Name *</label>
-                    <input
-                      type="text"
-                      required
-                      disabled={initiatorOtpVerified}
-                      placeholder="e.g. Mohammad Ali"
-                      value={creatorName}
-                      onChange={(e) => setCreatorName(e.target.value)}
-                      className="input-field border-blue-200 disabled:bg-gray-100"
-                    />
+                    {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
+                      <>
+                        <div className="flex flex-col text-left gap-1">
+                          <label className="text-xs font-bold text-gray-700">Target Creator Name *</label>
+                          <input
+                            type="text"
+                            required
+                            disabled={initiatorOtpVerified}
+                            placeholder="e.g. Mohammad Ali"
+                            value={creatorName}
+                            onChange={(e) => setCreatorName(e.target.value)}
+                            className="input-field border-blue-200 disabled:bg-gray-100"
+                          />
+                        </div>
+                        <div className="flex flex-col text-left gap-1">
+                          <label className="text-xs font-bold text-gray-700">Target Creator Handle *</label>
+                          <input
+                            type="text"
+                            required
+                            disabled={initiatorOtpVerified}
+                            placeholder="e.g. @alibeats"
+                            value={creatorHandle}
+                            onChange={(e) => setCreatorHandle(e.target.value)}
+                            className="input-field border-blue-200 disabled:bg-gray-100"
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
-                )}
-
-                {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
-                  <div className="flex flex-col text-left gap-1">
-                    <label className="text-xs font-bold text-gray-700">Creator Handle *</label>
-                    <input
-                      type="text"
-                      required
-                      disabled={initiatorOtpVerified}
-                      placeholder="e.g. @alibeats"
-                      value={creatorHandle}
-                      onChange={(e) => setCreatorHandle(e.target.value)}
-                      className="input-field border-blue-200 disabled:bg-gray-100"
-                    />
-                  </div>
-                )}
+                </div>
 
                 {/* CONTEXTUAL NOTICE BADGE */}
                 <div className="sm:col-span-2 p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-left">

@@ -1326,7 +1326,8 @@ export default function NewContractPage() {
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase text-gray-400">Early Disclosure Leak Fine (PKR)</label>
+                    <label className="text-[10px] font-bold uppercase text-gray-400">Early Disclosure Penalty Amount</label>
+
                     <input
                       type="number"
                       placeholder="e.g. 200000"
