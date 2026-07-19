@@ -14,6 +14,7 @@ export async function GET(
       include: {
         deliverables: true,
         initiator: true,
+        parties: true,
       },
     });
 

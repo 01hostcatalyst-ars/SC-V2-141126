@@ -52,6 +52,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
       signatures: true,
       initiator: true,
       respondent: true,
+      parties: true,
     },
   });
 
@@ -73,12 +74,36 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
     return Number(contract.totalAmount || 0) - Number(contract.advancePayment || 0);
   };
 
+  const initiatorParty = contract.parties.find(p => p.partyType === "INITIATOR") || {
+    name: contract.initiator?.name || "Initiator",
+    email: contract.initiator?.email || "",
+    phone: contract.initiatorPhone || contract.initiator?.phone,
+    role: contract.contractType.startsWith("CREATOR_") ? "CREATOR" : contract.contractType.startsWith("BRAND_") ? "BRAND" : "AGENCY",
+    designation: contract.initiatorDesignation,
+    companyName: contract.initiatorCompanyName || contract.initiator?.agencyName,
+    companyAddress: contract.initiatorCompanyAddress || contract.initiator?.agencyAddress,
+    ntn: contract.initiatorNtn,
+    cnic: contract.initiatorCnic,
+  };
+
+  const respondentParty = contract.parties.find(p => p.partyType === "RESPONDENT") || {
+    name: contract.respondentName || contract.respondent?.name || "Pending Execution",
+    email: contract.respondentEmail || contract.respondent?.email || "Pending Execution",
+    phone: contract.respondentPhone || contract.respondent?.phone,
+    role: contract.contractType.endsWith("_CREATOR") ? "CREATOR" : contract.contractType.endsWith("_BRAND") ? "BRAND" : "AGENCY",
+    designation: contract.respondentDesignation,
+    companyName: contract.respondentCompany || contract.respondent?.agencyName,
+    companyAddress: contract.respondentAddress || contract.respondent?.agencyAddress,
+    ntn: contract.respondentNtn,
+    cnic: contract.respondentCnic,
+  };
+
   const initiatorSign = contract.signatures?.find(
-    (s: any) => s.signerId === contract.initiatorId
+    (s: any) => s.signerPartyId === (initiatorParty as any).id || s.signerId === contract.initiatorId
   );
 
   const respondentSign = contract.signatures?.find(
-    (s: any) => s.signerId !== contract.initiatorId || (contract.respondentId && s.signerId === contract.respondentId)
+    (s: any) => s.signerPartyId === (respondentParty as any).id || s.signerId === contract.respondentId || (s.signerId !== contract.initiatorId && s.signerRole !== initiatorParty.role)
   );
 
   // Determine contract direction human readable header
@@ -99,8 +124,8 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
   const finalDocHash = (contract as any).finalDocumentHash || contract.documentHash || computeContentHash(contract);
 
-  const partyATaxId = (contract as any).initiatorTaxId || contract.initiatorNtn;
-  const partyBTaxId = (contract as any).respondentTaxId || contract.respondentNtn;
+  const partyATaxId = (initiatorParty as any).taxId || (initiatorParty as any).ntn || (initiatorParty as any).cnic || (initiatorParty as any).nationalId;
+  const partyBTaxId = (respondentParty as any).taxId || (respondentParty as any).ntn || (respondentParty as any).cnic || (respondentParty as any).nationalId;
 
   // Build high-grade legal contract HTML
   const fullHtml = `
@@ -283,32 +308,32 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #f8fafc;">
             <div style="font-weight: 800; text-transform: uppercase; color: #475569; margin-bottom: 4px; font-size: 8pt;">PARTY A (INITIATOR ENTITY)</div>
             <div style="font-size: 10.5pt; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
-              ${(contract as any).initiatorCompanyName || (contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
+              ${initiatorParty.companyName || initiatorParty.name}
             </div>
             ${partyATaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyATaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
               <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">Authorized Signatory Representative</div>
-              <div><strong>Representative:</strong> ${contract.initiator.name} ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
-              <div><strong>Email:</strong> ${contract.initiator.email}</div>
-              ${((contract as any).initiatorPhone || contract.initiator.phone) ? `<div><strong>Phone:</strong> ${(contract as any).initiatorPhone || contract.initiator.phone}</div>` : ""}
-              ${((contract as any).initiatorCompanyAddress || (contract.initiator as any).agencyAddress) ? `<div><strong>Address:</strong> ${(contract as any).initiatorCompanyAddress || (contract.initiator as any).agencyAddress}</div>` : ""}
+              <div><strong>Representative:</strong> ${initiatorParty.name} ${initiatorParty.designation ? `(${initiatorParty.designation})` : ""}</div>
+              <div><strong>Email:</strong> ${initiatorParty.email}</div>
+              ${initiatorParty.phone ? `<div><strong>Phone:</strong> ${initiatorParty.phone}</div>` : ""}
+              ${initiatorParty.companyAddress ? `<div><strong>Address:</strong> ${initiatorParty.companyAddress}</div>` : ""}
             </div>
           </div>
 
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #f8fafc;">
             <div style="font-weight: 800; text-transform: uppercase; color: #475569; margin-bottom: 4px; font-size: 8pt;">PARTY B (COUNTERPARTY ENTITY)</div>
             <div style="font-size: 10.5pt; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
-              ${contract.respondentCompany || contract.creatorName || contract.respondentName || "Pending Execution"}
+              ${respondentParty.companyName || contract.creatorName || respondentParty.name}
             </div>
             ${partyBTaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyBTaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
               <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">
-                ${contract.respondentCompany ? "Authorized Signatory Representative" : "Individual Signer Details"}
+                ${respondentParty.companyName ? "Authorized Signatory Representative" : "Individual Signer Details"}
               </div>
-              <div><strong>Representative:</strong> ${contract.respondentName || "Pending Execution"} ${contract.respondentDesignation ? `(${contract.respondentDesignation})` : ""}</div>
-              <div><strong>Email:</strong> ${contract.respondentEmail || "Pending Execution"}</div>
-              ${contract.respondentPhone ? `<div><strong>Phone:</strong> ${contract.respondentPhone}</div>` : ""}
-              ${contract.respondentAddress ? `<div><strong>Address:</strong> ${contract.respondentAddress}</div>` : ""}
+              <div><strong>Representative:</strong> ${respondentParty.name} ${respondentParty.designation ? `(${respondentParty.designation})` : ""}</div>
+              <div><strong>Email:</strong> ${respondentParty.email}</div>
+              ${respondentParty.phone ? `<div><strong>Phone:</strong> ${respondentParty.phone}</div>` : ""}
+              ${(respondentParty.companyAddress || (respondentParty as any).address) ? `<div><strong>Address:</strong> ${respondentParty.companyAddress || (respondentParty as any).address}</div>` : ""}
             </div>
           </div>
         </div>
@@ -498,10 +523,10 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               <div style="font-size: 7.5pt; color: #334155;">
                 <div style="font-weight: 800; color: #0f172a; font-size: 8pt; text-transform: uppercase;">EXECUTED ON BEHALF OF:</div>
                 <div style="font-weight: 900; color: #2563eb; text-transform: uppercase; font-size: 9.5pt; margin-bottom: 4px;">
-                  ${(contract as any).initiatorCompanyName || (contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
+                  ${initiatorParty.companyName || initiatorParty.name}
                 </div>
-                <div>Authorized Signer: <strong>${contract.initiator.name}</strong> ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
-                <div>Email: ${contract.initiator.email} | IP: ${initiatorSign.ipAddress}</div>
+                <div>Authorized Signer: <strong>${initiatorParty.name}</strong> ${initiatorParty.designation ? `(${initiatorParty.designation})` : ""}</div>
+                <div>Email: ${initiatorParty.email} | IP: ${initiatorSign.ipAddress}</div>
                 <div>Signed: ${formatLegalDate(initiatorSign.signedAt, jur.countryCode)}</div>
               </div>
             ` : `
@@ -518,10 +543,10 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               <div style="font-size: 7.5pt; color: #334155;">
                 <div style="font-weight: 800; color: #0f172a; font-size: 8pt; text-transform: uppercase;">EXECUTED ON BEHALF OF:</div>
                 <div style="font-weight: 900; color: #2563eb; text-transform: uppercase; font-size: 9.5pt; margin-bottom: 4px;">
-                  ${contract.respondentCompany || contract.creatorName || contract.respondentName}
+                  ${respondentParty.companyName || contract.creatorName || respondentParty.name}
                 </div>
-                <div>Authorized Signer: <strong>${contract.respondentName}</strong> ${contract.respondentDesignation ? `(${contract.respondentDesignation})` : ""}</div>
-                <div>Verified Email OTP: ✓ Verified | Email: ${contract.respondentEmail} | IP: ${respondentSign.ipAddress}</div>
+                <div>Authorized Signer: <strong>${respondentParty.name}</strong> ${respondentParty.designation ? `(${respondentParty.designation})` : ""}</div>
+                <div>Verified Email OTP: ✓ Verified | Email: ${respondentParty.email} | IP: ${respondentSign.ipAddress}</div>
                 <div>Signed: ${formatLegalDate(respondentSign.signedAt, jur.countryCode)}</div>
               </div>
             ` : `

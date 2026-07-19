@@ -64,6 +64,8 @@ export async function POST(
       respondentUserRole = Role.AGENCY;
     }
 
+    const isRespondentPayee = !(contract.contractType.startsWith("CREATOR_") || contract.contractType === "AGENCY_TO_BRAND");
+
     // 3. Find or create respondent User record and link to contract
     const cleanEmail = email.trim().toLowerCase();
     let respondentUser = await prisma.user.findUnique({
@@ -126,12 +128,36 @@ export async function POST(
           .digest("hex")
       : undefined;
 
+    const respondentParty = await prisma.contractParty.create({
+      data: {
+        contractId: contract.id,
+        partyType: "RESPONDENT",
+        userId: respondentUser.id,
+        name: name || contract.respondentName || "Respondent",
+        email: email || contract.respondentEmail || "",
+        phone: phone || contract.respondentPhone || undefined,
+        role: respondentUserRole,
+        designation: designation || contract.respondentDesignation || undefined,
+        companyName: (respondentUserRole === "AGENCY" || respondentUserRole === "BRAND") ? (company || contract.respondentCompany || undefined) : undefined,
+        companyAddress: (respondentUserRole === "AGENCY" || respondentUserRole === "BRAND") ? (address || contract.respondentAddress || undefined) : undefined,
+        ntn: (respondentUserRole === "AGENCY" || respondentUserRole === "BRAND") ? (ntn || contract.respondentNtn || undefined) : undefined,
+        cnic: respondentUserRole === "CREATOR" ? (cnic || contract.respondentCnic || undefined) : undefined,
+        taxIdType: (respondentUserRole === "AGENCY" || respondentUserRole === "BRAND") ? "NTN" : undefined,
+        taxId: (respondentUserRole === "AGENCY" || respondentUserRole === "BRAND") ? (ntn || contract.respondentNtn || undefined) : undefined,
+        nationalId: respondentUserRole === "CREATOR" ? (cnic || contract.respondentCnic || undefined) : undefined,
+        paymentMethod: isRespondentPayee ? (paymentMethod as any) : undefined,
+        bankAccountIban: isRespondentPayee && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
+        mobileWalletNumber: isRespondentPayee && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
+      }
+    });
+
     // 4. Write Signature & metadata in database (Prisma Transaction)
     await prisma.$transaction([
       prisma.signature.create({
         data: {
           contractId: contract.id,
           signerId: respondentUser.id,
+          signerPartyId: respondentParty.id,
           signerRole,
           signatureImageUrl: signatureB64,
           ipAddress,

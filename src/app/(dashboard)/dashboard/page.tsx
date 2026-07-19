@@ -283,9 +283,12 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredContracts.map((contract) => {
-              const partnerName = contract.initiator.email === user?.email 
-                ? (contract.respondentName || contract.respondentEmail || "Awaiting Receiver")
-                : contract.initiator.name;
+              const initiatorParty = (contract as any).parties?.find((p: any) => p.partyType === "INITIATOR");
+              const respondentParty = (contract as any).parties?.find((p: any) => p.partyType === "RESPONDENT");
+              const isInitiator = initiatorParty?.email === user?.email || contract.initiator.email === user?.email;
+              const partnerName = isInitiator
+                ? (respondentParty?.companyName || respondentParty?.name || contract.respondentName || contract.respondentEmail || "Awaiting Receiver")
+                : (initiatorParty?.companyName || initiatorParty?.name || contract.initiator.name);
               
               return (
                 <Link key={contract.id} href={`/contracts/${contract.id}`} className="block">

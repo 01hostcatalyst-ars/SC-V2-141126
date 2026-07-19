@@ -141,9 +141,12 @@ export default function ContractsListPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredContracts.map((c) => {
-            const partner = c.initiator.email === user?.email 
-              ? (c.respondentName || c.respondentEmail || "Awaiting Receiver")
-              : c.initiator.name;
+            const initiatorParty = (c as any).parties?.find((p: any) => p.partyType === "INITIATOR");
+            const respondentParty = (c as any).parties?.find((p: any) => p.partyType === "RESPONDENT");
+            const isInitiator = initiatorParty?.email === user?.email || c.initiator.email === user?.email;
+            const partner = isInitiator
+              ? (respondentParty?.companyName || respondentParty?.name || c.respondentName || c.respondentEmail || "Awaiting Receiver")
+              : (initiatorParty?.companyName || initiatorParty?.name || c.initiator.name);
 
             return (
               <Link key={c.id} href={`/contracts/${c.id}`}>

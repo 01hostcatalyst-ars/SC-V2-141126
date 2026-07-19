@@ -170,6 +170,26 @@ export async function POST(req: Request) {
             notes: d.notes || undefined,
           })),
         },
+        parties: {
+          create: [
+            {
+              partyType: "INITIATOR",
+              userId: dbUser.id,
+              name: dbUser.name,
+              email: dbUser.email,
+              phone: dbUser.phone || undefined,
+              role: contractType.startsWith("CREATOR_") ? "CREATOR" : contractType.startsWith("BRAND_") ? "BRAND" : "AGENCY",
+              designation: initiatorDesignation || undefined,
+              companyName: initiatorCompanyName || dbUser.agencyName || undefined,
+              companyAddress: initiatorCompanyAddress || dbUser.agencyAddress || undefined,
+              ntn: initiatorNtn || initiatorTaxId || undefined,
+              cnic: initiatorCnic || initiatorNationalId || undefined,
+              taxIdType: (initiatorTaxIdType as TaxIdType) || undefined,
+              taxId: initiatorTaxId || initiatorNtn || undefined,
+              nationalId: initiatorNationalId || initiatorCnic || undefined,
+            }
+          ]
+        }
       },
     });
 
@@ -197,17 +217,19 @@ export async function GET() {
       return NextResponse.json({ error: "User profile not found" }, { status: 404 });
     }
 
-    // Fetch contracts where user is initiator OR respondent
+    // Fetch contracts where user is initiator, respondent, or a linked ContractParty
     const contracts = await prisma.contract.findMany({
       where: {
         OR: [
           { initiatorId: dbUser.id },
           { respondentId: dbUser.id },
+          { parties: { some: { userId: dbUser.id } } },
         ],
       },
       include: {
         deliverables: true,
         initiator: true,
+        parties: true,
       },
       orderBy: {
         createdAt: "desc",

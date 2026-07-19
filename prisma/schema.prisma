@@ -14,6 +14,11 @@ enum Role {
   AGENCY
 }
 
+enum PartyType {
+  INITIATOR
+  RESPONDENT
+}
+
 enum ContractType {
   CREATOR_TO_BRAND
   BRAND_TO_CREATOR
@@ -168,6 +173,7 @@ model User {
   respondedContracts Contract[] @relation("RespondentContracts")
   signatures         Signature[]
   auditLogs          AuditLog[]
+  contractParties    ContractParty[]
 
   @@map("users")
 }
@@ -317,6 +323,7 @@ model Contract {
   finalDocumentHash            String?        @map("final_document_hash")
   pdfBinaryHash                String?        @map("pdf_binary_hash")
 
+  parties               ContractParty[]
   deliverables          Deliverable[]
   signatures            Signature[]
   auditLogs             AuditLog[]
@@ -356,6 +363,9 @@ model Signature {
   otpVerified       Boolean   @default(false) @map("otp_verified")
   otpEmail          String?   @map("otp_email")
   consentRecorded   Boolean   @default(true) @map("consent_recorded")
+
+  signerPartyId     String?        @unique @map("signer_party_id")
+  signerParty       ContractParty? @relation("PartySignature", fields: [signerPartyId], references: [id])
 
   @@map("signatures")
 }
@@ -398,3 +408,43 @@ model OtpVerification {
 
   @@map("otp_verifications")
 }
+
+model ContractParty {
+  id                    String         @id @default(uuid())
+  contractId            String         @map("contract_id")
+  contract              Contract       @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  
+  partyType             PartyType      @map("party_type")
+  
+  userId                String?        @map("user_id")
+  user                  User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  name                  String
+  email                 String
+  phone                 String?
+  role                  Role
+  designation           String?
+  
+  companyName           String?        @map("company_name")
+  companyAddress        String?        @map("company_address")
+  ntn                   String?
+  cnic                  String?
+  taxIdType             TaxIdType?     @map("tax_id_type")
+  taxId                 String?        @map("tax_id")
+  nationalId            String?        @map("national_id")
+  
+  paymentMethod         PaymentMethod? @map("payment_method")
+  paymentRoutingDetails Json?          @map("payment_routing_details")
+  bankAccountIban       String?        @map("bank_account_iban")
+  mobileWalletNumber    String?        @map("mobile_wallet_number")
+
+  signature             Signature?     @relation("PartySignature")
+
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+
+  @@map("contract_parties")
+  @@index([contractId])
+  @@index([userId])
+}
+

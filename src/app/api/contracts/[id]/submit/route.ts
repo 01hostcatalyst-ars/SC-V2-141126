@@ -46,6 +46,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       include: {
         deliverables: true,
         initiator: true,
+        parties: true,
       },
     });
 
@@ -113,11 +114,28 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .update(`${contentHash}-${dbUser.email}-${ipAddress}-${userAgent}-${fingerprint || ""}`)
       .digest("hex");
 
+    // Find or update initiator ContractParty with submit-time data
+    let initiatorParty = contract.parties?.find((p: any) => p.partyType === "INITIATOR");
+    if (initiatorParty) {
+      initiatorParty = await prisma.contractParty.update({
+        where: { id: initiatorParty.id },
+        data: {
+          designation: initiatorDesignation || initiatorParty.designation || undefined,
+          ntn: initiatorNtn || initiatorTaxId || initiatorParty.ntn || undefined,
+          cnic: initiatorCnic || initiatorNationalId || initiatorParty.cnic || undefined,
+          taxId: initiatorTaxId || initiatorNtn || initiatorParty.taxId || undefined,
+          nationalId: initiatorNationalId || initiatorCnic || initiatorParty.nationalId || undefined,
+          taxIdType: initiatorTaxIdType || initiatorParty.taxIdType || undefined,
+        }
+      });
+    }
+
     // Record Party 1 (Initiator) verified digital signature log — matching Instant flow
     await prisma.signature.create({
       data: {
         contractId: contract.id,
         signerId: dbUser.id,
+        signerPartyId: initiatorParty?.id || undefined,
         signerRole,
         signatureImageUrl: signatureB64 || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='50'><text x='10' y='30' font-family='Arial' font-size='18' font-weight='bold'>Initiator OTP Verified</text></svg>",
         ipAddress,
@@ -144,7 +162,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           contentHash,
           initiatorEmail: contract.initiator.email,
           designation: initiatorDesignation || contract.initiatorDesignation,
-          company: (contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName,
+          company: initiatorParty?.companyName || (contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName,
         },
       },
     });

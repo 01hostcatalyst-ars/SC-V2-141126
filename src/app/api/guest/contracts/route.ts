@@ -118,22 +118,13 @@ export async function POST(req: Request) {
           agencyAddress: initiatorCompanyAddress || undefined,
         },
       });
-    } else {
-      dbUser = await prisma.user.update({
-        where: { id: dbUser.id },
-        data: {
-          name: initiatorName || dbUser.name,
-          phone: initiatorPhone || dbUser.phone,
-          agencyName: initiatorCompanyName || dbUser.agencyName,
-          agencyAddress: initiatorCompanyAddress || dbUser.agencyAddress,
-        },
-      });
     }
 
 
     // 3. Generate unique contract number
     const contractNumber = `BB-GUEST-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
     const remainingAmount = Number(totalAmount) - (Number(advancePayment) || 0);
+    const isInitiatorPayee = contractType.startsWith("CREATOR_") || contractType === "AGENCY_TO_BRAND";
 
     const taxCalc = calculateContractTax({
       totalValuation: Number(totalAmount || 0),
@@ -141,7 +132,7 @@ export async function POST(req: Request) {
       taxRatePct: Number(taxRatePct || 0),
     }, currency || "USD");
 
-    // 4. Create Contract with deliverables
+    // 4. Create Contract with deliverables and ContractParty snapshot
     const contract = await prisma.contract.create({
       data: {
         contractNumber,
@@ -215,6 +206,29 @@ export async function POST(req: Request) {
             notes: d.notes || undefined,
           })),
         },
+        parties: {
+          create: [
+            {
+              partyType: "INITIATOR",
+              userId: dbUser.id,
+              name: initiatorName,
+              email: cleanEmail,
+              phone: initiatorPhone || undefined,
+              role: (initiatorRole as Role) || (contractType.startsWith("CREATOR_") ? Role.CREATOR : contractType.startsWith("BRAND_") ? Role.BRAND : Role.AGENCY),
+              designation: initiatorDesignation || undefined,
+              companyName: (initiatorRole === "AGENCY" || initiatorRole === "BRAND") ? initiatorCompanyName : undefined,
+              companyAddress: (initiatorRole === "AGENCY" || initiatorRole === "BRAND") ? initiatorCompanyAddress : undefined,
+              ntn: (initiatorRole === "AGENCY" || initiatorRole === "BRAND") ? initiatorNtn : undefined,
+              cnic: initiatorRole === "CREATOR" ? initiatorCnic : undefined,
+              taxIdType: (initiatorRole === "AGENCY" || initiatorRole === "BRAND") ? "NTN" : undefined,
+              taxId: (initiatorRole === "AGENCY" || initiatorRole === "BRAND") ? initiatorNtn : undefined,
+              nationalId: initiatorRole === "CREATOR" ? initiatorCnic : undefined,
+              paymentMethod: isInitiatorPayee ? paymentMethod : undefined,
+              bankAccountIban: isInitiatorPayee && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
+              mobileWalletNumber: isInitiatorPayee && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
+            }
+          ]
+        }
       },
     });
 
@@ -251,10 +265,15 @@ export async function POST(req: Request) {
       .update(JSON.stringify(signingEventObj))
       .digest("hex");
 
+    const initiatorParty = await prisma.contractParty.findFirst({
+      where: { contractId: contract.id, partyType: "INITIATOR" },
+    });
+
     await prisma.signature.create({
       data: {
         contractId: contract.id,
         signerId: dbUser.id,
+        signerPartyId: initiatorParty?.id,
         signerRole: (initiatorRole as SignerRole) || (contractType.startsWith("CREATOR_") ? SignerRole.CREATOR : contractType.startsWith("BRAND_") ? SignerRole.BRAND : SignerRole.AGENCY),
         signatureImageUrl: signatureB64 || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='50'><text x='10' y='30' font-family='Arial' font-size='18' font-weight='bold'>Initiator OTP Verified</text></svg>",
         ipAddress,

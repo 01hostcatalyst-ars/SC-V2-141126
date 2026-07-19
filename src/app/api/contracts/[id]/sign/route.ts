@@ -47,8 +47,12 @@ export async function POST(
       return NextResponse.json({ error: "Contract is not in a signable initiator state" }, { status: 400 });
     }
 
-    // Determine signer role based on contract direction
-    const signerRole = dbUser.role as any as SignerRole;
+    const initiatorParty = await prisma.contractParty.findFirst({
+      where: { contractId: contract.id, partyType: "INITIATOR" },
+    });
+
+    // Determine signer role based on contract party or current user role fallback
+    const signerRole = (initiatorParty?.role as any as SignerRole) || (dbUser.role as any as SignerRole);
 
     const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const userAgent = req.headers.get("user-agent") || "unknown";
@@ -75,7 +79,9 @@ export async function POST(
       prisma.signature.create({
         data: {
           contractId: contract.id,
+          signerId: dbUser.id,
           signerRole,
+          signerPartyId: initiatorParty?.id,
           signatureImageUrl: signatureB64,
           ipAddress,
           userAgent,

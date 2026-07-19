@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     if (fileHash) {
       const matchByHash = await prisma.contract.findFirst({
         where: { pdfBinaryHash: fileHash.toLowerCase() },
-        include: { initiator: true, respondent: true },
+        include: { initiator: true, respondent: true, parties: true },
       });
 
       if (matchByHash) {
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
             { contractNumber: cleanToken },
           ],
         },
-        include: { initiator: true, respondent: true },
+        include: { initiator: true, respondent: true, parties: true },
       });
     }
 
@@ -104,13 +104,16 @@ export async function POST(req: Request) {
     const now = new Date();
     const isEmbargoActive = contract.embargoDate && now < new Date(contract.embargoDate);
 
+    const initiatorParty = contract.parties?.find((p: any) => p.partyType === "INITIATOR");
+    const respondentParty = contract.parties?.find((p: any) => p.partyType === "RESPONDENT");
+
     const partyAName = isEmbargoActive
       ? "[Confidential — Under NDA]"
-      : (contract.initiator as any).agencyName || (contract.initiator as any).companyName || contract.initiator.name;
+      : initiatorParty?.companyName || initiatorParty?.name || contract.initiator?.name || "Initiator";
 
     const partyBName = isEmbargoActive
       ? `[Confidential — Product Embargo active until ${new Date(contract.embargoDate!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}]`
-      : contract.respondentCompany || contract.creatorName || contract.respondentName || contract.respondent?.name || "Counterparty";
+      : respondentParty?.companyName || contract.creatorName || respondentParty?.name || "Counterparty";
 
     const formatHashTruncated = (hashStr: string | null) => {
       if (!hashStr) return "N/A";

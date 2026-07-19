@@ -12,6 +12,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
       initiator: true,
       respondent: true,
       signatures: true,
+      parties: true,
       auditLogs: {
         include: { user: true },
         orderBy: { createdAt: "asc" },
@@ -29,11 +30,33 @@ export async function generateAuditCertificatePDF(contractId: string) {
   const verifyUrl = `${appUrl}/verify?token=${contract.verifyToken}`;
   const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 120 });
 
+  const initiatorParty = contract.parties.find(p => p.partyType === "INITIATOR") || {
+    name: contract.initiator?.name || "Initiator",
+    email: contract.initiator?.email || "",
+    phone: contract.initiatorPhone || contract.initiator?.phone,
+    designation: contract.initiatorDesignation,
+    companyName: contract.initiatorCompanyName || contract.initiator?.agencyName,
+    companyAddress: contract.initiatorCompanyAddress || contract.initiator?.agencyAddress,
+    ntn: contract.initiatorNtn,
+    cnic: contract.initiatorCnic,
+  };
+
+  const respondentParty = contract.parties.find(p => p.partyType === "RESPONDENT") || {
+    name: contract.respondentName || contract.respondent?.name || "N/A",
+    email: contract.respondentEmail || contract.respondent?.email || "N/A",
+    phone: contract.respondentPhone || contract.respondent?.phone,
+    designation: contract.respondentDesignation,
+    companyName: contract.respondentCompany || contract.respondent?.agencyName,
+    companyAddress: contract.respondentAddress || contract.respondent?.agencyAddress,
+    ntn: contract.respondentNtn,
+    cnic: contract.respondentCnic,
+  };
+
   const initiatorSignature = contract.signatures.find(
-    (s) => s.signerId === contract.initiatorId
+    (s) => s.signerPartyId === (initiatorParty as any).id || s.signerId === contract.initiatorId
   );
   const respondentSignature = contract.signatures.find(
-    (s) => s.signerId !== contract.initiatorId
+    (s) => s.signerPartyId === (respondentParty as any).id || s.signerId !== contract.initiatorId
   );
 
   const formatLegalDate = (date: Date | null | undefined, countryCodeOrTz: string = "US") => {
@@ -46,8 +69,8 @@ export async function generateAuditCertificatePDF(contractId: string) {
   };
 
 
-  const partyATaxId = (contract as any).initiatorTaxId || contract.initiatorNtn;
-  const partyBTaxId = (contract as any).respondentTaxId || contract.respondentNtn;
+  const partyATaxId = (initiatorParty as any).taxId || (initiatorParty as any).ntn || (initiatorParty as any).cnic;
+  const partyBTaxId = (respondentParty as any).taxId || (respondentParty as any).ntn || (respondentParty as any).cnic;
 
   const formatActorDetails = (log: any) => {
     let details: any = log.details;
@@ -226,13 +249,13 @@ export async function generateAuditCertificatePDF(contractId: string) {
               PARTY A (INITIATOR ENTITY)
             </div>
             <div style="font-weight: 900; font-size: 9.5pt; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
-              ${(contract as any).initiatorCompanyName || (contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
+              ${initiatorParty.companyName || initiatorParty.name}
             </div>
 
             ${partyATaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyATaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
-              <div><strong>Authorized Signer:</strong> ${contract.initiator.name} ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
-              <div><strong>Email:</strong> ${contract.initiator.email}</div>
+              <div><strong>Authorized Signer:</strong> ${initiatorParty.name} ${initiatorParty.designation ? `(${initiatorParty.designation})` : ""}</div>
+              <div><strong>Email:</strong> ${initiatorParty.email}</div>
               <div><strong>IP Address:</strong> ${initiatorSignature?.ipAddress || "Record Logged"}</div>
               <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
               <div><strong>Signed:</strong> ${formatLegalDate(initiatorSignature?.signedAt || contract.createdAt, jur.countryCode)}</div>
@@ -245,12 +268,12 @@ export async function generateAuditCertificatePDF(contractId: string) {
               PARTY B (COUNTERPARTY ENTITY)
             </div>
             <div style="font-weight: 900; font-size: 9.5pt; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
-              ${contract.respondentCompany || contract.creatorName || contract.respondentName || "N/A"}
+              ${respondentParty.companyName || contract.creatorName || respondentParty.name}
             </div>
             ${partyBTaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyBTaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
-              <div><strong>Authorized Signer:</strong> ${contract.respondentName || contract.respondent?.name || "N/A"} ${contract.respondentDesignation ? `(${contract.respondentDesignation})` : ""}</div>
-              <div><strong>Email:</strong> ${contract.respondentEmail || contract.respondent?.email || "N/A"}</div>
+              <div><strong>Authorized Signer:</strong> ${respondentParty.name} ${respondentParty.designation ? `(${respondentParty.designation})` : ""}</div>
+              <div><strong>Email:</strong> ${respondentParty.email}</div>
               <div><strong>IP Address:</strong> ${respondentSignature?.ipAddress || "Record Logged"}</div>
               <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
               <div><strong>Signed:</strong> ${formatLegalDate(respondentSignature?.signedAt || contract.activatedAt, jur.countryCode)}</div>
