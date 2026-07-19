@@ -393,7 +393,9 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               </td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
                 <strong>${contract.paymentMethod ? (contract.paymentMethod as string).replace(/_/g, " ") : "Not Specified"}</strong>
-                <br /><span style="font-size: 7.5pt; font-family: monospace; color: #475569;">${contract.paymentMethod === "BANK_IBAN" ? (contract.bankAccountIban || "Pending") : (contract.mobileWalletNumber || "Pending")}</span>
+                <br /><span style="font-size: 7.5pt; font-family: monospace; color: #475569;">
+                  ${formatPaymentRoute(contract.paymentMethod, (contract as any).paymentRoutingDetails || { bankAccountIban: contract.bankAccountIban, mobileWalletNumber: contract.mobileWalletNumber })}
+                </span>
               </td>
             </tr>
           </tbody>
@@ -553,4 +555,51 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
       }
     }
     if (!executablePath) {
-      thr
+      throw new Error("Could not locate local Chrome or Edge browser executable on Windows.");
+    }
+  } else {
+    executablePath = await chromium.executablePath();
+  }
+
+  const browser = await puppeteer.launch({
+    args: process.platform === "win32" ? [] : chromium.args,
+    executablePath,
+    headless: true,
+  });
+
+  const page = await browser.newPage();
+  await page.setContent(fullHtml, { waitUntil: "domcontentloaded" });
+  const pdfBuffer = await page.pdf({
+    format: "A4",
+    printBackground: true,
+    margin: { top: "12mm", bottom: "12mm", left: "12mm", right: "12mm" },
+  });
+  await browser.close();
+
+  // 4. Compute SHA-256 integrity hash over rendered PDF binary buffer
+  const pdfBinaryHash = crypto.createHash("sha256").update(pdfBuffer).digest("hex");
+
+  // 5. Upload document to Supabase storage
+  const filePath = `agreements/${contractId}.pdf`;
+  const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+    .from("profiles")
+    .upload(filePath, pdfBuffer, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+
+  if (uploadError) throw new Error(uploadError.message);
+
+  // 6. Write PDF metadata & binary file checksum into Contract table in PostgreSQL
+  await prisma.contract.update({
+    where: { id: contractId },
+    data: {
+      finalDocumentHash: finalDocHash,
+      documentHash: finalDocHash,
+      pdfBinaryHash,
+      pdfUrl: uploadData.path,
+    },
+  });
+
+  return { path: uploadData.path, buffer: Buffer.from(pdfBuffer) };
+}
