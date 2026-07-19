@@ -11,6 +11,11 @@ export interface JurisdictionDefinition {
   nationalIdLabel: string;
   disputeClause: string;
   certificateLegalNotice: string;
+  phoneDialCode: string;
+  phonePlaceholder: string;
+  timezone: string;
+  tzAbbr: string;
+  allowedPaymentMethods: string[];
 }
 
 export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
@@ -25,6 +30,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Government ID (Optional)",
     disputeClause: "This Agreement shall be governed by the laws of the State of Delaware, United States, without regard to conflict of law principles. Any dispute exceeding $25,000 USD shall be settled by binding arbitration administered by the American Arbitration Association (AAA).",
     certificateLegalNotice: "Executed under US Federal ESIGN Act (15 U.S.C. § 7001) and Uniform Electronic Transactions Act (UETA) guidelines.",
+    phoneDialCode: "+1",
+    phonePlaceholder: "+1 (555) 000-0000",
+    timezone: "America/New_York",
+    tzAbbr: "EDT / UTC-4",
+    allowedPaymentMethods: ["BANK_IBAN", "ACH_ROUTING", "WIRE_TRANSFER", "PAYPAL", "CREDIT_DEBIT_CARD"],
   },
   GB: {
     countryCode: "GB",
@@ -37,6 +47,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "National Insurance No",
     disputeClause: "This Agreement shall be governed by and construed in accordance with the laws of England and Wales. The courts of England and Wales shall have exclusive jurisdiction to settle any dispute.",
     certificateLegalNotice: "Executed under UK Electronic Communications Act 2000 and UK eIDAS Regulation standards.",
+    phoneDialCode: "+44",
+    phonePlaceholder: "+44 7911 123456",
+    timezone: "Europe/London",
+    tzAbbr: "BST / UTC+1",
+    allowedPaymentMethods: ["BANK_IBAN", "SEPA", "WISE", "WIRE_TRANSFER", "PAYPAL"],
   },
   EU: {
     countryCode: "EU",
@@ -49,6 +64,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "National ID / Passport",
     disputeClause: "This Agreement is governed by EU contract directives and local law of the Initiator. Article 25(1) eIDAS non-discrimination applies to electronic execution.",
     certificateLegalNotice: "Executed under European Union eIDAS Regulation (EU) No 910/2014 Article 25(1).",
+    phoneDialCode: "+33",
+    phonePlaceholder: "+33 6 12 34 56 78",
+    timezone: "Europe/Paris",
+    tzAbbr: "CEST / UTC+2",
+    allowedPaymentMethods: ["SEPA", "BANK_IBAN", "WISE", "WIRE_TRANSFER", "PAYPAL", "CREDIT_DEBIT_CARD"],
   },
   AE: {
     countryCode: "AE",
@@ -61,6 +81,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Emirates ID (EID)",
     disputeClause: "This Agreement is governed by the laws of the United Arab Emirates as applied in the Emirate of Dubai. Disputes shall be finally settled under the Arbitration Rules of DIAC.",
     certificateLegalNotice: "Executed under UAE Federal Decree-Law No. 46 of 2021 on Electronic Transactions and Trust Services.",
+    phoneDialCode: "+971",
+    phonePlaceholder: "+971 50 123 4567",
+    timezone: "Asia/Dubai",
+    tzAbbr: "GST / UTC+4",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET", "WISE", "CREDIT_DEBIT_CARD"],
   },
   SA: {
     countryCode: "SA",
@@ -73,6 +98,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "National ID / Iqama",
     disputeClause: "This Agreement shall be governed by and construed in accordance with the laws of the Kingdom of Saudi Arabia. Any dispute shall be referred to final arbitration under the Saudi Center for Commercial Arbitration (SCCA).",
     certificateLegalNotice: "Executed in compliance with the Electronic Transactions Law of Saudi Arabia (Royal Decree No. M/18).",
+    phoneDialCode: "+966",
+    phonePlaceholder: "+966 50 123 4567",
+    timezone: "Asia/Riyadh",
+    tzAbbr: "AST / UTC+3",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET", "CREDIT_DEBIT_CARD"],
   },
   CA: {
     countryCode: "CA",
@@ -85,6 +115,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Social Insurance No (SIN)",
     disputeClause: "This Agreement is governed by the laws of the Province of Ontario and the federal laws of Canada applicable therein. Disputes shall be resolved in courts of competent jurisdiction in Toronto.",
     certificateLegalNotice: "Executed under Canada Uniform Electronic Commerce Act (UECA) and PIPEDA guidelines.",
+    phoneDialCode: "+1",
+    phonePlaceholder: "+1 (416) 000-0000",
+    timezone: "America/Toronto",
+    tzAbbr: "EDT / UTC-4",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "ACH_ROUTING", "PAYPAL", "CREDIT_DEBIT_CARD"],
   },
   AU: {
     countryCode: "AU",
@@ -97,6 +132,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Tax File Number (TFN)",
     disputeClause: "This Agreement is governed by the laws of the State of New South Wales, Australia. Any dispute shall be resolved by arbitration in Sydney under the ACICA Rules.",
     certificateLegalNotice: "Executed under Australian Federal Electronic Transactions Act 1999 guidelines.",
+    phoneDialCode: "+61",
+    phonePlaceholder: "+61 400 123 456",
+    timezone: "Australia/Sydney",
+    tzAbbr: "AEST / UTC+10",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "WISE", "PAYPAL", "CREDIT_DEBIT_CARD"],
   },
   SG: {
     countryCode: "SG",
@@ -109,6 +149,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "NRIC / FIN Card",
     disputeClause: "This Agreement shall be governed by and construed in accordance with the laws of Singapore. Disputes shall be referred to arbitration in Singapore under SIAC Rules.",
     certificateLegalNotice: "Executed under Singapore Electronic Transactions Act 2010 guidelines.",
+    phoneDialCode: "+65",
+    phonePlaceholder: "+65 9123 4567",
+    timezone: "Asia/Singapore",
+    tzAbbr: "SGT / UTC+8",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "WISE", "PAYPAL", "CREDIT_DEBIT_CARD"],
   },
   IN: {
     countryCode: "IN",
@@ -121,6 +166,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Government ID (Optional)",
     disputeClause: "This Agreement shall be governed by the laws of India. Any dispute arising out of this agreement shall be referred to final and binding arbitration under the Arbitration and Conciliation Act, 1996.",
     certificateLegalNotice: "Cryptographic audit record formatted in compliance with Section 63 of the Bharatiya Sakshya Adhiniyam, 2023.",
+    phoneDialCode: "+91",
+    phonePlaceholder: "+91 98765 43210",
+    timezone: "Asia/Kolkata",
+    tzAbbr: "IST / UTC+5:30",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET", "WISE", "PAYPAL"],
   },
   PK: {
     countryCode: "PK",
@@ -133,6 +183,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "CNIC Number",
     disputeClause: "This Agreement is governed by the laws of the Islamic Republic of Pakistan. Claims exceeding PKR 500,000 shall proceed to binding arbitration under the Arbitration Act 1940.",
     certificateLegalNotice: "Executed under Pakistan Electronic Transactions Ordinance (ETO 2002) guidelines.",
+    phoneDialCode: "+92",
+    phonePlaceholder: "+92 300 1234567",
+    timezone: "Asia/Karachi",
+    tzAbbr: "PKT / UTC+5",
+    allowedPaymentMethods: ["BANK_IBAN", "JAZZCASH", "EASYPAISA", "LOCAL_MOBILE_WALLET"],
   },
   BR: {
     countryCode: "BR",
@@ -145,6 +200,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "RG / RNE Number",
     disputeClause: "This Agreement is governed by Brazilian law. Any dispute arising under it shall be resolved in courts of competent jurisdiction in São Paulo or by arbitration under Law No. 9.307/1996.",
     certificateLegalNotice: "Executed in compliance with Brazilian Provisional Measure No. 2.200-2/2001 and Law No. 14.063/2020.",
+    phoneDialCode: "+55",
+    phonePlaceholder: "+55 (11) 91234-5678",
+    timezone: "America/Sao_Paulo",
+    tzAbbr: "BRT / UTC-3",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET", "PAYPAL"],
   },
   MX: {
     countryCode: "MX",
@@ -157,6 +217,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "CURP / INE Number",
     disputeClause: "This Agreement is governed by the Commerce Code and federal laws of Mexico. Any dispute shall be resolved by arbitration in Mexico City or courts of competent jurisdiction.",
     certificateLegalNotice: "Executed under Mexico Commerce Code Article 89 electronic transaction rules.",
+    phoneDialCode: "+52",
+    phonePlaceholder: "+52 (55) 1234-5678",
+    timezone: "America/Mexico_City",
+    tzAbbr: "CST / UTC-6",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL", "CREDIT_DEBIT_CARD"],
   },
   CO: {
     countryCode: "CO",
@@ -169,6 +234,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Cédula de Ciudadanía",
     disputeClause: "This Agreement is governed by Colombian law. Disputes shall be resolved in Bogotá courts or through binding arbitration under Law 1563.",
     certificateLegalNotice: "Executed under Colombian Law 527 of 1999 and regulatory Decree 2364 of 2012.",
+    phoneDialCode: "+57",
+    phonePlaceholder: "+57 300 123 4567",
+    timezone: "America/Bogota",
+    tzAbbr: "COT / UTC-5",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"],
   },
   ID: {
     countryCode: "ID",
@@ -181,6 +251,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "KTP (National ID Card)",
     disputeClause: "This Agreement is governed by the laws of the Republic of Indonesia. Disputes shall be resolved through BANI (Indonesian National Board of Arbitration) in Jakarta.",
     certificateLegalNotice: "Executed under Republic of Indonesia ITE Law No. 11 of 2008 guidelines.",
+    phoneDialCode: "+62",
+    phonePlaceholder: "+62 812-3456-7890",
+    timezone: "Asia/Jakarta",
+    tzAbbr: "WIB / UTC+7",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET"],
   },
   MY: {
     countryCode: "MY",
@@ -193,6 +268,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "MyKad / NRIC Card",
     disputeClause: "This Agreement is governed by Malaysian law. Any dispute shall be resolved through AIAC (Asian International Arbitration Centre) in Kuala Lumpur.",
     certificateLegalNotice: "Executed under Malaysian Electronic Commerce Act 2006 guidelines.",
+    phoneDialCode: "+60",
+    phonePlaceholder: "+60 12-345 6789",
+    timezone: "Asia/Kuala_Lumpur",
+    tzAbbr: "MYT / UTC+8",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET", "WISE"],
   },
   PH: {
     countryCode: "PH",
@@ -205,6 +285,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Government Issued ID",
     disputeClause: "This Agreement is governed by the laws of the Republic of the Philippines. Disputes shall be resolved by arbitration in Manila or in courts of competent jurisdiction.",
     certificateLegalNotice: "Executed under Philippines Electronic Commerce Act of 2000 (RA 8792) rules.",
+    phoneDialCode: "+63",
+    phonePlaceholder: "+63 917 123 4567",
+    timezone: "Asia/Manila",
+    tzAbbr: "PST / UTC+8",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET", "PAYPAL"],
   },
   TH: {
     countryCode: "TH",
@@ -217,6 +302,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Citizen ID Card Number",
     disputeClause: "This Agreement is governed by Thai law. Disputes shall be resolved through TAI (Thailand Arbitration Institute) in Bangkok.",
     certificateLegalNotice: "Executed under Thailand Electronic Transactions Act B.E. 2544 guidelines.",
+    phoneDialCode: "+66",
+    phonePlaceholder: "+66 81 234 5678",
+    timezone: "Asia/Bangkok",
+    tzAbbr: "ICT / UTC+7",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET"],
   },
   VN: {
     countryCode: "VN",
@@ -229,6 +319,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Citizen Identity Card",
     disputeClause: "This Agreement is governed by Vietnamese law. Disputes shall be resolved through VIAC (Vietnam International Arbitration Centre) in Hanoi.",
     certificateLegalNotice: "Executed under Vietnam Law on Electronic Transactions No. 51/2005/QH11 (updated 2023).",
+    phoneDialCode: "+84",
+    phonePlaceholder: "+84 91 234 56 78",
+    timezone: "Asia/Ho_Chi_Minh",
+    tzAbbr: "ICT / UTC+7",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET"],
   },
   CN: {
     countryCode: "CN",
@@ -241,6 +336,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Resident Identity Card",
     disputeClause: "This Agreement is governed by the laws of the People's Republic of China. Disputes shall be submitted to CIETAC (China International Economic and Trade Arbitration Commission) in Beijing.",
     certificateLegalNotice: "Executed in compliance with the Electronic Signature Law of the People's Republic of China.",
+    phoneDialCode: "+86",
+    phonePlaceholder: "+86 138 0000 0000",
+    timezone: "Asia/Shanghai",
+    tzAbbr: "CST / UTC+8",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET"],
   },
   NG: {
     countryCode: "NG",
@@ -253,6 +353,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "National Identification No",
     disputeClause: "This Agreement is governed by Nigerian law. Disputes shall be resolved in courts of competent jurisdiction in Lagos or through arbitration.",
     certificateLegalNotice: "Executed under Nigerian Evidence Act 2011 Section 93 guidelines.",
+    phoneDialCode: "+234",
+    phonePlaceholder: "+234 803 123 4567",
+    timezone: "Africa/Lagos",
+    tzAbbr: "WAT / UTC+1",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET"],
   },
   ZA: {
     countryCode: "ZA",
@@ -265,6 +370,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "National ID Card / Passport",
     disputeClause: "This Agreement is governed by South African law. Disputes shall be resolved through AFSA (Arbitration Foundation of Southern Africa) in Johannesburg.",
     certificateLegalNotice: "Executed under South African Electronic Communications and Transactions Act No. 25 of 2002.",
+    phoneDialCode: "+27",
+    phonePlaceholder: "+27 82 123 4567",
+    timezone: "Africa/Johannesburg",
+    tzAbbr: "SAST / UTC+2",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "WISE", "PAYPAL"],
   },
   KE: {
     countryCode: "KE",
@@ -277,6 +387,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "National ID Card Number",
     disputeClause: "This Agreement is governed by Kenyan law. Disputes shall be resolved through the Nairobi Centre for International Arbitration (NCIA).",
     certificateLegalNotice: "Executed under Kenya Information and Communications Act (KICA) electronic signature rules.",
+    phoneDialCode: "+254",
+    phonePlaceholder: "+254 712 345678",
+    timezone: "Africa/Nairobi",
+    tzAbbr: "EAT / UTC+3",
+    allowedPaymentMethods: ["BANK_IBAN", "LOCAL_MOBILE_WALLET", "WIRE_TRANSFER"],
   },
   EG: {
     countryCode: "EG",
@@ -289,6 +404,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "National ID Number",
     disputeClause: "This Agreement is governed by Egyptian law. Disputes shall be resolved through CRCICA (Cairo Regional Centre for International Commercial Arbitration).",
     certificateLegalNotice: "Executed under Egypt E-Signature Law No. 15 of 2004 guidelines.",
+    phoneDialCode: "+20",
+    phonePlaceholder: "+20 100 123 4567",
+    timezone: "Africa/Cairo",
+    tzAbbr: "EEST / UTC+3",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET"],
   },
   QA: {
     countryCode: "QA",
@@ -301,6 +421,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "QID (Qatari Identity Card)",
     disputeClause: "This Agreement is governed by Qatari law. Disputes shall be resolved through QICCA (Qatar International Center for Conciliation and Arbitration) in Doha.",
     certificateLegalNotice: "Executed under Qatar Electronic Commerce and Transactions Law (Law No. 16 of 2010).",
+    phoneDialCode: "+974",
+    phonePlaceholder: "+974 5512 3456",
+    timezone: "Asia/Qatar",
+    tzAbbr: "AST / UTC+3",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET", "CREDIT_DEBIT_CARD"],
   },
   OM: {
     countryCode: "OM",
@@ -313,6 +438,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Civil ID Card Number",
     disputeClause: "This Agreement is governed by Omani law. Disputes shall be resolved in courts of competent jurisdiction in Muscat.",
     certificateLegalNotice: "Executed under Oman Electronic Transactions Law (Royal Decree No. 69/2008).",
+    phoneDialCode: "+968",
+    phonePlaceholder: "+968 9123 4567",
+    timezone: "Asia/Muscat",
+    tzAbbr: "GST / UTC+4",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "LOCAL_MOBILE_WALLET", "CREDIT_DEBIT_CARD"],
   },
   GH: {
     countryCode: "GH",
@@ -325,6 +455,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "Ghana Card Number",
     disputeClause: "This Agreement is governed by Ghanaian law. Disputes shall be resolved by arbitration in Accra under Act 798.",
     certificateLegalNotice: "Executed under Ghanaian Electronic Transactions Act, 2008 (Act 772) guidelines.",
+    phoneDialCode: "+233",
+    phonePlaceholder: "+233 24 123 4567",
+    timezone: "Africa/Accra",
+    tzAbbr: "GMT / UTC+0",
+    allowedPaymentMethods: ["BANK_IBAN", "LOCAL_MOBILE_WALLET", "WIRE_TRANSFER"],
   },
   JM: {
     countryCode: "JM",
@@ -337,6 +472,11 @@ export const JURISDICTIONS: Record<string, JurisdictionDefinition> = {
     nationalIdLabel: "National ID Card / Passport",
     disputeClause: "This Agreement is governed by Jamaican law. Disputes shall be resolved in courts of competent jurisdiction in Kingston.",
     certificateLegalNotice: "Executed under Jamaican Electronic Transactions Act, 2006 guidelines.",
+    phoneDialCode: "+1876",
+    phonePlaceholder: "+1 (876) 123-4567",
+    timezone: "America/Jamaica",
+    tzAbbr: "EST / UTC-5",
+    allowedPaymentMethods: ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL", "CREDIT_DEBIT_CARD"],
   },
 };
 

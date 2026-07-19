@@ -61,7 +61,9 @@ export default function InstantContractPage() {
 
   // Section 3: Financial & Payment Terms
   const [jurisdictionCountryCode, setJurisdictionCountryCode] = useState("US");
+  const jur = getJurisdiction(jurisdictionCountryCode);
   const [currency, setCurrency] = useState("USD");
+
   const [taxTreatment, setTaxTreatment] = useState("INCLUSIVE");
   const [taxRatePct, setTaxRatePct] = useState("0");
   const [totalAmount, setTotalAmount] = useState("");
@@ -817,19 +819,49 @@ export default function InstantContractPage() {
                         onChange={(e) => setPaymentMethod(e.target.value)}
                         className="input-field"
                       >
-                        <option value="BANK_IBAN">Bank IBAN Transfer</option>
-                        <option value="JAZZCASH">JazzCash Wallet</option>
-                        <option value="EASYPAISA">EasyPaisa Wallet</option>
+                        {(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((m) => {
+                          const labelMap: Record<string, string> = {
+                            BANK_IBAN: "Bank Transfer (IBAN)",
+                            ACH_ROUTING: "ACH Direct Routing",
+                            WIRE_TRANSFER: "Wire Transfer",
+                            SEPA: "SEPA Transfer",
+                            JAZZCASH: "JazzCash Mobile",
+                            EASYPAISA: "EasyPaisa Mobile",
+                            PAYPAL: "PayPal",
+                            WISE: "Wise Transfer",
+                            LOCAL_MOBILE_WALLET: "Mobile Wallet",
+                            CREDIT_DEBIT_CARD: "Card On File",
+                          };
+                          return (
+                            <option key={m} value={m}>
+                              {labelMap[m] || m.replace(/_/g, " ")}
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
 
-                    {paymentMethod === "BANK_IBAN" ? (
+                    {paymentMethod === "BANK_IBAN" || paymentMethod === "SEPA" || paymentMethod === "WIRE_TRANSFER" || paymentMethod === "ACH_ROUTING" ? (
                       <div className="flex flex-col text-left gap-1">
-                        <label className="text-xs font-bold text-gray-700">Bank IBAN Account *</label>
+                        <label className="text-xs font-bold text-gray-700">
+                          {paymentMethod === "ACH_ROUTING" ? "Routing & Account No *" : paymentMethod === "SEPA" ? "IBAN & BIC *" : "Bank IBAN Account *"}
+                        </label>
                         <input
                           type="text"
                           required
-                          placeholder="PK00XXXX0000000000000000"
+                          placeholder={paymentMethod === "ACH_ROUTING" ? "Routing: 123456789 | Account: 987654321" : "Enter your IBAN or Account details"}
+                          value={bankAccountIban}
+                          onChange={(e) => setBankAccountIban(e.target.value)}
+                          className="input-field font-mono"
+                        />
+                      </div>
+                    ) : paymentMethod === "PAYPAL" ? (
+                      <div className="flex flex-col text-left gap-1">
+                        <label className="text-xs font-bold text-gray-700">PayPal Email Address *</label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="paypal@example.com"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                           className="input-field font-mono"
@@ -837,11 +869,11 @@ export default function InstantContractPage() {
                       </div>
                     ) : (
                       <div className="flex flex-col text-left gap-1">
-                        <label className="text-xs font-bold text-gray-700">Mobile Wallet ({paymentMethod}) *</label>
+                        <label className="text-xs font-bold text-gray-700">Mobile Account / Tag ({paymentMethod}) *</label>
                         <input
                           type="text"
                           required
-                          placeholder="03XXXXXXXXX"
+                          placeholder={jur.phonePlaceholder}
                           value={mobileWalletNumber}
                           onChange={(e) => setMobileWalletNumber(e.target.value)}
                           className="input-field font-mono"
@@ -854,13 +886,14 @@ export default function InstantContractPage() {
                     <p className="text-xs text-blue-900 font-medium flex items-center gap-2">
                       <span className="text-blue-600 font-bold">ℹ</span>
                       <span>
-                        Receiving Payout Account (IBAN / JazzCash) will be collected directly from the receiving counterparty ({contractType.endsWith("_CREATOR") ? "Creator" : "Agency"}) on their signing link.
+                        Receiving Payout Account will be collected directly from the receiving counterparty ({contractType.endsWith("_CREATOR") ? "Creator" : "Agency"}) on their signing link.
                       </span>
                     </p>
                   </div>
                 )}
               </div>
             </div>
+
 
             {/* SECTION 4: Delivery, Revisions & Product Loans */}
             <div className="space-y-4">
@@ -1167,12 +1200,13 @@ export default function InstantContractPage() {
                     type="tel"
                     required
                     disabled={initiatorOtpVerified}
-                    placeholder="e.g. +92 300 1234567"
+                    placeholder={`e.g. ${jur.phonePlaceholder}`}
                     value={initiatorPhone}
                     onChange={(e) => setInitiatorPhone(e.target.value)}
                     className="input-field disabled:bg-gray-100"
                   />
                 </div>
+
 
                 <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">Your Platform Role</label>

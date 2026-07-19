@@ -36,13 +36,15 @@ export async function generateAuditCertificatePDF(contractId: string) {
     (s) => s.signerId !== contract.initiatorId
   );
 
-  const formatLegalDate = (date: Date | null | undefined) => {
+  const formatLegalDate = (date: Date | null | undefined, countryCodeOrTz: string = "US") => {
     if (!date) return "N/A";
-    return new Date(date).toLocaleString("en-US", {
+    const j = getJurisdiction(countryCodeOrTz);
+    return `${new Date(date).toLocaleString("en-US", {
       dateStyle: "medium",
       timeStyle: "medium",
-    });
+    })} (${j.tzAbbr})`;
   };
+
 
   const partyATaxId = (contract as any).initiatorTaxId || contract.initiatorNtn;
   const partyBTaxId = (contract as any).respondentTaxId || contract.respondentNtn;
@@ -207,11 +209,11 @@ export async function generateAuditCertificatePDF(contractId: string) {
           </tr>
           <tr>
             <th>Created Timestamp</th>
-            <td>${formatLegalDate(contract.createdAt)}</td>
+            <td>${formatLegalDate(contract.createdAt, jur.countryCode)}</td>
           </tr>
           <tr>
             <th>Bilateral Execution Date</th>
-            <td>${formatLegalDate(contract.activatedAt || contract.updatedAt)}</td>
+            <td>${formatLegalDate(contract.activatedAt || contract.updatedAt, jur.countryCode)}</td>
           </tr>
         </table>
 
@@ -232,7 +234,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
               <div><strong>Email:</strong> ${contract.initiator.email}</div>
               <div><strong>IP Address:</strong> ${initiatorSignature?.ipAddress || "Record Logged"}</div>
               <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
-              <div><strong>Signed:</strong> ${formatLegalDate(initiatorSignature?.signedAt || contract.createdAt)}</div>
+              <div><strong>Signed:</strong> ${formatLegalDate(initiatorSignature?.signedAt || contract.createdAt, jur.countryCode)}</div>
             </div>
           </div>
 
@@ -250,7 +252,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
               <div><strong>Email:</strong> ${contract.respondentEmail || contract.respondent?.email || "N/A"}</div>
               <div><strong>IP Address:</strong> ${respondentSignature?.ipAddress || "Record Logged"}</div>
               <div><strong>OTP Status:</strong> <span style="color: #16a34a; font-weight: bold;">Verified</span></div>
-              <div><strong>Signed:</strong> ${formatLegalDate(respondentSignature?.signedAt || contract.activatedAt)}</div>
+              <div><strong>Signed:</strong> ${formatLegalDate(respondentSignature?.signedAt || contract.activatedAt, jur.countryCode)}</div>
             </div>
           </div>
         </div>
@@ -284,7 +286,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
                     .map(
                       (log) => `
               <tr>
-                <td>${formatLegalDate(log.createdAt)}</td>
+                <td>${formatLegalDate(log.createdAt, jur.countryCode)}</td>
                 <td><strong>${log.action}</strong></td>
                 <td>${formatActorDetails(log)}</td>
                 <td><code>${log.ipAddress || (typeof log.details === "object" && (log.details as any)?.ipAddress) || "Logged"}</code></td>

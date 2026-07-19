@@ -385,11 +385,11 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-size: 8pt;">${taxInfo.displayText}</td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
                 <strong>${formatCurrencyAmount(Number(contract.advancePayment || 0), currCode)}</strong>
-                ${contract.advancePaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.advancePaymentDate)}</span>` : ""}
+                ${contract.advancePaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.advancePaymentDate, jur.countryCode)}</span>` : ""}
               </td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
                 <strong>${formatCurrencyAmount(getRemainingAmount(), currCode)}</strong>
-                ${contract.remainingPaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.remainingPaymentDate)}</span>` : ""}
+                ${contract.remainingPaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.remainingPaymentDate, jur.countryCode)}</span>` : ""}
               </td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
                 <strong>${contract.paymentMethod ? (contract.paymentMethod as string).replace(/_/g, " ") : "Not Specified"}</strong>
@@ -428,7 +428,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           7. CONFIDENTIALITY &amp; PRE-LAUNCH PRODUCT EMBARGO (NDA)
         </div>
         <div style="border: 1px solid ${contract.confidentialityRequired ? "#fde68a" : "#cbd5e1"}; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: ${contract.confidentialityRequired ? "#fffbeb" : "#ffffff"}; line-height: 1.6;">
-          <div><strong>Pre-Launch NDA Status:</strong> ${contract.confidentialityRequired ? `Strict Pre-Launch NDA Active (Embargo Date: ${contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Official Release Date"})` : "Standard Commercial Confidentiality"}</div>
+          <div><strong>Pre-Launch NDA Status:</strong> ${contract.confidentialityRequired ? `Strict Pre-Launch NDA Active (Embargo Date: ${contract.embargoDate ? formatLegalDate(contract.embargoDate, jur.countryCode) : "Official Release Date"})` : "Standard Commercial Confidentiality"}</div>
           ${contract.confidentialityRequired && contract.earlyDisclosurePenalty ? `<div><strong>Early Leak Liquidated Damages:</strong> ${formatCurrencyAmount(Number(contract.earlyDisclosurePenalty), currCode)}</div>` : ""}
         </div>
 
@@ -502,7 +502,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
                 </div>
                 <div>Authorized Signer: <strong>${contract.initiator.name}</strong> ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
                 <div>Email: ${contract.initiator.email} | IP: ${initiatorSign.ipAddress}</div>
-                <div>Signed: ${formatLegalDate(initiatorSign.signedAt)}</div>
+                <div>Signed: ${formatLegalDate(initiatorSign.signedAt, jur.countryCode)}</div>
               </div>
             ` : `
               <div style="height: 55px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-style: italic; font-size: 8.5pt;">Pending Signature</div>
@@ -522,7 +522,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
                 </div>
                 <div>Authorized Signer: <strong>${contract.respondentName}</strong> ${contract.respondentDesignation ? `(${contract.respondentDesignation})` : ""}</div>
                 <div>Verified Email OTP: ✓ Verified | Email: ${contract.respondentEmail} | IP: ${respondentSign.ipAddress}</div>
-                <div>Signed: ${formatLegalDate(respondentSign.signedAt)}</div>
+                <div>Signed: ${formatLegalDate(respondentSign.signedAt, jur.countryCode)}</div>
               </div>
             ` : `
               <div style="height: 55px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-style: italic; font-size: 8.5pt;">Pending Signature</div>

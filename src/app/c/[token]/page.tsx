@@ -336,12 +336,12 @@ export default function PublicSigningPage({ params }: PageProps) {
                   <div>
                     <span className="font-semibold text-gray-500 block">Advance Payment:</span>
                     <span className="font-bold text-black">{contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : "No Advance"}</span>
-                    {contract.advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.advancePaymentDate)}</span>}
+                    {contract.advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.advancePaymentDate, contract?.jurisdictionCountryCode)}</span>}
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Remaining Payout:</span>
                     <span className="font-bold text-black">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
-                    {contract.remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.remainingPaymentDate)}</span>}
+                    {contract.remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(contract.remainingPaymentDate, contract?.jurisdictionCountryCode)}</span>}
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Payment Route Method:</span>
@@ -439,7 +439,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <>
                       <div className="flex justify-between">
                         <span className="font-semibold text-gray-500">Embargo Launch Date:</span>
-                        <span className="font-bold text-black">{contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Required until official launch"}</span>
+                        <span className="font-bold text-black">{contract.embargoDate ? formatLegalDate(contract.embargoDate, contract?.jurisdictionCountryCode) : "Required until official launch"}</span>
                       </div>
                       {contract.earlyDisclosurePenalty && (
                         <div className="flex justify-between">
@@ -463,7 +463,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     </div>
                     <div>
                       <span className="font-semibold text-gray-500 block">Expected Arrival:</span>
-                      <span className="font-bold text-black">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate) : "Not Specified"}</span>
+                      <span className="font-bold text-black">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate, contract?.jurisdictionCountryCode) : "Not Specified"}</span>
                     </div>
                     {contract.collabDeliveryAddress && (
                       <div>
@@ -560,7 +560,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                 <input
                   type="tel"
                   required
-                  placeholder="03XXXXXXXXX"
+                  placeholder={`e.g. ${jur.phonePlaceholder}`}
                   value={respondentPhone}
                   onChange={(e) => setRespondentPhone(e.target.value)}
                   disabled={otpDispatched || otpVerified}
@@ -576,7 +576,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Mohammad Ali"
+                  placeholder="e.g. Alex Smith"
                   value={respondentName}
                   onChange={(e) => setRespondentName(e.target.value)}
                   disabled={otpDispatched || otpVerified}
@@ -707,26 +707,37 @@ export default function PublicSigningPage({ params }: PageProps) {
                     {isRespondentAgency ? "Agency Payout Account Details" : "Your Payout Account Details"} (Required for Campaign Payouts) <span className="text-rose-500">*</span>
                   </span>
                   <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { id: "BANK_IBAN", label: "Bank Transfer (IBAN)" },
-                      { id: "JAZZCASH", label: "JazzCash Mobile" },
-                      { id: "EASYPAISA", label: "EasyPaisa Mobile" },
-                    ].map((m) => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        disabled={otpDispatched || otpVerified}
-                        onClick={() => setPaymentMethod(m.id)}
-                        className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
-                          paymentMethod === m.id
-                            ? "bg-black text-white border-black shadow-sm"
-                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
-                        }`}
-                      >
-                        {m.label}
-                      </button>
-                    ))}
+                    {(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((m) => {
+                      const labelMap: Record<string, string> = {
+                        BANK_IBAN: "Bank Transfer (IBAN)",
+                        ACH_ROUTING: "ACH Direct Routing",
+                        WIRE_TRANSFER: "Wire Transfer",
+                        SEPA: "SEPA Transfer",
+                        JAZZCASH: "JazzCash Mobile",
+                        EASYPAISA: "EasyPaisa Mobile",
+                        PAYPAL: "PayPal",
+                        WISE: "Wise Transfer",
+                        LOCAL_MOBILE_WALLET: "Mobile Wallet",
+                        CREDIT_DEBIT_CARD: "Card On File",
+                      };
+                      return (
+                        <button
+                          key={m}
+                          type="button"
+                          disabled={otpDispatched || otpVerified}
+                          onClick={() => setPaymentMethod(m)}
+                          className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                            paymentMethod === m
+                              ? "bg-black text-white border-black shadow-sm"
+                              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
+                          }`}
+                        >
+                          {labelMap[m] || m.replace(/_/g, " ")}
+                        </button>
+                      );
+                    })}
                   </div>
+
 
                   {paymentMethod === "BANK_IBAN" ? (
                     <div className="flex flex-col gap-1">

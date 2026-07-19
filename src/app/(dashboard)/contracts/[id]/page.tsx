@@ -541,7 +541,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                     </span>
                     {contract.embargoDate && (
                       <span className="text-[10px] text-gray-500 font-semibold block mt-1">
-                        Embargo Until: {formatLegalDate(contract.embargoDate)}
+                        Embargo Until: {formatLegalDate(contract.embargoDate, contract.jurisdictionCountryCode)}
                       </span>
                     )}
                     {contract.earlyDisclosurePenalty && (
@@ -575,7 +575,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                   </span>
                   {contract.advancePaymentDate && (
                     <span className="text-[10px] text-gray-500 block mt-1">
-                      Due: {formatLegalDate(contract.advancePaymentDate)}
+                      Due: {formatLegalDate(contract.advancePaymentDate, contract.jurisdictionCountryCode)}
                     </span>
                   )}
                 </div>
@@ -596,7 +596,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                 </span>
                 {contract.remainingPaymentDate && (
                   <span className="text-[10px] text-gray-500 block mt-1">
-                    Due: {formatLegalDate(contract.remainingPaymentDate)}
+                    Due: {formatLegalDate(contract.remainingPaymentDate, contract.jurisdictionCountryCode)}
                   </span>
                 )}
               </div>
@@ -651,7 +651,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                 <div>
                   <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Expected Arrival Date</span>
                   <span className="text-black font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 block">
-                    {contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate) : "Not Specified"}
+                    {contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate, contract.jurisdictionCountryCode) : "Not Specified"}
                   </span>
                 </div>
               </div>

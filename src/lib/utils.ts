@@ -1,7 +1,9 @@
+import { getJurisdiction } from "@/lib/config/jurisdictions";
+
 /**
- * Format date string into unambiguous Pakistani legal format: "13 July 2026 (PKT / UTC+5)"
+ * Format date string into unambiguous legal format with country timezone tag: e.g. "13 July 2026 (EDT / UTC-4)"
  */
-export function formatLegalDate(dateInput: string | Date | null | undefined): string {
+export function formatLegalDate(dateInput: string | Date | null | undefined, countryCodeOrTz: string = "US"): string {
   if (!dateInput) return "N/A";
   const date = new Date(dateInput);
   if (isNaN(date.getTime())) return "N/A";
@@ -14,8 +16,12 @@ export function formatLegalDate(dateInput: string | Date | null | undefined): st
   const month = monthNames[date.getMonth()];
   const year = date.getFullYear();
 
-  return `${day} ${month} ${year} (PKT / UTC+5)`;
+  const jur = getJurisdiction(countryCodeOrTz);
+  const tzStr = jur ? jur.tzAbbr : "UTC";
+
+  return `${day} ${month} ${year} (${tzStr})`;
 }
+
 
 /**
  * Parse raw browser user-agent string into clean human-readable device & browser name

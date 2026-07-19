@@ -5,7 +5,8 @@ import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
 import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
-import { CURRENCY_MAP } from "@/lib/currency";
+import { CURRENCY_MAP, formatCurrencyAmount } from "@/lib/currency";
+
 
 interface DeliverableItem {
   type: string;
@@ -427,8 +428,9 @@ export default function NewContractPage() {
       {/* Title */}
       <div>
         <h1 className="text-3xl font-black text-black">Draft Agreement</h1>
-        <p className="text-xs text-gray-500 mt-1">Specify campaign terms and generate bilateral agreement link under ETO 2002 rules.</p>
+        <p className="text-xs text-gray-500 mt-1">Specify campaign terms and generate bilateral agreement link under {jur.lawAbbreviation} rules.</p>
       </div>
+
 
       {/* Contract direction settings for Agencies */}
       {user?.role === "AGENCY" && step === 0 && (
@@ -1008,38 +1010,61 @@ export default function NewContractPage() {
             {/* Payment Method & Account */}
             {contractType === "AGENCY_TO_CREATOR" || contractType === "BRAND_TO_CREATOR" ? (
               <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/70 text-xs text-blue-950 leading-relaxed font-semibold">
-                • <strong>Payout Route Notice:</strong> For Creator sponsorship deals, payout route selection (Bank Transfer / JazzCash / EasyPaisa) and account numbers will be entered directly by the Creator on their recipient signing link.
+                • <strong>Payout Route Notice:</strong> For Creator sponsorship deals, payout route selection and account details will be entered directly by the Creator on their recipient signing link under local {jur.countryName} guidelines.
               </div>
             ) : (
               <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
-                <label className="text-xs font-bold uppercase tracking-wider text-black block">Payout Route Method</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-black block">Payout Route Method ({jur.countryName})</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {[
-                    { id: "BANK_IBAN", label: "Bank Transfer (IBAN)" },
-                    { id: "JAZZCASH", label: "JazzCash Mobile" },
-                    { id: "EASYPAISA", label: "EasyPaisa Mobile" },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setPaymentMethod(m.id)}
-                      className={`py-2.5 px-3 rounded-lg text-xs font-bold border transition-all text-center ${
-                        paymentMethod === m.id
-                          ? "bg-black text-white border-black shadow-sm"
-                          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
+                  {(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((methodId) => {
+                    const labelMap: Record<string, string> = {
+                      BANK_IBAN: "Bank Transfer (IBAN)",
+                      ACH_ROUTING: "ACH Direct Routing",
+                      WIRE_TRANSFER: "Wire Transfer",
+                      SEPA: "SEPA Transfer",
+                      JAZZCASH: "JazzCash Mobile",
+                      EASYPAISA: "EasyPaisa Mobile",
+                      PAYPAL: "PayPal",
+                      WISE: "Wise Transfer",
+                      LOCAL_MOBILE_WALLET: "Mobile Wallet",
+                      CREDIT_DEBIT_CARD: "Card On File",
+                    };
+                    return (
+                      <button
+                        key={methodId}
+                        type="button"
+                        onClick={() => setPaymentMethod(methodId)}
+                        className={`py-2.5 px-3 rounded-lg text-xs font-bold border transition-all text-center ${
+                          paymentMethod === methodId
+                            ? "bg-black text-white border-black shadow-sm"
+                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
+                        }`}
+                      >
+                        {labelMap[methodId] || methodId.replace(/_/g, " ")}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {paymentMethod === "BANK_IBAN" ? (
+                {paymentMethod === "BANK_IBAN" || paymentMethod === "SEPA" || paymentMethod === "WIRE_TRANSFER" || paymentMethod === "ACH_ROUTING" ? (
                   <div className="flex flex-col gap-1 mt-2">
-                    <label className="text-[10px] font-bold uppercase text-gray-500">Bank IBAN Number</label>
+                    <label className="text-[10px] font-bold uppercase text-gray-500">
+                      {paymentMethod === "ACH_ROUTING" ? "Routing Number & Account Number" : paymentMethod === "SEPA" ? "IBAN & BIC/SWIFT" : "Bank Account / IBAN"}
+                    </label>
                     <input
                       type="text"
-                      placeholder="PK36 MEZN 0000 1234 5678 9012"
+                      placeholder={paymentMethod === "ACH_ROUTING" ? "Routing: 123456789 | Account: 987654321" : "Enter your IBAN or Account details"}
+                      className="input-field font-mono"
+                      value={bankAccountIban}
+                      onChange={(e) => setBankAccountIban(e.target.value)}
+                    />
+                  </div>
+                ) : paymentMethod === "PAYPAL" ? (
+                  <div className="flex flex-col gap-1 mt-2">
+                    <label className="text-[10px] font-bold uppercase text-gray-500">PayPal Email Address</label>
+                    <input
+                      type="email"
+                      placeholder="paypal@example.com"
                       className="input-field font-mono"
                       value={bankAccountIban}
                       onChange={(e) => setBankAccountIban(e.target.value)}
@@ -1047,10 +1072,10 @@ export default function NewContractPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1 mt-2">
-                    <label className="text-[10px] font-bold uppercase text-gray-500">Mobile Account Number</label>
+                    <label className="text-[10px] font-bold uppercase text-gray-500">Mobile Account / Tag</label>
                     <input
                       type="text"
-                      placeholder="0300 1234567"
+                      placeholder={jur.phonePlaceholder}
                       className="input-field font-mono"
                       value={mobileWalletNumber}
                       onChange={(e) => setMobileWalletNumber(e.target.value)}
@@ -1059,6 +1084,7 @@ export default function NewContractPage() {
                 )}
               </div>
             )}
+
           </div>
         )}
 
@@ -1459,22 +1485,22 @@ export default function NewContractPage() {
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div>
                   <span className="font-semibold text-gray-500 block">Total Campaign Value:</span>
-                  <span className="font-bold text-black text-sm">PKR {Number(totalAmount).toLocaleString()}</span>
+                  <span className="font-bold text-black text-sm">{formatCurrencyAmount(totalAmount, currency)}</span>
                 </div>
                 <div>
                   <span className="font-semibold text-gray-500 block">Advance Payment:</span>
-                  <span className="font-bold text-black">{advancePayment ? `PKR ${Number(advancePayment).toLocaleString()}` : "No Advance"}</span>
-                  {advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(advancePaymentDate)}</span>}
+                  <span className="font-bold text-black">{advancePayment ? formatCurrencyAmount(advancePayment, currency) : "No Advance"}</span>
+                  {advancePaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(advancePaymentDate, jurisdictionCountryCode)}</span>}
                 </div>
                 <div>
                   <span className="font-semibold text-gray-500 block">Remaining Balance:</span>
-                  <span className="font-bold text-black">PKR {(Number(totalAmount) - (Number(advancePayment) || 0)).toLocaleString()}</span>
-                  {remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(remainingPaymentDate)}</span>}
+                  <span className="font-bold text-black">{formatCurrencyAmount(Number(totalAmount) - (Number(advancePayment) || 0), currency)}</span>
+                  {remainingPaymentDate && <span className="text-[10px] text-gray-500 block">Due: {formatLegalDate(remainingPaymentDate, jurisdictionCountryCode)}</span>}
                 </div>
                 <div>
                   <span className="font-semibold text-gray-500 block">Payout Route Method:</span>
                   <span className="font-bold text-black uppercase">{paymentMethod.replace(/_/g, " ")}</span>
-                  <span className="text-[10px] text-gray-500 block font-mono truncate">{paymentMethod === "BANK_IBAN" ? bankAccountIban : mobileWalletNumber}</span>
+                  <span className="text-[10px] text-gray-500 block font-mono truncate">{bankAccountIban || mobileWalletNumber || "Account on file"}</span>
                 </div>
               </div>
             </div>
@@ -1536,12 +1562,12 @@ export default function NewContractPage() {
                   <>
                     <div className="flex justify-between">
                       <span className="font-semibold text-gray-500">Embargo Launch Date:</span>
-                      <span className="font-bold text-black">{embargoDate ? formatLegalDate(embargoDate) : "Required until launch"}</span>
+                      <span className="font-bold text-black">{embargoDate ? formatLegalDate(embargoDate, jurisdictionCountryCode) : "Required until launch"}</span>
                     </div>
                     {earlyDisclosurePenalty && (
                       <div className="flex justify-between">
                         <span className="font-semibold text-gray-500">Early Disclosure Leak Fine:</span>
-                        <span className="font-bold text-black">PKR {Number(earlyDisclosurePenalty).toLocaleString()}</span>
+                        <span className="font-bold text-black">{formatCurrencyAmount(earlyDisclosurePenalty, currency)}</span>
                       </div>
                     )}
                   </>
@@ -1583,7 +1609,7 @@ export default function NewContractPage() {
                   </div>
                   <div>
                     <span className="font-semibold text-gray-500 block">Expected Arrival:</span>
-                    <span className="font-bold text-black">{collabDeliveryDate ? formatLegalDate(collabDeliveryDate) : "Not Specified"}</span>
+                    <span className="font-bold text-black">{collabDeliveryDate ? formatLegalDate(collabDeliveryDate, jurisdictionCountryCode) : "Not Specified"}</span>
                   </div>
                   {collabDeliveryAddress && (
                     <div>
@@ -1596,7 +1622,7 @@ export default function NewContractPage() {
                   <div className="mt-2 pt-2 border-t border-gray-200 text-[11px] text-amber-900 font-semibold space-y-1">
                     <div>• Return Deadline: Within {collabProductReturnDays} days post-campaign.</div>
                     <div>• Return Shipping Payer: {collabProductReturnShippingBy}</div>
-                    {collabProductNonReturnFee && <div>• Non-Return / Damage Penalty Fee: PKR {Number(collabProductNonReturnFee).toLocaleString()}</div>}
+                    {collabProductNonReturnFee && <div>• Non-Return / Damage Penalty Fee: {formatCurrencyAmount(collabProductNonReturnFee, currency)}</div>}
                   </div>
                 )}
               </div>
@@ -1606,7 +1632,7 @@ export default function NewContractPage() {
             <div className="p-4 rounded-xl border border-gray-200 bg-blue-50/50 flex flex-col gap-1 text-xs">
               <span className="text-blue-900 font-bold uppercase tracking-wider block">8. Governing Law &amp; Dispute Resolution</span>
               <p className="text-[11px] text-blue-950 leading-relaxed">
-                Governed by the laws of Pakistan. Disputes proceed to 14 days of good-faith negotiation. If unresolved: (a) Claims &le; PKR 500,000 proceed to summary court determination; (b) Claims &gt; PKR 500,000 proceed to binding arbitration under the <strong>Arbitration Act 1940 of Pakistan</strong>.
+                {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>{jur.arbitrationAct}</strong>.
               </p>
             </div>
 
