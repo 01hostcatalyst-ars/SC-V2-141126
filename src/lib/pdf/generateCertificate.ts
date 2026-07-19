@@ -3,6 +3,7 @@ import chromium from "@sparticuz/chromium";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getJurisdiction } from "@/lib/config/jurisdictions";
 
 export async function generateAuditCertificatePDF(contractId: string) {
   const contract = await prisma.contract.findUnique({
@@ -22,6 +23,8 @@ export async function generateAuditCertificatePDF(contractId: string) {
     throw new Error("Contract not found.");
   }
 
+  const jur = getJurisdiction((contract as any).jurisdictionCountryCode || "US");
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://signcollab.com";
   const verifyUrl = `${appUrl}/verify?token=${contract.verifyToken}`;
   const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 120 });
@@ -40,6 +43,9 @@ export async function generateAuditCertificatePDF(contractId: string) {
       timeStyle: "medium",
     });
   };
+
+  const partyATaxId = (contract as any).initiatorTaxId || contract.initiatorNtn;
+  const partyBTaxId = (contract as any).respondentTaxId || contract.respondentNtn;
 
   const formatActorDetails = (log: any) => {
     let details: any = log.details;
@@ -168,7 +174,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
               CERTIFICATE OF COMPLETION
             </h1>
             <p style="margin: 2px 0 0 0; font-size: 8.5pt; color: #475569;">
-              Cryptographic Audit Trail &amp; ETO 2002 Proof of Execution
+              Cryptographic Audit Trail &amp; ${jur.lawAbbreviation} Proof of Execution
             </p>
           </div>
           <div style="text-align: right;">
@@ -220,7 +226,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
             <div style="font-weight: 900; font-size: 9.5pt; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
               ${(contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
             </div>
-            ${contract.initiatorNtn ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">NTN / Reg: ${contract.initiatorNtn}</div>` : ""}
+            ${partyATaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyATaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
               <div><strong>Authorized Signer:</strong> ${contract.initiator.name} ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
               <div><strong>Email:</strong> ${contract.initiator.email}</div>
@@ -238,7 +244,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
             <div style="font-weight: 900; font-size: 9.5pt; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
               ${contract.respondentCompany || contract.creatorName || contract.respondentName || "N/A"}
             </div>
-            ${contract.respondentNtn ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">NTN / Reg: ${contract.respondentNtn}</div>` : ""}
+            ${partyBTaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyBTaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">
               <div><strong>Authorized Signer:</strong> ${contract.respondentName || contract.respondent?.name || "N/A"} ${contract.respondentDesignation ? `(${contract.respondentDesignation})` : ""}</div>
               <div><strong>Email:</strong> ${contract.respondentEmail || contract.respondent?.email || "N/A"}</div>
@@ -257,7 +263,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
         </div>
         <div class="hash-box">
           <strong style="color: #0f172a;">PAYLOAD STRUCTURED DATA SHA-256 (finalDocumentHash):</strong><br />
-          <span style="color: #0f172a;">${contract.finalDocumentHash || contract.contentHash || "PENDING_EXECUTION"}</span>
+          <span style="color: #0f172a;">${(contract as any).finalDocumentHash || contract.contentHash || "PENDING_EXECUTION"}</span>
         </div>
 
         <!-- Audit Trail Event Log Table -->
@@ -297,7 +303,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
 
         <!-- Certificate Footer -->
         <div style="border-top: 1.5px solid #0f172a; margin-top: 18px; padding-top: 8px; font-size: 7.5pt; color: #475569; text-align: center;">
-          <div style="font-size: 6.8pt; line-height: 1.35; color: #64748b; max-width: 95%; margin: 0 auto 4px auto;">PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging under Electronic Transactions Ordinance (ETO 2002) guidelines. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
+          <div style="font-size: 6.8pt; line-height: 1.35; color: #64748b; max-width: 95%; margin: 0 auto 4px auto;">PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging in compliance with ${jur.governingLawName}. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
           <div>Verify authenticity online at: <strong>${verifyUrl}</strong></div>
         </div>
       </body>

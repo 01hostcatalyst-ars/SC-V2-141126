@@ -2,12 +2,14 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import SignaturePad from "signature_pad";
+import { getJurisdiction } from "@/lib/config/jurisdictions";
 
 interface SignaturePadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (signatureB64: string, fingerprint: string) => void;
   loading?: boolean;
+  countryCode?: string;
 }
 
 export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
@@ -15,10 +17,13 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
   onClose,
   onConfirm,
   loading = false,
+  countryCode = "US",
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const padRef = useRef<SignaturePad | null>(null);
   const [consent, setConsent] = useState(false);
+
+  const jur = getJurisdiction(countryCode);
 
   const initPad = () => {
     const canvas = canvasRef.current;
@@ -113,9 +118,9 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
 
         {/* Scrollable Container */}
         <div className="overflow-y-auto space-y-4 pr-1.5 flex-1 custom-scrollbar">
-          {/* ETO 2002 Legal Warning */}
+          {/* Dynamic Legal Consent Warning */}
           <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed font-semibold">
-            <strong>Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by Pakistan&apos;s Electronic Transactions Ordinance (ETO 2002) and SignCollab&apos;s <a href="/terms" target="_blank" className="underline font-bold text-blue-950 hover:text-black">Terms of Service &amp; Privacy Notice</a>.
+            <strong>Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by <strong>{jur.governingLawName}</strong> and SignCollab&apos;s <a href="/terms" target="_blank" className="underline font-bold text-blue-950 hover:text-black">Terms of Service &amp; Privacy Notice</a>.
           </div>
 
           {/* Consent Checkbox */}

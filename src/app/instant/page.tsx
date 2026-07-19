@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCompanyConfig } from "@/lib/config";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
+import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
+import { CURRENCY_MAP } from "@/lib/currency";
 
 interface DeliverableItem {
   type: string;
@@ -12,6 +14,7 @@ interface DeliverableItem {
   duration: string;
   notes: string;
 }
+
 
 const WORKFLOW_OPTIONS = [
   { value: "CREATOR_TO_BRAND", label: "Creator ➔ Brand (Direct Deal)" },
@@ -57,6 +60,10 @@ export default function InstantContractPage() {
   const [usageRightsDuration, setUsageRightsDuration] = useState("12 Months");
 
   // Section 3: Financial & Payment Terms
+  const [jurisdictionCountryCode, setJurisdictionCountryCode] = useState("US");
+  const [currency, setCurrency] = useState("USD");
+  const [taxTreatment, setTaxTreatment] = useState("INCLUSIVE");
+  const [taxRatePct, setTaxRatePct] = useState("0");
   const [totalAmount, setTotalAmount] = useState("");
   const [advancePayment, setAdvancePayment] = useState("");
   const [advancePaymentDate, setAdvancePaymentDate] = useState("");
@@ -290,6 +297,10 @@ export default function InstantContractPage() {
     try {
       const payload = {
         contractType,
+        jurisdictionCountryCode,
+        currency,
+        taxTreatment,
+        taxRatePct: taxRatePct ? Number(taxRatePct) : 0,
         initiatorName,
         initiatorEmail: initiatorEmail.trim().toLowerCase(),
         initiatorPhone,
@@ -297,6 +308,8 @@ export default function InstantContractPage() {
         initiatorDesignation,
         initiatorNtn: isInitiatorBusiness ? initiatorNtn : undefined,
         initiatorCnic: !isInitiatorBusiness ? initiatorCnic : undefined,
+        initiatorTaxId: isInitiatorBusiness ? initiatorNtn : undefined,
+        initiatorNationalId: !isInitiatorBusiness ? initiatorCnic : undefined,
         initiatorCompanyName: isInitiatorBusiness ? initiatorCompanyName : undefined,
         initiatorCompanyAddress: isInitiatorBusiness ? initiatorCompanyAddress : undefined,
         brandName: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandName : undefined,
@@ -681,7 +694,44 @@ export default function InstantContractPage() {
                 3. Financial &amp; Payment Schedule
               </h3>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2 border-b border-gray-100">
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Governing Country Jurisdiction *</label>
+                  <select
+                    value={jurisdictionCountryCode}
+                    onChange={(e) => {
+                      setJurisdictionCountryCode(e.target.value);
+                      const jur = getJurisdiction(e.target.value);
+                      setCurrency(jur.defaultCurrency);
+                    }}
+                    className="input-field font-semibold"
+                  >
+                    {Object.values(JURISDICTIONS).map((j) => (
+                      <option key={j.countryCode} value={j.countryCode}>
+                        {j.countryName} ({j.lawAbbreviation})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-700">Contract Valuation Currency *</label>
+                  <select
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value)}
+                    className="input-field font-semibold"
+                  >
+                    {Object.keys(CURRENCY_MAP).map((code) => (
+                      <option key={code} value={code}>
+                        {code} ({CURRENCY_MAP[code].symbol})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
                 <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">Total Valuation Amount *</label>
                   <input
@@ -1406,7 +1456,9 @@ export default function InstantContractPage() {
         onClose={() => setIsSignModalOpen(false)}
         onConfirm={handleSaveSignature}
         loading={loading}
+        countryCode={jurisdictionCountryCode}
       />
+
     </div>
   );
 }

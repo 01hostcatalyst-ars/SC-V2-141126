@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { ContractType, Role, ContractStatus, SignerRole } from "@prisma/client";
+import { ContractType, Role, ContractStatus, SignerRole, CurrencyCode, TaxTreatmentType, PaymentMethod } from "@prisma/client";
 import { computeContentHash } from "@/lib/utils";
 
 export async function POST(req: Request) {
   try {
     const {
       contractType,
+      jurisdictionCountryCode = "US",
+      currency = "USD",
+      taxTreatment = "INCLUSIVE",
+      taxRatePct = 0,
       initiatorName,
       initiatorEmail,
       initiatorPhone,
@@ -15,6 +19,8 @@ export async function POST(req: Request) {
       initiatorDesignation,
       initiatorNtn,
       initiatorCnic,
+      initiatorTaxId,
+      initiatorNationalId,
       initiatorCompanyName,
       initiatorCompanyAddress,
       brandName,
@@ -27,6 +33,7 @@ export async function POST(req: Request) {
       advancePaymentDate,
       remainingPaymentDate,
       paymentMethod,
+      paymentRoutingDetails,
       bankAccountIban,
       mobileWalletNumber,
       deliveryTimeframeDays,
@@ -119,6 +126,10 @@ export async function POST(req: Request) {
       data: {
         contractNumber,
         contractType: contractType as ContractType,
+        jurisdictionCountryCode: jurisdictionCountryCode || "US",
+        currency: (currency as CurrencyCode) || CurrencyCode.USD,
+        taxTreatment: (taxTreatment as TaxTreatmentType) || TaxTreatmentType.INCLUSIVE,
+        taxRatePct: taxRatePct ? Number(taxRatePct) : 0,
         initiatorId: dbUser.id,
         status: ContractStatus.PENDING_RESPONDENT,
         brandName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandName : undefined,
@@ -130,14 +141,17 @@ export async function POST(req: Request) {
         initiatorPhone: initiatorPhone || undefined,
         initiatorCompanyName: initiatorCompanyName || undefined,
         initiatorCompanyAddress: initiatorCompanyAddress || undefined,
-        initiatorNtn: initiatorNtn || undefined,
-        initiatorCnic: initiatorCnic || undefined,
+        initiatorNtn: initiatorNtn || initiatorTaxId || undefined,
+        initiatorCnic: initiatorCnic || initiatorNationalId || undefined,
+        initiatorTaxId: initiatorTaxId || initiatorNtn || undefined,
+        initiatorNationalId: initiatorNationalId || initiatorCnic || undefined,
         totalAmount,
         advancePayment,
         advancePaymentDate: advancePaymentDate ? new Date(advancePaymentDate) : undefined,
         remainingAmount,
         remainingPaymentDate: remainingPaymentDate ? new Date(remainingPaymentDate) : undefined,
-        paymentMethod,
+        paymentMethod: paymentMethod as PaymentMethod,
+        paymentRoutingDetails: paymentRoutingDetails || undefined,
         bankAccountIban,
         mobileWalletNumber,
         deliveryTimeframeDays: Number(deliveryTimeframeDays),

@@ -44,6 +44,86 @@ enum PaymentMethod {
   BANK_IBAN
   JAZZCASH
   EASYPAISA
+  WIRE_TRANSFER
+  ACH_ROUTING
+  PAYPAL
+  WISE
+  SEPA
+  LOCAL_MOBILE_WALLET
+  CREDIT_DEBIT_CARD
+}
+
+enum CurrencyCode {
+  USD
+  EUR
+  GBP
+  AED
+  SAR
+  CAD
+  AUD
+  SGD
+  INR
+  PKR
+  BRL
+  MXN
+  COP
+  IDR
+  MYR
+  PHP
+  THB
+  VND
+  CNY
+  NGN
+  ZAR
+  KES
+  EGP
+  QAR
+  OMR
+  GHS
+  JMD
+}
+
+enum TaxTreatmentType {
+  INCLUSIVE
+  EXCLUSIVE
+  REVERSE_CHARGE
+  EXEMPT
+}
+
+enum TaxIdType {
+  EIN
+  SSN
+  VAT
+  TRN
+  GSTIN
+  ABN
+  NTN
+  CNPJ
+  CPF
+  RFC
+  TIN
+  GENERIC_TAX_ID
+}
+
+// Global Jurisdiction Reference Table
+model Jurisdiction {
+  id                    String        @id @default(uuid())
+  countryCode           String        @unique // e.g. "US", "GB", "AE", "PK"
+  countryName           String
+  governingLawName      String        // e.g. "ESIGN Act (2000) & UETA"
+  lawAbbreviation       String        // e.g. "US ESIGN"
+  arbitrationAct        String        // e.g. "American Arbitration Association (AAA) / Federal Arbitration Act"
+  defaultCurrency       CurrencyCode  @default(USD)
+  taxIdLabel            String        // e.g. "EIN / SSN"
+  nationalIdLabel       String        // e.g. "Government ID"
+  certificateNotice     String
+  disputeResolutionClause String     @db.Text
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  contracts             Contract[]
+
+  @@map("jurisdictions")
 }
 
 enum DeliverableType {
@@ -98,6 +178,10 @@ model Contract {
   verifyToken           String         @default(uuid()) @unique @map("verify_token")
   contractType          ContractType   @map("contract_type")
 
+  // Phase 2 Jurisdiction Link
+  jurisdictionCountryCode    String?             @map("jurisdiction_country_code")
+  jurisdiction                Jurisdiction?       @relation(fields: [jurisdictionCountryCode], references: [countryCode])
+
   // Parties
   initiatorId           String         @map("initiator_id")
   initiator             User           @relation("InitiatorContracts", fields: [initiatorId], references: [id])
@@ -121,15 +205,23 @@ model Contract {
   collabDetails         String?        @map("collab_details")
 
   // Financial
+  currency              CurrencyCode   @default(USD)
   totalAmount           Decimal        @map("total_amount")
   advancePayment        Decimal?       @map("advance_payment")
   advancePaymentDate    DateTime?      @map("advance_payment_date")
   remainingAmount       Decimal?       @map("remaining_amount")
   remainingPaymentDate  DateTime?      @map("remaining_payment_date")
   paymentMethod         PaymentMethod? @map("payment_method")
+  paymentRoutingDetails Json?          @map("payment_routing_details")
   bankAccountIban       String?        @map("bank_account_iban")
   mobileWalletNumber    String?        @map("mobile_wallet_number")
   advanceReceived       Boolean        @default(false) @map("advance_received")
+
+  // Tax Engine
+  taxTreatment          TaxTreatmentType @default(INCLUSIVE) @map("tax_treatment")
+  taxRatePct            Decimal?         @default(0.00) @map("tax_rate_pct")
+  taxAmount             Decimal?         @default(0.00) @map("tax_amount")
+  isReverseCharge       Boolean          @default(false) @map("is_reverse_charge")
 
   // Delivery
   deliveryTimeframeDays Int            @map("delivery_timeframe_days")
@@ -186,15 +278,22 @@ model Contract {
   initiatorCompanyAddress   String?        @map("initiator_company_address")
   initiatorNtn              String?        @map("initiator_ntn")
   initiatorCnic             String?        @map("initiator_cnic")
+  initiatorTaxIdType        TaxIdType?     @map("initiator_tax_id_type")
+  initiatorTaxId            String?        @map("initiator_tax_id")
+  initiatorNationalId       String?        @map("initiator_national_id")
 
   // Respondent identity fields
   respondentNtn             String?        @map("respondent_ntn")
   respondentCnic            String?        @map("respondent_cnic")
+  respondentTaxIdType       TaxIdType?     @map("respondent_tax_id_type")
+  respondentTaxId           String?        @map("respondent_tax_id")
+  respondentNationalId      String?        @map("respondent_national_id")
 
   // Respondent payout details (separate from initiator payment terms)
-  respondentPaymentMethod       PaymentMethod? @map("respondent_payment_method")
-  respondentBankAccountIban     String?        @map("respondent_bank_account_iban")
-  respondentMobileWalletNumber  String?        @map("respondent_mobile_wallet_number")
+  respondentPaymentMethod         PaymentMethod? @map("respondent_payment_method")
+  respondentPaymentRoutingDetails Json?          @map("respondent_payment_routing_details")
+  respondentBankAccountIban       String?        @map("respondent_bank_account_iban")
+  respondentMobileWalletNumber    String?        @map("respondent_mobile_wallet_number")
 
   // Brand Campaign / Creator details for Agency contracts
   brandName             String?        @map("brand_name")
@@ -224,6 +323,8 @@ model Contract {
   reminders             Reminder[]
 
   @@map("contracts")
+  @@index([paymentMethod])
+  @@index([jurisdictionCountryCode])
 }
 
 model Deliverable {

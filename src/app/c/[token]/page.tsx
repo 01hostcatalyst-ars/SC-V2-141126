@@ -196,6 +196,8 @@ export default function PublicSigningPage({ params }: PageProps) {
           designation: respondentDesignation,
           ntn: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
           cnic: isRespondentCreator ? respondentCnic : undefined,
+          taxId: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
+          nationalId: isRespondentCreator ? respondentCnic : undefined,
           respondentName,
           respondentEmail,
           respondentPhone,
@@ -204,7 +206,10 @@ export default function PublicSigningPage({ params }: PageProps) {
           respondentAddress,
           respondentNtn: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
           respondentCnic: isRespondentCreator ? respondentCnic : undefined,
+          respondentTaxId: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
+          respondentNationalId: isRespondentCreator ? respondentCnic : undefined,
           collabDetails: isRespondentCreator ? collabDetails : undefined,
+
           paymentMethod: isRespondentPayee ? paymentMethod : undefined,
           bankAccountIban: isRespondentPayee && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
           mobileWalletNumber: isRespondentPayee && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
@@ -875,7 +880,9 @@ export default function PublicSigningPage({ params }: PageProps) {
         onClose={() => setIsSignModalOpen(false)}
         onConfirm={handleSaveSignature}
         loading={signing}
+        countryCode={contract?.jurisdictionCountryCode || "US"}
       />
+
     </div>
   );
 }

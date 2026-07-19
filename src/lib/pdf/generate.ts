@@ -4,6 +4,44 @@ import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { formatLegalDate, parseUserAgentString, formatUsageLicenseText, formatDeliverableTypeName, computeContentHash } from "@/lib/utils";
+import { getJurisdiction } from "@/lib/config/jurisdictions";
+import { formatCurrencyAmount } from "@/lib/currency";
+import { calculateContractTax } from "@/lib/tax";
+
+function formatPaymentRoute(method: string | null | undefined, details: any): string {
+  if (!method) return "Pending";
+  
+  let d = details;
+  if (typeof d === "string") {
+    try { d = JSON.parse(d); } catch (_) { d = {}; }
+  } else if (!d) {
+    d = {};
+  }
+  
+  const m = method.toUpperCase();
+  switch (m) {
+    case "BANK_IBAN":
+      return `IBAN: ${d.iban || d.bankAccountIban || "N/A"}${d.swift || d.bankSwiftBic ? ` | SWIFT: ${d.swift || d.bankSwiftBic}` : ""}`;
+    case "WIRE_TRANSFER":
+      return `Bank: ${d.bankName || "N/A"} | Account: ${d.accountNo || d.bankAccountIban || "N/A"}${d.swift || d.bankSwiftBic ? ` | SWIFT: ${d.swift || d.bankSwiftBic}` : ""}`;
+    case "ACH_ROUTING":
+      return `Routing: ${d.routingNo || d.bankRoutingNumber || "N/A"} | Account: ${d.accountNo || d.bankAccountIban || "N/A"}`;
+    case "PAYPAL":
+      return `PayPal: ${d.paypalEmail || d.email || "N/A"}`;
+    case "WISE":
+      return `Wise Tag: ${d.wiseTag || "N/A"}`;
+    case "SEPA":
+      return `IBAN: ${d.iban || d.bankAccountIban || "N/A"}${d.bic || d.bankSwiftBic ? ` | BIC: ${d.bic || d.bankSwiftBic}` : ""}`;
+    case "LOCAL_MOBILE_WALLET":
+      return `Wallet Number: ${d.mobileWalletNumber || d.phone || "N/A"}`;
+    case "CREDIT_DEBIT_CARD":
+      return `Card On File`;
+    default:
+      if (d.bankAccountIban) return `IBAN: ${d.bankAccountIban}`;
+      if (d.mobileWalletNumber) return `Wallet: ${d.mobileWalletNumber}`;
+      return `${method.replace(/_/g, " ")}`;
+  }
+}
 
 export async function generateContractPDF(contractId: string): Promise<{ path: string; buffer: Buffer }> {
   // 1. Fetch full contract specifications with relations
@@ -18,6 +56,18 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
   });
 
   if (!contract) throw new Error("Contract not found");
+
+  const jur = getJurisdiction((contract as any).jurisdictionCountryCode || "US");
+  const currCode = (contract.currency as string) || jur.defaultCurrency || "USD";
+
+  const taxInfo = calculateContractTax(
+    {
+      totalValuation: Number(contract.totalAmount || 0),
+      taxTreatment: ((contract as any).taxTreatment as any) || "INCLUSIVE",
+      taxRatePct: Number((contract as any).taxRatePct || 0),
+    },
+    currCode
+  );
 
   const getRemainingAmount = () => {
     return Number(contract.totalAmount || 0) - Number(contract.advancePayment || 0);
@@ -48,6 +98,9 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
   };
 
   const finalDocHash = (contract as any).finalDocumentHash || contract.documentHash || computeContentHash(contract);
+
+  const partyATaxId = (contract as any).initiatorTaxId || contract.initiatorNtn;
+  const partyBTaxId = (contract as any).respondentTaxId || contract.respondentNtn;
 
   // Build high-grade legal contract HTML
   const fullHtml = `
@@ -211,7 +264,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <div style="text-align: right;">
             <div style="font-size: 9.5pt; font-weight: 800; color: #0f172a; text-transform: uppercase;">${getContractTitle()}</div>
             <div style="font-size: 7.2pt; color: #64748b; margin-top: 2px;">
-              Ref No: <strong style="color: #2563eb;">${contract.contractNumber}</strong> | Created: ${formatLegalDate(contract.createdAt)} | Structured under ETO 2002
+              Ref No: <strong style="color: #2563eb;">${contract.contractNumber}</strong> | Created: ${formatLegalDate(contract.createdAt)} | ${jur.lawAbbreviation} Compliant
             </div>
           </div>
         </div>
@@ -232,7 +285,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
             <div style="font-size: 10.5pt; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
               ${(contract.initiator as any)?.agencyName || (contract.initiator as any)?.companyName || contract.initiator?.name}
             </div>
-            ${contract.initiatorNtn ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">NTN / Reg: ${contract.initiatorNtn}</div>` : ""}
+            ${partyATaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyATaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
               <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">Authorized Signatory Representative</div>
               <div><strong>Representative:</strong> ${contract.initiator.name} ${contract.initiatorDesignation ? `(${contract.initiatorDesignation})` : ""}</div>
@@ -247,7 +300,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
             <div style="font-size: 10.5pt; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
               ${contract.respondentCompany || contract.creatorName || contract.respondentName || "Pending Execution"}
             </div>
-            ${contract.respondentNtn ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">NTN / Reg: ${contract.respondentNtn}</div>` : ""}
+            ${partyBTaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyBTaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
               <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">
                 ${contract.respondentCompany ? "Authorized Signatory Representative" : "Individual Signer Details"}
@@ -319,25 +372,27 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 8.5pt; border: 1px solid #cbd5e1;">
           <thead>
             <tr style="background-color: #f1f5f9; color: #0f172a; text-transform: uppercase; font-size: 8pt;">
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Total Campaign Valuation</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Advance Payment</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Total Valuation</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Tax Treatment &amp; Terms</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Advance Payout</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Remaining Payout</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Payment Method &amp; Route</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Payment Route</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 9.5pt;">PKR ${Number(contract.totalAmount).toLocaleString()}</td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 9.5pt;">${formatCurrencyAmount(Number(contract.totalAmount || 0), currCode)}</td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-size: 8pt;">${taxInfo.displayText}</td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
-                <strong>PKR ${Number(contract.advancePayment || 0).toLocaleString()}</strong>
+                <strong>${formatCurrencyAmount(Number(contract.advancePayment || 0), currCode)}</strong>
                 ${contract.advancePaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.advancePaymentDate)}</span>` : ""}
               </td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
-                <strong>PKR ${getRemainingAmount().toLocaleString()}</strong>
+                <strong>${formatCurrencyAmount(getRemainingAmount(), currCode)}</strong>
                 ${contract.remainingPaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.remainingPaymentDate)}</span>` : ""}
               </td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
-                <strong>${contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</strong>
+                <strong>${contract.paymentMethod ? (contract.paymentMethod as string).replace(/_/g, " ") : "Not Specified"}</strong>
                 <br /><span style="font-size: 7.5pt; font-family: monospace; color: #475569;">${contract.paymentMethod === "BANK_IBAN" ? (contract.bankAccountIban || "Pending") : (contract.mobileWalletNumber || "Pending")}</span>
               </td>
             </tr>
@@ -372,7 +427,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         </div>
         <div style="border: 1px solid ${contract.confidentialityRequired ? "#fde68a" : "#cbd5e1"}; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: ${contract.confidentialityRequired ? "#fffbeb" : "#ffffff"}; line-height: 1.6;">
           <div><strong>Pre-Launch NDA Status:</strong> ${contract.confidentialityRequired ? `Strict Pre-Launch NDA Active (Embargo Date: ${contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Official Release Date"})` : "Standard Commercial Confidentiality"}</div>
-          ${contract.confidentialityRequired && contract.earlyDisclosurePenalty ? `<div><strong>Early Leak Liquidated Damages:</strong> PKR ${Number(contract.earlyDisclosurePenalty).toLocaleString()}</div>` : ""}
+          ${contract.confidentialityRequired && contract.earlyDisclosurePenalty ? `<div><strong>Early Leak Liquidated Damages:</strong> ${formatCurrencyAmount(Number(contract.earlyDisclosurePenalty), currCode)}</div>` : ""}
         </div>
 
         <!-- Section 8: Collaboration Product Shipment & Loan Terms -->
@@ -388,13 +443,14 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1; color: #92400e;">
                 <div>• <strong>Product Loan Return:</strong> Required within <strong>${contract.collabProductReturnDays || 7} days</strong> post-deliverable. Return Shipping Paid By: <strong>${contract.collabProductReturnShippingBy || "Brand"}</strong>.</div>
                 ${contract.collabProductReturnAddress ? `<div>• Return Shipping Address: ${contract.collabProductReturnAddress}</div>` : ""}
-                ${contract.collabProductNonReturnFee ? `<div>• Non-Return Penalty Fee: <strong>PKR ${Number(contract.collabProductNonReturnFee).toLocaleString()}</strong></div>` : ""}
+                ${contract.collabProductNonReturnFee ? `<div>• Non-Return Penalty Fee: <strong>${formatCurrencyAmount(Number(contract.collabProductNonReturnFee), currCode)}</strong></div>` : ""}
               </div>
             ` : ""}
           ` : `
             <div>• <strong>Product Shipment Status:</strong> No physical product loan or shipment required for this collaboration. Deliverable delivery window commences post-execution and advance payment receipt as agreed.</div>
           `}
         </div>
+
 
         <!-- Section 9: Tagging Requirements & Copyright Ownership -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
@@ -423,16 +479,12 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           11. GOVERNING LAW &amp; DISPUTE RESOLUTION (ADR)
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
-          This Agreement is governed by the laws of the Islamic Republic of Pakistan. Any dispute arising out of or in connection with this Agreement shall first proceed to 14 days of mandatory good-faith negotiation between authorized executive representatives. If unresolved:
-          <br>
-          (a) Claims equal to or under <strong>PKR 500,000</strong> shall proceed to summary determination in local civil courts of competent jurisdiction;
-          <br>
-          (b) Claims exceeding <strong>PKR 500,000</strong> shall proceed to final and binding arbitration by a sole arbitrator under the <strong>Arbitration Act 1940 of Pakistan</strong>. The prevailing party shall be entitled to recover full legal costs and attorney fees.
+          ${jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>${jur.arbitrationAct}</strong>.
         </div>
 
-        <!-- Section 12: ETO 2002 Bilateral Signature Audit Log -->
+        <!-- Section 12: Bilateral Signature Audit Log -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          12. ETO 2002 BILATERAL SIGNATURE AUDIT LOG &amp; CRYPTOGRAPHIC VERIFICATION
+          12. ${jur.lawAbbreviation.toUpperCase()} BILATERAL SIGNATURE AUDIT LOG &amp; CRYPTOGRAPHIC VERIFICATION
         </div>
         <div style="display: flex; gap: 12px; margin-bottom: 14px;">
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; text-align: center; background: #ffffff;">
@@ -478,7 +530,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
         <!-- SHA-256 Footer Checksum Bar -->
         <div style="border-top: 1.5px solid #0f172a; margin-top: 20px; padding-top: 8px; text-align: center; font-size: 7.5pt; color: #475569; page-break-inside: avoid;">
-          <div style="font-size: 6.8pt; line-height: 1.35; color: #64748b; max-width: 95%; margin: 0 auto 4px auto;">PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging under Electronic Transactions Ordinance (ETO 2002) guidelines. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
+          <div style="font-size: 6.8pt; line-height: 1.35; color: #64748b; max-width: 95%; margin: 0 auto 4px auto;">PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging in compliance with ${jur.governingLawName}. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
           <div style="font-family: monospace; font-weight: bold; margin-top: 2px;">BILATERAL EXECUTED SHA-256: <span style="color: #2563eb;">${finalDocHash}</span></div>
         </div>
       </body>
@@ -501,51 +553,4 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
       }
     }
     if (!executablePath) {
-      throw new Error("Could not locate local Chrome or Edge browser executable on Windows.");
-    }
-  } else {
-    executablePath = await chromium.executablePath();
-  }
-
-  const browser = await puppeteer.launch({
-    args: process.platform === "win32" ? [] : chromium.args,
-    executablePath,
-    headless: true,
-  });
-
-  const page = await browser.newPage();
-  await page.setContent(fullHtml, { waitUntil: "domcontentloaded" });
-  const pdfBuffer = await page.pdf({
-    format: "A4",
-    printBackground: true,
-    margin: { top: "12mm", bottom: "12mm", left: "12mm", right: "12mm" },
-  });
-  await browser.close();
-
-  // 4. Compute SHA-256 integrity hash over rendered PDF binary buffer
-  const pdfBinaryHash = crypto.createHash("sha256").update(pdfBuffer).digest("hex");
-
-  // 5. Upload document to Supabase storage
-  const filePath = `agreements/${contractId}.pdf`;
-  const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-    .from("profiles")
-    .upload(filePath, pdfBuffer, {
-      contentType: "application/pdf",
-      upsert: true,
-    });
-
-  if (uploadError) throw new Error(uploadError.message);
-
-  // 6. Write PDF metadata & binary file checksum into Contract table in PostgreSQL
-  await prisma.contract.update({
-    where: { id: contractId },
-    data: {
-      finalDocumentHash: finalDocHash,
-      documentHash: finalDocHash,
-      pdfBinaryHash,
-      pdfUrl: uploadData.path,
-    },
-  });
-
-  return { path: uploadData.path, buffer: Buffer.from(pdfBuffer) };
-}
+      thr

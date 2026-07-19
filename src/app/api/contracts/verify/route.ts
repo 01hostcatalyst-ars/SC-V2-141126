@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getJurisdiction } from "@/lib/config/jurisdictions";
 
 export async function POST(req: Request) {
   try {
@@ -64,6 +65,8 @@ export async function POST(req: Request) {
       });
     }
 
+    const jur = getJurisdiction((contract as any).jurisdictionCountryCode || "US");
+
     // State 3 Check: Token found, but file hash was sent and didn't match pdfBinaryHash
     if (fileHash && contract.pdfBinaryHash && contract.pdfBinaryHash.toLowerCase() !== fileHash.toLowerCase()) {
       return NextResponse.json({
@@ -86,6 +89,13 @@ export async function POST(req: Request) {
         verifyToken: contract.verifyToken,
         createdAt: contract.createdAt,
         dealLifecycle: contract.status,
+        jurisdiction: {
+          country: jur.countryName,
+          countryCode: jur.countryCode,
+          law: jur.governingLawName,
+          lawAbbreviation: jur.lawAbbreviation,
+          arbitration: jur.arbitrationAct,
+        },
       });
     }
 
@@ -138,10 +148,19 @@ export async function POST(req: Request) {
       isEmbargoActive,
       embargoDate: contract.embargoDate,
 
+      // Jurisdiction Info
+      jurisdiction: {
+        country: jur.countryName,
+        countryCode: jur.countryCode,
+        law: jur.governingLawName,
+        lawAbbreviation: jur.lawAbbreviation,
+        arbitration: jur.arbitrationAct,
+      },
+
       // Truncated Hashes & Integrity Proof
       finalDocumentHashTruncated: formatHashTruncated(contract.finalDocumentHash),
       pdfBinaryHash: contract.pdfBinaryHash,
-      complianceStandard: "Pakistan ETO 2002 Ordinance Framework",
+      complianceStandard: jur.governingLawName,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
