@@ -7,6 +7,7 @@ import { getCompanyConfig } from "@/lib/config";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
 import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
 import { CURRENCY_MAP } from "@/lib/currency";
+import { ModernSelect } from "@/components/ui/ModernSelect";
 
 interface DeliverableItem {
   type: string;
@@ -40,83 +41,6 @@ const USAGE_TYPE_OPTIONS = [
   { id: "BILLBOARD_PRINT", label: "Print and Billboard" },
   { id: "ALL_MEDIA", label: "Full Commercial Broadcast" },
 ];
-
-interface ModernSelectProps {
-  label?: string;
-  value: string;
-  onChange: (val: string) => void;
-  disabled?: boolean;
-  options: { value: string; label: string; sublabel?: string }[];
-  className?: string;
-}
-
-function ModernSelect({ label, value, onChange, disabled, options, className }: ModernSelectProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  const selectedOpt = options.find((o) => o.value === value) || options[0];
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className="flex flex-col text-left gap-1 relative" ref={dropdownRef}>
-      {label && <label className="text-xs font-bold text-gray-800">{label}</label>}
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full py-3 px-4 rounded-xl border text-left font-semibold text-xs flex items-center justify-between transition-all bg-white shadow-sm hover:border-black focus:outline-none ${
-          disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200" : "border-black text-black bg-blue-50/50 cursor-pointer hover:bg-white"
-        } ${className || ""}`}
-      >
-        <span className="truncate">{selectedOpt?.label}</span>
-        <svg
-          className={`w-4 h-4 text-gray-700 shrink-0 ml-2 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {isOpen && !disabled && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto py-1 animate-fadeIn">
-          {options.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => {
-                onChange(opt.value);
-                setIsOpen(false);
-              }}
-              className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-all flex flex-col justify-center ${
-                opt.value === value
-                  ? "bg-black text-white"
-                  : "text-gray-800 hover:bg-gray-100"
-              }`}
-            >
-              <span>{opt.label}</span>
-              {opt.sublabel && (
-                <span className={`text-[10px] mt-0.5 font-normal ${opt.value === value ? "text-gray-300" : "text-gray-500"}`}>
-                  {opt.sublabel}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function InstantContractPage() {
   const company = getCompanyConfig();
@@ -668,22 +592,21 @@ export default function InstantContractPage() {
                     )}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Format</label>
-                      <select
-                        value={item.type}
-                        onChange={(e) => handleDeliverableChange(idx, "type", e.target.value)}
-                        className="input-field text-xs"
-                      >
-                        <option value="REEL">Reel</option>
-                        <option value="STORY">Story</option>
-                        <option value="CAROUSEL_POST">Carousel Post</option>
-                        <option value="IMAGE_POST">Single Post</option>
-                        <option value="TIKTOK_VIDEO">Short Video</option>
-                        <option value="YOUTUBE_VIDEO">Long-form Video</option>
-                        <option value="LIVE_SESSION">Live Session</option>
-                      </select>
-                    </div>
+                    <ModernSelect
+                      label="Format"
+                      size="sm"
+                      value={item.type}
+                      onChange={(val) => handleDeliverableChange(idx, "type", val)}
+                      options={[
+                        { value: "REEL", label: "Reel" },
+                        { value: "STORY", label: "Story" },
+                        { value: "CAROUSEL_POST", label: "Carousel Post" },
+                        { value: "IMAGE_POST", label: "Single Post" },
+                        { value: "TIKTOK_VIDEO", label: "Short Video" },
+                        { value: "YOUTUBE_VIDEO", label: "Long-form Video" },
+                        { value: "LIVE_SESSION", label: "Live Session" },
+                      ]}
+                    />
 
                     <div>
                       <label className="text-[10px] font-bold text-gray-500 uppercase">Quantity</label>
@@ -692,26 +615,25 @@ export default function InstantContractPage() {
                         min="1"
                         value={item.quantity}
                         onChange={(e) => handleDeliverableChange(idx, "quantity", e.target.value)}
-                        className="input-field text-xs"
+                        className="input-field text-xs py-2.5"
                       />
                     </div>
 
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Stay Published</label>
-                      <select
-                        value={item.duration}
-                        onChange={(e) => handleDeliverableChange(idx, "duration", e.target.value)}
-                        className="input-field text-xs"
-                      >
-                        <option value="1 Day">1 Day</option>
-                        <option value="1 Week">1 Week</option>
-                        <option value="1 Month">1 Month</option>
-                        <option value="2 Months">2 Months</option>
-                        <option value="3 Months">3 Months</option>
-                        <option value="6 Months">6 Months</option>
-                        <option value="1 Year">1 Year</option>
-                      </select>
-                    </div>
+                    <ModernSelect
+                      label="Stay Published"
+                      size="sm"
+                      value={item.duration}
+                      onChange={(val) => handleDeliverableChange(idx, "duration", val)}
+                      options={[
+                        { value: "1 Day", label: "1 Day" },
+                        { value: "1 Week", label: "1 Week" },
+                        { value: "1 Month", label: "1 Month" },
+                        { value: "2 Months", label: "2 Months" },
+                        { value: "3 Months", label: "3 Months" },
+                        { value: "6 Months", label: "6 Months" },
+                        { value: "1 Year", label: "1 Year" },
+                      ]}
+                    />
 
                     <div>
                       <label className="text-[10px] font-bold text-gray-500 uppercase">Notes</label>
@@ -807,20 +729,18 @@ export default function InstantContractPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col text-left gap-1 pt-2">
-                <label className="text-xs font-bold text-gray-700">License Duration</label>
-                <select
-                  value={usageRightsDuration}
-                  onChange={(e) => setUsageRightsDuration(e.target.value)}
-                  className="input-field"
-                >
-                  <option value="30 Days">30 Days</option>
-                  <option value="90 Days">90 Days</option>
-                  <option value="6 Months">6 Months</option>
-                  <option value="12 Months">12 Months</option>
-                  <option value="Perpetual">Perpetual Commercial Usage</option>
-                </select>
-              </div>
+              <ModernSelect
+                label="License Duration"
+                value={usageRightsDuration}
+                onChange={(val) => setUsageRightsDuration(val)}
+                options={[
+                  { value: "30 Days", label: "30 Days" },
+                  { value: "90 Days", label: "90 Days" },
+                  { value: "6 Months", label: "6 Months" },
+                  { value: "12 Months", label: "12 Months" },
+                  { value: "Perpetual", label: "Perpetual Commercial Usage" },
+                ]}
+              />
             </div>
 
             {/* SECTION 3: Financial & Payment Schedule */}
@@ -893,34 +813,29 @@ export default function InstantContractPage() {
 
                 {isInitiatorPayee ? (
                   <>
-                    <div className="flex flex-col text-left gap-1">
-                      <label className="text-xs font-bold text-gray-700">Receiving Payment Method *</label>
-                      <select
-                        value={paymentMethod}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="input-field"
-                      >
-                        {(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((m) => {
-                          const labelMap: Record<string, string> = {
-                            BANK_IBAN: "Bank Transfer (IBAN)",
-                            ACH_ROUTING: "ACH Direct Routing",
-                            WIRE_TRANSFER: "Wire Transfer",
-                            SEPA: "SEPA Transfer",
-                            JAZZCASH: "JazzCash Mobile",
-                            EASYPAISA: "EasyPaisa Mobile",
-                            PAYPAL: "PayPal",
-                            WISE: "Wise Transfer",
-                            LOCAL_MOBILE_WALLET: "Mobile Wallet",
-                            CREDIT_DEBIT_CARD: "Card On File",
-                          };
-                          return (
-                            <option key={m} value={m}>
-                              {labelMap[m] || m.replace(/_/g, " ")}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
+                    <ModernSelect
+                      label="Receiving Payment Method *"
+                      value={paymentMethod}
+                      onChange={(val) => setPaymentMethod(val)}
+                      options={(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((m) => {
+                        const labelMap: Record<string, string> = {
+                          BANK_IBAN: "Bank Transfer (IBAN)",
+                          ACH_ROUTING: "ACH Direct Routing",
+                          WIRE_TRANSFER: "Wire Transfer",
+                          SEPA: "SEPA Transfer",
+                          JAZZCASH: "JazzCash Mobile",
+                          EASYPAISA: "EasyPaisa Mobile",
+                          PAYPAL: "PayPal",
+                          WISE: "Wise Transfer",
+                          LOCAL_MOBILE_WALLET: "Mobile Wallet",
+                          CREDIT_DEBIT_CARD: "Card On File",
+                        };
+                        return {
+                          value: m,
+                          label: labelMap[m] || m.replace(/_/g, " "),
+                        };
+                      })}
+                    />
 
                     {paymentMethod === "BANK_IBAN" || paymentMethod === "SEPA" || paymentMethod === "WIRE_TRANSFER" || paymentMethod === "ACH_ROUTING" ? (
                       <div className="flex flex-col text-left gap-1">
@@ -995,18 +910,16 @@ export default function InstantContractPage() {
                   />
                 </div>
 
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Revision Rounds</label>
-                  <select
-                    value={revisionRounds}
-                    onChange={(e) => setRevisionRounds(e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="1">1 Round</option>
-                    <option value="2">2 Rounds</option>
-                    <option value="3">3 Rounds</option>
-                  </select>
-                </div>
+                <ModernSelect
+                  label="Revision Rounds"
+                  value={revisionRounds}
+                  onChange={(val) => setRevisionRounds(val)}
+                  options={[
+                    { value: "1", label: "1 Round" },
+                    { value: "2", label: "2 Rounds" },
+                    { value: "3", label: "3 Rounds" },
+                  ]}
+                />
 
                 <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">Revision Turnaround (Days)</label>
@@ -1036,17 +949,16 @@ export default function InstantContractPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-500 uppercase">Provision Type</label>
-                    <select
-                      value={collabProductProvisionType}
-                      onChange={(e) => setCollabProductProvisionType(e.target.value)}
-                      className="input-field text-xs"
-                    >
-                      <option value="Product Provision">Gift / Complimentary Provision</option>
-                      <option value="Product Loan">Product Loan (Must Be Returned)</option>
-                    </select>
-                  </div>
+                  <ModernSelect
+                    label="Provision Type"
+                    size="sm"
+                    value={collabProductProvisionType}
+                    onChange={(val) => setCollabProductProvisionType(val)}
+                    options={[
+                      { value: "Product Provision", label: "Gift / Complimentary Provision" },
+                      { value: "Product Loan", label: "Product Loan (Must Be Returned)" },
+                    ]}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -1095,17 +1007,16 @@ export default function InstantContractPage() {
                       />
                     </div>
 
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Return Shipping Paid By</label>
-                      <select
-                        value={collabProductReturnShippingBy}
-                        onChange={(e) => setCollabProductReturnShippingBy(e.target.value)}
-                        className="input-field text-xs"
-                      >
-                        <option value="Brand">Brand / Agency</option>
-                        <option value="Creator">Creator</option>
-                      </select>
-                    </div>
+                    <ModernSelect
+                      label="Return Shipping Paid By"
+                      size="sm"
+                      value={collabProductReturnShippingBy}
+                      onChange={(val) => setCollabProductReturnShippingBy(val)}
+                      options={[
+                        { value: "Brand", label: "Brand / Agency" },
+                        { value: "Creator", label: "Creator" },
+                      ]}
+                    />
 
                     <div>
                       <label className="text-[10px] font-bold text-gray-500 uppercase">Non-Return Penalty Fee</label>
@@ -1129,32 +1040,30 @@ export default function InstantContractPage() {
               </h3>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">Late Pay Penalty (%/d)</label>
-                  <select
-                    value={latePaymentPenaltyPct}
-                    onChange={(e) => setLatePaymentPenaltyPct(e.target.value)}
-                    className="input-field text-xs font-bold"
-                  >
-                    <option value="0">0%</option>
-                    <option value="0.5">0.5%</option>
-                    <option value="1">1%</option>
-                    <option value="2">2%</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">Late Content (%/d)</label>
-                  <select
-                    value={lateContentPenaltyPct}
-                    onChange={(e) => setLateContentPenaltyPct(e.target.value)}
-                    className="input-field text-xs font-bold"
-                  >
-                    <option value="0">0%</option>
-                    <option value="0.5">0.5%</option>
-                    <option value="1">1%</option>
-                    <option value="2">2%</option>
-                  </select>
-                </div>
+                <ModernSelect
+                  label="Late Pay Penalty (%/d)"
+                  size="sm"
+                  value={latePaymentPenaltyPct}
+                  onChange={(val) => setLatePaymentPenaltyPct(val)}
+                  options={[
+                    { value: "0", label: "0%" },
+                    { value: "0.5", label: "0.5%" },
+                    { value: "1", label: "1%" },
+                    { value: "2", label: "2%" },
+                  ]}
+                />
+                <ModernSelect
+                  label="Late Content (%/d)"
+                  size="sm"
+                  value={lateContentPenaltyPct}
+                  onChange={(val) => setLateContentPenaltyPct(val)}
+                  options={[
+                    { value: "0", label: "0%" },
+                    { value: "0.5", label: "0.5%" },
+                    { value: "1", label: "1%" },
+                    { value: "2", label: "2%" },
+                  ]}
+                />
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase">Max Penalty Cap (%)</label>
                   <input

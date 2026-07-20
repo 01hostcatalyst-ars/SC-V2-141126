@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/Toast";
 import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
 import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
 import { CURRENCY_MAP, formatCurrencyAmount } from "@/lib/currency";
+import { ModernSelect } from "@/components/ui/ModernSelect";
 
 
 interface DeliverableItem {
@@ -458,20 +459,19 @@ export default function NewContractPage() {
           </div>
 
           {contractType === "AGENCY_TO_CREATOR" && agencyContracts.length > 0 && (
-            <div className="flex flex-col gap-1 mt-3 border-t border-gray-100 pt-3">
-              <label className="text-xs font-bold uppercase tracking-wider text-black">Link to Brand Campaign (Optional)</label>
-              <select
-                className="input-field mt-1"
+            <div className="mt-3 border-t border-gray-100 pt-3">
+              <ModernSelect
+                label="Link to Brand Campaign (Optional)"
                 value={linkedContractId}
-                onChange={(e) => setLinkedContractId(e.target.value)}
-              >
-                <option value="">No Linked Campaign</option>
-                {agencyContracts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.contractNumber} (Brand Deal)
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setLinkedContractId(val)}
+                options={[
+                  { value: "", label: "No Linked Campaign" },
+                  ...agencyContracts.map((c) => ({
+                    value: c.id,
+                    label: `${c.contractNumber} (Brand Deal)`,
+                  })),
+                ]}
+              />
             </div>
           )}
 
@@ -740,52 +740,50 @@ export default function NewContractPage() {
                     </button>
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold uppercase text-gray-400">Platform Format</label>
-                      <select
-                        className="input-field"
-                        value={d.type}
-                        onChange={(e) => handleDeliverableChange(index, "type", e.target.value)}
-                      >
-                        <option value="REEL">Reel</option>
-                        <option value="STORY">Story</option>
-                        <option value="IMAGE_POST">Post</option>
-                        <option value="CAROUSEL_POST">Carousel</option>
-                        <option value="YOUTUBE_VIDEO">Video</option>
-                        <option value="TIKTOK_VIDEO">Short Video</option>
-                        <option value="LIVE_SESSION">Live Stream</option>
-                        <option value="AD">Paid Ad</option>
-                      </select>
-                    </div>
+                    <ModernSelect
+                      label="Platform Format"
+                      size="sm"
+                      value={d.type}
+                      onChange={(val) => handleDeliverableChange(index, "type", val)}
+                      options={[
+                        { value: "REEL", label: "Reel" },
+                        { value: "STORY", label: "Story" },
+                        { value: "IMAGE_POST", label: "Post" },
+                        { value: "CAROUSEL_POST", label: "Carousel" },
+                        { value: "YOUTUBE_VIDEO", label: "Video" },
+                        { value: "TIKTOK_VIDEO", label: "Short Video" },
+                        { value: "LIVE_SESSION", label: "Live Stream" },
+                        { value: "AD", label: "Paid Ad" },
+                      ]}
+                    />
 
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] font-bold uppercase text-gray-400">Quantity</label>
                       <input
                         type="number"
                         min={1}
-                        className="input-field"
+                        className="input-field py-2.5"
                         value={d.quantity}
                         onChange={(e) => handleDeliverableChange(index, "quantity", parseInt(e.target.value) || 1)}
                       />
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold uppercase text-gray-400">Stay Published</label>
-                      <select
-                        className="input-field"
-                        value={d.duration || "1 Month"}
-                        onChange={(e) => handleDeliverableChange(index, "duration", e.target.value)}
-                      >
-                        <option value="1 Day">1 Day</option>
-                        <option value="1 Week">1 Week</option>
-                        <option value="1 Month">1 Month</option>
-                        <option value="2 Months">2 Months</option>
-                        <option value="3 Months">3 Months</option>
-                        <option value="6 Months">6 Months</option>
-                        <option value="1 Year">1 Year</option>
-                        <option value="Permanent">Permanent</option>
-                      </select>
-                    </div>
+                    <ModernSelect
+                      label="Stay Published"
+                      size="sm"
+                      value={d.duration || "1 Month"}
+                      onChange={(val) => handleDeliverableChange(index, "duration", val)}
+                      options={[
+                        { value: "1 Day", label: "1 Day" },
+                        { value: "1 Week", label: "1 Week" },
+                        { value: "1 Month", label: "1 Month" },
+                        { value: "2 Months", label: "2 Months" },
+                        { value: "3 Months", label: "3 Months" },
+                        { value: "6 Months", label: "6 Months" },
+                        { value: "1 Year", label: "1 Year" },
+                        { value: "Permanent", label: "Permanent" },
+                      ]}
+                    />
                   </div>
 
                   <div className="flex flex-col gap-1">
@@ -898,53 +896,41 @@ export default function NewContractPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pb-4 border-b border-gray-100">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-gray-500">Jurisdiction *</label>
-                <select
-                  value={jurisdictionCountryCode}
-                  onChange={(e) => {
-                    setJurisdictionCountryCode(e.target.value);
-                    const selectedJur = getJurisdiction(e.target.value);
-                    setCurrency(selectedJur.defaultCurrency);
-                  }}
-                  className="input-field text-xs font-semibold"
-                >
-                  {Object.values(JURISDICTIONS).map((j) => (
-                    <option key={j.countryCode} value={j.countryCode}>
-                      {j.countryName} ({j.lawAbbreviation})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <ModernSelect
+                label="Jurisdiction *"
+                value={jurisdictionCountryCode}
+                onChange={(val) => {
+                  setJurisdictionCountryCode(val);
+                  const selectedJur = getJurisdiction(val);
+                  setCurrency(selectedJur.defaultCurrency);
+                }}
+                options={Object.values(JURISDICTIONS).map((j) => ({
+                  value: j.countryCode,
+                  label: `${j.countryName} (${j.lawAbbreviation})`,
+                }))}
+              />
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-gray-500">Currency *</label>
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="input-field text-xs font-semibold"
-                >
-                  {Object.keys(CURRENCY_MAP).map((code) => (
-                    <option key={code} value={code}>
-                      {code} ({CURRENCY_MAP[code].symbol})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <ModernSelect
+                label="Currency *"
+                value={currency}
+                onChange={(val) => setCurrency(val)}
+                options={Object.keys(CURRENCY_MAP).map((code) => ({
+                  value: code,
+                  label: `${code} (${CURRENCY_MAP[code].symbol})`,
+                }))}
+              />
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-gray-500">Tax Treatment *</label>
-                <select
-                  value={taxTreatment}
-                  onChange={(e) => setTaxTreatment(e.target.value)}
-                  className="input-field text-xs"
-                >
-                  <option value="INCLUSIVE">Tax Inclusive</option>
-                  <option value="EXCLUSIVE">Tax Exclusive</option>
-                  <option value="REVERSE_CHARGE">Reverse Charge</option>
-                  <option value="EXEMPT">Tax Exempt</option>
-                </select>
-              </div>
+              <ModernSelect
+                label="Tax Treatment *"
+                value={taxTreatment}
+                onChange={(val) => setTaxTreatment(val)}
+                options={[
+                  { value: "INCLUSIVE", label: "Tax Inclusive" },
+                  { value: "EXCLUSIVE", label: "Tax Exclusive" },
+                  { value: "REVERSE_CHARGE", label: "Reverse Charge" },
+                  { value: "EXEMPT", label: "Tax Exempt" },
+                ]}
+              />
 
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold uppercase text-gray-500">Tax Rate (%)</label>
@@ -955,7 +941,7 @@ export default function NewContractPage() {
                   value={taxRatePct}
                   onChange={(e) => setTaxRatePct(e.target.value)}
                   placeholder="e.g. 18"
-                  className="input-field text-xs"
+                  className="input-field text-xs py-2.5"
                 />
               </div>
             </div>
@@ -1161,15 +1147,16 @@ export default function NewContractPage() {
             {/* Product Shipment & Product Loan Return Terms */}
             <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-black">Collaboration Product Shipment</label>
-                <select
-                  className="text-xs font-bold bg-white border border-gray-200 p-2 rounded-lg w-full sm:w-auto"
+                <ModernSelect
+                  label="Collaboration Product Shipment"
                   value={collabProductProvisionType}
-                  onChange={(e) => setCollabProductProvisionType(e.target.value)}
-                >
-                  <option value="Product Provision">Product Provision (Gifted / Retained)</option>
-                  <option value="Product Loan">Product Loan (Must Be Returned)</option>
-                </select>
+                  onChange={(val) => setCollabProductProvisionType(val)}
+                  options={[
+                    { value: "Product Provision", label: "Product Provision (Gifted / Retained)" },
+                    { value: "Product Loan", label: "Product Loan (Must Be Returned)" },
+                  ]}
+                  className="w-full sm:w-auto min-w-[280px]"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1218,17 +1205,16 @@ export default function NewContractPage() {
                         onChange={(e) => setCollabProductReturnDays(e.target.value)}
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold text-gray-500">Return Shipping Paid By</label>
-                      <select
-                        className="input-field"
-                        value={collabProductReturnShippingBy}
-                        onChange={(e) => setCollabProductReturnShippingBy(e.target.value)}
-                      >
-                        <option value="Brand">Brand</option>
-                        <option value="Creator">Creator / Agency</option>
-                      </select>
-                    </div>
+                    <ModernSelect
+                      label="Return Shipping Paid By"
+                      size="sm"
+                      value={collabProductReturnShippingBy}
+                      onChange={(val) => setCollabProductReturnShippingBy(val)}
+                      options={[
+                        { value: "Brand", label: "Brand" },
+                        { value: "Creator", label: "Creator / Agency" },
+                      ]}
+                    />
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] font-bold text-gray-500">Non-Return / Damage Fee (PKR)</label>
                       <input
@@ -1345,32 +1331,30 @@ export default function NewContractPage() {
               <span className="text-xs font-bold uppercase tracking-wider text-black block">Bilateral Safeguard Penalties &amp; Caps</span>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-500">Late Payment Penalty (%/d)</label>
-                  <select
-                    className="input-field font-bold text-xs"
-                    value={latePaymentPenaltyPct}
-                    onChange={(e) => setLatePaymentPenaltyPct(e.target.value)}
-                  >
-                    <option value="0">0%</option>
-                    <option value="0.5">0.5%</option>
-                    <option value="1">1%</option>
-                    <option value="2">2%</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-500">Late Content Penalty (%/d)</label>
-                  <select
-                    className="input-field font-bold text-xs"
-                    value={lateContentPenaltyPct}
-                    onChange={(e) => setLateContentPenaltyPct(e.target.value)}
-                  >
-                    <option value="0">0%</option>
-                    <option value="0.5">0.5%</option>
-                    <option value="1">1%</option>
-                    <option value="2">2%</option>
-                  </select>
-                </div>
+                <ModernSelect
+                  label="Late Payment Penalty (%/d)"
+                  size="sm"
+                  value={latePaymentPenaltyPct}
+                  onChange={(val) => setLatePaymentPenaltyPct(val)}
+                  options={[
+                    { value: "0", label: "0%" },
+                    { value: "0.5", label: "0.5%" },
+                    { value: "1", label: "1%" },
+                    { value: "2", label: "2%" },
+                  ]}
+                />
+                <ModernSelect
+                  label="Late Content Penalty (%/d)"
+                  size="sm"
+                  value={lateContentPenaltyPct}
+                  onChange={(val) => setLateContentPenaltyPct(val)}
+                  options={[
+                    { value: "0", label: "0%" },
+                    { value: "0.5", label: "0.5%" },
+                    { value: "1", label: "1%" },
+                    { value: "2", label: "2%" },
+                  ]}
+                />
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase text-gray-500">Maximum Penalty Cap (%) (0% - 20%)</label>
                   <input
