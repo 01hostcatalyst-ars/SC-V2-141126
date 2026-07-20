@@ -120,6 +120,43 @@ export default function InstantContractPage() {
   const [initiatorCompanyName, setInitiatorCompanyName] = useState("");
   const [initiatorCompanyAddress, setInitiatorCompanyAddress] = useState("");
 
+  // Party 1 / Initiator Email 24h limit live check state
+  const [emailLimitChecking, setEmailLimitChecking] = useState(false);
+  const [emailLimitReached, setEmailLimitReached] = useState(false);
+  const [emailLimitMessage, setEmailLimitMessage] = useState("");
+
+  // Live check DB for 24h guest contract quota as user types/edits initiatorEmail
+  React.useEffect(() => {
+    if (!initiatorEmail || !initiatorEmail.includes("@") || !initiatorEmail.includes(".")) {
+      setEmailLimitReached(false);
+      setEmailLimitMessage("");
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setEmailLimitChecking(true);
+        const res = await fetch(`/api/guest/check-limit?email=${encodeURIComponent(initiatorEmail.trim().toLowerCase())}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.limitReached) {
+            setEmailLimitReached(true);
+            setEmailLimitMessage("Guest limit reached (2 contracts per 24h for this email). Please change email address to continue or create a free account.");
+          } else {
+            setEmailLimitReached(false);
+            setEmailLimitMessage("");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check email limit", err);
+      } finally {
+        setEmailLimitChecking(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [initiatorEmail]);
+
   // Derived: is the initiator a business entity (Agency/Brand) or individual (Creator)?
   const isInitiatorBusiness = initiatorRole === "AGENCY" || initiatorRole === "BRAND";
 
@@ -285,6 +322,10 @@ export default function InstantContractPage() {
         setInitiatorOtpDispatched(true);
       } else {
         setErrorMsg(data.error || "Failed to send verification code.");
+        if (data.limitReached) {
+          setEmailLimitReached(true);
+          setEmailLimitMessage(data.error);
+        }
       }
     } catch (err: any) {
       setErrorMsg("Error sending verification code.");
@@ -371,6 +412,10 @@ export default function InstantContractPage() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data.limitReached) {
+          setEmailLimitReached(true);
+          setEmailLimitMessage(data.error);
+        }
         throw new Error(data.error || "Failed to generate instant contract.");
       }
 
@@ -1188,7 +1233,12 @@ export default function InstantContractPage() {
                 </div>
 
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Your Email Address *</label>
+                  <label className="text-xs font-bold text-gray-700 flex items-center justify-between">
+                    <span>Your Email Address *</span>
+                    {emailLimitChecking && (
+                      <span className="text-[10px] text-blue-600 font-semibold animate-pulse">Checking 24h quota...</span>
+                    )}
+                  </label>
                   <input
                     type="email"
                     required
@@ -1196,8 +1246,23 @@ export default function InstantContractPage() {
                     placeholder="sarah@example.com"
                     value={initiatorEmail}
                     onChange={(e) => setInitiatorEmail(e.target.value)}
-                    className="input-field disabled:bg-gray-100"
+                    className={`input-field disabled:bg-gray-100 ${
+                      emailLimitReached ? "border-2 border-rose-500 bg-rose-50/60 text-rose-950 font-semibold focus:ring-rose-400" : ""
+                    }`}
                   />
+                  {emailLimitReached && (
+                    <div className="p-3 bg-rose-50 border-2 border-rose-200 rounded-xl text-rose-900 text-xs font-medium space-y-1.5 mt-1 shadow-sm animate-fadeIn">
+                      <div className="flex items-start gap-1.5 font-bold">
+                        <span className="text-rose-600 shrink-0 text-base">⚠</span>
+                        <span>
+                          Quota Exceeded: This email address ({initiatorEmail}) has already created 2 contracts in the last 24 hours.
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-rose-800 leading-relaxed pl-5">
+                        💡 <strong>Instant Fix:</strong> Type a different email address above to continue right away without losing any filled form data, or <a href="/login" className="underline font-bold text-rose-950 hover:text-black">Log In / Sign Up</a> for unlimited contracts!
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col text-left gap-1">
@@ -1455,14 +1520,18 @@ export default function InstantContractPage() {
                         <button
                           type="button"
                           onClick={handleSendInitiatorOtp}
-                          disabled={!initiatorEmail || !initiatorName || !initiatorPhone || !initiatorDesignation || !initiatorSignatureB64 || initiatorOtpLoading}
+                          disabled={!initiatorEmail || !initiatorName || !initiatorPhone || !initiatorDesignation || !initiatorSignatureB64 || initiatorOtpLoading || emailLimitReached}
                           className={`font-extrabold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap shrink-0 ${
-                            initiatorEmail && initiatorName && initiatorPhone && initiatorDesignation && initiatorSignatureB64 && !initiatorOtpLoading
+                            initiatorEmail && initiatorName && initiatorPhone && initiatorDesignation && initiatorSignatureB64 && !initiatorOtpLoading && !emailLimitReached
                               ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
                               : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
                           }`}
                         >
-                          {initiatorOtpLoading ? "Sending OTP..." : "Send OTP ➔"}
+                          {emailLimitReached
+                            ? "24h Limit Reached (Change Email)"
+                            : initiatorOtpLoading
+                            ? "Sending OTP..."
+                            : "Send OTP ➔"}
                         </button>
                       ) : (
                         <div className="flex flex-wrap items-center gap-3 shrink-0 w-full sm:w-auto">

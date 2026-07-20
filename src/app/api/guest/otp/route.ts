@@ -45,6 +45,29 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Please draw and apply your Digital Signature before requesting OTP." }, { status: 400 });
       }
 
+      // Enforce 24-hour guest contract limit check before sending OTP
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const existingCount = await prisma.contract.count({
+        where: {
+          initiator: {
+            email: cleanEmail,
+          },
+          createdAt: {
+            gte: twentyFourHoursAgo,
+          },
+        },
+      });
+
+      if (existingCount >= 2) {
+        return NextResponse.json(
+          {
+            error: "Guest limit reached (2 contracts per 24h per email). Please change your email address or create a free account to unlock unlimited contract creation!",
+            limitReached: true,
+          },
+          { status: 429 }
+        );
+      }
+
       // Generate 6-digit random verification code
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
