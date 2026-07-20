@@ -361,7 +361,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                       <tr className="border-b border-gray-100 text-gray-500 font-bold">
                         <th className="py-2">Platform Format</th>
                         <th className="py-2 text-center">Qty</th>
-                        <th className="py-2 text-center">Retention Duration</th>
+                        <th className="py-2 text-center">Stay Published</th>
                         <th className="py-2">Instructions / Brief</th>
                       </tr>
                     </thead>

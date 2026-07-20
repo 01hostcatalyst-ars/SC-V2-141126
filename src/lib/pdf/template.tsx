@@ -154,7 +154,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
           <tr style={{ backgroundColor: "#f1f5f9", color: "#0f172a", textTransform: "uppercase", fontSize: "10px" }}>
             <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Platform Format</th>
             <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "center", width: "60px" }}>Quantity</th>
-            <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "center", width: "120px" }}>Retention Duration</th>
+            <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "center", width: "120px" }}>Stay Published</th>
             <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Brief &amp; Instructions</th>
           </tr>
         </thead>

@@ -632,7 +632,7 @@ export default function InstantContractPage() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Duration</label>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Stay Published</label>
                       <select
                         value={item.duration}
                         onChange={(e) => handleDeliverableChange(idx, "duration", e.target.value)}

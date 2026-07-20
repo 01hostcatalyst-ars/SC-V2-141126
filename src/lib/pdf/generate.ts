@@ -358,7 +358,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
             <tr style="background-color: #f1f5f9; color: #0f172a; text-transform: uppercase; font-size: 8pt;">
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Platform Format</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; width: 60px;">Quantity</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; width: 120px;">Retention Duration</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; width: 120px;">Stay Published</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Brief &amp; Instructions</th>
             </tr>
           </thead>

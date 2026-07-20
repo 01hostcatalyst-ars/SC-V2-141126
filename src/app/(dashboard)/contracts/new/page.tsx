@@ -770,7 +770,7 @@ export default function NewContractPage() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold uppercase text-gray-400">Retention / Post Duration</label>
+                      <label className="text-[10px] font-bold uppercase text-gray-400">Stay Published</label>
                       <select
                         className="input-field"
                         value={d.duration || "1 Month"}
@@ -1645,7 +1645,7 @@ export default function NewContractPage() {
                   <tr className="border-b border-gray-100 text-gray-500 font-bold">
                     <th className="py-2">Platform Format</th>
                     <th className="py-2 text-center">Qty</th>
-                    <th className="py-2 text-center">Retention Duration</th>
+                    <th className="py-2 text-center">Stay Published</th>
                     <th className="py-2">Instructions / Brief</th>
                   </tr>
                 </thead>

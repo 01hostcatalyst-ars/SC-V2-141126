@@ -619,7 +619,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                   <tr className="border-b border-gray-100 text-gray-400 font-bold">
                     <th className="py-2">Platform format</th>
                     <th className="py-2 text-center">Qty</th>
-                    <th className="py-2 text-center">Duration</th>
+                    <th className="py-2 text-center">Stay Published</th>
                     <th className="py-2">Instructions / Notes</th>
                   </tr>
                 </thead>
