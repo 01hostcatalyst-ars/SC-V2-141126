@@ -947,7 +947,7 @@ export default function InstantContractPage() {
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-3 mt-4">
                 <span className="text-xs font-bold text-gray-800 uppercase block">Product Provisioning / Loan Details</span>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase">Product Description</label>
                     <input
@@ -970,7 +970,9 @@ export default function InstantContractPage() {
                       <option value="Product Loan">Product Loan (Must Be Returned)</option>
                     </select>
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase">Shipping / Delivery Address</label>
                     <input
@@ -1436,12 +1438,13 @@ export default function InstantContractPage() {
                 {/* OTP VERIFICATION ACTION BOX FOR PARTY 1 */}
                 <div className="sm:col-span-2 pt-2">
                   {!initiatorOtpVerified ? (
-                    <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                      <div className="flex flex-col text-left">
-                        <span className="text-xs font-bold text-black uppercase tracking-wider">
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50/60 to-gray-50 border-2 border-emerald-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+                      <div className="flex flex-col text-left space-y-1">
+                        <span className="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                           Verify Email Identity via OTP to Save Contract &amp; Generate Link
                         </span>
-                        <span className="text-[10px] text-gray-500">
+                        <span className="text-xs text-gray-600 font-medium">
                           {initiatorOtpDispatched
                             ? `Code sent to ${initiatorEmail}. Enter 6-digit verification code below.`
                             : "Draw your signature above and enter all required details, then click Send OTP."}
@@ -1453,7 +1456,7 @@ export default function InstantContractPage() {
                           type="button"
                           onClick={handleSendInitiatorOtp}
                           disabled={!initiatorEmail || !initiatorName || !initiatorPhone || !initiatorDesignation || !initiatorSignatureB64 || initiatorOtpLoading}
-                          className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
+                          className={`font-extrabold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap shrink-0 ${
                             initiatorEmail && initiatorName && initiatorPhone && initiatorDesignation && initiatorSignatureB64 && !initiatorOtpLoading
                               ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
                               : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
@@ -1462,20 +1465,23 @@ export default function InstantContractPage() {
                           {initiatorOtpLoading ? "Sending OTP..." : "Send OTP ➔"}
                         </button>
                       ) : (
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                          <input
-                            type="text"
-                            maxLength={6}
-                            placeholder="123456"
-                            value={initiatorOtpCode}
-                            onChange={(e) => setInitiatorOtpCode(e.target.value.replace(/\D/g, ""))}
-                            className="input-field text-center font-mono font-bold tracking-widest text-sm py-2 max-w-[120px]"
-                          />
+                        <div className="flex flex-wrap items-center gap-3 shrink-0 w-full sm:w-auto">
+                          <div className="flex flex-col text-left">
+                            <label className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider mb-1">6-Digit OTP</label>
+                            <input
+                              type="text"
+                              maxLength={6}
+                              placeholder="123456"
+                              value={initiatorOtpCode}
+                              onChange={(e) => setInitiatorOtpCode(e.target.value.replace(/\D/g, ""))}
+                              className="w-36 px-3 py-2 bg-white border-2 border-emerald-500 rounded-xl text-center font-mono font-extrabold tracking-[0.2em] text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-600 placeholder:text-gray-400 placeholder:font-semibold placeholder:tracking-widest"
+                            />
+                          </div>
                           <button
                             type="button"
                             onClick={handleVerifyInitiatorOtp}
                             disabled={initiatorOtpLoading || !initiatorOtpCode}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase shadow transition-all whitespace-nowrap"
+                            className="self-end bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs uppercase shadow-md transition-all whitespace-nowrap"
                           >
                             {initiatorOtpLoading ? "Verifying..." : "Verify OTP & Save Contract"}
                           </button>
