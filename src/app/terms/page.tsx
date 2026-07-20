@@ -14,12 +14,12 @@ export default function TermsPage() {
       <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
       {/* Header */}
-      <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-6 z-10 sticky top-0">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base">
+      <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 z-10 sticky top-0">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <span className="hidden sm:flex w-8 h-8 rounded-lg bg-black items-center justify-center font-bold text-white text-base shrink-0">
             {company.name[0]}
           </span>
-          <span className="font-bold text-lg text-black tracking-tight uppercase">
+          <span className="font-bold text-base sm:text-lg text-black tracking-tight uppercase">
             {company.name}
           </span>
         </Link>

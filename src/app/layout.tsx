@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const company = getCompanyConfig();
   return {
     title: `${company.name} | Creator Agreement Proof Layer`,
-    description: `Formalize creator-brand partnerships and secure bilaterally signed audit trails admissible under Pakistan's ETO 2002. Powered by ${company.name}.`,
+    description: `Formalize creator-brand partnerships and secure bilaterally signed audit trails with global electronic signature compliance. Powered by ${company.name}.`,
     verification: {
       google: "f9xPi8ZQ1212phsmENSO00AMPszNiLzxU_2D4lcnSWk",
     },

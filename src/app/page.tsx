@@ -159,25 +159,25 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-6 z-10 sticky top-0">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base">
+      <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 z-10 sticky top-0">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <span className="hidden sm:flex w-8 h-8 rounded-lg bg-black items-center justify-center font-bold text-white text-base shrink-0">
             {company.name[0]}
           </span>
-          <span className="font-bold text-lg text-black tracking-tight uppercase">
+          <span className="font-bold text-base sm:text-lg text-black tracking-tight uppercase">
             {company.name}
           </span>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/instant"
-            className="text-xs font-bold px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm flex items-center gap-1.5"
+            className="hidden sm:inline-flex text-xs font-bold px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm items-center gap-1.5 whitespace-nowrap"
           >
             <span>⚡ Instant Contract (No Signup)</span>
           </Link>
           <button 
             onClick={() => setAuthTab(authTab === "signin" ? "signup" : "signin")} 
-            className="text-xs font-semibold px-4 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors"
+            className="text-xs font-semibold px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors whitespace-nowrap"
           >
             {authTab === "signin" ? "Create Account" : "Sign In"}
           </button>
@@ -186,7 +186,7 @@ export default function Home() {
 
       {/* Main Body */}
       <main className="flex-1 flex items-center justify-center p-6 md:p-12 lg:p-16 z-10">
-        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           
           {/* Column 1: Info Column */}
           <div className="flex flex-col text-left space-y-6">
@@ -199,19 +199,8 @@ export default function Home() {
             </h1>
             <p className="text-sm md:text-base text-gray-700 leading-relaxed max-w-xl">
               Stop executing commercial social media partnerships via transient chat logs. 
-              <strong> {company.name}</strong> provides a simple, bilateral proof-layer with tamper-proof signature logs. Admissible under Pakistan&apos;s ETO 2002.
+              <strong> {company.name}</strong> provides a simple, bilateral proof-layer with tamper-proof signature logs and cryptographic audit trails compliant with global electronic signature standards.
             </p>
-
-            {/* Quick Action Button */}
-            <div className="pt-1">
-              <Link
-                href="/instant"
-                className="inline-flex items-center justify-center gap-2 bg-black hover:bg-black/90 text-white font-bold px-6 py-3.5 rounded-2xl text-sm transition-all shadow-xl hover:scale-[1.02]"
-              >
-                <span>⚡ Create Instant Agreement (Guest Mode)</span>
-                <span>➔</span>
-              </Link>
-            </div>
 
             {/* Badges system - using Gen-Z/Professional favorite color codes */}
             <div className="flex flex-wrap gap-2 pt-2">
@@ -225,14 +214,14 @@ export default function Home() {
                 #Agency
               </span>
               <span className="px-3 py-1 rounded-md text-xs font-bold border bg-amber-50 border-amber-200 text-amber-800">
-                #ETO2002
+                #GlobalCompliance
               </span>
               <span className="px-3 py-1 rounded-md text-xs font-bold border bg-rose-50 border-rose-200 text-rose-800">
                 #SignedPDF
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 border-t border-gray-200/80 pt-6 mt-4">
+            <div className="grid grid-cols-2 gap-4 border-t border-gray-200/80 pt-6 mt-2">
               <div>
                 <h4 className="text-xl font-bold text-black">Guest Mode</h4>
                 <p className="text-xs text-gray-500 mt-1">2 free instant contracts per day per email without signing up.</p>
@@ -245,8 +234,24 @@ export default function Home() {
           </div>
 
           {/* Column 2: Auth Card */}
-          <div className="w-full flex justify-center">
-            <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
+          <div className="w-full flex flex-col items-center max-w-md mx-auto">
+            
+            {/* Quick Action Button Above Sign In / Sign Up Form */}
+            <Link
+              href="/instant"
+              className="w-full mb-4 flex items-center justify-between bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold px-5 py-3.5 rounded-2xl shadow-lg transition-all hover:scale-[1.01] group border border-emerald-500/20"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-lg">⚡</span>
+                <div className="flex flex-col text-left">
+                  <span className="text-sm font-extrabold leading-tight">Create Instant Agreement (Guest Mode)</span>
+                  <span className="text-[11px] text-emerald-100 font-medium leading-tight">No Account or Registration Required</span>
+                </div>
+              </div>
+              <span className="text-sm font-black transition-transform group-hover:translate-x-1">➔</span>
+            </Link>
+
+            <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
               
               {/* Tab Selector */}
               <div className="flex border-b border-gray-200 mb-6">
@@ -502,26 +507,40 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-6 flex flex-col md:flex-row items-center justify-between px-6 gap-4 z-10">
-        <span className="text-xs text-gray-500 font-semibold">
-          © {new Date().getFullYear()} {company.name}. Loaded from {company.domain}.
-        </span>
-        <div className="flex gap-4 items-center flex-wrap justify-center">
-          <Link href="/features" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
-            Features
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/verify" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
-            Verify Document
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/terms" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
-            Terms &amp; Privacy
-          </Link>
-          <span className="text-gray-300">|</span>
-          <a href={`mailto:${company.supportEmail}`} className="text-xs text-gray-500 hover:text-black font-semibold transition-colors">
-            Support: {company.supportEmail}
-          </a>
+      <footer className="w-full border-t border-gray-200/80 bg-white/80 backdrop-blur-md py-8 px-6 z-10 mt-auto">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col items-center md:items-start gap-1 text-center md:text-left">
+            <span className="font-bold text-sm tracking-tight text-black uppercase">
+              {company.name}
+            </span>
+            <p className="text-xs text-gray-500 font-medium">
+              Bilateral Agreement Proof-Layer &amp; Tamper-Proof Audit Trails
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-gray-600">
+            <Link href="/features" className="hover:text-black transition-colors">
+              Features
+            </Link>
+            <Link href="/verify" className="hover:text-black transition-colors">
+              Verify Document
+            </Link>
+            <Link href="/terms" className="hover:text-black transition-colors">
+              Terms &amp; Privacy
+            </Link>
+            <a href={`mailto:${company.supportEmail}`} className="hover:text-black transition-colors">
+              Support
+            </a>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto border-t border-gray-100 mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-2 text-center sm:text-left">
+          <span>
+            © {new Date().getFullYear()} {company.name}. All rights reserved.
+          </span>
+          <span className="text-gray-400 font-medium">
+            {company.supportEmail}
+          </span>
         </div>
       </footer>
     </div>
