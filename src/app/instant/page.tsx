@@ -47,7 +47,7 @@ export default function InstantContractPage() {
 
   // Section 1: Campaign Deliverables & Tagging
   const [deliverables, setDeliverables] = useState<DeliverableItem[]>([
-    { type: "REEL", quantity: 1, duration: "Permanent", notes: "" },
+    { type: "REEL", quantity: 1, duration: "2 Months", notes: "" },
   ]);
   const [taggingRequirements, setTaggingRequirements] = useState("");
   const [contentOwnership, setContentOwnership] = useState(
@@ -197,7 +197,7 @@ export default function InstantContractPage() {
   const handleAddDeliverable = () => {
     setDeliverables([
       ...deliverables,
-      { type: "REEL", quantity: 1, duration: "Permanent", notes: "" },
+      { type: "REEL", quantity: 1, duration: "2 Months", notes: "" },
     ]);
   };
 
@@ -494,21 +494,45 @@ export default function InstantContractPage() {
               </div>
             )}
 
-            {/* CONTRACT WORKFLOW SELECTOR */}
-            <div className="flex flex-col text-left gap-1">
-              <label className="text-xs font-bold text-gray-800">Contract Workflow *</label>
-              <select
-                value={contractType}
-                disabled={initiatorOtpVerified}
-                onChange={(e) => setContractType(e.target.value)}
-                className="input-field border-black font-semibold text-black bg-blue-50/50 disabled:bg-gray-100"
-              >
-                {WORKFLOW_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+            {/* CONTRACT WORKFLOW & JURISDICTION SELECTORS */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* CONTRACT WORKFLOW SELECTOR */}
+              <div className="flex flex-col text-left gap-1">
+                <label className="text-xs font-bold text-gray-800">Contract Workflow *</label>
+                <select
+                  value={contractType}
+                  disabled={initiatorOtpVerified}
+                  onChange={(e) => setContractType(e.target.value)}
+                  className="input-field border-black font-semibold text-black bg-blue-50/50 disabled:bg-gray-100"
+                >
+                  {WORKFLOW_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* GOVERNING COUNTRY JURISDICTION SELECTOR */}
+              <div className="flex flex-col text-left gap-1">
+                <label className="text-xs font-bold text-gray-800">Governing Country Jurisdiction *</label>
+                <select
+                  value={jurisdictionCountryCode}
+                  disabled={initiatorOtpVerified}
+                  onChange={(e) => {
+                    setJurisdictionCountryCode(e.target.value);
+                    const jur = getJurisdiction(e.target.value);
+                    setCurrency(jur.defaultCurrency);
+                  }}
+                  className="input-field border-black font-semibold text-black bg-blue-50/50 disabled:bg-gray-100"
+                >
+                  {Object.values(JURISDICTIONS).map((j) => (
+                    <option key={j.countryCode} value={j.countryCode}>
+                      {j.countryName} ({j.lawAbbreviation})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* SECTION 1: Campaign Deliverables & Guidelines */}
@@ -576,7 +600,6 @@ export default function InstantContractPage() {
                         <option value="3 Months">3 Months</option>
                         <option value="6 Months">6 Months</option>
                         <option value="1 Year">1 Year</option>
-                        <option value="Permanent">Permanent</option>
                       </select>
                     </div>
 
@@ -696,26 +719,7 @@ export default function InstantContractPage() {
                 3. Financial &amp; Payment Schedule
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pb-2 border-b border-gray-100">
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Governing Country Jurisdiction *</label>
-                  <select
-                    value={jurisdictionCountryCode}
-                    onChange={(e) => {
-                      setJurisdictionCountryCode(e.target.value);
-                      const jur = getJurisdiction(e.target.value);
-                      setCurrency(jur.defaultCurrency);
-                    }}
-                    className="input-field font-semibold text-xs"
-                  >
-                    {Object.values(JURISDICTIONS).map((j) => (
-                      <option key={j.countryCode} value={j.countryCode}>
-                        {j.countryName} ({j.lawAbbreviation})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pb-2 border-b border-gray-100">
                 <div className="flex flex-col text-left gap-1">
                   <label className="text-xs font-bold text-gray-700">Contract Valuation Currency *</label>
                   <select
@@ -979,7 +983,7 @@ export default function InstantContractPage() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-gray-500 uppercase">Expected Product Arrival Date</label>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase">Expected Product Arrival</label>
                     <input
                       type="date"
                       value={collabDeliveryDate}
@@ -1382,7 +1386,7 @@ export default function InstantContractPage() {
                     <span className="text-blue-600 font-bold">ℹ</span>
                     <span>
                       {contractType === "AGENCY_TO_CREATOR" || contractType === "BRAND_TO_CREATOR"
-                        ? "Creator representative verification details, CNIC photo, and payout details will be collected directly from the Creator when they open the Contract Link."
+                        ? "Creator representative verification details, National ID Number, and payout details will be collected directly from the Creator when they open the Contract Link."
                         : contractType === "CREATOR_TO_BRAND" || contractType === "AGENCY_TO_BRAND"
                         ? "Brand representative verification details, company address, and official authority will be collected directly from the Brand when they open the Contract Link."
                         : "Agency representative verification details, office address, and official authority will be collected directly from the Agency when they open the Contract Link."}
