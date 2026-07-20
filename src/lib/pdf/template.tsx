@@ -217,6 +217,9 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
           </tr>
         </tbody>
       </table>
+      <div style={{ fontSize: "9px", color: "#64748b", fontStyle: "italic", marginTop: "-8px", marginBottom: "12px" }}>
+        * Note: All financial valuation figures are inclusive of statutory local sales taxes (VAT / GST). Each party is responsible for their own tax compliance.
+      </div>
 
       {/* Section 5: Delivery & Revisions */}
       <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", color: "#0f172a", borderBottom: "1.5px solid #0f172a", paddingBottom: "3px", marginTop: "14px", marginBottom: "8px" }}>

@@ -41,6 +41,83 @@ const USAGE_TYPE_OPTIONS = [
   { id: "ALL_MEDIA", label: "Full Commercial Broadcast" },
 ];
 
+interface ModernSelectProps {
+  label?: string;
+  value: string;
+  onChange: (val: string) => void;
+  disabled?: boolean;
+  options: { value: string; label: string; sublabel?: string }[];
+  className?: string;
+}
+
+function ModernSelect({ label, value, onChange, disabled, options, className }: ModernSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const selectedOpt = options.find((o) => o.value === value) || options[0];
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="flex flex-col text-left gap-1 relative" ref={dropdownRef}>
+      {label && <label className="text-xs font-bold text-gray-800">{label}</label>}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`w-full py-3 px-4 rounded-xl border text-left font-semibold text-xs flex items-center justify-between transition-all bg-white shadow-sm hover:border-black focus:outline-none ${
+          disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200" : "border-black text-black bg-blue-50/50 cursor-pointer hover:bg-white"
+        } ${className || ""}`}
+      >
+        <span className="truncate">{selectedOpt?.label}</span>
+        <svg
+          className={`w-4 h-4 text-gray-700 shrink-0 ml-2 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && !disabled && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto py-1 animate-fadeIn">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-all flex flex-col justify-center ${
+                opt.value === value
+                  ? "bg-black text-white"
+                  : "text-gray-800 hover:bg-gray-100"
+              }`}
+            >
+              <span>{opt.label}</span>
+              {opt.sublabel && (
+                <span className={`text-[10px] mt-0.5 font-normal ${opt.value === value ? "text-gray-300" : "text-gray-500"}`}>
+                  {opt.sublabel}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function InstantContractPage() {
   const company = getCompanyConfig();
   const router = useRouter();
@@ -542,42 +619,30 @@ export default function InstantContractPage() {
             {/* CONTRACT WORKFLOW & JURISDICTION SELECTORS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* CONTRACT WORKFLOW SELECTOR */}
-              <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-bold text-gray-800">Contract Workflow *</label>
-                <select
-                  value={contractType}
-                  disabled={initiatorOtpVerified}
-                  onChange={(e) => setContractType(e.target.value)}
-                  className="input-field border-black font-semibold text-black bg-blue-50/50 disabled:bg-gray-100"
-                >
-                  {WORKFLOW_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <ModernSelect
+                label="Contract Workflow *"
+                value={contractType}
+                disabled={initiatorOtpVerified}
+                onChange={(val) => setContractType(val)}
+                options={WORKFLOW_OPTIONS}
+              />
 
               {/* GOVERNING COUNTRY JURISDICTION SELECTOR */}
-              <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-bold text-gray-800">Governing Country Jurisdiction *</label>
-                <select
-                  value={jurisdictionCountryCode}
-                  disabled={initiatorOtpVerified}
-                  onChange={(e) => {
-                    setJurisdictionCountryCode(e.target.value);
-                    const jur = getJurisdiction(e.target.value);
-                    setCurrency(jur.defaultCurrency);
-                  }}
-                  className="input-field border-black font-semibold text-black bg-blue-50/50 disabled:bg-gray-100"
-                >
-                  {Object.values(JURISDICTIONS).map((j) => (
-                    <option key={j.countryCode} value={j.countryCode}>
-                      {j.countryName} ({j.lawAbbreviation})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <ModernSelect
+                label="Governing Country Jurisdiction *"
+                value={jurisdictionCountryCode}
+                disabled={initiatorOtpVerified}
+                onChange={(val) => {
+                  setJurisdictionCountryCode(val);
+                  const jur = getJurisdiction(val);
+                  setCurrency(jur.defaultCurrency);
+                }}
+                options={Object.values(JURISDICTIONS).map((j) => ({
+                  value: j.countryCode,
+                  label: `${j.countryName} (${j.lawAbbreviation})`,
+                  sublabel: `Auto-bound Currency: ${j.defaultCurrency}`,
+                }))}
+              />
             </div>
 
             {/* SECTION 1: Campaign Deliverables & Guidelines */}
@@ -764,54 +829,21 @@ export default function InstantContractPage() {
                 3. Financial &amp; Payment Schedule
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pb-2 border-b border-gray-100">
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Contract Valuation Currency *</label>
-                  <select
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                    className="input-field font-semibold text-xs"
-                  >
-                    {Object.keys(CURRENCY_MAP).map((code) => (
-                      <option key={code} value={code}>
-                        {code} ({CURRENCY_MAP[code].symbol})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Tax Treatment *</label>
-                  <select
-                    value={taxTreatment}
-                    onChange={(e) => setTaxTreatment(e.target.value)}
-                    className="input-field text-xs"
-                  >
-                    <option value="INCLUSIVE">Tax Inclusive</option>
-                    <option value="EXCLUSIVE">Tax Exclusive</option>
-                    <option value="REVERSE_CHARGE">Reverse Charge</option>
-                    <option value="EXEMPT">Tax Exempt</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Tax Rate (%)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={taxRatePct}
-                    onChange={(e) => setTaxRatePct(e.target.value)}
-                    placeholder="e.g. 18"
-                    className="input-field text-xs"
-                  />
+              {/* TAX & AUTO-BOUND CURRENCY NOTICE BADGE */}
+              <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-blue-900">
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-600 font-bold shrink-0 text-sm">ℹ</span>
+                  <span>
+                    <strong>Tax &amp; Currency Note:</strong> Valuation currency is auto-bound to <strong>{currency} ({CURRENCY_MAP[currency]?.symbol || "$"})</strong> based on {jur.countryName} jurisdiction. All figures are inclusive of statutory local taxes (VAT/GST). Each party handles their own tax filings.
+                  </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
                 <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Total Valuation Amount *</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    Total Valuation Amount ({currency} - {CURRENCY_MAP[currency]?.symbol || "$"}) *
+                  </label>
                   <input
                     type="number"
                     required

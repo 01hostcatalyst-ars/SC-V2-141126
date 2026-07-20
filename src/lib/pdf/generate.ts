@@ -398,7 +398,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <thead>
             <tr style="background-color: #f1f5f9; color: #0f172a; text-transform: uppercase; font-size: 8pt;">
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Total Valuation</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Tax Treatment &amp; Terms</th>
+              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Tax Terms Note</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Advance Payout</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Remaining Payout</th>
               <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Payment Route</th>
@@ -407,7 +407,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <tbody>
             <tr>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 9.5pt;">${formatCurrencyAmount(Number(contract.totalAmount || 0), currCode)}</td>
-              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-size: 8pt;">${taxInfo.displayText}</td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-size: 7.5pt; color: #475569;">Inclusive of statutory local taxes (VAT/GST). Each Party files independently.</td>
               <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
                 <strong>${formatCurrencyAmount(Number(contract.advancePayment || 0), currCode)}</strong>
                 ${contract.advancePaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.advancePaymentDate, jur.countryCode)}</span>` : ""}
