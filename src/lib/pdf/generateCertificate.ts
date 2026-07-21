@@ -82,13 +82,19 @@ export async function generateAuditCertificatePDF(contractId: string) {
       }
     }
 
-    const email = log.user?.email || details?.email || details?.userEmail || details?.signerEmail || "";
-    const role = log.user?.role || details?.signerRole || details?.role || "";
-    const name = log.user?.name || details?.name || "";
-    const company = (log.user as any)?.agencyName || (log.user as any)?.companyName || details?.company || details?.agencyName || "";
+    const email = log.user?.email || details?.email || details?.userEmail || details?.signerEmail || details?.initiatorEmail || "";
+    
+    // Prioritize ContractParty snapshot matching email or userId
+    const party = contract.parties?.find(
+      (p: any) => (email && p.email?.toLowerCase() === email.toLowerCase()) || (p.userId && p.userId === log.userId)
+    );
+
+    const name = party?.name || log.user?.name || details?.name || details?.initiatorName || "";
+    const role = party?.role || log.user?.role || details?.signerRole || details?.role || "";
+    const company = party?.companyName || (log.user as any)?.agencyName || (log.user as any)?.companyName || details?.company || details?.agencyName || "";
 
     if (name || email) {
-      const displayName = name ? `<strong>${name}</strong> (${email})` : `<strong>${email}</strong>`;
+      const displayName = name ? `<strong>${name}</strong> (${email || party?.email || ""})` : `<strong>${email}</strong>`;
       const roleStr = role ? `<span style="color: #2563eb; font-weight: bold;"> [${role}]</span>` : "";
       const companyStr = company ? `<div style="font-size: 7.5pt; color: #475569; margin-top: 1px;">Rep: <strong>${company}</strong></div>` : "";
       return `<div>${displayName}${roleStr}${companyStr}</div>`;
