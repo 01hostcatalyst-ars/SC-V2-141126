@@ -111,8 +111,8 @@ export async function POST(req: Request) {
         brandName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandName : undefined,
         brandHandle: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandHandle : undefined,
         campaignName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_AGENCY, ContractType.BRAND_TO_AGENCY].includes(contractType) ? campaignName : undefined,
-        creatorName: [ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY].includes(contractType) ? creatorName : undefined,
-        creatorHandle: [ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY].includes(contractType) ? creatorHandle : undefined,
+        creatorName: ([ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY] as string[]).includes(contractType) ? creatorName : undefined,
+        creatorHandle: ([ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY] as string[]).includes(contractType) ? creatorHandle : undefined,
         initiatorDesignation: initiatorDesignation || undefined,
         initiatorNtn: initiatorNtn || initiatorTaxId || undefined,
         initiatorCnic: initiatorCnic || initiatorNationalId || undefined,
@@ -190,6 +190,21 @@ export async function POST(req: Request) {
             }
           ]
         }
+      },
+    });
+
+    // Create initial CONTRACT_CREATED AuditLog record
+    await prisma.auditLog.create({
+      data: {
+        contractId: contract.id,
+        userId: dbUser.id,
+        action: "CONTRACT_CREATED",
+        details: {
+          contractNumber: contract.contractNumber,
+          contractType,
+          initiatorEmail: dbUser.email,
+          initiatorName: dbUser.name,
+        },
       },
     });
 

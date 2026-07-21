@@ -791,7 +791,7 @@ export default function NewContractPage() {
                     <input
                       type="text"
                       placeholder="e.g. Show product packaging in first 3 seconds, tag official brand handle"
-                      className="input-field"
+                      className="input-field py-2.5"
                       value={d.notes || ""}
                       onChange={(e) => handleDeliverableChange(index, "notes", e.target.value)}
                     />

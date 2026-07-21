@@ -642,7 +642,7 @@ export default function InstantContractPage() {
                         placeholder="e.g. Link in bio"
                         value={item.notes}
                         onChange={(e) => handleDeliverableChange(idx, "notes", e.target.value)}
-                        className="input-field text-xs"
+                        className="input-field text-xs py-2.5"
                       />
                     </div>
                   </div>
@@ -1314,6 +1314,17 @@ export default function InstantContractPage() {
                         placeholder={`e.g. Enter your ${jur.nationalIdLabel.replace(" (Optional)", "")}`}
                         value={initiatorCnic}
                         onChange={(e) => setInitiatorCnic(e.target.value)}
+                        className="input-field disabled:bg-gray-100"
+                      />
+                    </div>
+                    <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                      <label className="text-xs font-bold text-gray-700">Your Residential / Physical Address</label>
+                      <input
+                        type="text"
+                        disabled={initiatorOtpVerified}
+                        placeholder="Residential / Postal Address, City"
+                        value={initiatorCompanyAddress}
+                        onChange={(e) => setInitiatorCompanyAddress(e.target.value)}
                         className="input-field disabled:bg-gray-100"
                       />
                     </div>

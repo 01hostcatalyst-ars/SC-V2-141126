@@ -44,7 +44,7 @@ export function ModernSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const pyClass = size === "sm" ? "py-2 px-3 text-xs" : "py-3 px-4 text-xs font-semibold";
+  const pyClass = size === "sm" ? "py-2.5 px-3 text-xs" : "py-3 px-4 text-xs font-semibold";
 
   return (
     <div className="flex flex-col text-left gap-1 relative" ref={dropdownRef}>
@@ -53,7 +53,7 @@ export function ModernSelect({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full ${pyClass} rounded-xl border text-left flex items-center justify-between transition-all bg-white shadow-sm hover:border-black focus:outline-none ${
+        className={`w-full ${pyClass} rounded-lg border text-left flex items-center justify-between transition-all bg-white shadow-sm hover:border-black focus:outline-none ${
           disabled
             ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
             : isOpen

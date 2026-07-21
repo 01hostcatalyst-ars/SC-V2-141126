@@ -111,7 +111,11 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
             <div style={{ margin: "2px 0" }}><strong>Representative:</strong> {initiatorParty.name} {initiatorParty.designation ? `(${initiatorParty.designation})` : ""}</div>
             <div style={{ margin: "2px 0" }}><strong>Email:</strong> {initiatorParty.email}</div>
             {initiatorParty.phone && <div style={{ margin: "2px 0" }}><strong>Phone:</strong> {initiatorParty.phone}</div>}
-            {initiatorParty.companyAddress && <div style={{ margin: "2px 0" }}><strong>Address:</strong> {initiatorParty.companyAddress}</div>}
+            {(initiatorParty.companyAddress || (initiatorParty as any).address || contract.initiatorCompanyAddress || contract.initiator?.agencyAddress || contract.initiator?.address || contract.collabDeliveryAddress) && (
+              <div style={{ margin: "2px 0" }}>
+                <strong>Address:</strong> {initiatorParty.companyAddress || (initiatorParty as any).address || contract.initiatorCompanyAddress || contract.initiator?.agencyAddress || contract.initiator?.address || contract.collabDeliveryAddress}
+              </div>
+            )}
           </div>
         </div>
 
@@ -134,16 +138,24 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         </div>
       </div>
 
-      {(contract.brandName || contract.campaignName || contract.creatorName) && (
-        <div style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "8px 12px", backgroundColor: "#ffffff", marginBottom: "14px", fontSize: "11px" }}>
-          <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#475569", marginBottom: "4px" }}>CAMPAIGN & TALENT ASSIGNMENT</div>
-          <div style={{ display: "flex", gap: "30px" }}>
-            {contract.brandName && <div><strong>Client Brand:</strong> {contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</div>}
-            {contract.campaignName && <div><strong>Campaign / Product:</strong> {contract.campaignName}</div>}
-            {contract.creatorName && <div><strong>Target Creator:</strong> {contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}</div>}
+      {(() => {
+        const cName = contract.creatorName || (initiatorParty.role === "CREATOR" ? initiatorParty.name : respondentParty.role === "CREATOR" ? respondentParty.name : undefined);
+        const cHandle = contract.creatorHandle || undefined;
+        const agencyObj = initiatorParty.role === "AGENCY" ? initiatorParty : respondentParty.role === "AGENCY" ? respondentParty : null;
+        const aName = contract.agencyName || agencyObj?.companyName || agencyObj?.name;
+        
+        return (contract.brandName || contract.campaignName || cName || aName) ? (
+          <div style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "8px 12px", backgroundColor: "#ffffff", marginBottom: "14px", fontSize: "11px" }}>
+            <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#475569", marginBottom: "4px" }}>CAMPAIGN & TALENT ASSIGNMENT</div>
+            <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+              {contract.brandName && <div><strong>Client Brand:</strong> {contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</div>}
+              {aName && <div><strong>Managing Agency:</strong> {aName}</div>}
+              {contract.campaignName && <div><strong>Campaign / Product:</strong> {contract.campaignName}</div>}
+              {cName && <div><strong>Target Creator:</strong> {cName} {cHandle ? `(${cHandle})` : ""}</div>}
+            </div>
           </div>
-        </div>
-      )}
+        ) : null;
+      })()}
 
       {/* Section 2: Deliverables */}
       <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", color: "#0f172a", borderBottom: "1.5px solid #0f172a", paddingBottom: "3px", marginTop: "14px", marginBottom: "8px" }}>
@@ -265,15 +277,15 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
       </div>
 
       {/* Section 8: Product Shipment & Loan Return Terms */}
-      {contract.collabProduct && (
+      {(contract.collabProduct || contract.collabDeliveryDate || contract.collabDeliveryAddress) && (
         <>
           <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", color: "#0f172a", borderBottom: "1.5px solid #0f172a", paddingBottom: "3px", marginTop: "14px", marginBottom: "8px" }}>
             8. COLLABORATION PRODUCT SHIPMENT &amp; LOAN RETURN TERMS
           </div>
           <div style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "10px", fontSize: "11px", marginBottom: "14px", backgroundColor: "#ffffff" }}>
             <div style={{ display: "flex", gap: "20px" }}>
-              <div><strong>Product Details:</strong> {contract.collabProduct} ({contract.collabProductProvisionType || "Provision"})</div>
-              {contract.collabDeliveryDate && <div><strong>Expected Arrival:</strong> {formatLegalDate(contract.collabDeliveryDate)}</div>}
+              <div><strong>Product Details:</strong> {contract.collabProduct || "Product Sample / Provision"} ({contract.collabProductProvisionType || "Provision"})</div>
+              {contract.collabDeliveryDate && <div><strong>Expected Product Arrival:</strong> {formatLegalDate(contract.collabDeliveryDate)}</div>}
             </div>
             {contract.collabDeliveryAddress && <div style={{ marginTop: "4px", fontSize: "10px", color: "#475569" }}><strong>Shipment Address:</strong> {contract.collabDeliveryAddress}</div>}
             {contract.collabProductProvisionType === "Product Loan" && (
@@ -333,7 +345,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
                   {initiatorParty.companyName || initiatorParty.name}
                 </div>
                 <div>Authorized Signer: <strong>{initiatorParty.name}</strong> {initiatorParty.designation ? `(${initiatorParty.designation})` : ""}</div>
-                <div>Email: {initiatorParty.email} | IP: {initiatorSign.ipAddress}</div>
+                <div>Verified Email OTP: ✓ Verified | Email: {initiatorParty.email} | IP: {initiatorSign.ipAddress}</div>
                 <div>Signed: {formatLegalDate(initiatorSign.signedAt)}</div>
               </div>
             </div>

@@ -148,8 +148,8 @@ export async function POST(req: Request) {
         brandName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandName : undefined,
         brandHandle: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandHandle : undefined,
         campaignName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_AGENCY, ContractType.BRAND_TO_AGENCY].includes(contractType) ? campaignName : undefined,
-        creatorName: [ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY].includes(contractType) ? creatorName : undefined,
-        creatorHandle: [ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY].includes(contractType) ? creatorHandle : undefined,
+        creatorName: ([ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY] as string[]).includes(contractType) ? creatorName : undefined,
+        creatorHandle: ([ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY] as string[]).includes(contractType) ? creatorHandle : undefined,
         initiatorDesignation: initiatorDesignation || undefined,
         initiatorPhone: initiatorPhone || undefined,
         initiatorCompanyName: initiatorCompanyName || undefined,
@@ -217,7 +217,7 @@ export async function POST(req: Request) {
               role: (initiatorRole as Role) || (contractType.startsWith("CREATOR_") ? Role.CREATOR : contractType.startsWith("BRAND_") ? Role.BRAND : Role.AGENCY),
               designation: initiatorDesignation || undefined,
               companyName: (initiatorRole === "AGENCY" || initiatorRole === "BRAND") ? initiatorCompanyName : undefined,
-              companyAddress: (initiatorRole === "AGENCY" || initiatorRole === "BRAND") ? initiatorCompanyAddress : undefined,
+              companyAddress: initiatorCompanyAddress || undefined,
               ntn: (initiatorRole === "AGENCY" || initiatorRole === "BRAND") ? initiatorNtn : undefined,
               cnic: initiatorRole === "CREATOR" ? initiatorCnic : undefined,
               taxIdType: (initiatorRole === "AGENCY" || initiatorRole === "BRAND") ? "NTN" : undefined,
@@ -285,6 +285,41 @@ export async function POST(req: Request) {
         otpEmail: cleanEmail,
         consentRecorded: true,
       },
+    });
+
+    // Create AuditLog records for CONTRACT_CREATED and INITIATOR_SIGNED
+    await prisma.auditLog.createMany({
+      data: [
+        {
+          contractId: contract.id,
+          userId: dbUser.id,
+          action: "CONTRACT_CREATED",
+          details: {
+            contractNumber: contract.contractNumber,
+            contractType,
+            initiatorEmail: cleanEmail,
+            initiatorName,
+            ipAddress,
+          },
+          ipAddress,
+          userAgent,
+        },
+        {
+          contractId: contract.id,
+          userId: dbUser.id,
+          action: "INITIATOR_SIGNED",
+          details: {
+            email: cleanEmail,
+            signerRole: (initiatorRole as SignerRole) || (contractType.startsWith("CREATOR_") ? SignerRole.CREATOR : contractType.startsWith("BRAND_") ? SignerRole.BRAND : SignerRole.AGENCY),
+            ipAddress,
+            fingerprint,
+            initiatorId: dbUser.id,
+            otpVerified: true,
+          },
+          ipAddress,
+          userAgent,
+        },
+      ],
     });
 
     return NextResponse.json({
