@@ -78,24 +78,30 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
     name: contract.initiator?.name || "Initiator",
     email: contract.initiator?.email || "",
     phone: contract.initiatorPhone || contract.initiator?.phone,
-    role: contract.contractType.startsWith("CREATOR_") ? "CREATOR" : contract.contractType.startsWith("BRAND_") ? "BRAND" : "AGENCY",
+    role: (contract.contractType.startsWith("CREATOR_") ? "CREATOR" : contract.contractType.startsWith("BRAND_") ? "BRAND" : "AGENCY") as any,
     designation: contract.initiatorDesignation,
     companyName: contract.initiatorCompanyName || contract.initiator?.agencyName,
     companyAddress: contract.initiatorCompanyAddress || contract.initiator?.agencyAddress,
     ntn: contract.initiatorNtn,
     cnic: contract.initiatorCnic,
+    paymentMethod: contract.paymentMethod,
+    bankAccountIban: contract.bankAccountIban,
+    mobileWalletNumber: contract.mobileWalletNumber,
   };
 
   const respondentParty = contract.parties.find(p => p.partyType === "RESPONDENT") || {
     name: contract.respondentName || contract.respondent?.name || "Pending Execution",
     email: contract.respondentEmail || contract.respondent?.email || "Pending Execution",
     phone: contract.respondentPhone || contract.respondent?.phone,
-    role: contract.contractType.endsWith("_CREATOR") ? "CREATOR" : contract.contractType.endsWith("_BRAND") ? "BRAND" : "AGENCY",
+    role: (contract.contractType.endsWith("_CREATOR") ? "CREATOR" : contract.contractType.endsWith("_BRAND") ? "BRAND" : "AGENCY") as any,
     designation: contract.respondentDesignation,
     companyName: contract.respondentCompany || contract.respondent?.agencyName,
     companyAddress: contract.respondentAddress || contract.respondent?.agencyAddress,
     ntn: contract.respondentNtn,
     cnic: contract.respondentCnic,
+    paymentMethod: contract.respondentPaymentMethod,
+    bankAccountIban: contract.respondentBankAccountIban,
+    mobileWalletNumber: contract.respondentMobileWalletNumber,
   };
 
   const initiatorSign = contract.signatures?.find(
@@ -333,21 +339,44 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               <div><strong>Representative:</strong> ${respondentParty.name} ${respondentParty.designation ? `(${respondentParty.designation})` : ""}</div>
               <div><strong>Email:</strong> ${respondentParty.email}</div>
               ${respondentParty.phone ? `<div><strong>Phone:</strong> ${respondentParty.phone}</div>` : ""}
-              ${(respondentParty.companyAddress || (respondentParty as any).address) ? `<div><strong>Address:</strong> ${respondentParty.companyAddress || (respondentParty as any).address}</div>` : ""}
+              ${(respondentParty.companyAddress || (respondentParty as any).address || contract.respondentAddress || contract.collabDeliveryAddress) ? `<div><strong>Address:</strong> ${respondentParty.companyAddress || (respondentParty as any).address || contract.respondentAddress || contract.collabDeliveryAddress}</div>` : ""}
             </div>
           </div>
         </div>
 
-        ${(contract.brandName || contract.creatorName || contract.campaignName) ? `
-          <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; margin-bottom: 14px; background: #ffffff; font-size: 8.5pt;">
-            <div style="font-weight: 800; color: #0f172a; text-transform: uppercase; margin-bottom: 4px;">CAMPAIGN &amp; CREATOR CONTEXT</div>
-            <div style="display: flex; gap: 16px;">
-              ${contract.brandName ? `<div><strong>Client Brand:</strong> ${contract.brandName} (${contract.brandHandle || "N/A"})</div>` : ""}
-              ${contract.creatorName ? `<div><strong>Creator:</strong> ${contract.creatorName} (${contract.creatorHandle || "N/A"})</div>` : ""}
-              ${contract.campaignName ? `<div><strong>Campaign:</strong> ${contract.campaignName}</div>` : ""}
+        ${(() => {
+          const cName = contract.creatorName || (initiatorParty.role === "CREATOR" ? initiatorParty.name : respondentParty.role === "CREATOR" ? respondentParty.name : undefined);
+          const cHandle = contract.creatorHandle || undefined;
+
+          let bName = contract.brandName;
+          if (!bName) {
+            if (initiatorParty.role === "BRAND") bName = initiatorParty.companyName || initiatorParty.name;
+            else if (respondentParty.role === "BRAND") bName = respondentParty.companyName || respondentParty.name;
+          }
+          const bHandle = contract.brandHandle || undefined;
+
+          let aName = (contract as any).agencyName;
+          if (!aName) {
+            if (initiatorParty.role === "AGENCY") aName = initiatorParty.companyName || initiatorParty.name;
+            else if (respondentParty.role === "AGENCY") aName = respondentParty.companyName || respondentParty.name;
+          }
+
+          const campaign = contract.campaignName || undefined;
+
+          if (!bName && !cName && !aName && !campaign) return "";
+
+          return `
+            <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; margin-bottom: 14px; background: #ffffff; font-size: 8.5pt;">
+              <div style="font-weight: 800; color: #0f172a; text-transform: uppercase; margin-bottom: 4px;">CAMPAIGN &amp; CREATOR CONTEXT</div>
+              <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                ${bName ? `<div><strong>Client Brand:</strong> ${bName} ${bHandle ? `(${bHandle})` : ""}</div>` : ""}
+                ${aName ? `<div><strong>Managing Agency:</strong> ${aName}</div>` : ""}
+                ${campaign ? `<div><strong>Campaign:</strong> ${campaign}</div>` : ""}
+                ${cName ? `<div><strong>Creator:</strong> ${cName} ${cHandle ? `(${cHandle})` : ""}</div>` : ""}
+              </div>
             </div>
-          </div>
-        ` : ""}
+          `;
+        })()}
 
         <!-- Section 2: Deliverables -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-bottom: 8px;">
@@ -394,37 +423,47 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
           4. FINANCIAL COMPENSATION &amp; PAYMENT SCHEDULE
         </div>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 8.5pt; border: 1px solid #cbd5e1;">
-          <thead>
-            <tr style="background-color: #f1f5f9; color: #0f172a; text-transform: uppercase; font-size: 8pt;">
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Total Valuation</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Tax Terms Note</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Advance Payout</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Remaining Payout</th>
-              <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Payment Route</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 9.5pt;">${formatCurrencyAmount(Number(contract.totalAmount || 0), currCode)}</td>
-              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-size: 7.5pt; color: #475569;">Inclusive of statutory local taxes (VAT/GST). Each Party files independently.</td>
-              <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
-                <strong>${formatCurrencyAmount(Number(contract.advancePayment || 0), currCode)}</strong>
-                ${contract.advancePaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.advancePaymentDate, jur.countryCode)}</span>` : ""}
-              </td>
-              <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
-                <strong>${formatCurrencyAmount(getRemainingAmount(), currCode)}</strong>
-                ${contract.remainingPaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.remainingPaymentDate, jur.countryCode)}</span>` : ""}
-              </td>
-              <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
-                <strong>${contract.paymentMethod ? (contract.paymentMethod as string).replace(/_/g, " ") : "Not Specified"}</strong>
-                <br /><span style="font-size: 7.5pt; font-family: monospace; color: #475569;">
-                  ${formatPaymentRoute(contract.paymentMethod, (contract as any).paymentRoutingDetails || { bankAccountIban: contract.bankAccountIban, mobileWalletNumber: contract.mobileWalletNumber })}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        ${(() => {
+          const isRespondentPayee = ["BRAND_TO_CREATOR", "AGENCY_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contract.contractType);
+          const payeeParty = isRespondentPayee ? respondentParty : initiatorParty;
+          const payeeMethod = (isRespondentPayee ? (contract.respondentPaymentMethod || payeeParty.paymentMethod || contract.paymentMethod) : (payeeParty.paymentMethod || contract.paymentMethod)) as string | undefined;
+          const payeeIban = isRespondentPayee ? (contract.respondentBankAccountIban || payeeParty.bankAccountIban || contract.bankAccountIban) : (payeeParty.bankAccountIban || contract.bankAccountIban);
+          const payeeWallet = isRespondentPayee ? (contract.respondentMobileWalletNumber || payeeParty.mobileWalletNumber || contract.mobileWalletNumber) : (payeeParty.mobileWalletNumber || contract.mobileWalletNumber);
+
+          const routeStr = formatPaymentRoute(payeeMethod, { bankAccountIban: payeeIban, mobileWalletNumber: payeeWallet });
+
+          return `
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 8.5pt; border: 1px solid #cbd5e1;">
+              <thead>
+                <tr style="background-color: #f1f5f9; color: #0f172a; text-transform: uppercase; font-size: 8pt;">
+                  <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Total Valuation</th>
+                  <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Tax Terms Note</th>
+                  <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Advance Payout</th>
+                  <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Remaining Payout</th>
+                  <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Payment Route (${isRespondentPayee ? "Party B" : "Party A"})</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 9.5pt;">${formatCurrencyAmount(Number(contract.totalAmount || 0), currCode)}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-size: 7.5pt; color: #475569;">Inclusive of statutory local taxes (VAT/GST). Each Party files independently.</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
+                    <strong>${formatCurrencyAmount(Number(contract.advancePayment || 0), currCode)}</strong>
+                    ${contract.advancePaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.advancePaymentDate, jur.countryCode)}</span>` : ""}
+                  </td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
+                    <strong>${formatCurrencyAmount(getRemainingAmount(), currCode)}</strong>
+                    ${contract.remainingPaymentDate ? `<br /><span style="font-size: 7.5pt; color: #64748b;">Due: ${formatLegalDate(contract.remainingPaymentDate, jur.countryCode)}</span>` : ""}
+                  </td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">
+                    <strong>${payeeMethod ? payeeMethod.replace(/_/g, " ") : "Not Specified"}</strong>
+                    <br /><span style="font-size: 7.5pt; font-family: monospace; color: #475569;">${routeStr}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          `;
+        })()}
 
         <!-- Section 5: Delivery Protocol & Revisions -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
@@ -458,13 +497,14 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         </div>
 
         <!-- Section 8: Collaboration Product Shipment & Loan Terms -->
-        <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          8. COLLABORATION PRODUCT SHIPMENT &amp; LOAN RETURN TERMS
-        </div>
-        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
-          ${contract.collabProduct ? `
-            <div>• <strong>Product Item:</strong> <strong>${contract.collabProduct}</strong> (${contract.collabProductProvisionType || "Provision"})</div>
-            <div>• <strong>Delivery Start Trigger:</strong> Timeframe (${contract.deliveryTimeframeDays} days) starts post receipt of product shipment or advance payment.</div>
+        ${(contract.collabProduct || contract.collabDeliveryDate || contract.collabDeliveryAddress) ? `
+          <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
+            8. COLLABORATION PRODUCT SHIPMENT &amp; LOAN RETURN TERMS
+          </div>
+          <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
+            <div>• <strong>Product Item:</strong> <strong>${contract.collabProduct || "Product Sample / Provision"}</strong> (${contract.collabProductProvisionType || "Provision"})</div>
+            ${contract.collabDeliveryDate ? `<div>• <strong>Expected Product Arrival:</strong> ${formatLegalDate(contract.collabDeliveryDate, jur.countryCode)}</div>` : ""}
+            <div>• <strong>Delivery Start Trigger:</strong> Timeframe (${contract.deliveryTimeframeDays} days) starts post receipt of physical product shipment or advance payment.</div>
             ${contract.collabDeliveryAddress ? `<div>• <strong>Shipment Address:</strong> ${contract.collabDeliveryAddress}</div>` : ""}
             ${contract.collabProductProvisionType === "Product Loan" ? `
               <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1; color: #92400e;">
@@ -473,10 +513,8 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
                 ${contract.collabProductNonReturnFee ? `<div>• Non-Return Penalty Fee: <strong>${formatCurrencyAmount(Number(contract.collabProductNonReturnFee), currCode)}</strong></div>` : ""}
               </div>
             ` : ""}
-          ` : `
-            <div>• <strong>Product Shipment Status:</strong> No physical product loan or shipment required for this collaboration. Deliverable delivery window commences post-execution and advance payment receipt as agreed.</div>
-          `}
-        </div>
+          </div>
+        ` : ""}
 
 
         <!-- Section 9: Tagging Requirements & Copyright Ownership -->
@@ -526,7 +564,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
                   ${initiatorParty.companyName || initiatorParty.name}
                 </div>
                 <div>Authorized Signer: <strong>${initiatorParty.name}</strong> ${initiatorParty.designation ? `(${initiatorParty.designation})` : ""}</div>
-                <div>Email: ${initiatorParty.email} | IP: ${initiatorSign.ipAddress}</div>
+                <div>Verified Email OTP: ✓ Verified | Email: ${initiatorParty.email} | IP: ${initiatorSign.ipAddress}</div>
                 <div>Signed: ${formatLegalDate(initiatorSign.signedAt, jur.countryCode)}</div>
               </div>
             ` : `

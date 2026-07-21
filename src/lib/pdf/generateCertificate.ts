@@ -91,12 +91,12 @@ export async function generateAuditCertificatePDF(contractId: string) {
 
     const name = party?.name || log.user?.name || details?.name || details?.initiatorName || "";
     const role = party?.role || log.user?.role || details?.signerRole || details?.role || "";
-    const company = party?.companyName || (log.user as any)?.agencyName || (log.user as any)?.companyName || details?.company || details?.agencyName || "";
+    const company = party?.companyName || (details?.company || details?.agencyName || "");
 
     if (name || email) {
       const displayName = name ? `<strong>${name}</strong> (${email || party?.email || ""})` : `<strong>${email}</strong>`;
       const roleStr = role ? `<span style="color: #2563eb; font-weight: bold;"> [${role}]</span>` : "";
-      const companyStr = company ? `<div style="font-size: 7.5pt; color: #475569; margin-top: 1px;">Rep: <strong>${company}</strong></div>` : "";
+      const companyStr = (company && party?.role !== "CREATOR") ? `<div style="font-size: 7.5pt; color: #475569; margin-top: 1px;">Rep: <strong>${company}</strong></div>` : "";
       return `<div>${displayName}${roleStr}${companyStr}</div>`;
     }
 

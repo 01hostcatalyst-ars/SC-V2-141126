@@ -23,6 +23,9 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
     companyAddress: contract.initiatorCompanyAddress || contract.initiator?.agencyAddress,
     ntn: contract.initiatorNtn,
     cnic: contract.initiatorCnic,
+    paymentMethod: contract.paymentMethod,
+    bankAccountIban: contract.bankAccountIban,
+    mobileWalletNumber: contract.mobileWalletNumber,
   };
 
   const respondentParty = contract.parties?.find((p: any) => p.partyType === "RESPONDENT") || {
@@ -35,6 +38,9 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
     companyAddress: contract.respondentAddress || contract.respondent?.agencyAddress,
     ntn: contract.respondentNtn,
     cnic: contract.respondentCnic,
+    paymentMethod: contract.respondentPaymentMethod,
+    bankAccountIban: contract.respondentBankAccountIban,
+    mobileWalletNumber: contract.respondentMobileWalletNumber,
   };
 
   const initiatorSign = contract.signatures?.find(
@@ -133,28 +139,50 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
             <div style={{ margin: "2px 0" }}><strong>Representative:</strong> {respondentParty.name} {respondentParty.designation ? `(${respondentParty.designation})` : ""}</div>
             <div style={{ margin: "2px 0" }}><strong>Email:</strong> {respondentParty.email}</div>
             {respondentParty.phone && <div style={{ margin: "2px 0" }}><strong>Phone:</strong> {respondentParty.phone}</div>}
-            {(respondentParty.companyAddress || (respondentParty as any).address) && <div style={{ margin: "2px 0" }}><strong>Address:</strong> {respondentParty.companyAddress || (respondentParty as any).address}</div>}
+            {(respondentParty.companyAddress || (respondentParty as any).address || contract.respondentAddress || contract.collabDeliveryAddress) && (
+              <div style={{ margin: "2px 0" }}>
+                <strong>Address:</strong> {respondentParty.companyAddress || (respondentParty as any).address || contract.respondentAddress || contract.collabDeliveryAddress}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {(() => {
+        // Resolve Creator Name & Handle
         const cName = contract.creatorName || (initiatorParty.role === "CREATOR" ? initiatorParty.name : respondentParty.role === "CREATOR" ? respondentParty.name : undefined);
         const cHandle = contract.creatorHandle || undefined;
-        const agencyObj = initiatorParty.role === "AGENCY" ? initiatorParty : respondentParty.role === "AGENCY" ? respondentParty : null;
-        const aName = contract.agencyName || agencyObj?.companyName || agencyObj?.name;
-        
-        return (contract.brandName || contract.campaignName || cName || aName) ? (
+
+        // Resolve Client Brand Name & Handle
+        let bName = contract.brandName;
+        if (!bName) {
+          if (initiatorParty.role === "BRAND") bName = initiatorParty.companyName || initiatorParty.name;
+          else if (respondentParty.role === "BRAND") bName = respondentParty.companyName || respondentParty.name;
+        }
+        const bHandle = contract.brandHandle || undefined;
+
+        // Resolve Managing Agency Name
+        let aName = contract.agencyName;
+        if (!aName) {
+          if (initiatorParty.role === "AGENCY") aName = initiatorParty.companyName || initiatorParty.name;
+          else if (respondentParty.role === "AGENCY") aName = respondentParty.companyName || respondentParty.name;
+        }
+
+        const campaign = contract.campaignName || undefined;
+
+        if (!bName && !cName && !aName && !campaign) return null;
+
+        return (
           <div style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "8px 12px", backgroundColor: "#ffffff", marginBottom: "14px", fontSize: "11px" }}>
-            <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#475569", marginBottom: "4px" }}>CAMPAIGN & TALENT ASSIGNMENT</div>
+            <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#475569", marginBottom: "4px" }}>CAMPAIGN &amp; TALENT ASSIGNMENT</div>
             <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
-              {contract.brandName && <div><strong>Client Brand:</strong> {contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</div>}
+              {bName && <div><strong>Client Brand:</strong> {bName} {bHandle ? `(${bHandle})` : ""}</div>}
               {aName && <div><strong>Managing Agency:</strong> {aName}</div>}
-              {contract.campaignName && <div><strong>Campaign / Product:</strong> {contract.campaignName}</div>}
+              {campaign && <div><strong>Campaign / Product:</strong> {campaign}</div>}
               {cName && <div><strong>Target Creator:</strong> {cName} {cHandle ? `(${cHandle})` : ""}</div>}
             </div>
           </div>
-        ) : null;
+        );
       })()}
 
       {/* Section 2: Deliverables */}
@@ -202,33 +230,48 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
       <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", color: "#0f172a", borderBottom: "1.5px solid #0f172a", paddingBottom: "3px", marginTop: "14px", marginBottom: "8px" }}>
         4. FINANCIAL COMPENSATION &amp; PAYMENT SCHEDULE
       </div>
-      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "14px", fontSize: "11px", border: "1px solid #cbd5e1" }}>
-        <thead>
-          <tr style={{ backgroundColor: "#f1f5f9", color: "#0f172a", textTransform: "uppercase", fontSize: "10px" }}>
-            <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Total Campaign Valuation</th>
-            <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Advance Payment</th>
-            <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Remaining Payout</th>
-            <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Payment Method &amp; Route</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1", fontWeight: "bold", fontSize: "12px" }}>PKR {Number(contract.totalAmount).toLocaleString()}</td>
-            <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1" }}>
-              <strong>PKR {Number(contract.advancePayment || 0).toLocaleString()}</strong>
-              {contract.advancePaymentDate && <><br /><span style={{ fontSize: "10px", color: "#64748b" }}>Due: {formatLegalDate(contract.advancePaymentDate)}</span></>}
-            </td>
-            <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1" }}>
-              <strong>PKR {getRemainingAmount().toLocaleString()}</strong>
-              {contract.remainingPaymentDate && <><br /><span style={{ fontSize: "10px", color: "#64748b" }}>Due: {formatLegalDate(contract.remainingPaymentDate)}</span></>}
-            </td>
-            <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1" }}>
-              <strong>{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</strong>
-              <br /><span style={{ fontSize: "10px", fontFamily: "monospace", color: "#475569" }}>{contract.paymentMethod === "BANK_IBAN" ? (contract.bankAccountIban || "Pending") : (contract.mobileWalletNumber || "Pending")}</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      {(() => {
+        const isRespondentPayee = ["BRAND_TO_CREATOR", "AGENCY_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contract.contractType);
+        
+        const payeeParty = isRespondentPayee ? respondentParty : initiatorParty;
+        const payeeMethod = (isRespondentPayee ? (contract.respondentPaymentMethod || payeeParty.paymentMethod || contract.paymentMethod) : (payeeParty.paymentMethod || contract.paymentMethod)) as string | undefined;
+        const payeeIban = isRespondentPayee ? (contract.respondentBankAccountIban || payeeParty.bankAccountIban || contract.bankAccountIban) : (payeeParty.bankAccountIban || contract.bankAccountIban);
+        const payeeWallet = isRespondentPayee ? (contract.respondentMobileWalletNumber || payeeParty.mobileWalletNumber || contract.mobileWalletNumber) : (payeeParty.mobileWalletNumber || contract.mobileWalletNumber);
+
+        const routeText = payeeMethod
+          ? (payeeMethod === "BANK_IBAN" ? (payeeIban || "Pending Execution") : (payeeWallet || "Pending Execution"))
+          : "Pending Execution";
+
+        return (
+          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "14px", fontSize: "11px", border: "1px solid #cbd5e1" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#f1f5f9", color: "#0f172a", textTransform: "uppercase", fontSize: "10px" }}>
+                <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Total Campaign Valuation</th>
+                <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Advance Payment</th>
+                <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Remaining Payout</th>
+                <th style={{ padding: "6px 8px", border: "1px solid #cbd5e1", textAlign: "left" }}>Payout Route ({isRespondentPayee ? "Party B" : "Party A"})</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1", fontWeight: "bold", fontSize: "12px" }}>PKR {Number(contract.totalAmount).toLocaleString()}</td>
+                <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1" }}>
+                  <strong>PKR {Number(contract.advancePayment || 0).toLocaleString()}</strong>
+                  {contract.advancePaymentDate && <><br /><span style={{ fontSize: "10px", color: "#64748b" }}>Due: {formatLegalDate(contract.advancePaymentDate)}</span></>}
+                </td>
+                <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1" }}>
+                  <strong>PKR {getRemainingAmount().toLocaleString()}</strong>
+                  {contract.remainingPaymentDate && <><br /><span style={{ fontSize: "10px", color: "#64748b" }}>Due: {formatLegalDate(contract.remainingPaymentDate)}</span></>}
+                </td>
+                <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1" }}>
+                  <strong>{payeeMethod ? payeeMethod.replace(/_/g, " ") : "Not Specified"}</strong>
+                  <br /><span style={{ fontSize: "10px", fontFamily: "monospace", color: "#475569" }}>{routeText}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        );
+      })()}
       <div style={{ fontSize: "9px", color: "#64748b", fontStyle: "italic", marginTop: "-8px", marginBottom: "12px" }}>
         * Note: All financial valuation figures are inclusive of statutory local sales taxes (VAT / GST). Each party is responsible for their own tax compliance.
       </div>

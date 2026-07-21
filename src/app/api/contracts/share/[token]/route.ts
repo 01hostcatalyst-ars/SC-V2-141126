@@ -89,6 +89,9 @@ export async function PUT(
         respondentNtn,
         respondentCnic,
         collabDetails,
+        collabProduct: body.collabProduct || undefined,
+        collabDeliveryAddress: body.collabDeliveryAddress || undefined,
+        collabDeliveryDate: body.collabDeliveryDate ? new Date(body.collabDeliveryDate) : undefined,
         // Allow respondent to accept/adjust late penalties
         latePaymentPenaltyPct: latePaymentPenaltyPct ? parseFloat(latePaymentPenaltyPct) : undefined,
         lateContentPenaltyPct: lateContentPenaltyPct ? parseFloat(lateContentPenaltyPct) : undefined,

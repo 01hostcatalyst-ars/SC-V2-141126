@@ -139,7 +139,7 @@ export async function POST(
         role: respondentUserRole,
         designation: designation || contract.respondentDesignation || undefined,
         companyName: (respondentUserRole === "AGENCY" || respondentUserRole === "BRAND") ? (company || contract.respondentCompany || undefined) : undefined,
-        companyAddress: (respondentUserRole === "AGENCY" || respondentUserRole === "BRAND") ? (address || contract.respondentAddress || undefined) : undefined,
+        companyAddress: address || contract.respondentAddress || undefined,
         ntn: (respondentUserRole === "AGENCY" || respondentUserRole === "BRAND") ? (ntn || contract.respondentNtn || undefined) : undefined,
         cnic: respondentUserRole === "CREATOR" ? (cnic || contract.respondentCnic || undefined) : undefined,
         taxIdType: (respondentUserRole === "AGENCY" || respondentUserRole === "BRAND") ? "NTN" : undefined,
