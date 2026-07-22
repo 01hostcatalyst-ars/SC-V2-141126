@@ -9,6 +9,7 @@ import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } fr
 import { getJurisdiction } from "@/lib/config/jurisdictions";
 import { formatCurrencyAmount } from "@/lib/currency";
 import { AutocompleteInput } from "@/components/ui/AutocompleteInput";
+import { ModernSelect } from "@/components/ui/ModernSelect";
 
 const RESPONDENT_TITLE_SUGGESTIONS = [
   "Marketing Director",
@@ -47,6 +48,8 @@ export default function PublicSigningPage({ params }: PageProps) {
   const [respondentNtn, setRespondentNtn] = useState("");
   const [respondentCnic, setRespondentCnic] = useState("");
   const [collabDetails, setCollabDetails] = useState("");
+  const [respondentCapacity, setRespondentCapacity] = useState<"CREATOR_SELF" | "CREATOR_MANAGER">("CREATOR_SELF");
+  const [creatorLegalName, setCreatorLegalName] = useState("");
 
   // Payout details for Creator respondents
   const [paymentMethod, setPaymentMethod] = useState("BANK_IBAN");
@@ -698,15 +701,37 @@ export default function PublicSigningPage({ params }: PageProps) {
                   />
                 </div>
 
-                {/* 3. Contact Person Name * */}
+                {/* 3. Signing Capacity & Creator Identification (If Creator Counterparty) */}
+                {isRespondentCreator && (
+                  <div className="sm:col-span-2">
+                    <ModernSelect
+                      label="Signing Capacity *"
+                      value={respondentCapacity}
+                      onChange={(val: any) => {
+                        setRespondentCapacity(val);
+                        if (val === "CREATOR_MANAGER") {
+                          setRespondentDesignation("Authorized Talent Manager");
+                        } else {
+                          setRespondentDesignation("Content Creator / Influencer");
+                        }
+                      }}
+                      options={[
+                        { value: "CREATOR_SELF", label: "I am the Creator (Signing Myself)" },
+                        { value: "CREATOR_MANAGER", label: "I am an Authorized Manager / Agent (Signing for Creator)" },
+                      ]}
+                    />
+                  </div>
+                )}
+
+                {/* Contact Person Name / Signer Name */}
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-black uppercase tracking-wider">
-                    Contact Person Name <span className="text-rose-500">*</span>
+                    {respondentCapacity === "CREATOR_MANAGER" ? "Signer / Manager Name" : "Signer's Full Legal Name"} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Alex Smith"
+                    placeholder={respondentCapacity === "CREATOR_MANAGER" ? "e.g. John Smith" : "e.g. Sarah Khan"}
                     value={respondentName}
                     onChange={(e) => setRespondentName(e.target.value)}
                     disabled={otpDispatched || otpVerified}
@@ -714,7 +739,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   />
                 </div>
 
-                {/* 4. Brand / Company Name * */}
+                {/* 4. Brand / Company / Creator IG Handle * */}
                 <div className="flex flex-col gap-1">
                   {isRespondentBrand ? (
                     <>
@@ -749,12 +774,12 @@ export default function PublicSigningPage({ params }: PageProps) {
                   ) : (
                     <>
                       <label className="text-xs font-bold text-black uppercase tracking-wider">
-                        Instagram / Social Handle <span className="text-rose-500">*</span>
+                        Creator IG Handle <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder="@username"
+                        placeholder="e.g. @username"
                         value={collabDetails}
                         onChange={(e) => setCollabDetails(e.target.value)}
                         disabled={otpDispatched || otpVerified}
@@ -763,6 +788,24 @@ export default function PublicSigningPage({ params }: PageProps) {
                     </>
                   )}
                 </div>
+
+                {/* 4b. Conditional Creator Legal Name (if Manager signing) */}
+                {isRespondentCreator && respondentCapacity === "CREATOR_MANAGER" && (
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">
+                      Creator Full Legal Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Sarah Khan"
+                      value={creatorLegalName}
+                      onChange={(e) => setCreatorLegalName(e.target.value)}
+                      disabled={otpDispatched || otpVerified}
+                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                )}
 
                 {/* 5. Address * */}
                 <div className="flex flex-col gap-1 sm:col-span-2">

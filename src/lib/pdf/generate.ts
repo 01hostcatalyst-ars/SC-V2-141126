@@ -374,7 +374,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
                 ${bName ? `<div><strong>Client Brand:</strong> ${bName} ${bHandle ? `(${bHandle})` : ""}</div>` : ""}
                 ${aName ? `<div><strong>Managing Agency:</strong> ${aName}</div>` : ""}
                 ${campaign ? `<div><strong>Campaign:</strong> ${campaign}</div>` : ""}
-                ${cName ? `<div><strong>Creator:</strong> ${cName} ${cHandle ? `(${cHandle})` : ""}</div>` : ""}
+                ${cName ? `<div><strong>Creator:</strong> ${cName} ${cHandle ? `(IG Handle: ${cHandle})` : ""}</div>` : cHandle ? `<div><strong>Creator IG Handle:</strong> ${cHandle}</div>` : ""}
               </div>
             </div>
           `;

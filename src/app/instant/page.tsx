@@ -177,6 +177,8 @@ export default function InstantContractPage() {
   const [initiatorPhone, setInitiatorPhone] = useState("");
   const [initiatorRole, setInitiatorRole] = useState<"CREATOR" | "BRAND" | "AGENCY">("AGENCY");
   const [initiatorDesignation, setInitiatorDesignation] = useState("");
+  const [initiatorSigningCapacity, setInitiatorSigningCapacity] = useState<"CREATOR_SELF" | "CREATOR_MANAGER">("CREATOR_SELF");
+  const [creatorLegalName, setCreatorLegalName] = useState("");
   const [initiatorNtn, setInitiatorNtn] = useState("");
   const [initiatorCnic, setInitiatorCnic] = useState("");
   const [initiatorCompanyName, setInitiatorCompanyName] = useState("");
@@ -1347,8 +1349,25 @@ export default function InstantContractPage() {
                   </>
                 ) : (
                   <>
+                    <ModernSelect
+                      label="Signing Capacity"
+                      value={initiatorSigningCapacity}
+                      onChange={(val: any) => {
+                        setInitiatorSigningCapacity(val);
+                        if (val === "CREATOR_MANAGER") {
+                          setInitiatorDesignation("Authorized Talent Manager");
+                        } else {
+                          setInitiatorDesignation("Content Creator / Influencer");
+                        }
+                      }}
+                      options={[
+                        { value: "CREATOR_SELF", label: "I am the Creator (Signing Myself)" },
+                        { value: "CREATOR_MANAGER", label: "I am an Authorized Manager / Agent (Signing for Creator)" },
+                      ]}
+                    />
+
                     <div className="flex flex-col text-left gap-1">
-                      <label className="text-xs font-bold text-gray-700">Your Instagram / Social Handle *</label>
+                      <label className="text-xs font-bold text-gray-700">Creator IG Handle *</label>
                       <input
                         type="text"
                         required
@@ -1359,6 +1378,21 @@ export default function InstantContractPage() {
                         className="input-field disabled:bg-gray-100"
                       />
                     </div>
+
+                    {initiatorSigningCapacity === "CREATOR_MANAGER" && (
+                      <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                        <label className="text-xs font-bold text-gray-700">Creator Full Legal Name *</label>
+                        <input
+                          type="text"
+                          required
+                          disabled={initiatorOtpVerified}
+                          placeholder="e.g. Sarah Khan"
+                          value={creatorLegalName}
+                          onChange={(e) => setCreatorLegalName(e.target.value)}
+                          className="input-field disabled:bg-gray-100"
+                        />
+                      </div>
+                    )}
                     <div className="flex flex-col text-left gap-1 sm:col-span-2">
                       <label className="text-xs font-bold text-gray-700">
                         {jur.nationalIdLabel} {!jur.nationalIdLabel.toLowerCase().includes("optional") && "*"}

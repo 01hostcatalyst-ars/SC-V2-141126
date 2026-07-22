@@ -218,6 +218,8 @@ export async function POST(
           respondentTaxId: respondentTaxIdVal || (contract as any).respondentTaxId,
           respondentNationalId: respondentNationalIdVal || (contract as any).respondentNationalId,
           collabDetails: collabDetails || contract.collabDetails,
+          creatorHandle: (respondentUserRole === "CREATOR" && collabDetails) ? collabDetails : contract.creatorHandle,
+          creatorName: (respondentUserRole === "CREATOR" && name) ? name : contract.creatorName,
           respondentPaymentMethod: (paymentMethod as PaymentMethod) || undefined,
           respondentPaymentRoutingDetails: paymentRoutingDetails || undefined,
           respondentBankAccountIban: paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
