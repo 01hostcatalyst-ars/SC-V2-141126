@@ -30,6 +30,7 @@ export default function Home() {
   const [signupPassword, setSignupPassword] = useState("");
   const [countryCode, setCountryCode] = useState("US");
   const [taxId, setTaxId] = useState("");
+  const [creatorName, setCreatorName] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
   const [cnicNumber, setCnicNumber] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -91,7 +92,7 @@ export default function Home() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signupName || !signupEmail || !signupPassword) {
-      setSignupError("Please fill in name, email, and password.");
+      setSignupError("Please fill in contact name, email, and password.");
       return;
     }
 
@@ -105,13 +106,13 @@ export default function Home() {
       role,
       password: signupPassword,
       countryCode,
-      taxId: taxId || cnicNumber || undefined,
+      taxId: role === "CREATOR" ? (cnicNumber || undefined) : (taxId || undefined),
+      cnicNumber: role === "CREATOR" ? (cnicNumber || undefined) : undefined,
+      creatorName: role === "CREATOR" ? (creatorName || signupName) : undefined,
       instagramHandle: role === "CREATOR" ? instagramHandle : undefined,
-      cnicNumber: role === "CREATOR" ? cnicNumber : undefined,
-      // API maps both Brand/Agency name fields to agencyName and agencyAddress in database
       agencyName: role !== "CREATOR" ? companyName : undefined,
-      agencyAddress: role !== "CREATOR" ? companyAddress : undefined,
-      designation: role !== "CREATOR" ? designation : undefined,
+      agencyAddress: companyAddress || undefined,
+      designation: designation || undefined,
     };
 
     try {
@@ -133,6 +134,7 @@ export default function Home() {
       setSignupPassword("");
       setCountryCode("US");
       setTaxId("");
+      setCreatorName("");
       setInstagramHandle("");
       setCnicNumber("");
       setCompanyName("");
@@ -364,157 +366,294 @@ export default function Home() {
 
                   {/* Fields Grid */}
                   <div className="grid grid-cols-1 gap-3">
-                    <div className="flex flex-col text-left gap-1">
-                      <label className="text-xs font-bold text-black uppercase tracking-wider">
-                        {role === "CREATOR" ? "Full Name" : "Contact Person Name"}
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Mohammad Ali"
-                        value={signupName}
-                        onChange={(e) => setSignupName(e.target.value)}
-                        disabled={signupLoading}
-                        className="input-field"
-                      />
-                    </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="flex flex-col text-left gap-1">
-                        <label className="text-xs font-bold text-black uppercase tracking-wider">Email Address</label>
-                        <input
-                          type="email"
-                          required
-                          placeholder="ali@domain.com"
-                          value={signupEmail}
-                          onChange={(e) => setSignupEmail(e.target.value)}
-                          disabled={signupLoading}
-                          className="input-field"
-                        />
-                      </div>
-                      <div className="flex flex-col text-left gap-1">
-                        <label className="text-xs font-bold text-black uppercase tracking-wider">Phone (WhatsApp)</label>
-                        <input
-                          type="tel"
-                          placeholder="03XXXXXXXXX"
-                          value={signupPhone}
-                          onChange={(e) => setSignupPhone(e.target.value)}
-                          disabled={signupLoading}
-                          className="input-field"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col text-left gap-1">
-                      <label className="text-xs font-bold text-black uppercase tracking-wider">Password</label>
-                      <input
-                        type="password"
-                        required
-                        placeholder="Min 6 characters"
-                        value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        disabled={signupLoading}
-                        className="input-field"
-                      />
-                    </div>
-
-                    {/* Country Jurisdiction & Tax ID Inputs */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
-                      <ModernSelect
-                        label="Country Jurisdiction *"
-                        value={countryCode}
-                        onChange={(val) => setCountryCode(val)}
-                        options={Object.values(JURISDICTIONS).map((j) => ({
-                          value: j.countryCode,
-                          label: `${j.countryName} (${j.lawAbbreviation})`,
-                          sublabel: `Tax Label: ${j.taxIdLabel}`,
-                        }))}
-                      />
-                      <div className="flex flex-col text-left gap-1">
-                        <label className="text-xs font-bold text-black uppercase tracking-wider">
-                          {getJurisdiction(countryCode).taxIdLabel}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder={`e.g. ${getJurisdiction(countryCode).taxIdLabel}`}
-                          value={taxId}
-                          onChange={(e) => setTaxId(e.target.value)}
-                          disabled={signupLoading}
-                          className="input-field"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Creator Specific Form Inputs */}
-                    {role === "CREATOR" && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
-                        <div className="flex flex-col text-left gap-1">
-                          <label className="text-xs font-bold text-black uppercase tracking-wider">Instagram Handle</label>
-                          <input
-                            type="text"
-                            placeholder="@username"
-                            value={instagramHandle}
-                            onChange={(e) => setInstagramHandle(e.target.value)}
-                            disabled={signupLoading}
-                            className="input-field"
-                          />
+                    {role === "CREATOR" ? (
+                      /* CREATOR SIGN-UP FORM */
+                      <div className="space-y-3">
+                        {/* 1. Creator Brand / Persona Info */}
+                        <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                            1. Creator Brand / Persona Info
+                          </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Creator Full Name *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. Jane Doe"
+                                value={creatorName}
+                                onChange={(e) => setCreatorName(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Creator Social Handle *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="@janedoe"
+                                value={instagramHandle}
+                                onChange={(e) => setInstagramHandle(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex flex-col text-left gap-1">
-                          <label className="text-xs font-bold text-black uppercase tracking-wider">CNIC / Government ID (Optional)</label>
-                          <input
-                            type="text"
-                            placeholder="National ID / Passport"
-                            value={cnicNumber}
-                            onChange={(e) => setCnicNumber(e.target.value)}
-                            disabled={signupLoading}
-                            className="input-field"
-                          />
+
+                        {/* 2. Representative / Account Holder Info */}
+                        <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                            2. Account Holder &amp; Representative Details
+                          </span>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Representative Name *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Jane Doe or John Agent"
+                                value={signupName}
+                                onChange={(e) => setSignupName(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Your Job Title / Capacity *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. Self / Talent Manager"
+                                value={designation}
+                                onChange={(e) => setDesignation(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Account Email *</label>
+                              <input
+                                type="email"
+                                required
+                                placeholder="name@domain.com"
+                                value={signupEmail}
+                                onChange={(e) => setSignupEmail(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Phone (WhatsApp) *</label>
+                              <input
+                                type="tel"
+                                required
+                                placeholder="03XXXXXXXXX"
+                                value={signupPhone}
+                                onChange={(e) => setSignupPhone(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col text-left gap-1">
+                            <label className="text-xs font-bold text-black uppercase tracking-wider">Studio / Residential Address *</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="Address, City, Country"
+                              value={companyAddress}
+                              onChange={(e) => setCompanyAddress(e.target.value)}
+                              disabled={signupLoading}
+                              className="input-field"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <ModernSelect
+                              label="Country Jurisdiction *"
+                              value={countryCode}
+                              onChange={(val) => setCountryCode(val)}
+                              options={Object.values(JURISDICTIONS).map((j) => ({
+                                value: j.countryCode,
+                                label: `${j.countryName} (${j.lawAbbreviation})`,
+                                sublabel: `ID: ${j.nationalIdLabel}`,
+                              }))}
+                            />
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">
+                                {getJurisdiction(countryCode).nationalIdLabel} *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder={`e.g. ${getJurisdiction(countryCode).nationalIdLabel}`}
+                                value={cnicNumber}
+                                onChange={(e) => setCnicNumber(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col text-left gap-1">
+                            <label className="text-xs font-bold text-black uppercase tracking-wider">Password *</label>
+                            <input
+                              type="password"
+                              required
+                              placeholder="Min 6 characters"
+                              value={signupPassword}
+                              onChange={(e) => setSignupPassword(e.target.value)}
+                              disabled={signupLoading}
+                              className="input-field"
+                            />
+                          </div>
                         </div>
                       </div>
-                    )}
+                    ) : (
+                      /* BRAND / AGENCY SIGN-UP FORM */
+                      <div className="space-y-3">
+                        {/* 1. Business Entity Info */}
+                        <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                            1. Business Entity Info
+                          </span>
 
-                    {/* Brand or Agency inputs */}
-                    {role !== "CREATOR" && (
-                      <div className="space-y-3 pt-2 border-t border-gray-100">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="flex flex-col text-left gap-1">
                             <label className="text-xs font-bold text-black uppercase tracking-wider">
-                              {role === "BRAND" ? "Brand / Company Name" : "Agency Name"}
+                              {role === "BRAND" ? "Brand / Company Name *" : "Agency Name *"}
                             </label>
                             <input
                               type="text"
                               required
-                              placeholder={role === "BRAND" ? "e.g. Sapphire" : "e.g. Core Agency"}
+                              placeholder={role === "BRAND" ? "e.g. Samsung Pakistan" : "e.g. Core Agency"}
                               value={companyName}
                               onChange={(e) => setCompanyName(e.target.value)}
                               disabled={signupLoading}
                               className="input-field"
                             />
                           </div>
+
                           <div className="flex flex-col text-left gap-1">
-                            <label className="text-xs font-bold text-black uppercase tracking-wider">Your Job Title</label>
+                            <label className="text-xs font-bold text-black uppercase tracking-wider">Office Address *</label>
                             <input
                               type="text"
                               required
-                              placeholder="Marketing Manager"
-                              value={designation}
-                              onChange={(e) => setDesignation(e.target.value)}
+                              placeholder="Corporate Office Address, City"
+                              value={companyAddress}
+                              onChange={(e) => setCompanyAddress(e.target.value)}
+                              disabled={signupLoading}
+                              className="input-field"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Account Email *</label>
+                              <input
+                                type="email"
+                                required
+                                placeholder="corporate@domain.com"
+                                value={signupEmail}
+                                onChange={(e) => setSignupEmail(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                            <ModernSelect
+                              label="Country Jurisdiction *"
+                              value={countryCode}
+                              onChange={(val) => setCountryCode(val)}
+                              options={Object.values(JURISDICTIONS).map((j) => ({
+                                value: j.countryCode,
+                                label: `${j.countryName} (${j.lawAbbreviation})`,
+                                sublabel: `Tax Label: ${j.taxIdLabel}`,
+                              }))}
+                            />
+                          </div>
+
+                          <div className="flex flex-col text-left gap-1">
+                            <label className="text-xs font-bold text-black uppercase tracking-wider">
+                              Business {getJurisdiction(countryCode).taxIdLabel} *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder={`e.g. ${getJurisdiction(countryCode).taxIdLabel}`}
+                              value={taxId}
+                              onChange={(e) => setTaxId(e.target.value)}
                               disabled={signupLoading}
                               className="input-field"
                             />
                           </div>
                         </div>
-                        <div className="flex flex-col text-left gap-1">
-                          <label className="text-xs font-bold text-black uppercase tracking-wider">Office Address</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="Office Address, City"
-                            value={companyAddress}
-                            onChange={(e) => setCompanyAddress(e.target.value)}
-                            disabled={signupLoading}
-                            className="input-field"
-                          />
+
+                        {/* 2. Authorized Representative Info */}
+                        <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                            2. Authorized Representative Info
+                          </span>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Contact Person Name *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Mohammad Ali"
+                                value={signupName}
+                                onChange={(e) => setSignupName(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Your Job Title *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. Marketing Director"
+                                value={designation}
+                                onChange={(e) => setDesignation(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Phone (WhatsApp) *</label>
+                              <input
+                                type="tel"
+                                required
+                                placeholder="03XXXXXXXXX"
+                                value={signupPhone}
+                                onChange={(e) => setSignupPhone(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                            <div className="flex flex-col text-left gap-1">
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Account Password *</label>
+                              <input
+                                type="password"
+                                required
+                                placeholder="Min 6 characters"
+                                value={signupPassword}
+                                onChange={(e) => setSignupPassword(e.target.value)}
+                                disabled={signupLoading}
+                                className="input-field"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}

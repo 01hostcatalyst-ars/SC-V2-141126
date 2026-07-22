@@ -10,6 +10,7 @@ interface UserProfile {
   email: string;
   phone: string | null;
   role: "CREATOR" | "BRAND" | "AGENCY";
+  creatorName?: string | null;
   instagramHandle: string | null;
   cnicNumber: string | null;
   agencyName: string | null;

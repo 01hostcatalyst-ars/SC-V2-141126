@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, phone, role, password, instagramHandle, agencyName, agencyAddress, cnicNumber, countryCode, taxId } = await req.json();
+    const { name, email, phone, role, password, instagramHandle, agencyName, agencyAddress, cnicNumber, countryCode, taxId, creatorName, designation } = await req.json();
 
     if (!name || !email || !role || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -45,6 +45,8 @@ export async function POST(req: Request) {
         agencyAddress: agencyAddress || undefined,
         countryCode: countryCode || "US",
         taxId: taxId || cnicNumber || undefined,
+        creatorName: creatorName || undefined,
+        designation: designation || undefined,
         supabaseAuthId: authData.user.id,
       },
       create: {
@@ -58,6 +60,8 @@ export async function POST(req: Request) {
         agencyAddress: agencyAddress || undefined,
         countryCode: countryCode || "US",
         taxId: taxId || cnicNumber || undefined,
+        creatorName: creatorName || undefined,
+        designation: designation || undefined,
         supabaseAuthId: authData.user.id,
       },
     });
