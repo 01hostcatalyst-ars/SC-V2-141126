@@ -86,16 +86,16 @@ export function AutocompleteInput({
 
       {/* Tailwind UI Autocomplete Dropdown List */}
       {isOpen && !disabled && filteredSuggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 z-30 mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-xl py-1 animate-in fade-in-50">
+        <div className="absolute top-full left-0 right-0 z-30 mt-1.5 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-2xl py-1 animate-in fade-in-50">
           {filteredSuggestions.map((item) => (
             <button
               key={item}
               type="button"
               onMouseDown={() => handleSelect(item)}
-              className="w-full text-left px-3.5 py-2 text-xs font-semibold text-gray-800 hover:bg-black hover:text-white transition-colors cursor-pointer flex items-center justify-between group"
+              className="w-full text-left px-3.5 py-2.5 text-xs font-medium text-gray-900 hover:bg-black hover:text-white transition-colors cursor-pointer flex items-start justify-between gap-2 border-b border-gray-100/80 last:border-0 group"
             >
-              <span className="truncate mr-2">{item}</span>
-              <span className="text-[10px] text-gray-400 group-hover:text-white font-bold shrink-0 uppercase tracking-wider">
+              <span className="whitespace-normal break-words leading-snug flex-1">{item}</span>
+              <span className="text-[10px] text-gray-400 group-hover:text-white font-bold shrink-0 uppercase tracking-wider pt-0.5 select-none">
                 Select ↵
               </span>
             </button>
