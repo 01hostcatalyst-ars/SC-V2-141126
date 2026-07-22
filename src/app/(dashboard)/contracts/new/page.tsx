@@ -922,8 +922,31 @@ export default function NewContractPage() {
               />
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-gray-800">Shipping / Delivery Address</label>
+                <input
+                  type="text"
+                  placeholder="Shipping Address for product delivery"
+                  value={collabDeliveryAddress}
+                  onChange={(e) => setCollabDeliveryAddress(e.target.value)}
+                  className="input-field"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-gray-800">Expected Product Arrival Date</label>
+                <input
+                  type="date"
+                  value={collabDeliveryDate}
+                  onChange={(e) => setCollabDeliveryDate(e.target.value)}
+                  className="input-field"
+                />
+              </div>
+            </div>
+
             {collabProductProvisionType === "Product Loan" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-200/60">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2 border-t border-gray-200/60">
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-gray-800">Return Timeframe (Days)</label>
                   <input
@@ -933,6 +956,28 @@ export default function NewContractPage() {
                     className="input-field"
                   />
                 </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-gray-800">Product Return Address</label>
+                  <input
+                    type="text"
+                    placeholder="Address to return the product"
+                    value={collabProductReturnAddress}
+                    onChange={(e) => setCollabProductReturnAddress(e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+
+                <ModernSelect
+                  label="Return Shipping Paid By"
+                  value={collabProductReturnShippingBy}
+                  onChange={(val) => setCollabProductReturnShippingBy(val)}
+                  options={[
+                    { value: "Brand", label: "Brand / Agency" },
+                    { value: "Creator", label: "Creator" },
+                  ]}
+                />
+
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-gray-800">Non-Return Fee ({currency})</label>
                   <input
@@ -1045,6 +1090,31 @@ export default function NewContractPage() {
               <span className="text-xs font-bold text-gray-800">Enable NDA &amp; Campaign Embargo Restrictions</span>
             </label>
           </div>
+
+          {confidentialityRequired && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gray-50 border border-gray-200 rounded-2xl">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-gray-800">Campaign Embargo / Launch Date</label>
+                <input
+                  type="date"
+                  value={embargoDate}
+                  onChange={(e) => setEmbargoDate(e.target.value)}
+                  className="input-field"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-gray-800">Early Disclosure Penalty ({currency})</label>
+                <input
+                  type="number"
+                  placeholder="e.g. 5000"
+                  value={earlyDisclosurePenalty}
+                  onChange={(e) => setEarlyDisclosurePenalty(e.target.value)}
+                  className="input-field"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* SECTION 6: Verified Entity Identity & Representative Execution */}
