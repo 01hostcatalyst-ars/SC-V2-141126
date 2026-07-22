@@ -45,7 +45,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, phone, instagramHandle, agencyName, agencyAddress, cnicNumber } = await req.json();
+    const { name, phone, instagramHandle, agencyName, agencyAddress, cnicNumber, countryCode, taxId } = await req.json();
 
     const dbUser = await prisma.user.update({
       where: { supabaseAuthId: authUser.id },
@@ -56,6 +56,8 @@ export async function PUT(req: Request) {
         agencyName,
         agencyAddress,
         cnicNumber,
+        countryCode,
+        taxId,
       },
     });
 

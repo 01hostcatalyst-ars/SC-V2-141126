@@ -165,6 +165,8 @@ model User {
   role            Role
   agencyName      String?  @map("agency_name")
   agencyAddress   String?  @map("agency_address")
+  countryCode     String?  @default("US") @map("country_code")
+  taxId           String?  @map("tax_id")
   isVerified      Boolean  @default(false) @map("is_verified")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")

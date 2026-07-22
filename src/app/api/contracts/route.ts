@@ -71,6 +71,7 @@ export async function POST(req: Request) {
       collabProductReturnAddress,
       collabProductReturnShippingBy,
       collabProductNonReturnFee,
+      initiatorName,
       initiatorDesignation,
       initiatorNtn,
       initiatorCnic,
@@ -175,7 +176,7 @@ export async function POST(req: Request) {
             {
               partyType: "INITIATOR",
               userId: dbUser.id,
-              name: dbUser.name,
+              name: initiatorName || dbUser.name,
               email: dbUser.email,
               phone: dbUser.phone || undefined,
               role: contractType.startsWith("CREATOR_") ? "CREATOR" : contractType.startsWith("BRAND_") ? "BRAND" : "AGENCY",

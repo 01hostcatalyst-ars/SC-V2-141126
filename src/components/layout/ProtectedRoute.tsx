@@ -14,6 +14,8 @@ interface UserProfile {
   cnicNumber: string | null;
   agencyName: string | null;
   agencyAddress: string | null;
+  countryCode?: string | null;
+  taxId?: string | null;
   designation: string | null;
   isVerified: boolean;
 }

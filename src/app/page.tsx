@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getCompanyConfig } from "@/lib/config";
+import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
+import { ModernSelect } from "@/components/ui/ModernSelect";
 
 type AuthTab = "signin" | "signup";
 type Role = "CREATOR" | "BRAND" | "AGENCY";
@@ -26,6 +28,8 @@ export default function Home() {
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [countryCode, setCountryCode] = useState("US");
+  const [taxId, setTaxId] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
   const [cnicNumber, setCnicNumber] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -100,6 +104,8 @@ export default function Home() {
       phone: signupPhone,
       role,
       password: signupPassword,
+      countryCode,
+      taxId: taxId || cnicNumber || undefined,
       instagramHandle: role === "CREATOR" ? instagramHandle : undefined,
       cnicNumber: role === "CREATOR" ? cnicNumber : undefined,
       // API maps both Brand/Agency name fields to agencyName and agencyAddress in database
@@ -125,6 +131,8 @@ export default function Home() {
       setSignupEmail("");
       setSignupPhone("");
       setSignupPassword("");
+      setCountryCode("US");
+      setTaxId("");
       setInstagramHandle("");
       setCnicNumber("");
       setCompanyName("");
@@ -410,6 +418,33 @@ export default function Home() {
                       />
                     </div>
 
+                    {/* Country Jurisdiction & Tax ID Inputs */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+                      <ModernSelect
+                        label="Country Jurisdiction *"
+                        value={countryCode}
+                        onChange={(val) => setCountryCode(val)}
+                        options={Object.values(JURISDICTIONS).map((j) => ({
+                          value: j.countryCode,
+                          label: `${j.countryName} (${j.lawAbbreviation})`,
+                          sublabel: `Tax Label: ${j.taxIdLabel}`,
+                        }))}
+                      />
+                      <div className="flex flex-col text-left gap-1">
+                        <label className="text-xs font-bold text-black uppercase tracking-wider">
+                          {getJurisdiction(countryCode).taxIdLabel}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder={`e.g. ${getJurisdiction(countryCode).taxIdLabel}`}
+                          value={taxId}
+                          onChange={(e) => setTaxId(e.target.value)}
+                          disabled={signupLoading}
+                          className="input-field"
+                        />
+                      </div>
+                    </div>
+
                     {/* Creator Specific Form Inputs */}
                     {role === "CREATOR" && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
@@ -425,10 +460,10 @@ export default function Home() {
                           />
                         </div>
                         <div className="flex flex-col text-left gap-1">
-                          <label className="text-xs font-bold text-black uppercase tracking-wider">CNIC Number (Optional)</label>
+                          <label className="text-xs font-bold text-black uppercase tracking-wider">CNIC / Government ID (Optional)</label>
                           <input
                             type="text"
-                            placeholder="42101-XXXXXXX-X"
+                            placeholder="National ID / Passport"
                             value={cnicNumber}
                             onChange={(e) => setCnicNumber(e.target.value)}
                             disabled={signupLoading}
