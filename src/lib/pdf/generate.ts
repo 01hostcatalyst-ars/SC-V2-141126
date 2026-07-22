@@ -85,6 +85,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
     ntn: contract.initiatorNtn,
     cnic: contract.initiatorCnic,
     paymentMethod: contract.paymentMethod,
+    paymentRoutingDetails: contract.paymentRoutingDetails,
     bankAccountIban: contract.bankAccountIban,
     mobileWalletNumber: contract.mobileWalletNumber,
   };
@@ -100,6 +101,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
     ntn: contract.respondentNtn,
     cnic: contract.respondentCnic,
     paymentMethod: contract.respondentPaymentMethod,
+    paymentRoutingDetails: contract.respondentPaymentRoutingDetails,
     bankAccountIban: contract.respondentBankAccountIban,
     mobileWalletNumber: contract.respondentMobileWalletNumber,
   };
@@ -430,7 +432,11 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           const payeeIban = isRespondentPayee ? (contract.respondentBankAccountIban || payeeParty.bankAccountIban || contract.bankAccountIban) : (payeeParty.bankAccountIban || contract.bankAccountIban);
           const payeeWallet = isRespondentPayee ? (contract.respondentMobileWalletNumber || payeeParty.mobileWalletNumber || contract.mobileWalletNumber) : (payeeParty.mobileWalletNumber || contract.mobileWalletNumber);
 
-          const routeStr = formatPaymentRoute(payeeMethod, { bankAccountIban: payeeIban, mobileWalletNumber: payeeWallet });
+          const payeeRoutingObj = isRespondentPayee
+            ? (contract.respondentPaymentRoutingDetails || (payeeParty as any).paymentRoutingDetails || contract.paymentRoutingDetails)
+            : ((payeeParty as any).paymentRoutingDetails || contract.paymentRoutingDetails || contract.respondentPaymentRoutingDetails);
+
+          const routeStr = formatPaymentRoute(payeeMethod, payeeRoutingObj || { bankAccountIban: payeeIban, mobileWalletNumber: payeeWallet });
 
           return `
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 8.5pt; border: 1px solid #cbd5e1;">
@@ -517,12 +523,13 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         ` : ""}
 
 
-        <!-- Section 9: Tagging Requirements & Copyright Ownership -->
+        <!-- Section 9: Tagging Requirements, Campaign Notes & Copyright Ownership -->
         <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px;">
-          9. TAGGING REQUIREMENTS &amp; COPYRIGHT OWNERSHIP
+          9. TAGGING REQUIREMENTS, CAMPAIGN NOTES &amp; COPYRIGHT OWNERSHIP
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #ffffff; line-height: 1.6;">
           ${contract.taggingRequirements ? `<div style="margin-bottom: 4px;"><strong>Tagging &amp; Caption Guidelines:</strong> ${contract.taggingRequirements}</div>` : ""}
+          ${contract.collabDetails ? `<div style="margin-bottom: 4px;"><strong>Special Collaboration Notes &amp; Campaign Brief:</strong> ${contract.collabDetails}</div>` : ""}
           <div><strong>Content Copyright Clause:</strong> ${contract.contentOwnership}</div>
         </div>
 

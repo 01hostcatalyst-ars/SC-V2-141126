@@ -107,50 +107,79 @@ export function formatDeliverableTypeName(type: string | null | undefined): stri
 export function buildCanonicalContractPayload(contract: any): string {
   if (!contract) return "";
 
+  const parties = Array.isArray(contract.parties) ? contract.parties : [];
+  const initiatorParty = parties.find((p: any) => p.partyType === "INITIATOR") || {};
+  const respondentParty = parties.find((p: any) => p.partyType === "RESPONDENT") || {};
+
   const canonicalObj = {
     contractNumber: contract.contractNumber || "",
     contractType: contract.contractType || "",
     linkedContractId: contract.linkedContractId || "",
+    jurisdictionCountryCode: contract.jurisdictionCountryCode || "US",
+
     initiator: {
-      name: contract.initiator?.name || "",
-      email: contract.initiator?.email || "",
-      phone: contract.initiatorPhone || contract.initiator?.phone || "",
-      company: contract.initiator?.companyName || contract.initiator?.agencyName || contract.initiatorCompanyName || "",
-      designation: contract.initiatorDesignation || contract.initiator?.designation || "",
-      ntn: contract.initiatorNtn || contract.initiator?.ntn || "",
-      cnic: contract.initiatorCnic || contract.initiator?.cnicNumber || "",
+      name: initiatorParty.name || contract.initiator?.name || "",
+      email: initiatorParty.email || contract.initiator?.email || "",
+      phone: initiatorParty.phone || contract.initiatorPhone || contract.initiator?.phone || "",
+      companyName: initiatorParty.companyName || contract.initiatorCompanyName || contract.initiator?.agencyName || "",
+      companyAddress: initiatorParty.companyAddress || contract.initiatorCompanyAddress || contract.initiator?.agencyAddress || "",
+      designation: initiatorParty.designation || contract.initiatorDesignation || "",
+      ntn: initiatorParty.ntn || contract.initiatorNtn || "",
+      cnic: initiatorParty.cnic || contract.initiatorCnic || "",
+      taxIdType: initiatorParty.taxIdType || contract.initiatorTaxIdType || "",
+      taxId: initiatorParty.taxId || contract.initiatorTaxId || initiatorParty.ntn || contract.initiatorNtn || "",
+      nationalId: initiatorParty.nationalId || contract.initiatorNationalId || initiatorParty.cnic || contract.initiatorCnic || "",
     },
+
     respondent: {
-      name: contract.respondentName || "",
-      email: contract.respondentEmail || "",
-      phone: contract.respondentPhone || "",
-      company: contract.respondentCompany || "",
-      address: contract.respondentAddress || "",
-      designation: contract.respondentDesignation || "",
-      ntn: contract.respondentNtn || "",
-      cnic: contract.respondentCnic || "",
+      name: respondentParty.name || contract.respondentName || "",
+      email: respondentParty.email || contract.respondentEmail || "",
+      phone: respondentParty.phone || contract.respondentPhone || "",
+      companyName: respondentParty.companyName || contract.respondentCompany || "",
+      companyAddress: respondentParty.companyAddress || contract.respondentAddress || "",
+      designation: respondentParty.designation || contract.respondentDesignation || "",
+      ntn: respondentParty.ntn || contract.respondentNtn || "",
+      cnic: respondentParty.cnic || contract.respondentCnic || "",
+      taxIdType: respondentParty.taxIdType || contract.respondentTaxIdType || "",
+      taxId: respondentParty.taxId || contract.respondentTaxId || respondentParty.ntn || contract.respondentNtn || "",
+      nationalId: respondentParty.nationalId || contract.respondentNationalId || respondentParty.cnic || contract.respondentCnic || "",
     },
+
     brand: {
       name: contract.brandName || "",
       handle: contract.brandHandle || "",
       campaignName: contract.campaignName || "",
     },
+
     creator: {
       name: contract.creatorName || "",
       handle: contract.creatorHandle || "",
     },
+
     financials: {
+      currency: contract.currency || "USD",
       totalAmount: contract.totalAmount ? String(contract.totalAmount) : "0",
       advancePayment: contract.advancePayment ? String(contract.advancePayment) : "0",
       advancePaymentDate: contract.advancePaymentDate ? new Date(contract.advancePaymentDate).toISOString() : "",
+      remainingAmount: contract.remainingAmount ? String(contract.remainingAmount) : "0",
       remainingPaymentDate: contract.remainingPaymentDate ? new Date(contract.remainingPaymentDate).toISOString() : "",
-      paymentMethod: contract.paymentMethod || "",
-      bankAccountIban: contract.bankAccountIban || "",
-      mobileWalletNumber: contract.mobileWalletNumber || "",
-      respondentPaymentMethod: contract.respondentPaymentMethod || "",
-      respondentBankAccountIban: contract.respondentBankAccountIban || "",
-      respondentMobileWalletNumber: contract.respondentMobileWalletNumber || "",
+      paymentMethod: contract.paymentMethod || initiatorParty.paymentMethod || "",
+      paymentRoutingDetails: contract.paymentRoutingDetails || initiatorParty.paymentRoutingDetails || {},
+      bankAccountIban: contract.bankAccountIban || initiatorParty.bankAccountIban || "",
+      mobileWalletNumber: contract.mobileWalletNumber || initiatorParty.mobileWalletNumber || "",
+      respondentPaymentMethod: contract.respondentPaymentMethod || respondentParty.paymentMethod || "",
+      respondentPaymentRoutingDetails: contract.respondentPaymentRoutingDetails || respondentParty.paymentRoutingDetails || {},
+      respondentBankAccountIban: contract.respondentBankAccountIban || respondentParty.bankAccountIban || "",
+      respondentMobileWalletNumber: contract.respondentMobileWalletNumber || respondentParty.mobileWalletNumber || "",
     },
+
+    taxEngine: {
+      taxTreatment: contract.taxTreatment || "INCLUSIVE",
+      taxRatePct: contract.taxRatePct ? String(contract.taxRatePct) : "0",
+      taxAmount: contract.taxAmount ? String(contract.taxAmount) : "0",
+      isReverseCharge: Boolean(contract.isReverseCharge),
+    },
+
     deliverables: Array.isArray(contract.deliverables)
       ? contract.deliverables
           .map((d: any) => ({
@@ -161,11 +190,13 @@ export function buildCanonicalContractPayload(contract: any): string {
           }))
           .sort((a: any, b: any) => (a.type || "").localeCompare(b.type || ""))
       : [],
+
     rights: {
       platformsAllowed: Array.isArray(contract.platformsAllowed) ? [...contract.platformsAllowed].sort() : [],
       usageType: Array.isArray(contract.usageType) ? [...contract.usageType].sort() : [],
       usageRightsDuration: contract.usageRightsDuration || "",
     },
+
     terms: {
       deliveryTimeframeDays: Number(contract.deliveryTimeframeDays || 0),
       revisionRounds: Number(contract.revisionRounds || 1),
@@ -188,6 +219,9 @@ export function buildCanonicalContractPayload(contract: any): string {
       contentOwnership: contract.contentOwnership || "",
       taggingRequirements: contract.taggingRequirements || "",
     },
+
+    collabDetails: contract.collabDetails || "",
+
     collabProduct: contract.collabProduct ? {
       name: contract.collabProduct || "",
       provisionType: contract.collabProductProvisionType || "",

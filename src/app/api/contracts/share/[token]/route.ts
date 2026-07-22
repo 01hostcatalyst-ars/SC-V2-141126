@@ -30,6 +30,14 @@ export async function GET(
       contract.status = ContractStatus.PENDING_RESPONDENT;
     }
 
+    if (contract.status === ContractStatus.ACTIVE || contract.status === ContractStatus.COMPLETED) {
+      return NextResponse.json({
+        success: true,
+        contract,
+        isExecuted: true,
+      });
+    }
+
     if (contract.status !== ContractStatus.PENDING_RESPONDENT) {
       return NextResponse.json({ error: "This agreement link has expired or is no longer open for counterparty signing." }, { status: 400 });
     }

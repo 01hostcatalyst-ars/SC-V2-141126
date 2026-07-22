@@ -8,6 +8,17 @@ import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
 import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
 import { getJurisdiction } from "@/lib/config/jurisdictions";
 import { formatCurrencyAmount } from "@/lib/currency";
+import { AutocompleteInput } from "@/components/ui/AutocompleteInput";
+import { SuggestionChips } from "@/components/ui/SuggestionChips";
+
+const RESPONDENT_TITLE_SUGGESTIONS = [
+  "Marketing Director",
+  "Brand Campaign Manager",
+  "Lead Content Creator / Influencer",
+  "Creative Director",
+  "Founder & CEO",
+  "Talent Manager / Agent",
+];
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -51,6 +62,11 @@ export default function PublicSigningPage({ params }: PageProps) {
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
 
+  // Executed & PDF Download state
+  const [isExecuted, setIsExecuted] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingCert, setDownloadingCert] = useState(false);
+
   useEffect(() => {
     const fetchSharedContract = async () => {
       try {
@@ -58,6 +74,9 @@ export default function PublicSigningPage({ params }: PageProps) {
         const data = await res.json();
         if (res.ok && data.success) {
           setContract(data.contract);
+          if (data.isExecuted || data.contract.status === "ACTIVE" || data.contract.status === "COMPLETED") {
+            setIsExecuted(true);
+          }
           if (data.contract.respondentEmail) setRespondentEmail(data.contract.respondentEmail);
           if (data.contract.respondentName) setRespondentName(data.contract.respondentName);
           if (data.contract.respondentPhone) setRespondentPhone(data.contract.respondentPhone);
@@ -79,6 +98,40 @@ export default function PublicSigningPage({ params }: PageProps) {
     };
     fetchSharedContract();
   }, [resolvedParams.token, showToast]);
+
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      const res = await fetch(`/api/contracts/share/${resolvedParams.token}/pdf`);
+      const data = await res.json();
+      if (res.ok && data.success && data.url) {
+        window.open(data.url, "_blank");
+      } else {
+        showToast(data.error || "Failed to retrieve Contract PDF.", "error");
+      }
+    } catch (err) {
+      showToast("Error downloading Contract PDF.", "error");
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleDownloadCertificate = async () => {
+    setDownloadingCert(true);
+    try {
+      const res = await fetch(`/api/contracts/share/${resolvedParams.token}/certificate`);
+      const data = await res.json();
+      if (res.ok && data.success && data.url) {
+        window.open(data.url, "_blank");
+      } else {
+        showToast(data.error || "Failed to retrieve Audit Certificate PDF.", "error");
+      }
+    } catch (err) {
+      showToast("Error downloading Audit Certificate.", "error");
+    } finally {
+      setDownloadingCert(false);
+    }
+  };
 
   const isRespondentBrand = contract?.contractType?.endsWith("_BRAND") ?? false;
   const isRespondentAgency = contract?.contractType?.endsWith("_AGENCY") ?? false;
@@ -274,18 +327,53 @@ export default function PublicSigningPage({ params }: PageProps) {
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 md:p-10 space-y-8 z-10">
         
         {/* Banner Welcome */}
-        <div className="space-y-2 text-left">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-800 uppercase">
-            Mutual Legal Agreement Execution ({jur.lawAbbreviation})
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-black leading-tight">
-            Review &amp; Sign Collaboration Agreement
-          </h1>
-          <p className="text-xs text-gray-600 leading-relaxed max-w-2xl">
-            Agreement requested by <strong className="text-black">{(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.companyName || (contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.name || (contract as any).initiatorCompanyName || contract.initiator?.name}</strong> ({(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.email || contract.initiator?.email}). Complete the verification below, review all campaign terms, and execute your digital signature.
-          </p>
-
-        </div>
+        {isExecuted ? (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 shadow-md text-left space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-950 uppercase tracking-wider">
+                  ✓ Bilaterally Executed &amp; Activated
+                </span>
+                <h1 className="text-2xl sm:text-3xl font-black text-emerald-950 leading-tight">
+                  Campaign Agreement Executed &amp; Locked
+                </h1>
+                <p className="text-xs text-emerald-800 leading-relaxed max-w-xl">
+                  This agreement was executed under {jur.lawAbbreviation} on {formatLegalDate(contract.activatedAt || contract.updatedAt, contract?.jurisdictionCountryCode)}. The deal terms below are read-only and cryptographically locked.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  disabled={downloadingPdf}
+                  className="px-5 py-3 rounded-xl bg-black text-white font-bold text-xs uppercase hover:bg-black/90 transition-all shadow-md flex items-center justify-center gap-2"
+                >
+                  {downloadingPdf ? "Generating PDF..." : "📥 Download Contract PDF"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadCertificate}
+                  disabled={downloadingCert}
+                  className="px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-xs uppercase hover:bg-blue-700 transition-all shadow-md flex items-center justify-center gap-2"
+                >
+                  {downloadingCert ? "Generating Certificate..." : "📜 Download Audit Certificate"}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2 text-left">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-800 uppercase">
+              Mutual Legal Agreement Execution ({jur.lawAbbreviation})
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-black leading-tight">
+              Review &amp; Sign Collaboration Agreement
+            </h1>
+            <p className="text-xs text-gray-600 leading-relaxed max-w-2xl">
+              Agreement requested by <strong className="text-black">{(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.companyName || (contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.name || (contract as any).initiatorCompanyName || contract.initiator?.name}</strong> ({(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.email || contract.initiator?.email}). Complete the verification below, review all campaign terms, and execute your digital signature.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
           
@@ -518,355 +606,395 @@ export default function PublicSigningPage({ params }: PageProps) {
           </div>
 
 
-          {/* SECTION 2: VERIFICATION & DIGITAL SIGNATURE EXECUTION */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div>
+          {/* SECTION 2: VERIFICATION & DIGITAL SIGNATURE EXECUTION / PDF DOWNLOAD CENTER */}
+          {isExecuted ? (
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6 text-left">
+              <div className="border-b border-gray-100 pb-3">
                 <h2 className="text-base font-black text-black uppercase tracking-wider">
-                  2. Counterparty Verification &amp; Digital Signature Execution
+                  2. Bilateral Execution &amp; PDF Download Center
                 </h2>
-                <p className="text-[11px] text-gray-400 font-medium">
-                  Complete your profile details, verify your email identity via OTP, and click Review &amp; Sign to execute.
+                <p className="text-xs text-gray-500 font-medium mt-1">
+                  This agreement is fully signed and active. Below are your persistent legal PDF transaction documents.
                 </p>
               </div>
-              {otpVerified && (
-                <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-wider">
-                  ✓ Identity Verified
-                </span>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* 1. Your Email Address * */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  Your Email Address <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@company.com"
-                  value={respondentEmail}
-                  onChange={(e) => setRespondentEmail(e.target.value)}
-                  disabled={otpDispatched || otpVerified}
-                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              {/* 2. Your Phone Number * */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  Your Phone Number <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  required
-                  placeholder={`e.g. ${jur.phonePlaceholder}`}
-                  value={respondentPhone}
-                  onChange={(e) => setRespondentPhone(e.target.value)}
-                  disabled={otpDispatched || otpVerified}
-                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              {/* 3. Contact Person Name * */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  Contact Person Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Alex Smith"
-                  value={respondentName}
-                  onChange={(e) => setRespondentName(e.target.value)}
-                  disabled={otpDispatched || otpVerified}
-                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              {/* 4. Brand / Company Name * */}
-              <div className="flex flex-col gap-1">
-                {isRespondentBrand ? (
-                  <>
-                    <label className="text-xs font-bold text-black uppercase tracking-wider">
-                      Brand / Company Name <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Sapphire Retail Ltd."
-                      value={respondentCompany}
-                      onChange={(e) => setRespondentCompany(e.target.value)}
-                      disabled={otpDispatched || otpVerified}
-                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                    />
-                  </>
-                ) : isRespondentAgency ? (
-                  <>
-                    <label className="text-xs font-bold text-black uppercase tracking-wider">
-                      Agency Name <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Creative Hub Agency"
-                      value={respondentCompany}
-                      onChange={(e) => setRespondentCompany(e.target.value)}
-                      disabled={otpDispatched || otpVerified}
-                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <label className="text-xs font-bold text-black uppercase tracking-wider">
-                      Instagram / Social Handle <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="@username"
-                      value={collabDetails}
-                      onChange={(e) => setCollabDetails(e.target.value)}
-                      disabled={otpDispatched || otpVerified}
-                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                    />
-                  </>
-                )}
-              </div>
-
-              {/* 5. Address * */}
-              <div className="flex flex-col gap-1 sm:col-span-2">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  {isRespondentAgency ? "Agency Address" : isRespondentBrand ? "Brand / Company Address" : "Residential / Contact Address"} <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Official registered address, City"
-                  value={respondentAddress}
-                  onChange={(e) => setRespondentAddress(e.target.value)}
-                  disabled={otpDispatched || otpVerified}
-                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              {/* 6. Job Title AND NTN/CNIC */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider">
-                  {isRespondentCreator ? "Capacity / Role" : "Your Job Title"} <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={isRespondentCreator ? "e.g. Content Creator / Influencer" : "e.g. Head of Marketing / Director"}
-                  value={respondentDesignation}
-                  onChange={(e) => setRespondentDesignation(e.target.value)}
-                  disabled={otpDispatched || otpVerified}
-                  className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                {(isRespondentBrand || isRespondentAgency) ? (
-                  <>
-                    <label className="text-xs font-bold text-black uppercase tracking-wider">
-                      {jur.taxIdLabel} <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder={`e.g. Enter your ${jur.taxIdLabel}`}
-                      value={respondentNtn}
-                      onChange={(e) => setRespondentNtn(e.target.value)}
-                      disabled={otpDispatched || otpVerified}
-                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <label className="text-xs font-bold text-black uppercase tracking-wider">
-                      {jur.nationalIdLabel} {!jur.nationalIdLabel.toLowerCase().includes("optional") && <span className="text-rose-500">*</span>}
-                    </label>
-                    <input
-                      type="text"
-                      required={!jur.nationalIdLabel.toLowerCase().includes("optional")}
-                      placeholder={`e.g. Enter your ${jur.nationalIdLabel.replace(" (Optional)", "")}`}
-                      value={respondentCnic}
-                      onChange={(e) => setRespondentCnic(e.target.value)}
-                      disabled={otpDispatched || otpVerified}
-                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                    />
-                  </>
-                )}
-              </div>
-
-              {/* Payout Account Route Selection for Counterparty Payee (Creator / Agency) */}
-              {isRespondentPayee && (
-                <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2 space-y-3">
-                  <span className="text-xs font-bold text-black uppercase tracking-wider block">
-                    {isRespondentAgency ? "Agency Payout Account Details" : "Your Payout Account Details"} (Required for Campaign Payouts) <span className="text-rose-500">*</span>
-                  </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((m) => {
-                      const labelMap: Record<string, string> = {
-                        BANK_IBAN: "Bank Transfer (IBAN)",
-                        ACH_ROUTING: "ACH Direct Routing",
-                        WIRE_TRANSFER: "Wire Transfer",
-                        SEPA: "SEPA Transfer",
-                        JAZZCASH: "JazzCash Mobile",
-                        EASYPAISA: "EasyPaisa Mobile",
-                        PAYPAL: "PayPal",
-                        WISE: "Wise Transfer",
-                        LOCAL_MOBILE_WALLET: "Mobile Wallet",
-                        CREDIT_DEBIT_CARD: "Card On File",
-                      };
-                      return (
-                        <button
-                          key={m}
-                          type="button"
-                          disabled={otpDispatched || otpVerified}
-                          onClick={() => setPaymentMethod(m)}
-                          className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
-                            paymentMethod === m
-                              ? "bg-black text-white border-black shadow-sm"
-                              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
-                          }`}
-                        >
-                          {labelMap[m] || m.replace(/_/g, " ")}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-
-                  {paymentMethod === "BANK_IBAN" ? (
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold uppercase text-gray-500">Bank IBAN Number *</label>
-                      <input
-                        type="text"
-                        required
-                        disabled={otpDispatched || otpVerified}
-                        placeholder="PK36 MEZN 0000 1234 5678 9012"
-                        className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                        value={bankAccountIban}
-                        onChange={(e) => setBankAccountIban(e.target.value)}
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold uppercase text-gray-500">Mobile Account Number *</label>
-                      <input
-                        type="text"
-                        required
-                        disabled={otpDispatched || otpVerified}
-                        placeholder="0300 1234567"
-                        className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                        value={mobileWalletNumber}
-                        onChange={(e) => setMobileWalletNumber(e.target.value)}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* STEP 1: DRAW DIGITAL SIGNATURE FIRST */}
-              <div className="sm:col-span-2 p-4 rounded-xl border border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-black uppercase tracking-wider">Step 1: Digital Signature</span>
-                  <span className="text-[10px] text-gray-500">
-                    {stagedSignatureB64
-                      ? "Digital signature recorded! Now request OTP below to authorize & execute."
-                      : isFormValid
-                      ? "Complete all required fields above to enable Signature Pad."
-                      : "Fill all required profile fields above to enable Signature Pad."}
-                  </span>
-                </div>
-
-                {stagedSignatureB64 ? (
-                  <div className="flex items-center gap-3">
-                    <div className="bg-white border border-gray-200 rounded-lg p-1.5 flex items-center gap-2">
-                      <img src={stagedSignatureB64} alt="Signature Preview" className="h-8 max-w-[120px] object-contain" />
-                      <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded uppercase">✓ Drawn</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsSignModalOpen(true)}
-                      className="text-xs text-gray-600 hover:text-black font-bold underline uppercase"
-                    >
-                      Redraw
-                    </button>
-                  </div>
-                ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-5 rounded-xl border border-gray-200 bg-gray-50/70 space-y-3">
+                  <div className="font-bold text-black text-sm">Bilateral Executed Contract PDF</div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Contains the full A4 legal agreement with all 11 standardized clauses, party signatures, and payment details.
+                  </p>
                   <button
                     type="button"
-                    onClick={() => setIsSignModalOpen(true)}
-                    disabled={!isFormValid}
-                    className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
-                      isFormValid
-                        ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
-                        : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
-                    }`}
+                    onClick={handleDownloadPdf}
+                    disabled={downloadingPdf}
+                    className="w-full py-2.5 rounded-xl bg-black text-white font-bold text-xs uppercase hover:bg-black/90 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    Draw Signature ➔
+                    {downloadingPdf ? "Retrieving PDF..." : "📥 Download Contract PDF"}
                   </button>
+                </div>
+                <div className="p-5 rounded-xl border border-blue-200 bg-blue-50/40 space-y-3">
+                  <div className="font-bold text-blue-950 text-sm">Standalone Legal Audit Certificate PDF</div>
+                  <p className="text-xs text-blue-900/70 leading-relaxed">
+                    Contains verification QR code, SHA-256 document checksums, IP addresses, device fingerprints, and time logs.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleDownloadCertificate}
+                    disabled={downloadingCert}
+                    className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs uppercase hover:bg-blue-700 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {downloadingCert ? "Retrieving Certificate..." : "📜 Download Audit Certificate"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div>
+                  <h2 className="text-base font-black text-black uppercase tracking-wider">
+                    2. Counterparty Verification &amp; Digital Signature Execution
+                  </h2>
+                  <p className="text-[11px] text-gray-400 font-medium">
+                    Complete your profile details, verify your email identity via OTP, and click Review &amp; Sign to execute.
+                  </p>
+                </div>
+                {otpVerified && (
+                  <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-wider">
+                    ✓ Identity Verified
+                  </span>
                 )}
               </div>
 
-              {/* STEP 2: EMAIL OTP IDENTITY AUTHORIZATION & FINAL EXECUTION SECOND */}
-              <div className="sm:col-span-2 p-4 rounded-xl border border-gray-200 bg-gray-50 flex flex-col space-y-3">
-                <div className="flex items-center justify-between">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* 1. Your Email Address * */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-black uppercase tracking-wider">
+                    Your Email Address <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="name@company.com"
+                    value={respondentEmail}
+                    onChange={(e) => setRespondentEmail(e.target.value)}
+                    disabled={otpDispatched || otpVerified}
+                    className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* 2. Your Phone Number * */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-black uppercase tracking-wider">
+                    Your Phone Number <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder={`e.g. ${jur.phonePlaceholder}`}
+                    value={respondentPhone}
+                    onChange={(e) => setRespondentPhone(e.target.value)}
+                    disabled={otpDispatched || otpVerified}
+                    className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* 3. Contact Person Name * */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-black uppercase tracking-wider">
+                    Contact Person Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Alex Smith"
+                    value={respondentName}
+                    onChange={(e) => setRespondentName(e.target.value)}
+                    disabled={otpDispatched || otpVerified}
+                    className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* 4. Brand / Company Name * */}
+                <div className="flex flex-col gap-1">
+                  {isRespondentBrand ? (
+                    <>
+                      <label className="text-xs font-bold text-black uppercase tracking-wider">
+                        Brand / Company Name <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Sapphire Retail Ltd."
+                        value={respondentCompany}
+                        onChange={(e) => setRespondentCompany(e.target.value)}
+                        disabled={otpDispatched || otpVerified}
+                        className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                      />
+                    </>
+                  ) : isRespondentAgency ? (
+                    <>
+                      <label className="text-xs font-bold text-black uppercase tracking-wider">
+                        Agency Name <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Creative Hub Agency"
+                        value={respondentCompany}
+                        onChange={(e) => setRespondentCompany(e.target.value)}
+                        disabled={otpDispatched || otpVerified}
+                        className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <label className="text-xs font-bold text-black uppercase tracking-wider">
+                        Instagram / Social Handle <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="@username"
+                        value={collabDetails}
+                        onChange={(e) => setCollabDetails(e.target.value)}
+                        disabled={otpDispatched || otpVerified}
+                        className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                      />
+                    </>
+                  )}
+                </div>
+
+                {/* 5. Address * */}
+                <div className="flex flex-col gap-1 sm:col-span-2">
+                  <label className="text-xs font-bold text-black uppercase tracking-wider">
+                    {isRespondentAgency ? "Agency Address" : isRespondentBrand ? "Brand / Company Address" : "Residential / Contact Address"} <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Official registered address, City"
+                    value={respondentAddress}
+                    onChange={(e) => setRespondentAddress(e.target.value)}
+                    disabled={otpDispatched || otpVerified}
+                    className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* 6. Job Title AND NTN/CNIC */}
+                <div>
+                  <AutocompleteInput
+                    label={isRespondentCreator ? "Capacity / Role" : "Your Job Title"}
+                    required
+                    disabled={otpDispatched || otpVerified}
+                    placeholder={isRespondentCreator ? "e.g. Content Creator / Influencer" : "e.g. Head of Marketing / Director"}
+                    value={respondentDesignation}
+                    onChange={(val) => setRespondentDesignation(val)}
+                    suggestions={RESPONDENT_TITLE_SUGGESTIONS}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  {(isRespondentBrand || isRespondentAgency) ? (
+                    <>
+                      <label className="text-xs font-bold text-black uppercase tracking-wider">
+                        {jur.taxIdLabel} <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder={`e.g. Enter your ${jur.taxIdLabel}`}
+                        value={respondentNtn}
+                        onChange={(e) => setRespondentNtn(e.target.value)}
+                        disabled={otpDispatched || otpVerified}
+                        className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <label className="text-xs font-bold text-black uppercase tracking-wider">
+                        {jur.nationalIdLabel} {!jur.nationalIdLabel.toLowerCase().includes("optional") && <span className="text-rose-500">*</span>}
+                      </label>
+                      <input
+                        type="text"
+                        required={!jur.nationalIdLabel.toLowerCase().includes("optional")}
+                        placeholder={`e.g. Enter your ${jur.nationalIdLabel.replace(" (Optional)", "")}`}
+                        value={respondentCnic}
+                        onChange={(e) => setRespondentCnic(e.target.value)}
+                        disabled={otpDispatched || otpVerified}
+                        className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                      />
+                    </>
+                  )}
+                </div>
+
+                {/* Payout Account Route Selection for Counterparty Payee (Creator / Agency) */}
+                {isRespondentPayee && (
+                  <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2 space-y-3">
+                    <span className="text-xs font-bold text-black uppercase tracking-wider block">
+                      {isRespondentAgency ? "Agency Payout Account Details" : "Your Payout Account Details"} (Required for Campaign Payouts) <span className="text-rose-500">*</span>
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((m) => {
+                        const labelMap: Record<string, string> = {
+                          BANK_IBAN: "Bank Transfer (IBAN)",
+                          ACH_ROUTING: "ACH Direct Routing",
+                          WIRE_TRANSFER: "Wire Transfer",
+                          SEPA: "SEPA Transfer",
+                          JAZZCASH: "JazzCash Mobile",
+                          EASYPAISA: "EasyPaisa Mobile",
+                          PAYPAL: "PayPal",
+                          WISE: "Wise Transfer",
+                          LOCAL_MOBILE_WALLET: "Mobile Wallet",
+                          CREDIT_DEBIT_CARD: "Card On File",
+                        };
+                        return (
+                          <button
+                            key={m}
+                            type="button"
+                            disabled={otpDispatched || otpVerified}
+                            onClick={() => setPaymentMethod(m)}
+                            className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                              paymentMethod === m
+                                ? "bg-black text-white border-black shadow-sm"
+                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
+                            }`}
+                          >
+                            {labelMap[m] || m.replace(/_/g, " ")}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+
+                    {paymentMethod === "BANK_IBAN" ? (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold uppercase text-gray-500">Bank IBAN Number *</label>
+                        <input
+                          type="text"
+                          required
+                          disabled={otpDispatched || otpVerified}
+                          placeholder="PK36 MEZN 0000 1234 5678 9012"
+                          className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          value={bankAccountIban}
+                          onChange={(e) => setBankAccountIban(e.target.value)}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold uppercase text-gray-500">Mobile Account Number *</label>
+                        <input
+                          type="text"
+                          required
+                          disabled={otpDispatched || otpVerified}
+                          placeholder="0300 1234567"
+                          className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          value={mobileWalletNumber}
+                          onChange={(e) => setMobileWalletNumber(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* STEP 1: DRAW DIGITAL SIGNATURE FIRST */}
+                <div className="sm:col-span-2 p-4 rounded-xl border border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold text-black uppercase tracking-wider">Step 2: Email OTP Identity Authorization</span>
+                    <span className="text-xs font-bold text-black uppercase tracking-wider">Step 1: Digital Signature</span>
                     <span className="text-[10px] text-gray-500">
-                      {!isFormValid || !stagedSignatureB64
-                        ? "🔒 OTP inactive until complete information and digital signature are done above."
-                        : otpDispatched
-                        ? `Code dispatched to ${respondentEmail}. Enter code to verify & execute contract.`
-                        : `Click Send OTP to dispatch verification passcode to ${respondentEmail}.`}
+                      {stagedSignatureB64
+                        ? "Digital signature recorded! Now request OTP below to authorize & execute."
+                        : isFormValid
+                        ? "Complete all required fields above to enable Signature Pad."
+                        : "Fill all required profile fields above to enable Signature Pad."}
                     </span>
                   </div>
 
-                  {!otpDispatched && (
+                  {stagedSignatureB64 ? (
+                    <div className="flex items-center gap-3">
+                      <div className="bg-white border border-gray-200 rounded-lg p-1.5 flex items-center gap-2">
+                        <img src={stagedSignatureB64} alt="Signature Preview" className="h-8 max-w-[120px] object-contain" />
+                        <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded uppercase">✓ Drawn</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsSignModalOpen(true)}
+                        className="text-xs text-gray-600 hover:text-black font-bold underline uppercase"
+                      >
+                        Redraw
+                      </button>
+                    </div>
+                  ) : (
                     <button
                       type="button"
-                      onClick={handleSendOTP}
-                      disabled={!isFormValid || !stagedSignatureB64 || otpLoading}
+                      onClick={() => setIsSignModalOpen(true)}
+                      disabled={!isFormValid}
                       className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
-                        isFormValid && stagedSignatureB64 && !otpLoading
-                          ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md cursor-pointer"
+                        isFormValid
+                          ? "bg-black text-white hover:bg-black/90 shadow-md cursor-pointer"
                           : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
                       }`}
                     >
-                      {otpLoading ? "Sending..." : "Send OTP ➔"}
+                      Draw Signature ➔
                     </button>
                   )}
                 </div>
 
-                {otpDispatched && (
-                  <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-gray-200">
-                    <input
-                      type="text"
-                      maxLength={6}
-                      placeholder="6-digit OTP"
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                      className="input-field text-center font-mono font-bold tracking-widest text-sm py-2 max-w-[150px]"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleVerifyAndExecuteOTP}
-                      disabled={otpLoading || otpCode.length !== 6 || signing}
-                      className="w-full sm:w-auto bg-black hover:bg-black/90 text-white font-bold px-6 py-3 rounded-xl text-xs uppercase shadow-md transition-all whitespace-nowrap cursor-pointer disabled:opacity-50"
-                    >
-                      {signing ? "Processing Signature..." : otpLoading ? "Verifying..." : "VERIFY OTP & EXECUTE CONTRACT ➔"}
-                    </button>
-                  </div>
-                )}
-              </div>
+                {/* STEP 2: EMAIL OTP IDENTITY AUTHORIZATION & FINAL EXECUTION SECOND */}
+                <div className="sm:col-span-2 p-4 rounded-xl border border-gray-200 bg-gray-50 flex flex-col space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-black uppercase tracking-wider">Step 2: Email OTP Identity Authorization</span>
+                      <span className="text-[10px] text-gray-500">
+                        {!isFormValid || !stagedSignatureB64
+                          ? "🔒 OTP inactive until complete information and digital signature are done above."
+                          : otpDispatched
+                          ? `Code dispatched to ${respondentEmail}. Enter code to verify & execute contract.`
+                          : `Click Send OTP to dispatch verification passcode to ${respondentEmail}.`}
+                      </span>
+                    </div>
 
+                    {!otpDispatched && (
+                      <button
+                        type="button"
+                        onClick={handleSendOTP}
+                        disabled={!isFormValid || !stagedSignatureB64 || otpLoading}
+                        className={`font-bold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
+                          isFormValid && stagedSignatureB64 && !otpLoading
+                            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md cursor-pointer"
+                            : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
+                        }`}
+                      >
+                        {otpLoading ? "Sending..." : "Send OTP ➔"}
+                      </button>
+                    )}
+                  </div>
+
+                  {otpDispatched && (
+                    <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-gray-200">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder="6-digit OTP"
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                        className="input-field text-center font-mono font-bold tracking-widest text-sm py-2 max-w-[150px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyAndExecuteOTP}
+                        disabled={otpLoading || otpCode.length !== 6 || signing}
+                        className="w-full sm:w-auto bg-black hover:bg-black/90 text-white font-bold px-6 py-3 rounded-xl text-xs uppercase shadow-md transition-all whitespace-nowrap cursor-pointer disabled:opacity-50"
+                      >
+                        {signing ? "Processing Signature..." : otpLoading ? "Verifying..." : "VERIFY OTP & EXECUTE CONTRACT ➔"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+              </div>
             </div>
-          </div>
+          )}
 
         </form>
       </main>

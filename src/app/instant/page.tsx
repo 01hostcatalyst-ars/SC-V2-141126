@@ -8,6 +8,8 @@ import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
 import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
 import { CURRENCY_MAP } from "@/lib/currency";
 import { ModernSelect } from "@/components/ui/ModernSelect";
+import { AutocompleteInput } from "@/components/ui/AutocompleteInput";
+import { SuggestionChips } from "@/components/ui/SuggestionChips";
 
 interface DeliverableItem {
   type: string;
@@ -15,6 +17,42 @@ interface DeliverableItem {
   duration: string;
   notes: string;
 }
+
+const JOB_TITLE_SUGGESTIONS = [
+  "Marketing Director",
+  "Brand Campaign Manager",
+  "Lead Content Creator",
+  "Influencer Marketing Lead",
+  "Founder & CEO",
+  "Creative Director",
+  "Talent Agent / Manager",
+];
+
+const DELIVERABLE_NOTE_CHIPS = [
+  "4K 60fps video with unboxing in first 5s",
+  "Voiceover explaining top 3 key benefits",
+  "Carousel photos + brand tag in caption",
+  "Include link in bio & custom promo code [PROMO10]",
+];
+
+const TAGGING_REQUIREMENTS_CHIPS = [
+  "Tag @brand_official in caption & first 3s",
+  "Mandatory hashtags: #ad #collab #brandpartner",
+  "Include promo code [CODE10] in bio & caption",
+  "Tag official account as Co-Author on IG Collab Post",
+];
+
+const IP_OWNERSHIP_CHIPS = [
+  "Brand License (1 Year Digital & Social Usage)",
+  "Full Perpetual Ownership (All Channels & Ads)",
+  "Creator Retains Copyright (Usage Rights License)",
+];
+
+const EXCLUSIVITY_COMPETITOR_CHIPS = [
+  "Direct competitors in skincare & beauty category",
+  "No sponsored posts for competing apparel brands during term",
+  "Direct competitors in consumer tech",
+];
 
 
 const WORKFLOW_OPTIONS = [
@@ -636,13 +674,18 @@ export default function InstantContractPage() {
                     />
 
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Notes</label>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Notes / Instructions</label>
                       <input
                         type="text"
                         placeholder="e.g. Link in bio"
                         value={item.notes}
                         onChange={(e) => handleDeliverableChange(idx, "notes", e.target.value)}
                         className="input-field text-xs py-2.5"
+                      />
+                      <SuggestionChips
+                        chips={DELIVERABLE_NOTE_CHIPS}
+                        currentValue={item.notes}
+                        onSelect={(val) => handleDeliverableChange(idx, "notes", val)}
                       />
                     </div>
                   </div>
@@ -665,7 +708,12 @@ export default function InstantContractPage() {
                     placeholder="e.g. Must tag @brand, use #SummerCollection, add collab tag"
                     value={taggingRequirements}
                     onChange={(e) => setTaggingRequirements(e.target.value)}
-                    className="input-field"
+                    className="input-field text-xs"
+                  />
+                  <SuggestionChips
+                    chips={TAGGING_REQUIREMENTS_CHIPS}
+                    currentValue={taggingRequirements}
+                    onSelect={(val) => setTaggingRequirements(val)}
                   />
                 </div>
 
@@ -676,6 +724,12 @@ export default function InstantContractPage() {
                     value={contentOwnership}
                     onChange={(e) => setContentOwnership(e.target.value)}
                     className="input-field text-xs"
+                  />
+                  <SuggestionChips
+                    chips={IP_OWNERSHIP_CHIPS}
+                    currentValue={contentOwnership}
+                    onSelect={(val) => setContentOwnership(val)}
+                    mode="replace"
                   />
                 </div>
               </div>
@@ -1111,6 +1165,11 @@ export default function InstantContractPage() {
                         onChange={(e) => setExclusivityCompetitors(e.target.value)}
                         className="input-field text-xs"
                       />
+                      <SuggestionChips
+                        chips={EXCLUSIVITY_COMPETITOR_CHIPS}
+                        currentValue={exclusivityCompetitors}
+                        onSelect={(val) => setExclusivityCompetitors(val)}
+                      />
                     </div>
                   )}
                 </div>
@@ -1231,16 +1290,15 @@ export default function InstantContractPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Your Job Title / Capacity *</label>
-                  <input
-                    type="text"
+                <div>
+                  <AutocompleteInput
+                    label="Your Job Title / Capacity"
                     required
                     disabled={initiatorOtpVerified}
                     placeholder="e.g. Senior Campaign Manager"
                     value={initiatorDesignation}
-                    onChange={(e) => setInitiatorDesignation(e.target.value)}
-                    className="input-field disabled:bg-gray-100"
+                    onChange={(val) => setInitiatorDesignation(val)}
+                    suggestions={JOB_TITLE_SUGGESTIONS}
                   />
                 </div>
 

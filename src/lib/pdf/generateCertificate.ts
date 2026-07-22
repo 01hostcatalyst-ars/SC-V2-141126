@@ -244,6 +244,12 @@ export async function generateAuditCertificatePDF(contractId: string) {
             <th>Bilateral Execution Date</th>
             <td>${formatLegalDate(contract.activatedAt || contract.updatedAt, jur.countryCode)}</td>
           </tr>
+          ${contract.collabDetails ? `
+            <tr>
+              <th>Counterparty Campaign Notes</th>
+              <td>${contract.collabDetails}</td>
+            </tr>
+          ` : ""}
         </table>
 
         <!-- Signer Identity Records -->

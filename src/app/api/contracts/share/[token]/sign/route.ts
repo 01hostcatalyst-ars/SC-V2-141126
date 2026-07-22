@@ -40,17 +40,19 @@ export async function POST(
       return NextResponse.json({ error: "Contract is not in a signable respondent state" }, { status: 400 });
     }
 
-    // 1. Verify that the respondent has completed email OTP verification
+    // 1. Verify that the respondent has completed email OTP verification within the active 15-minute window
+    const cleanEmail = email.trim().toLowerCase();
     const verification = await prisma.otpVerification.findFirst({
       where: {
-        email,
+        email: cleanEmail,
         verified: true,
+        expiresAt: { gte: new Date(Date.now() - 15 * 60 * 1000) },
       },
       orderBy: { createdAt: "desc" },
     });
 
     if (!verification) {
-      return NextResponse.json({ error: "Email verification is required before signing" }, { status: 400 });
+      return NextResponse.json({ error: "Active email verification is required before signing" }, { status: 400 });
     }
 
     // 2. Map signer role based on contract direction
@@ -67,7 +69,6 @@ export async function POST(
     const isRespondentPayee = !(contract.contractType.startsWith("CREATOR_") || contract.contractType === "AGENCY_TO_BRAND");
 
     // 3. Find or create respondent User record and link to contract
-    const cleanEmail = email.trim().toLowerCase();
     let respondentUser = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
@@ -89,20 +90,47 @@ export async function POST(
     const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
-    // Approach A (Immutable Base ContentHash Model):
-    // Frozen base content hash established during contract draft/submission
-    const baseContentHash = contract.contentHash || computeContentHash(contract);
-
     const respondentTaxIdVal = taxId || ntn || undefined;
     const respondentNationalIdVal = nationalId || cnic || undefined;
 
-    // Compute Respondent's immutable Signing Event Hash using canonical JSON serialization
+    // Dynamically calculate complete bilateral Content Hash incorporating Respondent's filled inputs
+    const updatedContractPayload = {
+      ...contract,
+      respondentName: name || contract.respondentName,
+      respondentEmail: cleanEmail,
+      respondentPhone: phone || contract.respondentPhone,
+      respondentCompany: company || contract.respondentCompany,
+      respondentAddress: address || contract.respondentAddress,
+      respondentDesignation: designation || contract.respondentDesignation,
+      respondentNtn: respondentTaxIdVal || contract.respondentNtn,
+      respondentCnic: respondentNationalIdVal || contract.respondentCnic,
+      respondentTaxId: respondentTaxIdVal || (contract as any).respondentTaxId,
+      respondentNationalId: respondentNationalIdVal || (contract as any).respondentNationalId,
+      collabDetails: collabDetails || contract.collabDetails,
+      respondentPaymentMethod: (paymentMethod as PaymentMethod) || contract.respondentPaymentMethod,
+      respondentPaymentRoutingDetails: paymentRoutingDetails || contract.respondentPaymentRoutingDetails,
+      respondentBankAccountIban: paymentMethod === "BANK_IBAN" ? bankAccountIban : contract.respondentBankAccountIban,
+      respondentMobileWalletNumber: paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : contract.respondentMobileWalletNumber,
+    };
+
+    const baseContentHash = computeContentHash(updatedContractPayload);
+
+    // Compute Respondent's exhaustive Signing Event Hash including all identity & payout inputs
     const signingEventObj = {
       baseContentHash,
       email: cleanEmail,
+      name: name || contract.respondentName || "",
+      phone: phone || contract.respondentPhone || "",
+      company: company || contract.respondentCompany || "",
+      address: address || contract.respondentAddress || "",
+      designation: designation || contract.respondentDesignation || "",
       taxId: respondentTaxIdVal || "",
       nationalId: respondentNationalIdVal || "",
+      collabDetails: collabDetails || contract.collabDetails || "",
+      paymentMethod: paymentMethod || "",
       paymentRoutingDetails: paymentRoutingDetails || {},
+      bankAccountIban: bankAccountIban || "",
+      mobileWalletNumber: mobileWalletNumber || "",
       ipAddress,
       userAgent,
       deviceFingerprint: fingerprint || "",
@@ -121,12 +149,12 @@ export async function POST(
     const initiatorSig = contract.signatures?.find((s) => s.signerId === contract.initiatorId);
     const initiatorSigningEventHash = initiatorSig?.signingEventHash || "PENDING_INITIATOR";
 
-    // Compute Final Bilateral Executed Document Hash combining both signing event hashes without mutating base content hash
+    // Compute Final Bilateral Executed Document Hash combining both signing event hashes and updated base content hash
     const finalDocumentHash = hasInitiatorSigned
       ? crypto.createHash("sha256")
           .update(`${baseContentHash}-${initiatorSigningEventHash}-${signingEventHash}`)
           .digest("hex")
-      : undefined;
+      : baseContentHash;
 
     const respondentParty = await prisma.contractParty.create({
       data: {
@@ -134,7 +162,7 @@ export async function POST(
         partyType: "RESPONDENT",
         userId: respondentUser.id,
         name: name || contract.respondentName || "Respondent",
-        email: email || contract.respondentEmail || "",
+        email: cleanEmail,
         phone: phone || contract.respondentPhone || undefined,
         role: respondentUserRole,
         designation: designation || contract.respondentDesignation || undefined,
@@ -166,7 +194,7 @@ export async function POST(
           documentHash: finalDocumentHash || baseContentHash,
           signingEventHash,
           otpVerified: true,
-          otpEmail: email,
+          otpEmail: cleanEmail,
           consentRecorded: true,
         },
       }),
@@ -175,11 +203,12 @@ export async function POST(
         data: {
           status: finalStatus,
           activatedAt: hasInitiatorSigned ? new Date() : undefined,
-          finalDocumentHash: finalDocumentHash || undefined,
+          contentHash: baseContentHash,
+          finalDocumentHash: finalDocumentHash || baseContentHash,
           documentHash: finalDocumentHash || baseContentHash,
           respondentId: respondentUser.id,
           respondentName: name || contract.respondentName,
-          respondentEmail: email || contract.respondentEmail,
+          respondentEmail: cleanEmail,
           respondentPhone: phone || contract.respondentPhone,
           respondentCompany: company || contract.respondentCompany,
           respondentAddress: address || contract.respondentAddress,
@@ -201,7 +230,7 @@ export async function POST(
           userId: respondentUser.id,
           action: hasInitiatorSigned ? "CONTRACT_ACTIVATED" : "RESPONDENT_SIGNED",
           details: {
-            email,
+            email: cleanEmail,
             signerRole,
             ipAddress,
             fingerprint,
