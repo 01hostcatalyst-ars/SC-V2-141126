@@ -67,9 +67,7 @@ export function AutocompleteInput({
             onChange(e.target.value);
             setIsOpen(true);
           }}
-          className={`w-full rounded-xl border border-gray-200 bg-white px-3.5 ${
-            size === "sm" ? "py-1.5 text-xs" : "py-2.5 text-xs"
-          } font-medium text-black placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black transition-all disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed shadow-2xs`}
+          className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-medium text-black placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black transition-all disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed shadow-2xs"
         />
 
         {value && !disabled && (

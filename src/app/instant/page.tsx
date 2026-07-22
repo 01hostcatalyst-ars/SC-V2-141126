@@ -652,54 +652,55 @@ export default function InstantContractPage() {
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <ModernSelect
-                      label="Format"
-                      size="sm"
-                      value={item.type}
-                      onChange={(val) => handleDeliverableChange(idx, "type", val)}
-                      options={[
-                        { value: "REEL", label: "Reel" },
-                        { value: "STORY", label: "Story" },
-                        { value: "CAROUSEL_POST", label: "Carousel Post" },
-                        { value: "IMAGE_POST", label: "Single Post" },
-                        { value: "TIKTOK_VIDEO", label: "Short Video" },
-                        { value: "YOUTUBE_VIDEO", label: "Long-form Video" },
-                        { value: "LIVE_SESSION", label: "Live Session" },
-                      ]}
-                    />
+                  <div className="space-y-3">
+                    {/* Row 1: Format, Quantity, Stay Published */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <ModernSelect
+                        label="Format"
+                        value={item.type}
+                        onChange={(val) => handleDeliverableChange(idx, "type", val)}
+                        options={[
+                          { value: "REEL", label: "Reel" },
+                          { value: "STORY", label: "Story" },
+                          { value: "CAROUSEL_POST", label: "Carousel Post" },
+                          { value: "IMAGE_POST", label: "Single Post" },
+                          { value: "TIKTOK_VIDEO", label: "Short Video" },
+                          { value: "YOUTUBE_VIDEO", label: "Long-form Video" },
+                          { value: "LIVE_SESSION", label: "Live Session" },
+                        ]}
+                      />
 
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Quantity</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => handleDeliverableChange(idx, "quantity", e.target.value)}
-                        className="input-field text-xs py-2.5"
+                      <div className="flex flex-col text-left gap-1">
+                        <label className="text-xs font-bold text-gray-800">Quantity</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => handleDeliverableChange(idx, "quantity", e.target.value)}
+                          className="input-field"
+                        />
+                      </div>
+
+                      <ModernSelect
+                        label="Stay Published"
+                        value={item.duration}
+                        onChange={(val) => handleDeliverableChange(idx, "duration", val)}
+                        options={[
+                          { value: "1 Day", label: "1 Day" },
+                          { value: "1 Week", label: "1 Week" },
+                          { value: "1 Month", label: "1 Month" },
+                          { value: "2 Months", label: "2 Months" },
+                          { value: "3 Months", label: "3 Months" },
+                          { value: "6 Months", label: "6 Months" },
+                          { value: "1 Year", label: "1 Year" },
+                        ]}
                       />
                     </div>
 
-                    <ModernSelect
-                      label="Stay Published"
-                      size="sm"
-                      value={item.duration}
-                      onChange={(val) => handleDeliverableChange(idx, "duration", val)}
-                      options={[
-                        { value: "1 Day", label: "1 Day" },
-                        { value: "1 Week", label: "1 Week" },
-                        { value: "1 Month", label: "1 Month" },
-                        { value: "2 Months", label: "2 Months" },
-                        { value: "3 Months", label: "3 Months" },
-                        { value: "6 Months", label: "6 Months" },
-                        { value: "1 Year", label: "1 Year" },
-                      ]}
-                    />
-
-                    <div>
+                    {/* Row 2: Full-Width Notes / Instructions */}
+                    <div className="w-full pt-1">
                       <AutocompleteInput
                         label="Notes / Instructions"
-                        size="sm"
                         placeholder="e.g. Link in bio & unboxing in first 5s"
                         value={item.notes}
                         onChange={(val) => handleDeliverableChange(idx, "notes", val)}
@@ -998,20 +999,19 @@ export default function InstantContractPage() {
                 <span className="text-xs font-bold text-gray-800 uppercase block">Product Provisioning / Loan Details</span>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-500 uppercase">Product Description</label>
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-800">Product Description</label>
                     <input
                       type="text"
                       placeholder="e.g. Lawn Unstitched 3-pc suit / Camera Kit"
                       value={collabProduct}
                       onChange={(e) => setCollabProduct(e.target.value)}
-                      className="input-field text-xs"
+                      className="input-field"
                     />
                   </div>
 
                   <ModernSelect
                     label="Provision Type"
-                    size="sm"
                     value={collabProductProvisionType}
                     onChange={(val) => setCollabProductProvisionType(val)}
                     options={[
@@ -1022,54 +1022,53 @@ export default function InstantContractPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-500 uppercase">Shipping / Delivery Address</label>
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-800">Shipping / Delivery Address</label>
                     <input
                       type="text"
                       placeholder="Shipping Address for product delivery"
                       value={collabDeliveryAddress}
                       onChange={(e) => setCollabDeliveryAddress(e.target.value)}
-                      className="input-field text-xs"
+                      className="input-field"
                     />
                   </div>
 
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-500 uppercase">Expected Product Arrival</label>
+                  <div className="flex flex-col text-left gap-1">
+                    <label className="text-xs font-bold text-gray-800">Expected Product Arrival</label>
                     <input
                       type="date"
                       value={collabDeliveryDate}
                       onChange={(e) => setCollabDeliveryDate(e.target.value)}
-                      className="input-field text-xs"
+                      className="input-field"
                     />
                   </div>
                 </div>
 
                 {collabProductProvisionType === "Product Loan" && (
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 border-t border-gray-200">
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Return Timeframe (Days)</label>
+                    <div className="flex flex-col text-left gap-1">
+                      <label className="text-xs font-bold text-gray-800">Return Timeframe (Days)</label>
                       <input
                         type="number"
                         value={collabProductReturnDays}
                         onChange={(e) => setCollabProductReturnDays(e.target.value)}
-                        className="input-field text-xs"
+                        className="input-field"
                       />
                     </div>
 
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Return Address</label>
+                    <div className="flex flex-col text-left gap-1">
+                      <label className="text-xs font-bold text-gray-800">Return Address</label>
                       <input
                         type="text"
                         placeholder="Address to return the product"
                         value={collabProductReturnAddress}
                         onChange={(e) => setCollabProductReturnAddress(e.target.value)}
-                        className="input-field text-xs"
+                        className="input-field"
                       />
                     </div>
 
                     <ModernSelect
                       label="Return Shipping Paid By"
-                      size="sm"
                       value={collabProductReturnShippingBy}
                       onChange={(val) => setCollabProductReturnShippingBy(val)}
                       options={[
@@ -1078,14 +1077,14 @@ export default function InstantContractPage() {
                       ]}
                     />
 
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Non-Return Penalty Fee</label>
+                    <div className="flex flex-col text-left gap-1">
+                      <label className="text-xs font-bold text-gray-800">Non-Return Penalty Fee</label>
                       <input
                         type="number"
                         placeholder="e.g. 15000"
                         value={collabProductNonReturnFee}
                         onChange={(e) => setCollabProductNonReturnFee(e.target.value)}
-                        className="input-field text-xs"
+                        className="input-field"
                       />
                     </div>
                   </div>
@@ -1102,7 +1101,6 @@ export default function InstantContractPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <ModernSelect
                   label="Late Pay Penalty (%/d)"
-                  size="sm"
                   value={latePaymentPenaltyPct}
                   onChange={(val) => setLatePaymentPenaltyPct(val)}
                   options={[
@@ -1114,7 +1112,6 @@ export default function InstantContractPage() {
                 />
                 <ModernSelect
                   label="Late Content (%/d)"
-                  size="sm"
                   value={lateContentPenaltyPct}
                   onChange={(val) => setLateContentPenaltyPct(val)}
                   options={[
@@ -1124,22 +1121,22 @@ export default function InstantContractPage() {
                     { value: "2", label: "2%" },
                   ]}
                 />
-                <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">Max Penalty Cap (%)</label>
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-800">Max Penalty Cap (%)</label>
                   <input
                     type="number"
                     value={penaltyCapPct}
                     onChange={(e) => setPenaltyCapPct(e.target.value)}
-                    className="input-field text-xs"
+                    className="input-field"
                   />
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">Unauth Usage Fee (%)</label>
+                <div className="flex flex-col text-left gap-1">
+                  <label className="text-xs font-bold text-gray-800">Unauth Usage Fee (%)</label>
                   <input
                     type="number"
                     value={unauthorizedUsagePenaltyPct}
                     onChange={(e) => setUnauthorizedUsagePenaltyPct(e.target.value)}
-                    className="input-field text-xs"
+                    className="input-field"
                   />
                 </div>
               </div>
