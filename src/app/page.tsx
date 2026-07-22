@@ -377,7 +377,7 @@ export default function Home() {
                           </span>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div className="flex flex-col text-left gap-1">
-                              <label className="text-xs font-bold text-black uppercase tracking-wider">Creator Full Name *</label>
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Creator Name *</label>
                               <input
                                 type="text"
                                 required
@@ -389,7 +389,7 @@ export default function Home() {
                               />
                             </div>
                             <div className="flex flex-col text-left gap-1">
-                              <label className="text-xs font-bold text-black uppercase tracking-wider">Creator Social Handle *</label>
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Social Handle *</label>
                               <input
                                 type="text"
                                 required
@@ -423,7 +423,7 @@ export default function Home() {
                               />
                             </div>
                             <div className="flex flex-col text-left gap-1">
-                              <label className="text-xs font-bold text-black uppercase tracking-wider">Your Job Title / Capacity *</label>
+                              <label className="text-xs font-bold text-black uppercase tracking-wider">Job Title / Capacity *</label>
                               <input
                                 type="text"
                                 required
@@ -476,31 +476,30 @@ export default function Home() {
                             />
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <ModernSelect
-                              label="Country Jurisdiction *"
-                              value={countryCode}
-                              onChange={(val) => setCountryCode(val)}
-                              options={Object.values(JURISDICTIONS).map((j) => ({
-                                value: j.countryCode,
-                                label: `${j.countryName} (${j.lawAbbreviation})`,
-                                sublabel: `ID: ${j.nationalIdLabel}`,
-                              }))}
+                          <ModernSelect
+                            label="Country Jurisdiction *"
+                            value={countryCode}
+                            onChange={(val) => setCountryCode(val)}
+                            options={Object.values(JURISDICTIONS).map((j) => ({
+                              value: j.countryCode,
+                              label: `${j.countryName} (${j.lawAbbreviation})`,
+                              sublabel: `ID: ${j.nationalIdLabel.replace(" (Optional)", "")}`,
+                            }))}
+                          />
+
+                          <div className="flex flex-col text-left gap-1">
+                            <label className="text-xs font-bold text-black uppercase tracking-wider">
+                              {getJurisdiction(countryCode).nationalIdLabel.replace(" (Optional)", "")} *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder={`e.g. ${getJurisdiction(countryCode).nationalIdLabel.replace(" (Optional)", "")}`}
+                              value={cnicNumber}
+                              onChange={(e) => setCnicNumber(e.target.value)}
+                              disabled={signupLoading}
+                              className="input-field"
                             />
-                            <div className="flex flex-col text-left gap-1">
-                              <label className="text-xs font-bold text-black uppercase tracking-wider">
-                                {getJurisdiction(countryCode).nationalIdLabel} *
-                              </label>
-                              <input
-                                type="text"
-                                required
-                                placeholder={`e.g. ${getJurisdiction(countryCode).nationalIdLabel}`}
-                                value={cnicNumber}
-                                onChange={(e) => setCnicNumber(e.target.value)}
-                                disabled={signupLoading}
-                                className="input-field"
-                              />
-                            </div>
                           </div>
 
                           <div className="flex flex-col text-left gap-1">
