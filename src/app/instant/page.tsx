@@ -9,7 +9,6 @@ import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
 import { CURRENCY_MAP } from "@/lib/currency";
 import { ModernSelect } from "@/components/ui/ModernSelect";
 import { AutocompleteInput } from "@/components/ui/AutocompleteInput";
-import { SuggestionChips } from "@/components/ui/SuggestionChips";
 
 interface DeliverableItem {
   type: string;
@@ -21,34 +20,58 @@ interface DeliverableItem {
 const JOB_TITLE_SUGGESTIONS = [
   "Marketing Director",
   "Brand Campaign Manager",
-  "Lead Content Creator",
+  "Lead Content Creator / Influencer",
   "Influencer Marketing Lead",
   "Founder & CEO",
   "Creative Director",
   "Talent Agent / Manager",
 ];
 
-const DELIVERABLE_NOTE_CHIPS = [
-  "4K 60fps video with unboxing in first 5s",
-  "Voiceover explaining top 3 key benefits",
-  "Carousel photos + brand tag in caption",
-  "Include link in bio & custom promo code [PROMO10]",
-];
+function getDeliverableNoteSuggestions(type: string): string[] {
+  const t = (type || "").toUpperCase();
+  if (t.includes("REEL") || t.includes("TIKTOK") || t.includes("SHORTS") || t.includes("VIDEO")) {
+    return [
+      "4K 60fps video with product unboxing in first 5s",
+      "Voiceover explaining top 3 key product features + CTA",
+      "Includes link in bio & custom promo discount code",
+      "High-res raw video footage delivered via Google Drive",
+    ];
+  }
+  if (t.includes("STORY")) {
+    return [
+      "3-frame Instagram Story sequence with direct link sticker",
+      "1x Story with product unboxing + 1x Story with promo code tag",
+      "Story post featuring direct product link sticker & brand tag",
+    ];
+  }
+  if (t.includes("POST") || t.includes("CAROUSEL") || t.includes("PHOTO")) {
+    return [
+      "Carousel 3-5 multi-angle product photos + brand tag",
+      "High-res grid post with detailed product review in caption",
+      "Include custom promo discount code in caption & first comment",
+    ];
+  }
+  return [
+    "Standard campaign deliverable with brand tag & promo link",
+    "High-resolution final asset delivered post pre-approval",
+    "Verified deliverable specifications & caption guidelines",
+  ];
+}
 
-const TAGGING_REQUIREMENTS_CHIPS = [
+const TAGGING_REQUIREMENTS_SUGGESTIONS = [
   "Tag @brand_official in caption & first 3s",
   "Mandatory hashtags: #ad #collab #brandpartner",
   "Include promo code [CODE10] in bio & caption",
   "Tag official account as Co-Author on IG Collab Post",
 ];
 
-const IP_OWNERSHIP_CHIPS = [
+const IP_OWNERSHIP_SUGGESTIONS = [
   "Brand License (1 Year Digital & Social Usage)",
   "Full Perpetual Ownership (All Channels & Ads)",
   "Creator Retains Copyright (Usage Rights License)",
 ];
 
-const EXCLUSIVITY_COMPETITOR_CHIPS = [
+const EXCLUSIVITY_COMPETITOR_SUGGESTIONS = [
   "Direct competitors in skincare & beauty category",
   "No sponsored posts for competing apparel brands during term",
   "Direct competitors in consumer tech",
@@ -674,18 +697,13 @@ export default function InstantContractPage() {
                     />
 
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Notes / Instructions</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Link in bio"
+                      <AutocompleteInput
+                        label="Notes / Instructions"
+                        size="sm"
+                        placeholder="e.g. Link in bio & unboxing in first 5s"
                         value={item.notes}
-                        onChange={(e) => handleDeliverableChange(idx, "notes", e.target.value)}
-                        className="input-field text-xs py-2.5"
-                      />
-                      <SuggestionChips
-                        chips={DELIVERABLE_NOTE_CHIPS}
-                        currentValue={item.notes}
-                        onSelect={(val) => handleDeliverableChange(idx, "notes", val)}
+                        onChange={(val) => handleDeliverableChange(idx, "notes", val)}
+                        suggestions={getDeliverableNoteSuggestions(item.type)}
                       />
                     </div>
                   </div>
@@ -701,35 +719,23 @@ export default function InstantContractPage() {
               </button>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Tagging &amp; Collaboration Requirements</label>
-                  <input
-                    type="text"
+                <div>
+                  <AutocompleteInput
+                    label="Tagging & Collaboration Requirements"
                     placeholder="e.g. Must tag @brand, use #SummerCollection, add collab tag"
                     value={taggingRequirements}
-                    onChange={(e) => setTaggingRequirements(e.target.value)}
-                    className="input-field text-xs"
-                  />
-                  <SuggestionChips
-                    chips={TAGGING_REQUIREMENTS_CHIPS}
-                    currentValue={taggingRequirements}
-                    onSelect={(val) => setTaggingRequirements(val)}
+                    onChange={(val) => setTaggingRequirements(val)}
+                    suggestions={TAGGING_REQUIREMENTS_SUGGESTIONS}
                   />
                 </div>
 
-                <div className="flex flex-col text-left gap-1">
-                  <label className="text-xs font-bold text-gray-700">Content IP Ownership Terms</label>
-                  <input
-                    type="text"
+                <div>
+                  <AutocompleteInput
+                    label="Content IP Ownership Terms"
+                    placeholder="e.g. Brand License (1 Year Digital & Social Usage)"
                     value={contentOwnership}
-                    onChange={(e) => setContentOwnership(e.target.value)}
-                    className="input-field text-xs"
-                  />
-                  <SuggestionChips
-                    chips={IP_OWNERSHIP_CHIPS}
-                    currentValue={contentOwnership}
-                    onSelect={(val) => setContentOwnership(val)}
-                    mode="replace"
+                    onChange={(val) => setContentOwnership(val)}
+                    suggestions={IP_OWNERSHIP_SUGGESTIONS}
                   />
                 </div>
               </div>
@@ -1158,17 +1164,12 @@ export default function InstantContractPage() {
                         onChange={(e) => setExclusivityDuration(e.target.value)}
                         className="input-field text-xs"
                       />
-                      <input
-                        type="text"
-                        placeholder="Excluded Competitors (e.g. Brand X, Brand Y)"
+                      <AutocompleteInput
+                        size="sm"
+                        placeholder="Excluded Competitors (e.g. Direct competitors in skincare & beauty)"
                         value={exclusivityCompetitors}
-                        onChange={(e) => setExclusivityCompetitors(e.target.value)}
-                        className="input-field text-xs"
-                      />
-                      <SuggestionChips
-                        chips={EXCLUSIVITY_COMPETITOR_CHIPS}
-                        currentValue={exclusivityCompetitors}
-                        onSelect={(val) => setExclusivityCompetitors(val)}
+                        onChange={(val) => setExclusivityCompetitors(val)}
+                        suggestions={EXCLUSIVITY_COMPETITOR_SUGGESTIONS}
                       />
                     </div>
                   )}

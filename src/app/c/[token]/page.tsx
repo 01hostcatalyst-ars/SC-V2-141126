@@ -9,7 +9,6 @@ import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } fr
 import { getJurisdiction } from "@/lib/config/jurisdictions";
 import { formatCurrencyAmount } from "@/lib/currency";
 import { AutocompleteInput } from "@/components/ui/AutocompleteInput";
-import { SuggestionChips } from "@/components/ui/SuggestionChips";
 
 const RESPONDENT_TITLE_SUGGESTIONS = [
   "Marketing Director",
