@@ -73,8 +73,14 @@ export default function ContractDetailPage({ params }: PageProps) {
   }, [resendTimer]);
 
   const handleSendPublishOTP = async () => {
+    const idLabel = (user?.role === "CREATOR" ? jur.nationalIdLabel : jur.taxIdLabel).replace(" (Optional)", "");
+
     if (!publishDesignation.trim()) {
       showToast("Please enter your Job Title / Signing Capacity first.", "error");
+      return;
+    }
+    if (!publishNtn.trim()) {
+      showToast(`Please enter your ${idLabel} first.`, "error");
       return;
     }
     setOtpLoading(true);
@@ -793,10 +799,10 @@ export default function ContractDetailPage({ params }: PageProps) {
 
             <div className="overflow-y-auto space-y-4 pr-1.5 flex-1 custom-scrollbar">
               <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed font-semibold">
-                <strong>Identity Verification Notice:</strong> Under Pakistan ETO 2002 guidelines, verifying your email via OTP binds your signing authority to this agreement draft and locks all campaign specifications.
+                <strong>Identity Verification Notice:</strong> Under {jur.lawAbbreviation} ({jur.governingLawName}) guidelines, verifying your email via OTP binds your signing authority to this agreement draft and locks all campaign specifications.
               </div>
 
-              {/* Designation & NTN Fields */}
+              {/* Designation & Government/Tax ID Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <label className="font-bold text-gray-700 block mb-1">Signing Capacity / Title *</label>
@@ -810,12 +816,15 @@ export default function ContractDetailPage({ params }: PageProps) {
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-gray-700 block mb-1">NTN or CNIC (Optional)</label>
+                  <label className="font-bold text-gray-700 block mb-1">
+                    {(user?.role === "CREATOR" ? jur.nationalIdLabel : jur.taxIdLabel).replace(" (Optional)", "")} *
+                  </label>
                   <input
                     type="text"
+                    required
                     value={publishNtn}
                     onChange={(e) => setPublishNtn(e.target.value)}
-                    placeholder="e.g. 1234567-8"
+                    placeholder={`e.g. ${(user?.role === "CREATOR" ? jur.nationalIdLabel : jur.taxIdLabel).replace(" (Optional)", "")}`}
                     disabled={otpVerified}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl font-semibold text-black bg-gray-50 focus:outline-none focus:bg-white focus:border-black transition-all"
                   />
