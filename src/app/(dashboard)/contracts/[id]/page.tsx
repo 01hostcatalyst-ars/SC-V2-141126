@@ -322,7 +322,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                 disabled={actionLoading}
                 className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
               >
-                Publish & Verify Identity to Share
+                Publish &amp; Verify Identity to Share
               </button>
               <button
                 onClick={handleDownloadPDF}
@@ -349,7 +349,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               disabled={actionLoading}
               className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all"
             >
-              Sign & Activate Contract
+              Sign &amp; Activate Contract
             </button>
           )}
 
