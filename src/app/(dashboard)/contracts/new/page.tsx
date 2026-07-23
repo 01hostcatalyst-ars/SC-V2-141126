@@ -720,7 +720,7 @@ export default function NewContractPage() {
         {/* SECTION 3: Financial & Payment Terms */}
         <div className="space-y-4">
           <h3 className="text-xs font-bold text-black uppercase tracking-wider border-b border-gray-100 pb-2">
-            3. Financial &amp; Payment Terms ({jur.lawAbbreviation})
+            3. Financial &amp; Payment Schedule ({jur.lawAbbreviation})
           </h3>
 
           {/* TAX & AUTO-BOUND CURRENCY NOTICE BADGE */}
@@ -734,48 +734,10 @@ export default function NewContractPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <ModernSelect
-              label="Currency"
-              value={currency}
-              onChange={(val) => setCurrency(val)}
-              options={Object.keys(JURISDICTIONS).map((code) => {
-                const j = getJurisdiction(code);
-                return {
-                  value: j.defaultCurrency,
-                  label: `${j.defaultCurrency} - ${j.countryName}`,
-                };
-              })}
-            />
-
-            <ModernSelect
-              label="Tax Treatment Engine"
-              value={taxTreatment}
-              onChange={(val) => setTaxTreatment(val)}
-              options={[
-                { value: "INCLUSIVE", label: "Tax Inclusive (Price includes tax)" },
-                { value: "EXCLUSIVE", label: "Tax Exclusive (Tax added to total)" },
-                { value: "REVERSE_CHARGE", label: "Reverse Charge (Cross-border B2B)" },
-                { value: "EXEMPT", label: "Tax Exempt (0% Tax Rate)" },
-              ]}
-            />
-
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-800">Tax Rate %</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={taxRatePct}
-                onChange={(e) => setTaxRatePct(e.target.value)}
-                className="input-field"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-800">Total Valuation ({currency}) *</label>
+              <label className="text-xs font-bold text-gray-800">
+                Total Valuation Amount ({currency} - {CURRENCY_MAP[currency]?.symbol || "$"}) *
+              </label>
               <input
                 type="number"
                 required
@@ -788,7 +750,7 @@ export default function NewContractPage() {
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-800">Advance Deposit ({currency})</label>
+              <label className="text-xs font-bold text-gray-800">Advance Payment (Optional)</label>
               <input
                 type="number"
                 min="0"
@@ -800,9 +762,12 @@ export default function NewContractPage() {
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-800">Advance Payment Due Date</label>
+              <label className="text-xs font-bold text-gray-800">
+                Advance Payment Date {advancePayment && Number(advancePayment) > 0 ? "*" : ""}
+              </label>
               <input
                 type="date"
+                required={Boolean(advancePayment && Number(advancePayment) > 0)}
                 value={advancePaymentDate}
                 onChange={(e) => setAdvancePaymentDate(e.target.value)}
                 className="input-field"
