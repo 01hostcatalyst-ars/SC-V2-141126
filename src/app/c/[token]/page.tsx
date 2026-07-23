@@ -141,6 +141,7 @@ export default function PublicSigningPage({ params }: PageProps) {
   const isRespondentPayee = ["BRAND_TO_CREATOR", "AGENCY_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contract?.contractType);
 
   // Validation check: Profile form is complete
+  const isBankOrService = ["BANK_IBAN", "SEPA", "WIRE_TRANSFER", "ACH_ROUTING", "PAYPAL", "WISE", "CREDIT_DEBIT_CARD"].includes(paymentMethod);
   const isFormValid = Boolean(
     respondentEmail &&
     respondentPhone &&
@@ -151,7 +152,7 @@ export default function PublicSigningPage({ params }: PageProps) {
     ((isRespondentBrand || isRespondentAgency) 
       ? respondentNtn.trim() 
       : (jur.nationalIdLabel.toLowerCase().includes("optional") || respondentCnic.trim())) &&
-    (!isRespondentPayee || (paymentMethod === "BANK_IBAN" ? bankAccountIban.trim() : mobileWalletNumber.trim()))
+    (!isRespondentPayee || (isBankOrService ? bankAccountIban.trim() : mobileWalletNumber.trim()))
   );
 
   // Save drawn signature from modal FIRST
@@ -195,7 +196,7 @@ export default function PublicSigningPage({ params }: PageProps) {
       const data = await res.json();
       if (res.ok && data.success) {
         setOtpDispatched(true);
-        showToast(`Verification code sent to ${respondentEmail}!`, "success");
+        showToast(data.message || `Verification code sent to ${respondentEmail}`, "success");
       } else {
         showToast(data.error || "Failed to dispatch verification code.", "error");
       }
@@ -274,8 +275,8 @@ export default function PublicSigningPage({ params }: PageProps) {
           collabDetails: isRespondentCreator ? collabDetails : undefined,
 
           paymentMethod: isRespondentPayee ? paymentMethod : undefined,
-          bankAccountIban: isRespondentPayee && paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
-          mobileWalletNumber: isRespondentPayee && paymentMethod !== "BANK_IBAN" ? mobileWalletNumber : undefined,
+          bankAccountIban: isRespondentPayee && isBankOrService ? bankAccountIban : undefined,
+          mobileWalletNumber: isRespondentPayee && !isBankOrService ? mobileWalletNumber : undefined,
           signatureB64,
           fingerprint,
         }),
@@ -909,14 +910,73 @@ export default function PublicSigningPage({ params }: PageProps) {
                     </div>
 
 
-                    {paymentMethod === "BANK_IBAN" ? (
+                    {paymentMethod === "BANK_IBAN" || paymentMethod === "SEPA" || paymentMethod === "WIRE_TRANSFER" || paymentMethod === "ACH_ROUTING" ? (
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold uppercase text-gray-500">Bank IBAN Number *</label>
+                        <label className="text-[10px] font-bold uppercase text-gray-500">
+                          {paymentMethod === "ACH_ROUTING"
+                            ? "Routing & Account Number *"
+                            : paymentMethod === "SEPA"
+                            ? "IBAN & BIC / SWIFT Code *"
+                            : paymentMethod === "WIRE_TRANSFER"
+                            ? "Wire Transfer Account / SWIFT *"
+                            : "Bank Transfer IBAN / Account Number *"}
+                        </label>
                         <input
                           type="text"
                           required
                           disabled={otpDispatched || otpVerified}
-                          placeholder="PK36 MEZN 0000 1234 5678 9012"
+                          placeholder={
+                            paymentMethod === "ACH_ROUTING"
+                              ? "e.g. Routing: 123456789 | Account: 987654321"
+                              : paymentMethod === "SEPA"
+                              ? "e.g. DE89 3704 0044 0532 0130 00"
+                              : paymentMethod === "WIRE_TRANSFER"
+                              ? "e.g. SWIFT: BOFAUS3N | Account: 12345678"
+                              : jur.countryCode === "PK"
+                              ? "PK36 MEZN 0000 1234 5678 9012"
+                              : jur.countryCode === "GB"
+                              ? "GB29 NWBK 6016 1331 9268 19"
+                              : "Enter your IBAN or Account details"
+                          }
+                          className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          value={bankAccountIban}
+                          onChange={(e) => setBankAccountIban(e.target.value)}
+                        />
+                      </div>
+                    ) : paymentMethod === "PAYPAL" ? (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold uppercase text-gray-500">PayPal Registered Email Address *</label>
+                        <input
+                          type="email"
+                          required
+                          disabled={otpDispatched || otpVerified}
+                          placeholder="e.g. paypal@example.com"
+                          className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          value={bankAccountIban}
+                          onChange={(e) => setBankAccountIban(e.target.value)}
+                        />
+                      </div>
+                    ) : paymentMethod === "WISE" ? (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold uppercase text-gray-500">Wise Email or Handle *</label>
+                        <input
+                          type="text"
+                          required
+                          disabled={otpDispatched || otpVerified}
+                          placeholder="e.g. name@domain.com or @handle"
+                          className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          value={bankAccountIban}
+                          onChange={(e) => setBankAccountIban(e.target.value)}
+                        />
+                      </div>
+                    ) : paymentMethod === "CREDIT_DEBIT_CARD" ? (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold uppercase text-gray-500">Card Reference / Last 4 Digits *</label>
+                        <input
+                          type="text"
+                          required
+                          disabled={otpDispatched || otpVerified}
+                          placeholder="e.g. Card ending in 4321"
                           className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
@@ -924,12 +984,18 @@ export default function PublicSigningPage({ params }: PageProps) {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold uppercase text-gray-500">Mobile Account Number *</label>
+                        <label className="text-[10px] font-bold uppercase text-gray-500">
+                          {paymentMethod === "JAZZCASH"
+                            ? "JazzCash Mobile Account Number *"
+                            : paymentMethod === "EASYPAISA"
+                            ? "Easypaisa Mobile Account Number *"
+                            : "Mobile Wallet Account Number *"}
+                        </label>
                         <input
                           type="text"
                           required
                           disabled={otpDispatched || otpVerified}
-                          placeholder="0300 1234567"
+                          placeholder={jur.phonePlaceholder}
                           className="input-field font-mono disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
                           value={mobileWalletNumber}
                           onChange={(e) => setMobileWalletNumber(e.target.value)}
