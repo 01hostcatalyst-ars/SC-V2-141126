@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
+import { CURRENCY_MAP } from "@/lib/currency";
 import { ModernSelect } from "@/components/ui/ModernSelect";
 import { AutocompleteInput } from "@/components/ui/AutocompleteInput";
 
@@ -524,6 +525,20 @@ export default function NewContractPage() {
               </>
             )}
           </div>
+
+          {/* CONTEXTUAL COUNTERPARTY NOTICE BADGE */}
+          <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl text-left mt-3">
+            <p className="text-xs text-blue-900 font-medium flex items-start gap-2">
+              <span className="text-blue-600 font-bold shrink-0 text-sm mt-0.5">ℹ</span>
+              <span>
+                {contractType === "AGENCY_TO_CREATOR" || contractType === "BRAND_TO_CREATOR"
+                  ? "Creator representative verification details, National ID Number, and payout details will be collected directly from the Creator when they open the Contract Link."
+                  : contractType === "CREATOR_TO_BRAND" || contractType === "AGENCY_TO_BRAND"
+                  ? "Brand representative verification details, company address, and official authority will be collected directly from the Brand when they open the Contract Link."
+                  : "Agency representative verification details, office address, and official authority will be collected directly from the Agency when they open the Contract Link."}
+              </span>
+            </p>
+          </div>
         </div>
 
         {/* SECTION 1: Campaign Deliverables & Guidelines */}
@@ -708,6 +723,16 @@ export default function NewContractPage() {
             3. Financial &amp; Payment Terms ({jur.lawAbbreviation})
           </h3>
 
+          {/* TAX & AUTO-BOUND CURRENCY NOTICE BADGE */}
+          <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-blue-900">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600 font-bold shrink-0 text-sm">ℹ</span>
+              <span>
+                <strong>Tax &amp; Currency Note:</strong> Valuation currency is auto-bound to <strong>{currency} ({CURRENCY_MAP[currency]?.symbol || "$"})</strong> based on {jur.countryName} jurisdiction. All figures are inclusive of statutory local taxes (VAT/GST). Each party handles their own tax filings.
+              </span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <ModernSelect
               label="Currency"
@@ -785,7 +810,7 @@ export default function NewContractPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-bold text-gray-800">Remaining Balance Due Date *</label>
               <input
@@ -797,43 +822,83 @@ export default function NewContractPage() {
               />
             </div>
 
-            <ModernSelect
-              label="Preferred Settlement Method"
-              value={paymentMethod}
-              onChange={(val) => setPaymentMethod(val)}
-              options={[
-                { value: "BANK_IBAN", label: "Bank Transfer (IBAN / ACH)" },
-                { value: "JAZZCASH", label: "JazzCash Mobile Wallet" },
-                { value: "EASYPAISA", label: "Easypaisa Mobile Wallet" },
-                { value: "WIRE_TRANSFER", label: "International Wire Transfer" },
-                { value: "PAYPAL", label: "PayPal / Wise" },
-              ]}
-            />
-          </div>
+            {isInitiatorPayee ? (
+              <>
+                <ModernSelect
+                  label="Receiving Payment Method *"
+                  value={paymentMethod}
+                  onChange={(val) => setPaymentMethod(val)}
+                  options={(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((m) => {
+                    const labelMap: Record<string, string> = {
+                      BANK_IBAN: "Bank Transfer (IBAN)",
+                      ACH_ROUTING: "ACH Direct Routing",
+                      WIRE_TRANSFER: "Wire Transfer",
+                      SEPA: "SEPA Transfer",
+                      JAZZCASH: "JazzCash Mobile",
+                      EASYPAISA: "EasyPaisa Mobile",
+                      PAYPAL: "PayPal",
+                      WISE: "Wise Transfer",
+                      LOCAL_MOBILE_WALLET: "Mobile Wallet",
+                      CREDIT_DEBIT_CARD: "Card On File",
+                    };
+                    return {
+                      value: m,
+                      label: labelMap[m] || m.replace(/_/g, " "),
+                    };
+                  })}
+                />
 
-          {paymentMethod === "BANK_IBAN" ? (
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-800">Payout IBAN / Account Number</label>
-              <input
-                type="text"
-                placeholder="PK36XXXX0000000000000000"
-                value={bankAccountIban}
-                onChange={(e) => setBankAccountIban(e.target.value)}
-                className="input-field"
-              />
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-800">Mobile Wallet / Payout Number</label>
-              <input
-                type="text"
-                placeholder="03XXXXXXXXX"
-                value={mobileWalletNumber}
-                onChange={(e) => setMobileWalletNumber(e.target.value)}
-                className="input-field"
-              />
-            </div>
-          )}
+                {paymentMethod === "BANK_IBAN" || paymentMethod === "SEPA" || paymentMethod === "WIRE_TRANSFER" || paymentMethod === "ACH_ROUTING" ? (
+                  <div className="flex flex-col gap-1 sm:col-span-3">
+                    <label className="text-xs font-bold text-gray-800">
+                      {paymentMethod === "ACH_ROUTING" ? "Routing & Account No *" : paymentMethod === "SEPA" ? "IBAN & BIC *" : "Bank IBAN Account *"}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder={paymentMethod === "ACH_ROUTING" ? "Routing: 123456789 | Account: 987654321" : "Enter your IBAN or Account details"}
+                      value={bankAccountIban}
+                      onChange={(e) => setBankAccountIban(e.target.value)}
+                      className="input-field font-mono"
+                    />
+                  </div>
+                ) : paymentMethod === "PAYPAL" ? (
+                  <div className="flex flex-col gap-1 sm:col-span-3">
+                    <label className="text-xs font-bold text-gray-800">PayPal Email Address *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="paypal@example.com"
+                      value={bankAccountIban}
+                      onChange={(e) => setBankAccountIban(e.target.value)}
+                      className="input-field font-mono"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1 sm:col-span-3">
+                    <label className="text-xs font-bold text-gray-800">Mobile Account / Tag ({paymentMethod}) *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder={jur.phonePlaceholder}
+                      value={mobileWalletNumber}
+                      onChange={(e) => setMobileWalletNumber(e.target.value)}
+                      className="input-field font-mono"
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="sm:col-span-2 p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl text-left flex items-center">
+                <p className="text-xs text-blue-900 font-medium flex items-center gap-2">
+                  <span className="text-blue-600 font-bold text-sm shrink-0">ℹ</span>
+                  <span>
+                    Receiving Payout Account will be collected directly from the receiving counterparty ({contractType.endsWith("_CREATOR") ? "Creator" : "Agency"}) on their signing link.
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* SECTION 4: Delivery, Revisions & Product Provisions */}
