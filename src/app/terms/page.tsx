@@ -55,7 +55,7 @@ export default function TermsPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-600 font-bold">•</span>
-              <span><strong>Electronic Signatures (ETO 2002):</strong> Signatures and audit logs generated on SignCollab rely on email OTP verification, SHA-256 hashes, device metadata, and IP logs under Pakistan&apos;s Electronic Transactions Ordinance 2002.</span>
+              <span><strong>Electronic Signatures &amp; Legal Frameworks:</strong> Signatures and audit logs generated on SignCollab rely on email OTP verification, SHA-256 hashes, device metadata, and IP logs under applicable governing law frameworks (including US ESIGN &amp; UETA, UK eIDAS, Pakistan ETO 2002, EU eIDAS, and UAE Federal Decree-Law No. 46/2021).</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-600 font-bold">•</span>
@@ -84,9 +84,9 @@ export default function TermsPage() {
 
           {/* Section 2 */}
           <section className="space-y-2 border-t border-gray-100 pt-6">
-            <h3 className="text-sm font-black text-black uppercase tracking-wider">2. Nature of Electronic Signatures (ETO 2002 Compliance)</h3>
+            <h3 className="text-sm font-black text-black uppercase tracking-wider">2. Nature of Electronic Signatures &amp; E-Sign Compliance</h3>
             <p>
-              Signatures collected through SignCollab are basic electronic signatures supported by an audit trail (including verified email OTP verification, SHA-256 cryptographic document checksums, IP addresses, timestamps, and device fingerprints) pursuant to Pakistan&apos;s Electronic Transactions Ordinance, 2002 (&quot;ETO 2002&quot;).
+              Signatures collected through SignCollab are electronic signatures supported by an audit trail (including verified email OTP verification, SHA-256 cryptographic document checksums, IP addresses, timestamps, and device fingerprints) pursuant to applicable governing law electronic transaction acts (including US ESIGN &amp; UETA, UK eIDAS, Pakistan ETO 2002, and UAE Federal Decree-Law No. 46/2021).
             </p>
             <p>
               They do not constitute certified digital signatures issued by an accredited government Certification Service Provider. While SignCollab creates strong evidentiary records, enforceability remains subject to applicable law and factual determinations of relevant competent authorities.

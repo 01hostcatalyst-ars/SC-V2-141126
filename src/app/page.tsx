@@ -183,7 +183,7 @@ export default function Home() {
             href="/instant"
             className="hidden sm:inline-flex text-xs font-bold px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm items-center gap-1.5 whitespace-nowrap"
           >
-            <span>⚡ Instant Contract (No Signup)</span>
+            <span>Instant Contract (No Signup)</span>
           </Link>
           <button 
             onClick={() => setAuthTab(authTab === "signin" ? "signup" : "signin")} 
@@ -201,7 +201,7 @@ export default function Home() {
           {/* Column 1: Info Column */}
           <div className="flex flex-col text-left space-y-6">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100/80 text-emerald-900 border border-emerald-300 w-fit">
-              ⚡ Instant 1-Page Contracts Now Available • No Signup Required
+              Instant 1-Page Contracts Now Available • No Signup Required
             </span>
             <h1 className="text-4xl md:text-5xl font-black text-black leading-tight tracking-tight">
               Bilateral Contracts.<br />
@@ -252,7 +252,6 @@ export default function Home() {
               className="w-full mb-4 flex items-center justify-between bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold px-5 py-3.5 rounded-2xl shadow-lg transition-all hover:scale-[1.01] group border border-emerald-500/20"
             >
               <div className="flex items-center gap-3">
-                <span className="text-lg">⚡</span>
                 <div className="flex flex-col text-left">
                   <span className="text-sm font-extrabold leading-tight">Create Instant Agreement (Guest Mode)</span>
                   <span className="text-[11px] text-emerald-100 font-medium leading-tight">No Account or Registration Required</span>

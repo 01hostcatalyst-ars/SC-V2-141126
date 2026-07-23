@@ -228,7 +228,7 @@ function VerifyContent() {
           Public Contract Verification Portal
         </h1>
         <p className="text-xs text-slate-500 mt-1">
-          Cryptographically verify agreement authenticity and tamper-evident audit records under ETO 2002 framework.
+          Cryptographically verify agreement authenticity and tamper-evident audit records under global e-signature frameworks.
         </p>
       </div>
 
@@ -238,6 +238,7 @@ function VerifyContent() {
           onClick={() => {
             setActiveTab("lookup");
             setVerifyError("");
+            setVerifyResult(null);
           }}
           className={`flex-1 py-2.5 px-4 text-xs font-bold rounded-xl transition-all ${
             activeTab === "lookup"
@@ -245,12 +246,13 @@ function VerifyContent() {
               : "text-slate-500 hover:text-slate-900"
           }`}
         >
-          🔍 Verification Token Lookup
+          Verification Token Lookup
         </button>
         <button
           onClick={() => {
             setActiveTab("upload");
             setVerifyError("");
+            setVerifyResult(null);
           }}
           className={`flex-1 py-2.5 px-4 text-xs font-bold rounded-xl transition-all ${
             activeTab === "upload"
@@ -258,7 +260,7 @@ function VerifyContent() {
               : "text-slate-500 hover:text-slate-900"
           }`}
         >
-          📄 Drag & Drop PDF Check
+          Drag & Drop PDF Check
         </button>
       </div>
 
@@ -329,7 +331,7 @@ function VerifyContent() {
 
           {computingHash && (
             <div className="mt-3 text-xs text-center font-bold text-blue-600 animate-pulse">
-              ⚙ Computing client-side Web Crypto binary SHA-256 hash...
+              Computing client-side Web Crypto binary SHA-256 hash...
             </div>
           )}
 
@@ -349,7 +351,7 @@ function VerifyContent() {
       {/* Error Message */}
       {verifyError && (
         <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-semibold mb-6">
-          ⚠ {verifyError}
+          {verifyError}
         </div>
       )}
 
@@ -361,7 +363,7 @@ function VerifyContent() {
             <div className="border border-emerald-200 bg-emerald-50/50 rounded-2xl p-6 text-left space-y-4">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600 text-white rounded-full text-xs font-black uppercase tracking-wider">
-                  ✓ EXECUTED &amp; CRYPTOGRAPHICALLY VERIFIED
+                  EXECUTED &amp; CRYPTOGRAPHICALLY VERIFIED
                 </span>
                 <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-md border ${
                   verifyResult.dealLifecycle === "COMPLETED" ? "bg-blue-100 text-blue-800 border-blue-200" :
@@ -399,7 +401,7 @@ function VerifyContent() {
 
               {verifyResult.isEmbargoActive && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 font-semibold">
-                  🔒 <strong>Dynamic NDA Protection Active:</strong> Party names are concealed under Section 7 product embargo terms until {new Date(verifyResult.embargoDate).toLocaleDateString()}.
+                  <strong>Dynamic NDA Protection Active:</strong> Party names are concealed under Section 7 product embargo terms until {new Date(verifyResult.embargoDate).toLocaleDateString()}.
                 </div>
               )}
 
@@ -418,7 +420,7 @@ function VerifyContent() {
           {verifyResult.state === "IN_PROGRESS" && (
             <div className="border border-amber-200 bg-amber-50/50 rounded-2xl p-6 text-left space-y-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white rounded-full text-xs font-black uppercase tracking-wider">
-                ⏳ IN PROGRESS / AWAITING COUNTERSIGNATURE
+                IN PROGRESS / AWAITING COUNTERSIGNATURE
               </span>
               <p className="text-xs text-amber-950 font-semibold">
                 {verifyResult.message}
@@ -433,7 +435,7 @@ function VerifyContent() {
           {verifyResult.state === "CHECKSUM_MISMATCH" && (
             <div className="border border-orange-200 bg-orange-50/50 rounded-2xl p-6 text-left space-y-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-600 text-white rounded-full text-xs font-black uppercase tracking-wider">
-                ⚠ FILE CHECKSUM MISMATCH
+                FILE CHECKSUM MISMATCH
               </span>
               <p className="text-xs text-orange-950 font-medium leading-relaxed">
                 {verifyResult.message}
@@ -445,7 +447,7 @@ function VerifyContent() {
           {verifyResult.state === "TOKEN_NOT_FOUND" && (
             <div className="border border-rose-200 bg-rose-50/50 rounded-2xl p-6 text-left space-y-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-600 text-white rounded-full text-xs font-black uppercase tracking-wider">
-                ❌ UNRECOGNIZED VERIFICATION TOKEN
+                UNRECOGNIZED VERIFICATION TOKEN
               </span>
               <p className="text-xs text-rose-950 font-medium">
                 {verifyResult.message}

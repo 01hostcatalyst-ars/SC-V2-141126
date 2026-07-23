@@ -351,7 +351,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   disabled={downloadingPdf}
                   className="px-5 py-3 rounded-xl bg-black text-white font-bold text-xs uppercase hover:bg-black/90 transition-all shadow-md flex items-center justify-center gap-2"
                 >
-                  {downloadingPdf ? "Generating PDF..." : "📥 Download Contract PDF"}
+                  {downloadingPdf ? "Generating PDF..." : "Download Contract PDF"}
                 </button>
                 <button
                   type="button"
@@ -359,7 +359,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   disabled={downloadingCert}
                   className="px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-xs uppercase hover:bg-blue-700 transition-all shadow-md flex items-center justify-center gap-2"
                 >
-                  {downloadingCert ? "Generating Certificate..." : "📜 Download Audit Certificate"}
+                  {downloadingCert ? "Generating Certificate..." : "Download Audit Certificate"}
                 </button>
               </div>
             </div>
@@ -1022,7 +1022,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <div className="flex items-center gap-3">
                       <div className="bg-white border border-gray-200 rounded-lg p-1.5 flex items-center gap-2">
                         <img src={stagedSignatureB64} alt="Signature Preview" className="h-8 max-w-[120px] object-contain" />
-                        <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded uppercase">✓ Drawn</span>
+                        <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded uppercase">Drawn</span>
                       </div>
                       <button
                         type="button"
@@ -1043,7 +1043,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
                       }`}
                     >
-                      Draw Signature ➔
+                      Draw Signature
                     </button>
                   )}
                 </div>
@@ -1055,7 +1055,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                       <span className="text-xs font-bold text-black uppercase tracking-wider">Step 2: Email OTP Identity Authorization</span>
                       <span className="text-[10px] text-gray-500">
                         {!isFormValid || !stagedSignatureB64
-                          ? "🔒 OTP inactive until complete information and digital signature are done above."
+                          ? "OTP inactive until complete information and digital signature are done above."
                           : otpDispatched
                           ? `Code dispatched to ${respondentEmail}. Enter code to verify & execute contract.`
                           : `Click Send OTP to dispatch verification passcode to ${respondentEmail}.`}
@@ -1073,7 +1073,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                             : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed"
                         }`}
                       >
-                        {otpLoading ? "Sending..." : "Send OTP ➔"}
+                        {otpLoading ? "Sending..." : "Send OTP"}
                       </button>
                     )}
                   </div>
@@ -1094,7 +1094,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                         disabled={otpLoading || otpCode.length !== 6 || signing}
                         className="w-full sm:w-auto bg-black hover:bg-black/90 text-white font-bold px-6 py-3 rounded-xl text-xs uppercase shadow-md transition-all whitespace-nowrap cursor-pointer disabled:opacity-50"
                       >
-                        {signing ? "Processing Signature..." : otpLoading ? "Verifying..." : "VERIFY OTP & EXECUTE CONTRACT ➔"}
+                        {signing ? "Processing Signature..." : otpLoading ? "Verifying..." : "VERIFY OTP & EXECUTE CONTRACT"}
                       </button>
                     </div>
                   )}
@@ -1110,7 +1110,7 @@ export default function PublicSigningPage({ params }: PageProps) {
       {/* Footer */}
       <footer className="w-full border-t border-gray-200/60 bg-white/80 backdrop-blur-md py-6 flex flex-col md:flex-row items-center justify-between px-6 md:px-12 gap-4 z-10 mt-12">
         <span className="text-xs text-gray-500 font-semibold">
-          © {new Date().getFullYear()} {company.name}. Powered by ETO 2002 legal security layer.
+          © {new Date().getFullYear()} {company.name}. Powered by {jur.lawAbbreviation} legal security layer.
         </span>
         <div className="flex gap-4 items-center flex-wrap justify-center">
           <Link href="/features" target="_blank" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">

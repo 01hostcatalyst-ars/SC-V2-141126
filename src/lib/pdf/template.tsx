@@ -84,20 +84,20 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         <div style={{ textAlign: "right" }}>
           <h4 style={{ margin: "0", fontSize: "11px", fontWeight: "800", textTransform: "uppercase" }}>{getContractTitle()}</h4>
           <p style={{ margin: "2px 0 0 0", fontSize: "9.5px", color: "#64748b" }}>
-            Ref No: <strong style={{ color: "#2563eb" }}>{contract.contractNumber}</strong> | Structured under ETO 2002
+            Ref No: <strong style={{ color: "#2563eb" }}>{contract.contractNumber}</strong> | Structured under {jur.lawAbbreviation}
           </p>
         </div>
       </div>
 
       {contract.status === "DRAFT" && (
         <div style={{ background: "#fffbebf0", border: "1.5px solid #f59e0b", borderRadius: "6px", padding: "6px 12px", fontSize: "10px", fontWeight: "800", color: "#b45309", textAlign: "center", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "12px" }}>
-          ⚠️ DRAFT PREVIEW — UNEXECUTED &amp; UNVERIFIED DOCUMENT (FOR REVIEW ONLY)
+          DRAFT PREVIEW — UNEXECUTED &amp; UNVERIFIED DOCUMENT (FOR REVIEW ONLY)
         </div>
       )}
 
       {/* Preamble */}
       <div style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "8px 12px", fontSize: "10px", color: "#334155", marginBottom: "14px" }}>
-        <strong>LEGAL PREAMBLE & E-SIGN BINDING NOTICE:</strong> This document represents a legally binding electronic agreement executed under the Electronic Transactions Ordinance (ETO 2002) of Pakistan. SignCollab is a neutral technology platform provider facilitating electronic agreement execution. All parameters, financial consideration, usage licenses, and bilateral penalties set forth herein are legally enforceable upon bilateral execution.
+        <strong>LEGAL PREAMBLE &amp; E-SIGN BINDING NOTICE:</strong> This document represents a legally binding electronic agreement executed under {jur.governingLawName} of {jur.countryName}. SignCollab is a neutral technology platform provider facilitating electronic agreement execution. All parameters, financial consideration, usage licenses, and bilateral penalties set forth herein are legally enforceable upon bilateral execution.
       </div>
 
       {/* Section 1: Parties */}
@@ -367,12 +367,12 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         11. GOVERNING LAW &amp; ALTERNATIVE DISPUTE RESOLUTION (ADR)
       </div>
       <div style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "10px", fontSize: "10px", marginBottom: "14px", backgroundColor: "#ffffff", lineHeight: "1.6" }}>
-        This agreement shall be governed by and construed in accordance with the laws of the Islamic Republic of Pakistan. In the event of any dispute or claim, the parties shall first attempt to resolve the matter through 14 calendar days of good-faith negotiation. If unresolved: (a) Disputes equal to or below PKR 500,000 shall proceed to summary determination in competent local courts; (b) Disputes exceeding PKR 500,000 shall be referred to binding arbitration by a sole arbitrator in Pakistan under the <strong>Arbitration Act 1940</strong> of Pakistan. The prevailing party shall recover reasonable legal fees and arbitration costs.
+        {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>{jur.arbitrationAct}</strong>.
       </div>
 
       {/* Section 12: Signature execution log */}
       <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", color: "#0f172a", borderBottom: "1.5px solid #0f172a", paddingBottom: "3px", marginTop: "18px", marginBottom: "8px" }}>
-        12. ETO 2002 BILATERAL SIGNATURE AUDIT LOG &amp; CRYPTOGRAPHIC VERIFICATION
+        12. {jur.lawAbbreviation.toUpperCase()} BILATERAL SIGNATURE AUDIT LOG &amp; CRYPTOGRAPHIC VERIFICATION
       </div>
       <div style={{ display: "flex", gap: "16px", marginTop: "10px" }}>
         <div style={{ flex: 1, border: "1px solid #cbd5e1", borderRadius: "6px", padding: "10px", textAlign: "center", backgroundColor: "#ffffff" }}>
@@ -422,7 +422,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
 
       {/* Footer SHA-256 Checksum */}
       <div style={{ borderTop: "1.5px solid #0f172a", marginTop: "20px", paddingTop: "8px", textAlign: "center", fontSize: "9px", color: "#475569" }}>
-        <div style={{ fontSize: "8px", lineHeight: "1.35", color: "#64748b", maxWidth: "95%", margin: "0 auto 4px auto" }}>PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging under Electronic Transactions Ordinance (ETO 2002) guidelines. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
+        <div style={{ fontSize: "8px", lineHeight: "1.35", color: "#64748b", maxWidth: "95%", margin: "0 auto 4px auto" }}>PLATFORM ROLE &amp; LIABILITY DISCLAIMER: SignCollab is an independent technology service provider facilitating digital document creation and cryptographic signature logging under {jur.governingLawName} guidelines. SignCollab is not a legal representative, broker, or party to this agreement, provides no legal advice, and disclaims all liability arising from the performance, enforcement, or dispute of its terms.</div>
         <div style={{ fontFamily: "monospace", fontWeight: "bold", marginTop: "2px" }}>BILATERAL EXECUTED SHA-256: <span style={{ color: "#2563eb" }}>{contract.finalDocumentHash || contract.documentHash || contract.contentHash || "SHA256_PENDING_BILATERAL_EXECUTION"}</span></div>
       </div>
     </div>

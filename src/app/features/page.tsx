@@ -36,7 +36,7 @@ export default function FeaturesPage() {
         {/* Hero Section */}
         <div className="space-y-4 text-center sm:text-left">
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-200">
-            🛡️ Platform Architecture &amp; Capabilities
+            Platform Architecture &amp; Capabilities
           </span>
           <h1 className="text-3xl md:text-5xl font-black text-black leading-tight tracking-tight">
             How {company.name} Secures Your Campaigns
@@ -48,8 +48,8 @@ export default function FeaturesPage() {
 
         {/* Section 1: The Contract Creation Wizard Options */}
         <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          <h2 className="text-lg font-black text-black uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2">
-            <span>⚙️</span> The Contract Creation Wizard: Every Option Explained
+          <h2 className="text-lg font-black text-black uppercase tracking-wider border-b border-gray-100 pb-3">
+            The Contract Creation Wizard: Every Option Explained
           </h2>
           <p className="text-xs text-gray-600 leading-relaxed font-medium">
             Verbal agreements and chat transcripts do not hold up in billing departments or courts. Here is how our 6-step creation wizard secures every detail of your deals:
@@ -126,8 +126,8 @@ export default function FeaturesPage() {
 
         {/* Section 2: Contract PDF and Certificate PDF */}
         <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          <h2 className="text-lg font-black text-black uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2">
-            <span>📄</span> Anatomy of the Tamper-Proof Document Pair
+          <h2 className="text-lg font-black text-black uppercase tracking-wider border-b border-gray-100 pb-3">
+            Anatomy of the Tamper-Proof Document Pair
           </h2>
           <p className="text-xs text-gray-600 leading-relaxed font-medium">
             Once signed by both parties, {company.name} compiles the agreement into two distinct PDF documents that secure your legal rights:
@@ -140,7 +140,7 @@ export default function FeaturesPage() {
                 <li>Bilateral terms compiled into standard formatting.</li>
                 <li>Clear tables detailing deliverables, usage rights, and payment methods.</li>
                 <li>Both party signatures, timestamps, and designators directly embedded.</li>
-                <li>Governing law and ADR clauses mapped under Pakistan&apos;s Arbitration Act 1940.</li>
+                <li>Governing law and ADR clauses mapped under applicable jurisdiction acts.</li>
               </ul>
             </div>
 
@@ -158,8 +158,8 @@ export default function FeaturesPage() {
 
         {/* Section 3: Verification System - How & Why It Works */}
         <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          <h2 className="text-lg font-black text-black uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2">
-            <span>🛡️</span> The Verification Layer: How it Works &amp; Why it is Solid
+          <h2 className="text-lg font-black text-black uppercase tracking-wider border-b border-gray-100 pb-3">
+            The Verification Layer: How it Works &amp; Why it is Solid
           </h2>
           <p className="text-xs text-gray-600 leading-relaxed font-medium">
             Our verification module (accessible via `/verify`) offers two separate layers of security to prove that a document is authentic and unmodified:

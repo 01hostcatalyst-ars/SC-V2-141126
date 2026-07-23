@@ -322,14 +322,14 @@ export default function ContractDetailPage({ params }: PageProps) {
                 disabled={actionLoading}
                 className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
               >
-                🔒 Publish &amp; Verify Identity to Share
+                Publish & Verify Identity to Share
               </button>
               <button
                 onClick={handleDownloadPDF}
                 disabled={actionLoading}
                 className="bg-white border border-gray-300 hover:bg-gray-50 text-black font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
               >
-                📄 Download Draft PDF Preview
+                Download Draft PDF Preview
               </button>
             </>
           )}
@@ -349,7 +349,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               disabled={actionLoading}
               className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all"
             >
-              Sign &amp; Activate Contract
+              Sign & Activate Contract
             </button>
           )}
 
@@ -401,10 +401,10 @@ export default function ContractDetailPage({ params }: PageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 uppercase tracking-wider">
-                ✓ Party 1 Signed &amp; Identity Locked
+                Party 1 Signed & Identity Locked
               </span>
               <h3 className="text-base font-black text-black mt-1">
-                Counterparty Signing Link Active &amp; Ready
+                Counterparty Signing Link Active & Ready
               </h3>
               <p className="text-xs text-gray-600">
                 Share this link with Party 2 (counterparty) to complete their profile verification and execute their digital signature.
@@ -423,7 +423,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               onClick={copySigningLink}
               className="bg-black hover:bg-black/90 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
             >
-              📋 Copy Link
+              Copy Link
             </button>
             <a
               href={`/c/${contract.shareToken}`}
@@ -431,7 +431,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               rel="noopener noreferrer"
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap w-full sm:w-auto"
             >
-              Open Link ↗
+              Open Link
             </a>
           </div>
         </div>
@@ -443,19 +443,11 @@ export default function ContractDetailPage({ params }: PageProps) {
         {/* Left column: Summary specs */}
         <div className="lg:col-span-1 space-y-4">
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
-            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Campaign &amp; Authority Specs</h4>
+            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Campaign & Authority Specs</h4>
             
             <div className="space-y-3 text-xs">
               <div>
                 <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Contract Type</span>
-                <span className="text-black font-bold uppercase">{contract.contractType.replace(/_/g, " ")}</span>
-              </div>
-              
-              {contract.initiatorDesignation && (
-                <>
-                  <hr className="border-gray-50" />
-                  <div>
-                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Party A Designation</span>
                     <span className="text-black font-bold">{contract.initiatorDesignation}</span>
                   </div>
                 </>
@@ -719,7 +711,7 @@ export default function ContractDetailPage({ params }: PageProps) {
       {/* Audit Log / Verification Visual Signatures Blocks */}
       {(contract.signatures?.length > 0 || contract.status === "PENDING_INITIATOR") && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-xs space-y-6">
-          <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">ETO 2002 Bilateral Signature Audit Log</h4>
+          <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">{jur.lawAbbreviation} Bilateral Signature Audit Log</h4>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {contract.signatures?.map((sig: any) => {

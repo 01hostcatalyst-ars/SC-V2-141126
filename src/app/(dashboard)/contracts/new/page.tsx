@@ -1209,7 +1209,7 @@ export default function NewContractPage() {
               disabled={loading}
               className="w-full bg-black text-white hover:bg-black/90 font-black py-4 px-6 rounded-2xl shadow-xl transition-all text-sm uppercase tracking-wider flex items-center justify-center gap-2"
             >
-              {loading ? "Creating Commercial Agreement..." : "⚡ Generate & Publish Commercial Agreement Draft"}
+              {loading ? "Creating Commercial Agreement..." : "Generate & Publish Commercial Agreement Draft"}
             </button>
           </div>
         </div>

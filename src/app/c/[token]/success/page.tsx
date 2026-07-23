@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getCompanyConfig } from "@/lib/config";
+import { getJurisdiction } from "@/lib/config/jurisdictions";
 
 export default function SigningSuccessPage() {
   const company = getCompanyConfig();
@@ -12,6 +13,21 @@ export default function SigningSuccessPage() {
 
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingCert, setDownloadingCert] = useState(false);
+  const [jurisdictionCode, setJurisdictionCode] = useState("US");
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`/api/contracts/share/${token}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.contract?.jurisdictionCountryCode) {
+          setJurisdictionCode(data.contract.jurisdictionCountryCode);
+        }
+      })
+      .catch(() => {});
+  }, [token]);
+
+  const jur = getJurisdiction(jurisdictionCode);
 
   const handleDownloadPdf = async () => {
     if (!token) return;
@@ -65,7 +81,7 @@ export default function SigningSuccessPage() {
         <div className="space-y-2">
           <h2 className="text-2xl font-black text-black">Signature Completed!</h2>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 uppercase mx-auto">
-            Executed Under ETO 2002
+            Executed Under {jur.lawAbbreviation}
           </span>
         </div>
 
@@ -82,7 +98,7 @@ export default function SigningSuccessPage() {
             disabled={downloadingPdf}
             className="w-full py-3 px-4 rounded-xl bg-black text-white font-bold text-xs uppercase hover:bg-black/90 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            {downloadingPdf ? "Retrieving..." : "📥 Download Contract PDF"}
+            {downloadingPdf ? "Retrieving..." : "Download Contract PDF"}
           </button>
 
           <button
@@ -91,7 +107,7 @@ export default function SigningSuccessPage() {
             disabled={downloadingCert}
             className="w-full py-3 px-4 rounded-xl bg-blue-600 text-white font-bold text-xs uppercase hover:bg-blue-700 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            {downloadingCert ? "Retrieving..." : "📜 Download Audit Certificate"}
+            {downloadingCert ? "Retrieving..." : "Download Audit Certificate"}
           </button>
         </div>
 
