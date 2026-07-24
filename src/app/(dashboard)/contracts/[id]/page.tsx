@@ -448,6 +448,14 @@ export default function ContractDetailPage({ params }: PageProps) {
             <div className="space-y-3 text-xs">
               <div>
                 <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Contract Type</span>
+                <span className="font-bold text-black">{contract.contractType.replace(/_/g, " ")}</span>
+              </div>
+              
+              {contract.initiatorDesignation && (
+                <>
+                  <hr className="border-gray-50" />
+                  <div>
+                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Party A Designation</span>
                     <span className="text-black font-bold">{contract.initiatorDesignation}</span>
                   </div>
                 </>
