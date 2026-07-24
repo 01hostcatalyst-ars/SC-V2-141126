@@ -1,6 +1,8 @@
 import React from "react";
 import { getCompanyConfig } from "@/lib/config";
 import { formatLegalDate, parseUserAgentString, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
+import { getJurisdiction } from "@/lib/config/jurisdictions";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 interface PDFTemplateProps {
   contract: any;
@@ -8,6 +10,7 @@ interface PDFTemplateProps {
 
 export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) => {
   const company = getCompanyConfig();
+  const jur = getJurisdiction(contract.jurisdictionCountryCode || "US");
 
   const getRemainingAmount = () => {
     return Number(contract.totalAmount || 0) - Number(contract.advancePayment || 0);
