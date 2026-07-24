@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 
+import ContractCard from "@/components/contracts/ContractCard";
+
 interface Contract {
   id: string;
   contractNumber: string;
@@ -25,7 +27,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
 
-  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [contracts, setContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"all" | "brand" | "creator" | "agency">("all");
 
@@ -59,6 +61,20 @@ export default function DashboardPage() {
       }
     } catch (err) {
       showToast("Error retrieving PDF document.", "error");
+    }
+  };
+
+  const handleDownloadCertificate = async (contractId: string) => {
+    try {
+      const res = await fetch(`/api/contracts/${contractId}/certificate`);
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.open(data.url, "_blank");
+      } else {
+        showToast(data.error || "Failed to generate certificate link.", "error");
+      }
+    } catch (err) {
+      showToast("Error retrieving Audit Certificate document.", "error");
     }
   };
 
@@ -282,77 +298,15 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredContracts.map((contract) => {
-              const initiatorParty = (contract as any).parties?.find((p: any) => p.partyType === "INITIATOR");
-              const respondentParty = (contract as any).parties?.find((p: any) => p.partyType === "RESPONDENT");
-              const isInitiator = initiatorParty?.email === user?.email || contract.initiator.email === user?.email;
-              const partnerName = isInitiator
-                ? (respondentParty?.companyName || respondentParty?.name || contract.respondentName || contract.respondentEmail || "Awaiting Receiver")
-                : (initiatorParty?.companyName || initiatorParty?.name || contract.initiator.name);
-              
-              return (
-                <Link key={contract.id} href={`/contracts/${contract.id}`} className="block">
-                  <div className="premium-card p-5 text-left flex flex-col justify-between h-full bg-white border border-gray-200 rounded-2xl cursor-pointer">
-                    <div className="space-y-4">
-                      {/* Header row */}
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                          {contract.contractNumber}
-                        </span>
-                        {getStatusBadge(contract.status)}
-                      </div>
-
-                      {/* Title Partner */}
-                      <div>
-                        <h4 className="text-base font-bold text-black truncate">
-                          Deal Partner: {partnerName}
-                        </h4>
-                        {contract.respondentCompany && (
-                          <p className="text-[10px] text-gray-400 font-semibold uppercase mt-0.5">
-                            Company: {contract.respondentCompany}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Type Badge & Meta info */}
-                      <div className="flex flex-wrap gap-2 items-center">
-                        {getContractTypeBadge(contract.contractType)}
-                        {contract.linkedContractId && (
-                          <span className="text-[10px] font-extrabold bg-amber-50 text-amber-700 px-2 py-0.5 rounded border border-amber-200">
-                            Linked Campaign
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Bottom Finance Row */}
-                    <div className="border-t border-gray-100 pt-4 mt-5 flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Total Campaign Value</span>
-                        <span className="text-sm font-black text-black">PKR {Number(contract.totalAmount).toLocaleString()}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {(contract.status === "ACTIVE" || contract.status === "COMPLETED") && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleDownloadPDF(contract.id);
-                            }}
-                            className="bg-black text-white hover:bg-black/90 font-bold px-3 py-1.5 rounded-lg text-[9px] uppercase shadow-sm transition-all whitespace-nowrap"
-                          >
-                            Download PDF
-                          </button>
-                        )}
-                        <div className="text-[10px] text-gray-400 font-bold uppercase hover:underline text-black">
-                          Details ➔
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            {filteredContracts.map((contract) => (
+              <ContractCard
+                key={contract.id}
+                contract={contract}
+                currentUserEmail={user?.email}
+                onDownloadPDF={handleDownloadPDF}
+                onDownloadCertificate={handleDownloadCertificate}
+              />
+            ))}
           </div>
         )}
       </div>

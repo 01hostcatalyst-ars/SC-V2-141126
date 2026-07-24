@@ -254,13 +254,13 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
             </thead>
             <tbody>
               <tr>
-                <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1", fontWeight: "bold", fontSize: "12px" }}>PKR {Number(contract.totalAmount).toLocaleString()}</td>
+                <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1", fontWeight: "bold", fontSize: "12px" }}>{formatCurrencyAmount(contract.totalAmount, contract.currency || jur.defaultCurrency || "USD")}</td>
                 <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1" }}>
-                  <strong>PKR {Number(contract.advancePayment || 0).toLocaleString()}</strong>
+                  <strong>{formatCurrencyAmount(contract.advancePayment || 0, contract.currency || jur.defaultCurrency || "USD")}</strong>
                   {contract.advancePaymentDate && <><br /><span style={{ fontSize: "10px", color: "#64748b" }}>Due: {formatLegalDate(contract.advancePaymentDate)}</span></>}
                 </td>
                 <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1" }}>
-                  <strong>PKR {getRemainingAmount().toLocaleString()}</strong>
+                  <strong>{formatCurrencyAmount(getRemainingAmount(), contract.currency || jur.defaultCurrency || "USD")}</strong>
                   {contract.remainingPaymentDate && <><br /><span style={{ fontSize: "10px", color: "#64748b" }}>Due: {formatLegalDate(contract.remainingPaymentDate)}</span></>}
                 </td>
                 <td style={{ padding: "6px 8px", border: "1px solid #cbd5e1" }}>
@@ -314,7 +314,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         {contract.confidentialityRequired && (
           <div style={{ marginTop: "4px", fontSize: "10px", color: "#92400e" }}>
             <strong>Embargo Launch Date:</strong> {contract.embargoDate ? formatLegalDate(contract.embargoDate) : "Required until official product launch"}<br />
-            {contract.earlyDisclosurePenalty && <><strong>Early Disclosure Leak Penalty:</strong> PKR {Number(contract.earlyDisclosurePenalty).toLocaleString()} payable upon unauthorized leak or premature posting.</>}
+            {contract.earlyDisclosurePenalty && <><strong>Early Disclosure Leak Penalty:</strong> {formatCurrencyAmount(contract.earlyDisclosurePenalty, contract.currency || jur.defaultCurrency || "USD")} payable upon unauthorized leak or premature posting.</>}
           </div>
         )}
       </div>
@@ -333,7 +333,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
             {contract.collabDeliveryAddress && <div style={{ marginTop: "4px", fontSize: "10px", color: "#475569" }}><strong>Shipment Address:</strong> {contract.collabDeliveryAddress}</div>}
             {contract.collabProductProvisionType === "Product Loan" && (
               <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: "1px dashed #cbd5e1", fontSize: "10px", color: "#92400e" }}>
-                <strong>PRODUCT LOAN RETURN CONDITIONS:</strong> Loaned product must be returned to Brand within {contract.collabProductReturnDays || 7} calendar days post-deliverable. Return shipping costs paid by {contract.collabProductReturnShippingBy || "Brand"}. Failure to return or returning in damaged condition incurs a mandatory non-return penalty of PKR {Number(contract.collabProductNonReturnFee || 0).toLocaleString()}.
+                <strong>PRODUCT LOAN RETURN CONDITIONS:</strong> Loaned product must be returned to Brand within {contract.collabProductReturnDays || 7} calendar days post-deliverable. Return shipping costs paid by {contract.collabProductReturnShippingBy || "Brand"}. Failure to return or returning in damaged condition incurs a mandatory non-return penalty of {formatCurrencyAmount(contract.collabProductNonReturnFee || 0, contract.currency || jur.defaultCurrency || "USD")}.
                 {contract.collabProductReturnAddress && <><br />Return Address: {contract.collabProductReturnAddress}</>}
               </div>
             )}
