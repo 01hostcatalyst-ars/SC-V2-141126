@@ -116,7 +116,9 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
           {partyATaxId && <div style={{ margin: "1px 0", fontSize: "10px", color: "#475569", fontWeight: "700" }}>Tax Identification: {partyATaxId}</div>}
           
           <div style={{ marginTop: "8px", borderTop: "1px solid #e2e8f0", paddingTop: "6px" }}>
-            <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#64748b", fontSize: "9px", marginBottom: "3px" }}>Authorized Signatory Representative</div>
+            <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#64748b", fontSize: "9px", marginBottom: "3px" }}>
+              {initiatorParty.companyName ? "Authorized Signatory Representative" : "Individual Signer Details"}
+            </div>
             <div style={{ margin: "2px 0" }}><strong>Representative:</strong> {initiatorParty.name} {initiatorParty.designation ? `(${initiatorParty.designation})` : ""}</div>
             <div style={{ margin: "2px 0" }}><strong>Email:</strong> {initiatorParty.email}</div>
             {initiatorParty.phone && <div style={{ margin: "2px 0" }}><strong>Phone:</strong> {initiatorParty.phone}</div>}
@@ -131,7 +133,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         <div style={{ flex: 1, border: "1px solid #cbd5e1", borderRadius: "6px", padding: "10px", fontSize: "11px", backgroundColor: "#f8fafc" }}>
           <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#475569", marginBottom: "4px", fontSize: "9px" }}>PARTY B (COUNTERPARTY ENTITY)</div>
           <div style={{ fontSize: "13px", fontWeight: "900", color: "#0f172a", textTransform: "uppercase", marginBottom: "2px" }}>
-            {respondentParty.companyName || contract.creatorName || respondentParty.name}
+            {respondentParty.companyName || (respondentParty.role === "CREATOR" ? (contract.creatorName || respondentParty.name) : respondentParty.name)}
           </div>
           {partyBTaxId && <div style={{ margin: "1px 0", fontSize: "10px", color: "#475569", fontWeight: "700" }}>Tax Identification: {partyBTaxId}</div>}
           
@@ -225,7 +227,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         <div style={{ marginBottom: "4px" }}><strong>Granted Commercial License:</strong> <strong>{formatUsageLicenseText(contract.usageType)}</strong></div>
         <div style={{ marginBottom: "4px" }}><strong>Licensed Duration:</strong> <strong>{contract.usageRightsDuration}</strong></div>
         <div style={{ fontSize: "10px", color: "#64748b", marginTop: "6px", borderTop: "1px dashed #cbd5e1", paddingTop: "4px" }}>
-          <em>WITHHELD RIGHTS NOTICE: Party A and Creator reserve all intellectual property rights not expressly granted above. Any commercial re-use, television broadcast, dark-posting, or off-platform print distribution outside the licensed parameters is strictly prohibited without prior written amendment.</em>
+          <em>WITHHELD RIGHTS NOTICE: {initiatorParty.role === "CREATOR" ? "Party A (Creator) reserves" : respondentParty.role === "CREATOR" ? "Party A and Party B (Creator) reserve" : "Both Parties reserve"} all intellectual property rights not expressly granted above. Any commercial re-use, television broadcast, dark-posting, or off-platform print distribution outside the licensed parameters is strictly prohibited without prior written amendment.</em>
         </div>
       </div>
 
@@ -358,8 +360,22 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
         10. BILATERAL SAFEGUARD PENALTIES &amp; LIQUIDATED DAMAGES
       </div>
       <div style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "10px", fontSize: "10px", marginBottom: "14px", backgroundColor: "#f8fafc", lineHeight: "1.6" }}>
-        <div>• <strong>Late Payment Penalty (Charged to Brand):</strong> {Number(contract.latePaymentPenaltyPct)}% per calendar day of delay (capped at max {Number(contract.penaltyCapPct || 20)}% of total value as agreed liquidated damages under Section 74 Contract Act 1872).</div>
-        <div>• <strong>Late Content Delivery Penalty (Charged to Agency/Creator):</strong> {Number(contract.lateContentPenaltyPct)}% per calendar day of delay (capped at max {Number(contract.penaltyCapPct || 20)}% of total value as agreed liquidated damages).</div>
+        {(() => {
+          const payerRole = ["BRAND_TO_CREATOR", "BRAND_TO_AGENCY", "CREATOR_TO_BRAND", "AGENCY_TO_BRAND"].includes(contract.contractType)
+            ? "Brand"
+            : "Agency";
+          const delivererRole = ["BRAND_TO_CREATOR", "AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contract.contractType)
+            ? "Creator"
+            : "Agency";
+          const payerPartyLabel = initiatorParty.role === payerRole.toUpperCase() ? "Party A" : "Party B";
+          const delivererPartyLabel = initiatorParty.role === delivererRole.toUpperCase() ? "Party A" : "Party B";
+          return (
+            <>
+              <div>• <strong>Late Payment Penalty (Charged to {payerPartyLabel} / {payerRole}):</strong> {Number(contract.latePaymentPenaltyPct)}% per calendar day of delay (capped at max {Number(contract.penaltyCapPct || 20)}% of total value as agreed liquidated damages under Section 74 Contract Act 1872).</div>
+              <div>• <strong>Late Content Delivery Penalty (Charged to {delivererPartyLabel} / {delivererRole}):</strong> {Number(contract.lateContentPenaltyPct)}% per calendar day of delay (capped at max {Number(contract.penaltyCapPct || 20)}% of total value as agreed liquidated damages).</div>
+            </>
+          );
+        })()}
         <div>• <strong>Non-Delivery Threshold &amp; Cutoff:</strong> Content delivery delayed beyond {contract.nonDeliveryCutoffDays || 7} calendar days post-deadline legally constitutes Non-Delivery, terminating daily late fees and triggering the 100% advance refundability clause with zero enforcement gap.</div>
         <div>• <strong>Unauthorized Brand Re-Use Penalty:</strong> {Number(contract.unauthorizedUsagePenaltyPct || 50)}% of total contract value per violation outside licensed platforms, duration, or scope.</div>
         <div>• <strong>Pre-Delivery Termination Fee:</strong> {Number(contract.cancellationFeePct || 25)}% of total campaign fee owed if terminated post-execution prior to deliverable hand-off.</div>
@@ -410,7 +426,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
               <div style={{ fontSize: "9px", color: "#334155" }}>
                 <div style={{ fontWeight: "800", color: "#0f172a", fontSize: "10px", textTransform: "uppercase" }}>EXECUTED ON BEHALF OF:</div>
                 <div style={{ fontWeight: "900", color: "#2563eb", textTransform: "uppercase", fontSize: "11px", marginBottom: "4px" }}>
-                  {respondentParty.companyName || contract.creatorName || respondentParty.name}
+                  {respondentParty.companyName || (respondentParty.role === "CREATOR" ? (contract.creatorName || respondentParty.name) : respondentParty.name)}
                 </div>
                 <div>Authorized Signer: <strong>{respondentParty.name}</strong> {respondentParty.designation ? `(${respondentParty.designation})` : ""}</div>
                 <div>Verified Email OTP: ✓ Verified | Email: {respondentParty.email} | IP: {respondentSign.ipAddress}</div>

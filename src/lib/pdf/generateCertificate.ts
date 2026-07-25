@@ -34,6 +34,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
     name: contract.initiator?.name || "Initiator",
     email: contract.initiator?.email || "",
     phone: contract.initiatorPhone || contract.initiator?.phone,
+    role: (contract.contractType.startsWith("CREATOR_") ? "CREATOR" : contract.contractType.startsWith("BRAND_") ? "BRAND" : "AGENCY") as any,
     designation: contract.initiatorDesignation,
     companyName: contract.initiatorCompanyName || contract.initiator?.agencyName,
     companyAddress: contract.initiatorCompanyAddress || contract.initiator?.agencyAddress,
@@ -45,6 +46,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
     name: contract.respondentName || contract.respondent?.name || "N/A",
     email: contract.respondentEmail || contract.respondent?.email || "N/A",
     phone: contract.respondentPhone || contract.respondent?.phone,
+    role: (contract.contractType.endsWith("_CREATOR") ? "CREATOR" : contract.contractType.endsWith("_BRAND") ? "BRAND" : "AGENCY") as any,
     designation: contract.respondentDesignation,
     companyName: contract.respondentCompany || contract.respondent?.agencyName,
     companyAddress: contract.respondentAddress || contract.respondent?.agencyAddress,
@@ -280,7 +282,11 @@ export async function generateAuditCertificatePDF(contractId: string) {
               PARTY B (COUNTERPARTY ENTITY)
             </div>
             <div style="font-weight: 900; font-size: 9.5pt; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
-              ${respondentParty.companyName || contract.creatorName || respondentParty.name}
+              ${(() => {
+                const rParty = respondentParty as any;
+                const partyBEntity = rParty.companyName || (rParty.role === "CREATOR" ? (contract.creatorName || rParty.name) : rParty.name);
+                return partyBEntity;
+              })()}
             </div>
             ${partyBTaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyBTaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 4px;">

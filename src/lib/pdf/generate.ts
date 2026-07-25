@@ -123,8 +123,12 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
         return "AGENCY TO CREATOR CONTENT PRODUCTION & SERVICE AGREEMENT";
       case "BRAND_TO_CREATOR":
         return "BRAND TO CREATOR DIRECT SPONSORSHIP AGREEMENT";
+      case "BRAND_TO_AGENCY":
+        return "BRAND TO AGENCY CAMPAIGN MANAGEMENT & SERVICE AGREEMENT";
       case "CREATOR_TO_BRAND":
         return "CREATOR TO BRAND DIRECT CONTENT ENGAGEMENT AGREEMENT";
+      case "CREATOR_TO_AGENCY":
+        return "CREATOR TO AGENCY CONTENT COLLABORATION & SERVICE AGREEMENT";
       default:
         return "MUTUAL COLLABORATION & CONTENT LICENSING AGREEMENT";
     }
@@ -320,7 +324,9 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
             </div>
             ${partyATaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyATaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
-              <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">Authorized Signatory Representative</div>
+              <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">
+                ${initiatorParty.companyName ? "Authorized Signatory Representative" : "Individual Signer Details"}
+              </div>
               <div><strong>Representative:</strong> ${initiatorParty.name} ${initiatorParty.designation ? `(${initiatorParty.designation})` : ""}</div>
               <div><strong>Email:</strong> ${initiatorParty.email}</div>
               ${initiatorParty.phone ? `<div><strong>Phone:</strong> ${initiatorParty.phone}</div>` : ""}
@@ -331,7 +337,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #f8fafc;">
             <div style="font-weight: 800; text-transform: uppercase; color: #475569; margin-bottom: 4px; font-size: 8pt;">PARTY B (COUNTERPARTY ENTITY)</div>
             <div style="font-size: 10.5pt; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
-              ${respondentParty.companyName || contract.creatorName || respondentParty.name}
+              ${respondentParty.companyName || (respondentParty.role === "CREATOR" ? (contract.creatorName || respondentParty.name) : respondentParty.name)}
             </div>
             ${partyBTaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyBTaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
@@ -417,7 +423,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           <div style="margin-bottom: 4px;"><strong>Granted Commercial License:</strong> <strong>${formatUsageLicenseText(contract.usageType)}</strong></div>
           <div style="margin-bottom: 4px;"><strong>Licensed Duration:</strong> <strong>${contract.usageRightsDuration}</strong></div>
           <div style="font-size: 7.5pt; color: #64748b; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
-            <em>WITHHELD RIGHTS NOTICE: Party A and Creator reserve all intellectual property rights not expressly granted above. Any commercial re-use, television broadcast, dark-posting, or off-platform print distribution outside the licensed parameters is strictly prohibited without prior written amendment.</em>
+            <em>WITHHELD RIGHTS NOTICE: ${initiatorParty.role === "CREATOR" ? "Party A (Creator) reserves" : respondentParty.role === "CREATOR" ? "Party A and Party B (Creator) reserve" : "Both Parties reserve"} all intellectual property rights not expressly granted above. Any commercial re-use, television broadcast, dark-posting, or off-platform print distribution outside the licensed parameters is strictly prohibited without prior written amendment.</em>
           </div>
         </div>
 
@@ -538,8 +544,16 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
           10. BILATERAL SAFEGUARDS &amp; LATE PENALTY CAPS
         </div>
         <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 8.5pt; margin-bottom: 14px; background: #f8fafc; line-height: 1.6;">
-          <div>• <strong>Late Payment Penalty (Charged to Brand):</strong> ${Number(contract.latePaymentPenaltyPct || 3)}% per calendar day of delay.</div>
-          <div>• <strong>Late Content Delivery Penalty (Charged to Agency/Creator):</strong> ${Number(contract.lateContentPenaltyPct || 3)}% per calendar day of delay.</div>
+          ${(() => {
+            const payerRole = ["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY"].includes(contract.contractType) ? "Agency" : "Brand";
+            const delivererRole = ["BRAND_TO_CREATOR", "AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contract.contractType) ? "Creator" : "Agency";
+            const payerPartyLabel = initiatorParty.role === payerRole.toUpperCase() ? "Party A" : "Party B";
+            const delivererPartyLabel = initiatorParty.role === delivererRole.toUpperCase() ? "Party A" : "Party B";
+            return `
+              <div>• <strong>Late Payment Penalty (Charged to ${payerPartyLabel} / ${payerRole}):</strong> ${Number(contract.latePaymentPenaltyPct || 3)}% per calendar day of delay.</div>
+              <div>• <strong>Late Content Delivery Penalty (Charged to ${delivererPartyLabel} / ${delivererRole}):</strong> ${Number(contract.lateContentPenaltyPct || 3)}% per calendar day of delay.</div>
+            `;
+          })()}
           <div>• <strong>Liquidated Damages Cap:</strong> Total accrued delay penalties are strictly capped at <strong>${Number(contract.penaltyCapPct || 20)}%</strong> of Total Campaign Valuation.</div>
           <div>• <strong>Non-Delivery Cutoff &amp; Default:</strong> Delay exceeding ${contract.nonDeliveryCutoffDays || 7} calendar days post-deadline constitutes a material breach, granting the non-breaching party immediate right of cancellation and 100% advance refund recovery.</div>
           <div>• <strong>Unauthorized Brand Re-Use Penalty:</strong> ${Number(contract.unauthorizedUsagePenaltyPct || 50)}% of total contract value per violation outside licensed scope.</div>
@@ -588,7 +602,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
               <div style="font-size: 7.5pt; color: #334155;">
                 <div style="font-weight: 800; color: #0f172a; font-size: 8pt; text-transform: uppercase;">EXECUTED ON BEHALF OF:</div>
                 <div style="font-weight: 900; color: #2563eb; text-transform: uppercase; font-size: 9.5pt; margin-bottom: 4px;">
-                  ${respondentParty.companyName || contract.creatorName || respondentParty.name}
+                  ${respondentParty.companyName || (respondentParty.role === "CREATOR" ? (contract.creatorName || respondentParty.name) : respondentParty.name)}
                 </div>
                 <div>Authorized Signer: <strong>${respondentParty.name}</strong> ${respondentParty.designation ? `(${respondentParty.designation})` : ""}</div>
                 <div>Verified Email OTP: ✓ Verified | Email: ${respondentParty.email} | IP: ${respondentSign.ipAddress}</div>
