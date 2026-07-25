@@ -139,7 +139,7 @@ export const ContractPDFTemplate: React.FC<PDFTemplateProps> = ({ contract }) =>
           
           <div style={{ marginTop: "8px", borderTop: "1px solid #e2e8f0", paddingTop: "6px" }}>
             <div style={{ fontWeight: "800", textTransform: "uppercase", color: "#64748b", fontSize: "9px", marginBottom: "3px" }}>
-              {respondentParty.companyName ? "Authorized Signatory Representative" : "Individual Signer Details"}
+              Authorized Signatory / Representative Details
             </div>
             <div style={{ margin: "2px 0" }}><strong>Representative:</strong> {respondentParty.name} {respondentParty.designation ? `(${respondentParty.designation})` : ""}</div>
             <div style={{ margin: "2px 0" }}><strong>Email:</strong> {respondentParty.email}</div>

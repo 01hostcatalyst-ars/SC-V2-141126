@@ -292,8 +292,12 @@ export default function NewContractPage() {
       showToast("Brand Name and Brand Handle are required.", "error");
       return false;
     }
-    if (contractType === "BRAND_TO_CREATOR" && (!creatorName.trim() || !creatorHandle.trim())) {
-      showToast("Creator Name and Creator Handle are required.", "error");
+    if (contractType === "BRAND_TO_CREATOR" && !creatorHandle.trim()) {
+      showToast("Creator Handle is required.", "error");
+      return false;
+    }
+    if (contractType === "AGENCY_TO_CREATOR" && (!brandName.trim() || !creatorHandle.trim())) {
+      showToast("Brand Name and Creator Handle are required.", "error");
       return false;
     }
     if (contractType === "AGENCY_TO_BRAND" && (!creatorName.trim() || !creatorHandle.trim())) {
@@ -498,7 +502,21 @@ export default function NewContractPage() {
               </>
             )}
 
-            {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
+            {["BRAND_TO_CREATOR", "AGENCY_TO_CREATOR"].includes(contractType) && (
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <label className="text-xs font-bold text-gray-800 uppercase tracking-wider">Creator Handle / Username *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. @janedoe"
+                  className="input-field"
+                  value={creatorHandle}
+                  onChange={(e) => setCreatorHandle(e.target.value)}
+                />
+              </div>
+            )}
+
+            {["AGENCY_TO_BRAND", "BRAND_TO_AGENCY", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) && (
               <>
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-gray-800 uppercase tracking-wider">Creator Full Name *</label>

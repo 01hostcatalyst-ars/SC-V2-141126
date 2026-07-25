@@ -50,6 +50,7 @@ export default function PublicSigningPage({ params }: PageProps) {
   const [collabDetails, setCollabDetails] = useState("");
   const [respondentCapacity, setRespondentCapacity] = useState<"CREATOR_SELF" | "CREATOR_MANAGER">("CREATOR_SELF");
   const [creatorLegalName, setCreatorLegalName] = useState("");
+  const [confirmHandleChecked, setConfirmHandleChecked] = useState(false);
 
   // Payout details for Creator respondents
   const [paymentMethod, setPaymentMethod] = useState("BANK_IBAN");
@@ -86,9 +87,9 @@ export default function PublicSigningPage({ params }: PageProps) {
           if (data.contract.respondentAddress) setRespondentAddress(data.contract.respondentAddress);
           if (data.contract.respondentDesignation) setRespondentDesignation(data.contract.respondentDesignation);
           if (data.contract.respondentNtn) setRespondentNtn(data.contract.respondentNtn);
-          if (data.contract.paymentMethod) setPaymentMethod(data.contract.paymentMethod);
-          if (data.contract.bankAccountIban) setBankAccountIban(data.contract.bankAccountIban);
-          if (data.contract.mobileWalletNumber) setMobileWalletNumber(data.contract.mobileWalletNumber);
+          if (data.contract.respondentPaymentMethod) setPaymentMethod(data.contract.respondentPaymentMethod);
+          if (data.contract.respondentBankAccountIban) setBankAccountIban(data.contract.respondentBankAccountIban);
+          if (data.contract.respondentMobileWalletNumber) setMobileWalletNumber(data.contract.respondentMobileWalletNumber);
         } else {
           showToast(data.error || "Agreement link invalid or expired.", "error");
         }
@@ -146,7 +147,8 @@ export default function PublicSigningPage({ params }: PageProps) {
     respondentEmail &&
     respondentPhone &&
     respondentName &&
-    (isRespondentBrand ? respondentCompany : isRespondentAgency ? respondentCompany : collabDetails) &&
+    (isRespondentBrand ? respondentCompany : isRespondentAgency ? respondentCompany : confirmHandleChecked) &&
+    (isRespondentCreator && respondentCapacity === "CREATOR_MANAGER" ? creatorLegalName.trim() : true) &&
     respondentAddress &&
     respondentDesignation &&
     ((isRespondentBrand || isRespondentAgency) 
@@ -165,7 +167,7 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   const handleSendOTP = async () => {
     if (!isFormValid || !stagedSignatureB64) {
-      showToast("Please complete profile info and draw your signature first.", "error");
+      showToast("Please complete profile info, confirm creator handle, and draw your signature first.", "error");
       return;
     }
 
@@ -178,18 +180,19 @@ export default function PublicSigningPage({ params }: PageProps) {
           email: respondentEmail,
           phone: respondentPhone,
           name: respondentName,
-          company: (isRespondentBrand || isRespondentAgency) ? respondentCompany : collabDetails,
+          company: (isRespondentBrand || isRespondentAgency) ? respondentCompany : undefined,
           address: respondentAddress,
           designation: respondentDesignation,
           respondentEmail,
           respondentPhone,
           respondentName,
-          respondentCompany: (isRespondentBrand || isRespondentAgency) ? respondentCompany : collabDetails,
+          respondentCompany: (isRespondentBrand || isRespondentAgency) ? respondentCompany : undefined,
           respondentAddress,
           respondentDesignation,
           respondentNtn: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
           respondentCnic: isRespondentCreator ? respondentCnic : undefined,
-          collabDetails: isRespondentCreator ? collabDetails : undefined,
+          creatorLegalName: isRespondentCreator && respondentCapacity === "CREATOR_MANAGER" ? creatorLegalName : undefined,
+          respondentCapacity,
         }),
       });
 
@@ -272,7 +275,8 @@ export default function PublicSigningPage({ params }: PageProps) {
           respondentCnic: isRespondentCreator ? respondentCnic : undefined,
           respondentTaxId: (isRespondentBrand || isRespondentAgency) ? respondentNtn : undefined,
           respondentNationalId: isRespondentCreator ? respondentCnic : undefined,
-          collabDetails: isRespondentCreator ? collabDetails : undefined,
+          creatorLegalName: isRespondentCreator && respondentCapacity === "CREATOR_MANAGER" ? creatorLegalName : undefined,
+          respondentCapacity,
 
           paymentMethod: isRespondentPayee ? paymentMethod : undefined,
           bankAccountIban: isRespondentPayee && isBankOrService ? bankAccountIban : undefined,
@@ -740,55 +744,52 @@ export default function PublicSigningPage({ params }: PageProps) {
                   />
                 </div>
 
-                {/* 4. Brand / Company / Creator IG Handle * */}
-                <div className="flex flex-col gap-1">
-                  {isRespondentBrand ? (
-                    <>
-                      <label className="text-xs font-bold text-black uppercase tracking-wider">
-                        Brand / Company Name <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Sapphire Retail Ltd."
-                        value={respondentCompany}
-                        onChange={(e) => setRespondentCompany(e.target.value)}
-                        disabled={otpDispatched || otpVerified}
-                        className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                      />
-                    </>
-                  ) : isRespondentAgency ? (
-                    <>
-                      <label className="text-xs font-bold text-black uppercase tracking-wider">
-                        Agency Name <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Creative Hub Agency"
-                        value={respondentCompany}
-                        onChange={(e) => setRespondentCompany(e.target.value)}
-                        disabled={otpDispatched || otpVerified}
-                        className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <label className="text-xs font-bold text-black uppercase tracking-wider">
-                        Creator IG Handle <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. @username"
-                        value={collabDetails}
-                        onChange={(e) => setCollabDetails(e.target.value)}
-                        disabled={otpDispatched || otpVerified}
-                        className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                      />
-                    </>
-                  )}
-                </div>
+                {/* 4. Brand / Company Name OR Creator Handle Checkbox Confirmation */}
+                {isRespondentBrand ? (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">
+                      Brand / Company Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Sapphire Retail Ltd."
+                      value={respondentCompany}
+                      onChange={(e) => setRespondentCompany(e.target.value)}
+                      disabled={otpDispatched || otpVerified}
+                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                ) : isRespondentAgency ? (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-black uppercase tracking-wider">
+                      Agency Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Creative Hub Agency"
+                      value={respondentCompany}
+                      onChange={(e) => setRespondentCompany(e.target.value)}
+                      disabled={otpDispatched || otpVerified}
+                      className="input-field disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-2xl sm:col-span-2">
+                    <input
+                      type="checkbox"
+                      id="confirmHandle"
+                      checked={confirmHandleChecked}
+                      onChange={(e) => setConfirmHandleChecked(e.target.checked)}
+                      disabled={otpDispatched || otpVerified}
+                      className="mt-0.5 h-4 w-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer"
+                    />
+                    <label htmlFor="confirmHandle" className="text-xs text-gray-800 font-medium cursor-pointer leading-relaxed">
+                      <strong className="text-black">Confirm Creator IG Handle:</strong> I confirm that I am the creator or authorized representative for Instagram account <span className="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{contract?.creatorHandle || "N/A"}</span>. <span className="text-rose-500">*</span>
+                    </label>
+                  </div>
+                )}
 
                 {/* 4b. Conditional Creator Legal Name (if Manager signing) */}
                 {isRespondentCreator && respondentCapacity === "CREATOR_MANAGER" && (

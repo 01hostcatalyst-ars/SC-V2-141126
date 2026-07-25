@@ -342,7 +342,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
             ${partyBTaxId ? `<div style="font-size: 8pt; color: #475569; font-weight: bold; margin-bottom: 4px;">${jur.taxIdLabel}: ${partyBTaxId}</div>` : ""}
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 6px;">
               <div style="font-weight: 800; text-transform: uppercase; color: #64748b; font-size: 7.5pt; margin-bottom: 2px;">
-                ${respondentParty.companyName ? "Authorized Signatory Representative" : "Individual Signer Details"}
+                Authorized Signatory / Representative Details
               </div>
               <div><strong>Representative:</strong> ${respondentParty.name} ${respondentParty.designation ? `(${respondentParty.designation})` : ""}</div>
               <div><strong>Email:</strong> ${respondentParty.email}</div>

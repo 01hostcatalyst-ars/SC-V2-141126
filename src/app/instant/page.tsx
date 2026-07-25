@@ -278,9 +278,9 @@ export default function InstantContractPage() {
     if (!remainingPaymentDate) return false;
     if (!deliveryTimeframeDays || Number(deliveryTimeframeDays) <= 0) return false;
     // Workflow-specific counterparty checks
-    if (contractType === "AGENCY_TO_CREATOR" && !brandName.trim()) return false;
+    if (contractType === "AGENCY_TO_CREATOR" && (!brandName.trim() || !creatorHandle.trim())) return false;
     if (contractType === "CREATOR_TO_BRAND" && (!brandName.trim() || !brandHandle.trim())) return false;
-    if (contractType === "BRAND_TO_CREATOR" && (!creatorName.trim() || !creatorHandle.trim())) return false;
+    if (contractType === "BRAND_TO_CREATOR" && !creatorHandle.trim()) return false;
     if (contractType === "AGENCY_TO_BRAND" && (!creatorName.trim() || !creatorHandle.trim())) return false;
     if (contractType === "CREATOR_TO_AGENCY" && !brandName.trim()) return false;
     if (contractType === "BRAND_TO_AGENCY" && (!creatorName.trim() || !creatorHandle.trim())) return false;
@@ -1458,7 +1458,22 @@ export default function InstantContractPage() {
                       </div>
                     )}
 
-                    {["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY"].includes(contractType) && (
+                    {["BRAND_TO_CREATOR", "AGENCY_TO_CREATOR"].includes(contractType) && (
+                      <div className="flex flex-col text-left gap-1 sm:col-span-2">
+                        <label className="text-xs font-bold text-gray-700">Target Creator IG Handle *</label>
+                        <input
+                          type="text"
+                          required
+                          disabled={initiatorOtpVerified}
+                          placeholder="e.g. @username"
+                          value={creatorHandle}
+                          onChange={(e) => setCreatorHandle(e.target.value)}
+                          className="input-field border-blue-200 disabled:bg-gray-100"
+                        />
+                      </div>
+                    )}
+
+                    {["AGENCY_TO_BRAND", "BRAND_TO_AGENCY"].includes(contractType) && (
                       <>
                         <div className="flex flex-col text-left gap-1">
                           <label className="text-xs font-bold text-gray-700">Target Creator Name *</label>

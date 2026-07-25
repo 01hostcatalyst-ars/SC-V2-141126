@@ -17,7 +17,7 @@ export async function POST(
       signatureB64, documentHash, fingerprint = "browser-fingerprint",
       email, name, phone, company, address, designation, ntn, cnic,
       taxId, nationalId,
-      collabDetails,
+      collabDetails, creatorLegalName, respondentCapacity,
       paymentMethod, paymentRoutingDetails, bankAccountIban, mobileWalletNumber,
     } = body;
 
@@ -218,8 +218,12 @@ export async function POST(
           respondentTaxId: respondentTaxIdVal || (contract as any).respondentTaxId,
           respondentNationalId: respondentNationalIdVal || (contract as any).respondentNationalId,
           collabDetails: collabDetails || contract.collabDetails,
-          creatorHandle: (respondentUserRole === "CREATOR" && collabDetails) ? collabDetails : contract.creatorHandle,
-          creatorName: (respondentUserRole === "CREATOR" && name) ? name : contract.creatorName,
+          creatorHandle: contract.creatorHandle,
+          creatorName: (respondentUserRole === "CREATOR" && respondentCapacity === "CREATOR_MANAGER" && creatorLegalName)
+            ? creatorLegalName.trim()
+            : (respondentUserRole === "CREATOR" && name)
+            ? name.trim()
+            : contract.creatorName,
           respondentPaymentMethod: (paymentMethod as PaymentMethod) || undefined,
           respondentPaymentRoutingDetails: paymentRoutingDetails || undefined,
           respondentBankAccountIban: paymentMethod === "BANK_IBAN" ? bankAccountIban : undefined,
