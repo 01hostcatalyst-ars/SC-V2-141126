@@ -113,7 +113,7 @@ export async function POST(req: Request) {
         brandHandle: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY].includes(contractType) ? brandHandle : undefined,
         campaignName: [ContractType.AGENCY_TO_CREATOR, ContractType.CREATOR_TO_AGENCY, ContractType.BRAND_TO_AGENCY].includes(contractType) ? campaignName : undefined,
         creatorName: ([ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY] as string[]).includes(contractType) ? creatorName : undefined,
-        creatorHandle: ([ContractType.AGENCY_TO_BRAND, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY] as string[]).includes(contractType) ? creatorHandle : undefined,
+        creatorHandle: ([ContractType.AGENCY_TO_BRAND, ContractType.AGENCY_TO_CREATOR, ContractType.BRAND_TO_CREATOR, ContractType.BRAND_TO_AGENCY, ContractType.CREATOR_TO_BRAND, ContractType.CREATOR_TO_AGENCY] as string[]).includes(contractType) ? creatorHandle : undefined,
         initiatorDesignation: initiatorDesignation || undefined,
         initiatorNtn: initiatorNtn || initiatorTaxId || undefined,
         initiatorCnic: initiatorCnic || initiatorNationalId || undefined,

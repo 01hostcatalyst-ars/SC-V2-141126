@@ -337,7 +337,7 @@ export default function NewContractPage() {
       brandHandle: ["AGENCY_TO_CREATOR", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? brandHandle : undefined,
       campaignName: ["AGENCY_TO_CREATOR", "CREATOR_TO_AGENCY", "BRAND_TO_AGENCY"].includes(contractType) ? campaignName : undefined,
       creatorName: ["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? creatorName : undefined,
-      creatorHandle: ["AGENCY_TO_BRAND", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? creatorHandle : undefined,
+      creatorHandle: ["AGENCY_TO_BRAND", "AGENCY_TO_CREATOR", "BRAND_TO_CREATOR", "BRAND_TO_AGENCY", "CREATOR_TO_BRAND", "CREATOR_TO_AGENCY"].includes(contractType) ? creatorHandle : undefined,
       totalAmount: Number(totalAmount),
       advancePayment: advancePayment ? Number(advancePayment) : 0,
       advancePaymentDate: advancePaymentDate || undefined,
