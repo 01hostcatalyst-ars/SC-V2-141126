@@ -108,3 +108,107 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #d1d5db;
 }
+
+/* Google Docs Article Prose Styles */
+.gdoc-prose {
+  color: #374151;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.gdoc-prose h1 {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #000000;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.gdoc-prose h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.gdoc-prose h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.gdoc-prose p {
+  margin-bottom: 1.25rem;
+}
+
+.gdoc-prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.gdoc-prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.gdoc-prose li {
+  margin-bottom: 0.375rem;
+}
+
+.gdoc-prose a {
+  color: #2563eb;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.gdoc-prose a:hover {
+  color: #1d4ed8;
+}
+
+.gdoc-prose blockquote {
+  border-left: 4px solid #2563eb;
+  padding-left: 1rem;
+  font-style: italic;
+  color: #4b5563;
+  margin: 1.5rem 0;
+  background-color: #f8fafc;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.gdoc-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.gdoc-prose th, .gdoc-prose td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.gdoc-prose th {
+  background-color: #f3f4f6;
+  font-weight: 700;
+  color: #111827;
+}
+
+.gdoc-prose img {
+  border-radius: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}

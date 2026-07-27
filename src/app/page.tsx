@@ -98,6 +98,9 @@ export default function Home() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-gray-600">
+            <Link href="/knowledge" className="hover:text-black transition-colors">
+              Knowledge Base
+            </Link>
             <Link href="/features" className="hover:text-black transition-colors">
               Features
             </Link>
