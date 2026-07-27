@@ -1,11 +1,101 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
+import Script from "next/script";
 import { getCompanyConfig } from "@/lib/config";
+import type { Metadata } from "next";
+
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
+
+export const metadata: Metadata = {
+  title: "Terms of Service & Privacy Policy — SignCollab Legal",
+  description:
+    "Read SignCollab's Terms of Service and Privacy Notice. Covers platform liability, electronic signature compliance (US ESIGN, UK eIDAS, EU eIDAS, UAE, Pakistan ETO 2002), data handling, beta status, and user responsibilities for creator-brand contracts.",
+  alternates: {
+    canonical: "/terms",
+  },
+  openGraph: {
+    title: "Terms of Service & Privacy Policy — SignCollab",
+    description:
+      "SignCollab's complete Terms of Service and Privacy Notice governing the bilateral contract platform for creators, brands, and agencies.",
+    url: `${baseUrl}/terms`,
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "SignCollab — Terms of Service & Privacy Policy",
+    description:
+      "Legal terms governing the SignCollab e-signature and contract platform. Covers e-sign compliance, liability limits, and data handling.",
+  },
+};
 
 export default function TermsPage() {
   const company = getCompanyConfig();
+
+  const termsJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${baseUrl}/terms`,
+        "name": "Terms of Service & Privacy Policy — SignCollab",
+        "description":
+          "SignCollab's complete Terms of Service and Privacy Notice covering platform liability, e-signature compliance, data handling practices, beta disclosure, and user responsibilities.",
+        "url": `${baseUrl}/terms`,
+        "isPartOf": { "@id": `${baseUrl}/#website` },
+        "about": { "@id": `${baseUrl}/#organization` },
+        "breadcrumb": { "@id": `${baseUrl}/#breadcrumb` },
+        "specialty": "Legal",
+        "lastReviewed": "2026-07-01",
+        "inLanguage": "en-US",
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${baseUrl}/terms/#faqpage`,
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is SignCollab a law firm or escrow agent?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. SignCollab is an independent technology platform that facilitates agreement drafting, OTP identity validation, and digital audit logging. SignCollab is not a party to any agreement, does not provide legal, tax, or financial advice, does not act as an escrow agent, and does not guarantee the enforceability of contracts created on the platform.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Are SignCollab electronic signatures legally valid?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SignCollab electronic signatures are supported by an audit trail including email OTP verification, SHA-256 cryptographic checksums, IP addresses, timestamps, and device fingerprints. They are created pursuant to applicable electronic transaction laws including the US ESIGN Act and UETA, UK eIDAS, EU eIDAS Regulation 910/2014, UAE Federal Decree-Law No. 46/2021, and Pakistan ETO 2002. They do not constitute qualified digital signatures from a government Certification Service Provider.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Is SignCollab free to use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. SignCollab is currently free during the early beta/MVP phase. The platform reserves the right to introduce subscription or per-agreement fees in the future with reasonable advance notice before charges apply.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "How does SignCollab handle my personal data?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SignCollab collects personal data necessary for contract creation and identity verification, including names, emails, phone numbers, social media handles, tax IDs, IP addresses, and device signatures. Data is retained securely for contract certificates and verification logs. SignCollab does not sell user data to third parties.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "What is SignCollab's liability limit?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SignCollab's total aggregate liability for any claims relating to platform access shall not exceed the total fees paid by the user in the preceding 12 months, or PKR 1,000, whichever is lower. SignCollab is not liable for indirect, incidental, consequential, or punitive damages, or for non-payment by counterparties.",
+            },
+          },
+        ],
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">

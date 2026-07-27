@@ -1,14 +1,171 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
+import Script from "next/script";
 import { getCompanyConfig } from "@/lib/config";
+import type { Metadata } from "next";
+
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
+
+export const metadata: Metadata = {
+  title: "Features — How SignCollab Secures Creator & Brand Contracts",
+  description:
+    "Explore SignCollab's 6-step contract creation wizard, bilateral e-signatures with OTP verification, SHA-256 tamper-proof audit trails, and cryptographic document verification. Compliant with US ESIGN, UK eIDAS, EU eIDAS, UAE, Pakistan ETO, and India IT Act.",
+  alternates: {
+    canonical: "/features",
+  },
+  openGraph: {
+    title: "Features — How SignCollab Secures Creator & Brand Contracts",
+    description:
+      "Explore the complete platform architecture: contract wizards, bilateral e-signatures, SHA-256 audit trails, and multi-jurisdiction compliance across 25+ countries.",
+    url: `${baseUrl}/features`,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SignCollab Features — Contract Security Architecture",
+    description:
+      "6-step contract wizard, OTP-verified e-signatures, SHA-256 audit trails, and global e-signature compliance for creators, brands, and agencies.",
+  },
+};
 
 export default function FeaturesPage() {
   const company = getCompanyConfig();
 
+  const featuresJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "FAQPage",
+        "@id": `${baseUrl}/features/#faqpage`,
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How does SignCollab create contracts for creators and brands?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SignCollab uses a 6-step guided contract creation wizard that covers deliverable specifications (Reels, Stories, Posts, YouTube, TikTok), commercial usage rights scope, financial milestones and payout routes, turnaround times and deemed approval protocols, bilateral penalty clauses, and OTP email authentication. No legal expertise is required — the platform auto-generates compliant bilateral agreements.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "What e-signature laws does SignCollab comply with?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SignCollab's electronic signatures are compliant with the US ESIGN Act (15 U.S.C. § 7001) and UETA, UK Electronic Communications Act 2000 and UK eIDAS, EU eIDAS Regulation (EU) No 910/2014, UAE Federal Decree-Law No. 46 of 2021, Pakistan Electronic Transactions Ordinance (ETO) 2002, India Information Technology Act 2000, and electronic transaction laws in 25+ countries worldwide.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "How does SignCollab verify that contracts have not been tampered with?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SignCollab uses SHA-256 cryptographic hashing to generate a unique fingerprint for every signed contract PDF. Any modification — even changing a single comma — produces a completely different hash. Users can verify document integrity by uploading the PDF or entering the tracking token on the /verify page. The verification runs locally in the browser before contacting SignCollab servers.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "What does the SignCollab audit trail certificate include?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The audit certificate PDF includes the SHA-256 hash of the master contract, verified email addresses of both signatories, phone numbers and job titles, detailed timestamps for every action, IP addresses for all signing events, and client user-agent strings identifying operating systems and devices used during signing.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Can I use SignCollab for international creator contracts across different countries?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. SignCollab supports contracts in 25+ jurisdictions including the United States, United Kingdom, Canada, Australia, European Union, UAE, Saudi Arabia, India, Pakistan, Singapore, Brazil, Mexico, Colombia, Indonesia, Malaysia, Philippines, Thailand, Vietnam, China, Nigeria, South Africa, Kenya, Egypt, Qatar, Oman, Ghana, and Jamaica. Each jurisdiction automatically maps the correct governing law, dispute resolution clauses, and e-signature compliance framework.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "What is the deemed approval protocol in SignCollab contracts?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The 48-hour deemed approval protocol means that if a brand does not respond to a creator's submitted content draft within 48 hours, the content is automatically deemed approved. This prevents brands from holding creator content hostage by indefinitely ignoring submissions.",
+            },
+          },
+        ],
+      },
+      {
+        "@type": "HowTo",
+        "@id": `${baseUrl}/features/#howto`,
+        "name": "How to Create a Bilateral Creator-Brand Contract on SignCollab",
+        "description":
+          "A step-by-step guide to creating a legally compliant bilateral agreement between creators, brands, and agencies using SignCollab's 6-step contract wizard.",
+        "totalTime": "PT10M",
+        "tool": [
+          {
+            "@type": "HowToTool",
+            "name": "Web browser (Chrome, Safari, Firefox, or Edge)",
+          },
+          {
+            "@type": "HowToTool",
+            "name": "Valid email address for OTP verification",
+          },
+        ],
+        "step": [
+          {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Specify Deliverables",
+            "text": "Define the content format (Reel, Story, Post, YouTube Video, TikTok Short), post quantities, and retention deadlines (permanent vs. 30-day post duration).",
+          },
+          {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Set Commercial Usage Rights",
+            "text": "Determine where the brand can re-use creator IP (organic reposts, paid digital ads, print/out-of-home, broadcast media) and for how long (30 days, 6 months, perpetuity).",
+          },
+          {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Configure Financial Milestones",
+            "text": "Input total contract valuation, advance deposit requirements, due dates, and select the payout route method (bank IBAN, mobile wallet, or wire transfer).",
+          },
+          {
+            "@type": "HowToStep",
+            "position": 4,
+            "name": "Set Turnaround and Approval Terms",
+            "text": "Configure delivery turnaround times, maximum revision rounds, product shipment details, and the 48-hour deemed approval protocol.",
+          },
+          {
+            "@type": "HowToStep",
+            "position": 5,
+            "name": "Define Bilateral Penalties",
+            "text": "Set late payment fees (% per day), late content delivery penalties, pre-delivery cancellation fees, and the 7-day non-delivery cutoff rule.",
+          },
+          {
+            "@type": "HowToStep",
+            "position": 6,
+            "name": "Verify Identity via OTP",
+            "text": "Complete 6-digit email OTP verification to authenticate your identity before the contract draft is published for counterparty signing.",
+          },
+        ],
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${baseUrl}/features`,
+        "name": "SignCollab Features — Contract Security Architecture",
+        "description":
+          "Complete breakdown of SignCollab's bilateral contract execution flow, digital e-signatures, tamper-proof audit logs, and cryptographic verification layer for creators, brands, and agencies.",
+        "url": `${baseUrl}/features`,
+        "isPartOf": { "@id": `${baseUrl}/#website` },
+        "about": { "@id": `${baseUrl}/#webapp` },
+        "breadcrumb": { "@id": `${baseUrl}/#breadcrumb` },
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
+      {/* Features Page JSON-LD */}
+      <Script
+        id="features-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(featuresJsonLd) }}
+      />
       {/* Background ambient glow shapes */}
       <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
       <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
