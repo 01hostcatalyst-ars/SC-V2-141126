@@ -52,6 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "article",
       publishedTime: article.createdTime,
       modifiedTime: article.modifiedTime,
+      authors: ["Muhammad Arsalan"],
     },
     twitter: {
       card: "summary_large_image",
@@ -70,33 +71,120 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
     notFound();
   }
 
+  const articleUrl = `${baseUrl}/knowledge/${article.slug}`;
+  const defaultImage = `${baseUrl}/favicon.ico`;
+
+  // Construct complete @graph multi-schema
+  const graphEntities: any[] = [
+    // 1. Organization Schema
+    {
+      "@type": "Organization",
+      "@id": `${baseUrl}/#organization`,
+      "name": company.name,
+      "url": baseUrl,
+      "logo": {
+        "@type": "ImageObject",
+        "url": defaultImage,
+      },
+      "email": company.supportEmail,
+    },
+    // 2. WebSite Schema
+    {
+      "@type": "WebSite",
+      "@id": `${baseUrl}/#website`,
+      "name": company.name,
+      "url": baseUrl,
+      "publisher": { "@id": `${baseUrl}/#organization` },
+    },
+    // 3. Person (Author E-E-A-T Schema)
+    {
+      "@type": "Person",
+      "@id": `${baseUrl}/#author-arsalan`,
+      "name": "Muhammad Arsalan",
+      "jobTitle": "Founder & Creator Agreement Architect",
+      "worksFor": { "@id": `${baseUrl}/#organization` },
+      "url": baseUrl,
+    },
+    // 4. WebPage Schema
+    {
+      "@type": "WebPage",
+      "@id": articleUrl,
+      "url": articleUrl,
+      "name": article.title,
+      "description": article.excerpt,
+      "isPartOf": { "@id": `${baseUrl}/#website` },
+      "breadcrumb": { "@id": `${articleUrl}/#breadcrumb` },
+      "inLanguage": "en-US",
+    },
+    // 5. BreadcrumbList Schema
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${articleUrl}/#breadcrumb`,
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": baseUrl,
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Knowledge Base",
+          "item": `${baseUrl}/knowledge`,
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": article.title,
+          "item": articleUrl,
+        },
+      ],
+    },
+    // 6. Article Schema
+    {
+      "@type": "Article",
+      "@id": `${articleUrl}/#article`,
+      "headline": article.title,
+      "description": article.excerpt,
+      "mainEntityOfPage": { "@id": articleUrl },
+      "datePublished": article.createdTime,
+      "dateModified": article.modifiedTime,
+      "author": { "@id": `${baseUrl}/#author-arsalan` },
+      "publisher": { "@id": `${baseUrl}/#organization` },
+      "image": {
+        "@type": "ImageObject",
+        "url": defaultImage,
+      },
+      "inLanguage": "en-US",
+    },
+  ];
+
+  // 7. FAQPage Schema (Only added IF genuine FAQs exist in the Google Doc)
+  if (article.faqs && article.faqs.length > 0) {
+    graphEntities.push({
+      "@type": "FAQPage",
+      "@id": `${articleUrl}/#faqpage`,
+      "mainEntity": article.faqs.map((faq) => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer,
+        },
+      })),
+    });
+  }
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": article.title,
-    "description": article.excerpt,
-    "datePublished": article.createdTime,
-    "dateModified": article.modifiedTime,
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `${baseUrl}/knowledge/${article.slug}`,
-    },
-    "author": {
-      "@type": "Organization",
-      "name": company.name,
-      "url": baseUrl,
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": company.name,
-      "url": baseUrl,
-    },
+    "@graph": graphEntities,
   };
 
   return (
     <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
       <Script
-        id="article-jsonld"
+        id="article-graph-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
@@ -125,14 +213,23 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
 
       {/* Main Body */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-6 md:p-12 z-10 space-y-8">
+        {/* Article Breadcrumb UI */}
+        <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold">
+          <Link href="/" className="hover:text-black">Home</Link>
+          <span>/</span>
+          <Link href="/knowledge" className="hover:text-black">Knowledge Base</Link>
+          <span>/</span>
+          <span className="text-black font-bold truncate max-w-[200px] sm:max-w-xs">{article.title}</span>
+        </div>
+
         {/* Article Header */}
         <div className="space-y-4 border-b border-gray-200/80 pb-6">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-200">
               Knowledge Article
             </span>
             <span className="text-xs text-gray-500 font-semibold">
-              Updated {new Date(article.modifiedTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              By <strong>Muhammad Arsalan</strong> • Updated {new Date(article.modifiedTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
             </span>
           </div>
 

@@ -10,8 +10,14 @@ export interface ArticleSummary {
   mimeType: string;
 }
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
 export interface ArticleDetail extends ArticleSummary {
   contentHtml: string;
+  faqs?: FaqItem[];
 }
 
 function getAuth() {
@@ -92,6 +98,89 @@ export async function getKnowledgeArticles(): Promise<ArticleSummary[]> {
 }
 
 /**
+ * Extract FAQ questions & answers for FAQPage Schema
+ * Only returns FAQs if a Genuine FAQ section (H2/H3 containing FAQ / Questions) exists.
+ */
+
+function extractFaqs(html: string): FaqItem[] {
+  if (!html) return [];
+  const faqs: FaqItem[] = [];
+
+  // Check if document has FAQ section
+  const hasFaqSection = /<h[23][^>]*>.*?(faq|frequently asked questions).*?<\/h[23]>/i.test(html);
+  if (!hasFaqSection) {
+    return [];
+  }
+
+  // Regex pattern to extract FAQ question and answer pairs
+  // Looks for H2/H3 question headers ending with '?' or followed by paragraph text
+  const regex = /<h[234][^>]*>(.*?\?.*?)<\/h[234]>\s*<p>(.*?)<\/p>/gi;
+  let match;
+
+  while ((match = regex.exec(html)) !== null) {
+    const question = match[1].replace(/<[^>]+>/g, "").trim();
+    const answer = match[2].replace(/<[^>]+>/g, "").trim();
+    if (question && answer) {
+      faqs.push({ question, answer });
+    }
+  }
+
+  return faqs;
+}
+
+/**
+ * Parse lightweight Google Doc shortcodes:
+ * [key-takeaways]...[/key-takeaways]
+ * [summary]...[/summary]
+ * [cta]Text[/cta]
+ */
+function parseShortcodes(html: string): string {
+  if (!html) return "";
+
+  let parsed = html;
+
+  // [key-takeaways]...[/key-takeaways]
+  parsed = parsed.replace(
+    /\[key-takeaways\]([\s\S]*?)\[\/key-takeaways\]/gi,
+    (_match, p1) => `
+      <div className="gdoc-key-takeaways my-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-2 mb-3 text-xs font-black uppercase tracking-wider text-blue-900">
+          <span>💡</span> Key Takeaways (TL;DR)
+        </div>
+        <div className="text-xs md:text-sm text-gray-700 leading-relaxed font-medium">
+          ${p1}
+        </div>
+      </div>
+    `
+  );
+
+  // [summary]...[/summary]
+  parsed = parsed.replace(
+    /\[summary\]([\s\S]*?)\[\/summary\]/gi,
+    (_match, p1) => `
+      <div className="gdoc-summary-box my-6 p-5 bg-gray-50 border border-gray-200 rounded-2xl text-xs md:text-sm text-gray-700 leading-relaxed">
+        ${p1}
+      </div>
+    `
+  );
+
+  // [cta]...[/cta] or [cta href="/instant"]...[/cta]
+  parsed = parsed.replace(
+    /\[cta(?:\s+href="([^"]+)")?\]([\s\S]*?)\[\/cta\]/gi,
+    (_match, href, p1) => `
+      <div className="my-8 text-center sm:text-left">
+        <a href="${href || "/instant"}" className="inline-flex items-center gap-2 px-6 py-3.5 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg transition-all hover:scale-[1.01]">
+          <span>${p1 || "Create Agreement Instant"}</span>
+          <span>➔</span>
+        </a>
+      </div>
+    `
+  );
+
+  return parsed;
+}
+
+/**
  * Clean exported Google Doc HTML to match website typography & remove inline clutter
  */
 function cleanGoogleDocHtml(html: string): string {
@@ -113,11 +202,14 @@ function cleanGoogleDocHtml(html: string): string {
     .replace(/<\/span>/gi, "")
     .replace(/<p>\s*<\/p>/gi, ""); // strip empty paragraphs
 
+  // Apply shortcodes replacement
+  cleaned = parseShortcodes(cleaned);
+
   return cleaned.trim();
 }
 
 /**
- * Fetch a single Google Doc by slug or ID and return clean HTML content
+ * Fetch a single Google Doc by slug or ID and return clean HTML content + FAQs
  */
 export async function getArticleBySlug(slug: string): Promise<ArticleDetail | null> {
   const articles = await getKnowledgeArticles();
@@ -139,10 +231,12 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
 
     const rawHtml = typeof exportRes.data === "string" ? exportRes.data : String(exportRes.data);
     const contentHtml = cleanGoogleDocHtml(rawHtml);
+    const faqs = extractFaqs(rawHtml);
 
     return {
       ...article,
       contentHtml,
+      faqs: faqs.length > 0 ? faqs : undefined,
     };
   } catch (error) {
     console.error(`Error exporting Google Doc ID ${article.id}:`, error);
