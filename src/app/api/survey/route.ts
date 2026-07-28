@@ -90,6 +90,58 @@ export async function POST(req: Request) {
   }
 }
 
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { id, email, country } = body;
+
+    if (!email || !email.includes("@")) {
+      return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+    }
+
+    const cleanEmail = String(email).trim();
+
+    if (id && typeof id === "string" && !id.startsWith("local-")) {
+      try {
+        await prisma.surveyResponse.update({
+          where: { id },
+          data: { email: cleanEmail },
+        });
+      } catch (e) {
+        console.warn("Could not update survey response by ID:", e);
+      }
+    } else {
+      // Find the most recent response without an email for this country
+      try {
+        const latest = await prisma.surveyResponse.findFirst({
+          where: { country: String(country || "United States"), email: null },
+          orderBy: { createdAt: "desc" },
+        });
+
+        if (latest) {
+          await prisma.surveyResponse.update({
+            where: { id: latest.id },
+            data: { email: cleanEmail },
+          });
+        }
+      } catch (e) {
+        console.warn("Could not attach email to latest survey response:", e);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Email saved successfully",
+    });
+  } catch (error) {
+    console.error("Survey email update error:", error);
+    return NextResponse.json(
+      { error: "Failed to save email" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);

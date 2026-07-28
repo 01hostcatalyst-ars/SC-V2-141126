@@ -275,9 +275,11 @@ export default function SurveyPage() {
 
   // Completion screen state
   const [email, setEmail] = useState<string>("");
+  const [surveyId, setSurveyId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [submissionCount, setSubmissionCount] = useState<number>(213);
+  const [isSavingEmail, setIsSavingEmail] = useState<boolean>(false);
   const [emailSubmitted, setEmailSubmitted] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
@@ -380,6 +382,9 @@ export default function SurveyPage() {
         }),
       });
       const data = await res.json();
+      if (data.id) {
+        setSurveyId(data.id);
+      }
       if (data.countForCountry) {
         nextCount = Math.max(submissionCount + 1, data.countForCountry);
       }
@@ -405,7 +410,23 @@ export default function SurveyPage() {
 
   const handleSaveEmail = async () => {
     if (!email || !email.includes("@")) return;
-    setEmailSubmitted(true);
+    setIsSavingEmail(true);
+    try {
+      await fetch("/api/survey", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: surveyId,
+          email: email.trim(),
+          country: selectedCountry.name,
+        }),
+      });
+    } catch (e) {
+      console.warn("Error saving notification email:", e);
+    } finally {
+      setIsSavingEmail(false);
+      setEmailSubmitted(true);
+    }
   };
 
   const handleCopyLink = () => {
@@ -920,9 +941,10 @@ export default function SurveyPage() {
                     />
                     <button
                       onClick={handleSaveEmail}
-                      className="px-4 py-2 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-lg transition"
+                      disabled={isSavingEmail}
+                      className="px-4 py-2 bg-slate-900 hover:bg-black disabled:opacity-50 text-white font-bold text-xs rounded-lg transition"
                     >
-                      Notify Me
+                      {isSavingEmail ? "Saving..." : "Notify Me"}
                     </button>
                   </div>
                 )}
