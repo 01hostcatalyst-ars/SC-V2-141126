@@ -230,13 +230,13 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
             href="/instant"
             className="hidden sm:inline-flex text-xs font-extrabold px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm items-center gap-1.5 whitespace-nowrap"
           >
-            <span>⚡ Instant Contract</span>
+            <span>Instant Contract</span>
           </Link>
           <Link
             href="/knowledge"
             className="text-xs font-bold px-3.5 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors"
           >
-            ← Academy Home
+            Back to Academy
           </Link>
         </div>
       </header>
@@ -264,7 +264,7 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
           <span className="text-black font-bold truncate max-w-[200px] sm:max-w-xs">{article.title}</span>
         </nav>
 
-        {/* Enhanced Article Header */}
+        {/* Enhanced Article Header without emojis */}
         <div className="academy-article-header space-y-4">
           <div className="academy-article-meta">
             {cluster && (
@@ -276,7 +276,6 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
                   borderColor: pillar?.borderColor || "#bfdbfe",
                 }}
               >
-                <span>{cluster.icon}</span>
                 <span>{cluster.id}: {cluster.name}</span>
               </span>
             )}
@@ -288,7 +287,6 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
                 borderColor: `${blueprint.color}33`,
               }}
             >
-              <span>{blueprint.icon}</span>
               <span>Blueprint {blueprint.type}: {blueprint.label}</span>
             </span>
             <span
@@ -299,11 +297,10 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
                 borderColor: `${audience.color}33`,
               }}
             >
-              <span>{audience.icon}</span>
               <span>{audience.label}</span>
             </span>
             <span className="academy-reading-time">
-              <span>⏱️</span> {article.readingTime || 5} min read
+              {article.readingTime || 5} min read
             </span>
           </div>
 
@@ -329,8 +326,8 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
           {article.toc && article.toc.length > 0 && (
             <aside className="lg:col-span-1 order-2 lg:order-1">
               <div className="sticky top-24 p-5 bg-white border border-gray-200 rounded-2xl shadow-sm space-y-3 text-xs">
-                <div className="font-extrabold uppercase tracking-wider text-black text-[11px] flex items-center gap-1.5 pb-2 border-b border-gray-100">
-                  <span>📑</span> Table of Contents
+                <div className="font-extrabold uppercase tracking-wider text-black text-[11px] pb-2 border-b border-gray-100">
+                  Table of Contents
                 </div>
                 <ul className="space-y-2 font-medium text-gray-600">
                   {article.toc.map((item) => (
@@ -374,7 +371,7 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
             href="/instant"
             className="academy-article-cta-btn"
           >
-            <span>Create Instant Agreement ➔</span>
+            <span>Create Instant Agreement &rarr;</span>
           </Link>
         </div>
       </main>

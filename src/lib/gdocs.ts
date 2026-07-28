@@ -318,7 +318,6 @@ function parseShortcodes(html: string): string {
     (_match, p1) => `
       <div class="academy-block academy-summary">
         <div class="academy-block-header">
-          <span class="academy-block-icon">📌</span>
           <span>Executive Summary</span>
         </div>
         <div class="academy-block-body">${p1}</div>
@@ -332,7 +331,6 @@ function parseShortcodes(html: string): string {
     (_match, p1) => `
       <div class="academy-block academy-takeaways">
         <div class="academy-block-header">
-          <span class="academy-block-icon">💡</span>
           <span>Key Takeaways</span>
         </div>
         <div class="academy-block-body">${p1}</div>
@@ -346,7 +344,6 @@ function parseShortcodes(html: string): string {
     (_match, p1) => `
       <div class="academy-block academy-example">
         <div class="academy-block-header">
-          <span class="academy-block-icon">💼</span>
           <span>Real-World Scenario</span>
         </div>
         <div class="academy-block-body">${p1}</div>
@@ -360,7 +357,6 @@ function parseShortcodes(html: string): string {
     (_match, p1) => `
       <div class="academy-block academy-warning">
         <div class="academy-block-header">
-          <span class="academy-block-icon">⚠️</span>
           <span>Risk Warning</span>
         </div>
         <div class="academy-block-body">${p1}</div>
@@ -374,7 +370,6 @@ function parseShortcodes(html: string): string {
     (_match, p1) => `
       <div class="academy-block academy-legal-note">
         <div class="academy-block-header">
-          <span class="academy-block-icon">⚖️</span>
           <span>Legal Disclaimer</span>
         </div>
         <div class="academy-block-body">${p1}</div>
@@ -388,7 +383,6 @@ function parseShortcodes(html: string): string {
     (_match, p1) => `
       <div class="academy-block academy-country-note">
         <div class="academy-block-header">
-          <span class="academy-block-icon">🌐</span>
           <span>Regional Notice</span>
         </div>
         <div class="academy-block-body">${p1}</div>
@@ -402,7 +396,6 @@ function parseShortcodes(html: string): string {
     (_match, p1) => `
       <div class="academy-block academy-definition">
         <div class="academy-block-header">
-          <span class="academy-block-icon">📘</span>
           <span>Definition</span>
         </div>
         <div class="academy-block-body">${p1}</div>
@@ -416,7 +409,6 @@ function parseShortcodes(html: string): string {
     (_match, p1) => `
       <div class="academy-block academy-faq">
         <div class="academy-block-header">
-          <span class="academy-block-icon">❓</span>
           <span>Frequently Asked Questions</span>
         </div>
         <div class="academy-block-body academy-faq-body">${p1}</div>
@@ -430,7 +422,6 @@ function parseShortcodes(html: string): string {
     (_match, p1) => `
       <div class="academy-block academy-related-reading">
         <div class="academy-block-header">
-          <span class="academy-block-icon">📚</span>
           <span>Related Reading</span>
         </div>
         <div class="academy-block-body">${p1}</div>

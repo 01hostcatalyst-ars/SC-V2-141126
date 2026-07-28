@@ -4,14 +4,11 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   PILLARS,
-  CLUSTERS,
   LEARNING_JOURNEYS,
-  INTERACTIVE_TOOLS,
   BLUEPRINT_TYPES,
   AUDIENCE_TAGS,
   getClusterById,
   getPillarForCluster,
-  Cluster,
   Pillar,
 } from "@/lib/academy-data";
 import { ArticleSummary } from "@/lib/gdocs";
@@ -28,6 +25,31 @@ export default function AcademyClientPage({
   const [selectedPillar, setSelectedPillar] = useState<string>("all");
   const [selectedJourney, setSelectedJourney] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Filter Pillars to ONLY those that have at least 1 published article currently available
+  const availablePillars = useMemo(() => {
+    const pillarIdsWithArticles = new Set<string>();
+    initialArticles.forEach((article) => {
+      const pillar = getPillarForCluster(article.clusterId);
+      if (pillar) {
+        pillarIdsWithArticles.add(pillar.id);
+      }
+    });
+    return PILLARS.filter((p) => pillarIdsWithArticles.has(p.id));
+  }, [initialArticles]);
+
+  // Filter Learning Journeys to ONLY those that have matching articles currently available
+  const availableJourneys = useMemo(() => {
+    return LEARNING_JOURNEYS.filter((journey) => {
+      return journey.steps.some((step) =>
+        initialArticles.some(
+          (article) =>
+            article.title.toLowerCase().includes(step.toLowerCase()) ||
+            article.excerpt.toLowerCase().includes(step.toLowerCase())
+        )
+      );
+    });
+  }, [initialArticles]);
 
   // Filter articles based on pillar, journey, search query
   const filteredArticles = useMemo(() => {
@@ -99,13 +121,13 @@ export default function AcademyClientPage({
             href="/instant"
             className="hidden sm:inline-flex text-xs font-extrabold px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm items-center gap-1.5 whitespace-nowrap"
           >
-            <span>⚡ Instant Contract</span>
+            <span>Instant Contract</span>
           </Link>
           <Link
             href="/"
             className="text-xs font-bold px-3.5 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors"
           >
-            ← Home
+            Back to Home
           </Link>
         </div>
       </header>
@@ -114,27 +136,26 @@ export default function AcademyClientPage({
       <section className="academy-hero z-10">
         <div className="max-w-4xl mx-auto space-y-4">
           <div className="academy-hero-badge">
-            <span>🏛️ Domain Authority &amp; Legal Resource Engine</span>
+            <span>Domain Authority &amp; Legal Resource Engine</span>
           </div>
           <h1>SignCollab Academy</h1>
           <p>
             The definitive operational, business, and legal authority for brand-creator partnerships.
-            Explore guided learning pathways, master contract taxonomy, and interactive tools.
+            Explore active guides, legal frameworks, and agreement compliance resources.
           </p>
 
-          {/* Quick Metrics Bar */}
+          {/* Metrics Bar without emojis */}
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4 text-xs font-bold text-indigo-200">
-            <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur px-3 py-1.5 rounded-full border border-white/10">
-              <span>📚 18 Taxonomy Clusters</span>
+            <div className="flex items-center bg-white/10 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/10">
+              <span>{initialArticles.length} Active Articles</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur px-3 py-1.5 rounded-full border border-white/10">
-              <span>🛤️ 6 Guided Pathways</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur px-3 py-1.5 rounded-full border border-white/10">
-              <span>🧮 9 Interactive Tools</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur px-3 py-1.5 rounded-full border border-white/10">
-              <span>📊 20,000+ Contract Dataset</span>
+            {availableJourneys.length > 0 && (
+              <div className="flex items-center bg-white/10 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/10">
+                <span>{availableJourneys.length} Active Pathways</span>
+              </div>
+            )}
+            <div className="flex items-center bg-white/10 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/10">
+              <span>20,000+ Contract Dataset</span>
             </div>
           </div>
         </div>
@@ -143,70 +164,66 @@ export default function AcademyClientPage({
       {/* Main Content Area */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 py-8 sm:py-12 z-10 space-y-12">
         {/* ============================================================ */}
-        {/* SECTION: USER LEARNING JOURNEYS (6 Guided Pathways)          */}
+        {/* SECTION: USER LEARNING JOURNEYS (Only Active Pathways)      */}
         {/* ============================================================ */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="academy-section-title">Guided Learning Pathways</div>
-              <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
-                Select Your Learning Journey
-              </h2>
-            </div>
-            {selectedJourney && (
-              <button
-                onClick={() => setSelectedJourney(null)}
-                className="text-xs font-bold text-blue-600 hover:text-blue-800 underline"
-              >
-                Clear Pathway Filter ✕
-              </button>
-            )}
-          </div>
-
-          <div className="academy-journeys">
-            {LEARNING_JOURNEYS.map((journey) => {
-              const isSelected = selectedJourney === journey.id;
-              return (
-                <div
-                  key={journey.id}
-                  onClick={() =>
-                    setSelectedJourney(isSelected ? null : journey.id)
-                  }
-                  className={`academy-journey-card ${
-                    isSelected ? "ring-2 ring-blue-600 border-transparent bg-blue-50/50" : ""
-                  }`}
+        {availableJourneys.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="academy-section-title">Guided Learning Pathways</div>
+                <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
+                  Select Your Learning Journey
+                </h2>
+              </div>
+              {selectedJourney && (
+                <button
+                  onClick={() => setSelectedJourney(null)}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-800 underline"
                 >
-                  <div className="academy-journey-card-header">
-                    <div
-                      className="academy-journey-icon"
-                      style={{ backgroundColor: journey.bgColor, color: journey.color }}
-                    >
-                      {journey.icon}
+                  Clear Pathway Filter
+                </button>
+              )}
+            </div>
+
+            <div className="academy-journeys">
+              {availableJourneys.map((journey) => {
+                const isSelected = selectedJourney === journey.id;
+                return (
+                  <div
+                    key={journey.id}
+                    onClick={() =>
+                      setSelectedJourney(isSelected ? null : journey.id)
+                    }
+                    className={`academy-journey-card ${
+                      isSelected ? "ring-2 ring-blue-600 border-transparent bg-blue-50/50" : ""
+                    }`}
+                  >
+                    <div className="academy-journey-card-header">
+                      <div>
+                        <h3>{journey.name}</h3>
+                        <span className="text-[10px] font-bold text-gray-400">
+                          {journey.steps.length} Step Sequence
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <h3>{journey.name}</h3>
-                      <span className="text-[10px] font-bold text-gray-400">
-                        {journey.steps.length} Step Sequence
-                      </span>
+                    <div className="academy-journey-steps">
+                      {journey.steps.slice(0, 4).map((step, idx) => (
+                        <span key={idx} className="academy-journey-step">
+                          {idx + 1}. {step}
+                        </span>
+                      ))}
+                      {journey.steps.length > 4 && (
+                        <span className="academy-journey-step font-bold text-blue-600">
+                          +{journey.steps.length - 4} more
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div className="academy-journey-steps">
-                    {journey.steps.slice(0, 4).map((step, idx) => (
-                      <span key={idx} className="academy-journey-step">
-                        {idx + 1}. {step}
-                      </span>
-                    ))}
-                    {journey.steps.length > 4 && (
-                      <span className="academy-journey-step font-bold text-blue-600">
-                        +{journey.steps.length - 4} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* ============================================================ */}
         {/* SECTION: SEARCH & TAXONOMY PILLAR FILTER TABS                */}
@@ -216,50 +233,50 @@ export default function AcademyClientPage({
             <div>
               <div className="academy-section-title">Master Content Architecture</div>
               <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
-                Knowledge Graph &amp; Node Directory
+                Knowledge Directory
               </h2>
             </div>
 
             {/* Real-Time Search Bar */}
             <div className="academy-search">
-              <span className="academy-search-icon">🔍</span>
               <input
                 type="text"
-                placeholder="Search by topic, keyword, legal clause, or cluster..."
+                placeholder="Search by topic, keyword, or legal clause..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="academy-search-input"
+                className="academy-search-input !pl-4"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-black"
                 >
-                  ✕
+                  Clear
                 </button>
               )}
             </div>
           </div>
 
-          {/* 5 Strategic Pillars Tab Bar */}
-          <div className="academy-pillar-tabs">
-            <button
-              onClick={() => setSelectedPillar("all")}
-              className={`academy-pillar-tab ${selectedPillar === "all" ? "active" : ""}`}
-            >
-              <span>🌐</span> All Pillars ({initialArticles.length})
-            </button>
-            {PILLARS.map((pillar) => (
+          {/* Active Strategic Pillars Tab Bar (Only show pillars with articles) */}
+          {availablePillars.length > 1 && (
+            <div className="academy-pillar-tabs">
               <button
-                key={pillar.id}
-                onClick={() => setSelectedPillar(pillar.id)}
-                className={`academy-pillar-tab ${selectedPillar === pillar.id ? "active" : ""}`}
+                onClick={() => setSelectedPillar("all")}
+                className={`academy-pillar-tab ${selectedPillar === "all" ? "active" : ""}`}
               >
-                <span>{pillar.icon}</span>
-                <span>{pillar.shortName}</span>
+                All Available Categories ({initialArticles.length})
               </button>
-            ))}
-          </div>
+              {availablePillars.map((pillar) => (
+                <button
+                  key={pillar.id}
+                  onClick={() => setSelectedPillar(pillar.id)}
+                  className={`academy-pillar-tab ${selectedPillar === pillar.id ? "active" : ""}`}
+                >
+                  {pillar.shortName}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Active Filter Indicators */}
           {(selectedPillar !== "all" || selectedJourney || searchQuery) && (
@@ -267,7 +284,7 @@ export default function AcademyClientPage({
               <span>Active Filters:</span>
               {selectedPillar !== "all" && (
                 <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-200 flex items-center gap-1 font-bold">
-                  Pillar: {PILLARS.find((p) => p.id === selectedPillar)?.shortName}
+                  Category: {PILLARS.find((p) => p.id === selectedPillar)?.shortName}
                   <button onClick={() => setSelectedPillar("all")} className="ml-1 text-blue-700 hover:text-black">✕</button>
                 </span>
               )}
@@ -289,12 +306,9 @@ export default function AcademyClientPage({
           {/* Articles Grid */}
           {filteredArticles.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-sm">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto text-amber-600 text-2xl">
-                🔎
-              </div>
               <h3 className="text-lg font-bold text-black">No articles found matching filters</h3>
               <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto">
-                Try clearing your search query or selecting a different strategic pillar.
+                Try clearing your search query or selecting a different category.
               </p>
               <button
                 onClick={() => {
@@ -322,7 +336,7 @@ export default function AcademyClientPage({
                     className="academy-article-card group"
                   >
                     <div className="space-y-3">
-                      {/* Taxonomy Badges */}
+                      {/* Taxonomy Badges without emojis */}
                       <div className="academy-article-badges">
                         {cluster && (
                           <span
@@ -333,7 +347,6 @@ export default function AcademyClientPage({
                               borderColor: pillar?.borderColor || "#bfdbfe",
                             }}
                           >
-                            <span>{cluster.icon}</span>
                             <span>{cluster.id}: {cluster.name}</span>
                           </span>
                         )}
@@ -345,7 +358,6 @@ export default function AcademyClientPage({
                             borderColor: `${blueprint.color}33`,
                           }}
                         >
-                          <span>{blueprint.icon}</span>
                           <span>Blueprint {blueprint.type}</span>
                         </span>
                         <span
@@ -356,7 +368,6 @@ export default function AcademyClientPage({
                             borderColor: `${audience.color}33`,
                           }}
                         >
-                          <span>{audience.icon}</span>
                           <span>{audience.label}</span>
                         </span>
                       </div>
@@ -369,10 +380,10 @@ export default function AcademyClientPage({
 
                     <div className="academy-article-footer">
                       <span className="academy-reading-time">
-                        <span>⏱️</span> {article.readingTime || 5} min read
+                        {article.readingTime || 5} min read
                       </span>
                       <span className="academy-read-more">
-                        Read Guide ➔
+                        Read Guide &rarr;
                       </span>
                     </div>
                   </Link>
@@ -383,51 +394,12 @@ export default function AcademyClientPage({
         </section>
 
         {/* ============================================================ */}
-        {/* SECTION 6: INTERACTIVE TOOLS & CALCULATOR SUITE             */}
-        {/* ============================================================ */}
-        <section className="space-y-6 pt-6 border-t border-gray-200/80">
-          <div className="space-y-1">
-            <div className="academy-section-title">Interactive Decision Utilities</div>
-            <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
-              Calculators &amp; Risk Engines
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-600">
-              Convert high-intent passive research into actionable pricing models and contract parameters.
-            </p>
-          </div>
-
-          <div className="academy-tools-grid">
-            {INTERACTIVE_TOOLS.map((tool) => (
-              <div key={tool.id} className="academy-tool-card group">
-                <div
-                  className="academy-tool-icon"
-                  style={{ backgroundColor: tool.bgColor, color: tool.color }}
-                >
-                  {tool.icon}
-                </div>
-                <h3>{tool.name}</h3>
-                <p>{tool.description}</p>
-                <div className="mt-4 pt-3 border-t border-gray-100">
-                  <Link
-                    href="/instant"
-                    className="text-xs font-extrabold text-blue-600 hover:text-blue-800 flex items-center gap-1 group-hover:translate-x-1 transition-transform"
-                  >
-                    <span>Launch Tool &amp; Generate Agreement</span>
-                    <span>➔</span>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* SECTION 7: FLAGSHIP ANNUAL RESEARCH REPORT                   */}
+        {/* SECTION: FLAGSHIP ANNUAL RESEARCH REPORT                     */}
         {/* ============================================================ */}
         <section className="academy-flagship-banner z-10">
           <div className="max-w-3xl space-y-3">
             <div className="academy-flagship-badge">
-              <span>📊 Flagship Industry Benchmark Report</span>
+              <span>Flagship Industry Benchmark Report</span>
             </div>
             <h3>State of Creator Agreements 2027</h3>
             <p>
@@ -458,8 +430,7 @@ export default function AcademyClientPage({
                 href="/knowledge/state-of-creator-agreements-2027"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black font-extrabold text-xs rounded-xl shadow-md hover:bg-gray-100 transition-colors"
               >
-                <span>Read Benchmark Report</span>
-                <span>➔</span>
+                <span>Read Benchmark Report &rarr;</span>
               </Link>
             </div>
           </div>
