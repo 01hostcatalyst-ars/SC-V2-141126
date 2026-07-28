@@ -46,7 +46,7 @@ const ORDERED_COUNTRIES: CountryOption[] = [
   { name: "Indonesia", code: "ID", currency: "USD" },
   { name: "Ireland", code: "IE", currency: "EUR" },
   { name: "Italy", code: "IT", currency: "EUR" },
-  { name: "Japan", code: "JP", currency: "USD text" },
+  { name: "Japan", code: "JP", currency: "USD" },
   { name: "Kenya", code: "KE", currency: "USD" },
   { name: "Malaysia", code: "MY", currency: "USD" },
   { name: "Mexico", code: "MX", currency: "USD" },
@@ -178,7 +178,6 @@ const PLATFORMS = [
   "Other",
 ];
 
-// Deliverable items generator per platform
 const PLATFORM_DELIVERABLES: Record<string, string[]> = {
   Instagram: ["Instagram Reels", "Feed Posts", "Stories", "Carousel Posts"],
   YouTube: ["Long-form Videos", "YouTube Shorts", "Community Posts"],
@@ -255,6 +254,8 @@ const SCOPE_OPTIONS = [
   },
 ];
 
+const TARGET_GOAL = 500;
+
 export default function SurveyPage() {
   const [step, setStep] = useState<number>(1);
   const [selectedCountry, setSelectedCountry] = useState<CountryOption>(
@@ -276,7 +277,7 @@ export default function SurveyPage() {
   const [email, setEmail] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-  const [submissionCount, setSubmissionCount] = useState<number>(142);
+  const [submissionCount, setSubmissionCount] = useState<number>(213);
   const [emailSubmitted, setEmailSubmitted] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
@@ -289,7 +290,7 @@ export default function SurveyPage() {
   };
 
   useEffect(() => {
-    // Fetch live counter when country changes
+    // Fetch dynamic country count on country change
     fetch(`/api/survey?country=${encodeURIComponent(selectedCountry.name)}`)
       .then((res) => res.json())
       .then((data) => {
@@ -390,12 +391,11 @@ export default function SurveyPage() {
   const currentBrackets =
     CURRENCY_BRACKETS[selectedCountry.currency] || CURRENCY_BRACKETS["USD"];
 
-  // Total steps: 1(Country), 2(Earnings), 3(Platforms), 4(Deliverable Quantities), 5(Niche & Followers), 6(Deal Scope)
   const TOTAL_STEPS = 6;
 
   return (
     <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-x-hidden text-slate-900 font-sans">
-      {/* Background ambient lighting matching SignCollab home */}
+      {/* Background ambient lighting */}
       <div className="absolute top-[10%] left-[-5%] w-[70%] h-[40%] rounded-full ambient-glow-purple pointer-events-none z-0" />
       <div className="absolute bottom-[10%] right-[-5%] w-[70%] h-[40%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
@@ -403,14 +403,14 @@ export default function SurveyPage() {
       <header className="w-full border-b border-gray-200/80 bg-white/80 backdrop-blur-md px-6 py-4 z-20 sticky top-0">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xs font-black uppercase tracking-widest bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-1 rounded">
+            <span className="text-[11px] font-semibold uppercase tracking-widest bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded">
               SIGNCOLLAB
             </span>
             <span className="text-sm font-bold text-slate-700 group-hover:text-black transition">
               Pricing Index
             </span>
           </Link>
-          <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+          <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
             100% Anonymous Survey
           </span>
         </div>
@@ -418,9 +418,9 @@ export default function SurveyPage() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 md:py-12 z-10 flex flex-col">
-        {/* Mandatory Top Header Banner */}
+        {/* Top Header Banner */}
         <div className="text-center mb-8 space-y-3">
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-sm">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
             SignCollab Creator Pricing Index 2026
           </span>
@@ -435,7 +435,7 @@ export default function SurveyPage() {
         {/* Progress Bar */}
         {!isSubmitted && (
           <div className="mb-8 max-w-md mx-auto w-full">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">
               <span>Progress</span>
               <span>Step {step} of {TOTAL_STEPS}</span>
             </div>
@@ -455,7 +455,7 @@ export default function SurveyPage() {
           {!isSubmitted && step > 1 && (
             <button
               onClick={() => changeStep(step - 1)}
-              className="text-xs font-bold text-slate-500 hover:text-slate-900 mb-6 flex items-center gap-1 transition"
+              className="text-xs font-semibold text-slate-500 hover:text-slate-900 mb-6 flex items-center gap-1 transition"
             >
               &larr; Back to Step {step - 1}
             </button>
@@ -474,7 +474,7 @@ export default function SurveyPage() {
               </div>
 
               <div className="space-y-4">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
                   Select Country / Region
                 </label>
                 <select
@@ -491,14 +491,14 @@ export default function SurveyPage() {
 
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
                   <div>
-                    <span className="font-bold text-emerald-950">
+                    <span className="font-semibold text-emerald-950">
                       Currency Anchor:
                     </span>{" "}
-                    <span className="font-extrabold text-emerald-800">
+                    <span className="font-bold text-emerald-800">
                       {selectedCountry.currency}
                     </span>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded bg-emerald-200 text-emerald-950 font-bold">
+                  <span className="px-2 py-0.5 rounded bg-emerald-200 text-emerald-950 font-semibold">
                     {selectedCountry.code}
                   </span>
                 </div>
@@ -517,7 +517,7 @@ export default function SurveyPage() {
           {step === 2 && !isSubmitted && (
             <div className="space-y-6">
               <div>
-                <div className="inline-block text-xs font-bold text-emerald-900 bg-emerald-100 px-3 py-1 rounded border border-emerald-300 mb-2">
+                <div className="inline-block text-xs font-semibold text-emerald-900 bg-emerald-100 px-3 py-1 rounded border border-emerald-300 mb-2">
                   Currency: {selectedCountry.currency} ({selectedCountry.name})
                 </div>
                 <h2 className="text-xl md:text-2xl font-black text-slate-900">
@@ -574,7 +574,7 @@ export default function SurveyPage() {
                     >
                       <span>{plat}</span>
                       <span
-                        className={`w-4 h-4 rounded border flex items-center justify-center text-xs font-bold ${
+                        className={`w-4 h-4 rounded border flex items-center justify-center text-xs font-semibold ${
                           isSelected
                             ? "bg-emerald-600 text-white border-emerald-600"
                             : "border-slate-300 bg-white"
@@ -616,7 +616,7 @@ export default function SurveyPage() {
                       key={plat}
                       className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3"
                     >
-                      <div className="text-xs font-extrabold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2">
+                      <div className="text-xs font-semibold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2">
                         {plat} Deliverables
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -627,24 +627,24 @@ export default function SurveyPage() {
                               key={item}
                               className="p-3 bg-white rounded-lg border border-slate-200 flex items-center justify-between"
                             >
-                              <span className="text-xs font-bold text-slate-800">
+                              <span className="text-xs font-semibold text-slate-800">
                                 {item}
                               </span>
                               <div className="flex items-center gap-2">
                                 <button
                                   type="button"
                                   onClick={() => updateDeliverableQuantity(item, -1)}
-                                  className="w-7 h-7 rounded bg-slate-200 hover:bg-slate-300 font-black text-slate-800 flex items-center justify-center text-sm"
+                                  className="w-7 h-7 rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-800 flex items-center justify-center text-sm"
                                 >
                                   -
                                 </button>
-                                <span className="w-6 text-center text-xs font-black text-slate-900">
+                                <span className="w-6 text-center text-xs font-semibold text-slate-900">
                                   {count}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => updateDeliverableQuantity(item, 1)}
-                                  className="w-7 h-7 rounded bg-emerald-600 hover:bg-emerald-700 font-black text-white flex items-center justify-center text-sm"
+                                  className="w-7 h-7 rounded bg-emerald-600 hover:bg-emerald-700 font-bold text-white flex items-center justify-center text-sm"
                                 >
                                   +
                                 </button>
@@ -682,7 +682,7 @@ export default function SurveyPage() {
               <div className="space-y-4">
                 {/* Primary Content Niche */}
                 <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                     Primary Content Niche
                   </label>
                   <select
@@ -700,7 +700,7 @@ export default function SurveyPage() {
 
                 {/* Your Followers */}
                 <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                     Your Followers
                   </label>
                   <select
@@ -718,7 +718,7 @@ export default function SurveyPage() {
 
                 {/* Engagement Rate */}
                 <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                     Average Engagement Rate
                   </label>
                   <select
@@ -771,7 +771,7 @@ export default function SurveyPage() {
                     >
                       <div className="mt-0.5">
                         <span
-                          className={`w-5 h-5 rounded border flex items-center justify-center text-xs font-bold ${
+                          className={`w-5 h-5 rounded border flex items-center justify-center text-xs font-semibold ${
                             isChecked
                               ? "bg-emerald-600 text-white border-emerald-600"
                               : "border-slate-400 bg-white"
@@ -805,7 +805,7 @@ export default function SurveyPage() {
             </div>
           )}
 
-          {/* ================= STEP 7: Completion Screen (Option 2) ================= */}
+          {/* ================= STEP 7: Completion Screen ================= */}
           {isSubmitted && (
             <div className="space-y-8 text-center py-4">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-100 border-2 border-emerald-500 text-emerald-700 text-2xl font-bold mx-auto shadow-sm">
@@ -824,41 +824,41 @@ export default function SurveyPage() {
               {/* Dynamic Progress Box per Country */}
               <div className="bg-slate-50 border-2 border-slate-200 rounded-2xl p-6 text-left max-w-md mx-auto space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     {selectedCountry.name} Benchmark Goal
                   </span>
-                  <span className="text-xs font-black text-emerald-950 bg-emerald-200 px-3 py-1 rounded-full border border-emerald-400">
-                    {submissionCount} / 400 Submissions
+                  <span className="text-xs font-semibold text-emerald-950 bg-emerald-200 px-3 py-1 rounded-full border border-emerald-400">
+                    {submissionCount} / {TARGET_GOAL} Submissions
                   </span>
                 </div>
 
-                {/* Progress Bar (Target 400) */}
+                {/* Progress Bar (Target 500) */}
                 <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden border border-slate-300">
                   <div
                     className="bg-emerald-600 h-full transition-all duration-700 shadow-sm"
                     style={{
                       width: `${Math.min(
                         100,
-                        (submissionCount / 400) * 100
+                        (submissionCount / TARGET_GOAL) * 100
                       )}%`,
                     }}
                   />
                 </div>
 
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  We need 200 verified deals from <strong className="text-slate-900">{selectedCountry.name}</strong> to officially unlock the regional Benchmark Report so pricing standards remain 100% accurate.
+                  We need {TARGET_GOAL} verified deals from <strong className="text-slate-900">{selectedCountry.name}</strong> to officially unlock the regional Benchmark Report so pricing standards remain 100% accurate.
                 </p>
               </div>
 
               {/* SignCollab Free Product Marketing Card */}
               <div className="bg-gradient-to-br from-emerald-950 to-slate-900 text-white rounded-2xl p-6 max-w-md mx-auto text-left space-y-4 shadow-xl border border-emerald-800">
-                <div className="inline-block text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded border border-emerald-500/30">
+                <div className="inline-block text-[10px] font-semibold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded border border-emerald-500/30">
                   SignCollab Instant Contracts
                 </div>
                 <h3 className="text-lg font-black leading-tight text-white">
                   Protect Your Next Brand Collaboration for Free
                 </h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed font-normal">
                   Stop executing commercial social media partnerships over transient DMs or chat logs. Generate bilaterally signed digital contracts on SignCollab with tamper-proof audit trails for free.
                 </p>
                 <Link
@@ -874,11 +874,11 @@ export default function SurveyPage() {
                 <div className="text-sm font-bold text-slate-900">
                   Want to receive the full report when it unlocks?
                 </div>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-slate-600 font-normal">
                   Enter your email below to get VIP early access to the SignCollab 2026 Creator Pricing Index for {selectedCountry.name}. (Optional)
                 </p>
                 {emailSubmitted ? (
-                  <div className="p-3 bg-emerald-100 border border-emerald-300 rounded-lg text-xs font-bold text-emerald-900 text-center">
+                  <div className="p-3 bg-emerald-100 border border-emerald-300 rounded-lg text-xs font-semibold text-emerald-900 text-center">
                     You are on the VIP notification list for {selectedCountry.name}!
                   </div>
                 ) : (

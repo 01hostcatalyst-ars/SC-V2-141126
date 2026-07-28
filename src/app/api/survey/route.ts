@@ -1,29 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Realistic starting baseline counters for cold-start per country
-const BASELINE_COUNTERS: Record<string, number> = {
-  "United States": 142,
-  "United Kingdom": 64,
-  "European Union": 76,
-  "UAE / GCC": 52,
-  "Pakistan": 48,
-  "India": 87,
-  "Canada": 41,
-  "Australia": 38,
-  "Saudi Arabia": 34,
-  "Qatar": 22,
-  "Kuwait": 19,
-  "Bahrain": 15,
-  "Oman": 14,
-  "Other": 29,
-};
-
-const TARGET_GOAL = 400;
-
-function getBaseCount(country: string): number {
-  return BASELINE_COUNTERS[country] || BASELINE_COUNTERS["Other"] || 30;
-}
+const BASE_START_COUNT = 213;
+const TARGET_GOAL = 500;
 
 export async function POST(req: Request) {
   try {
@@ -76,8 +55,7 @@ export async function POST(req: Request) {
       console.warn("Database storage warning (proceeding optimistically):", dbError);
     }
 
-    // Dynamic country counter logic
-    const baseCount = getBaseCount(countryName);
+    // Dynamic country counter logic: Starts at 213 + total submissions for country
     let dbCount = 0;
     try {
       dbCount = await prisma.surveyResponse.count({
@@ -87,7 +65,7 @@ export async function POST(req: Request) {
       // Fallback
     }
 
-    const countForCountry = baseCount + dbCount;
+    const countForCountry = BASE_START_COUNT + dbCount;
 
     return NextResponse.json({
       success: true,
@@ -109,7 +87,6 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const country = searchParams.get("country") || "United States";
-    const baseCount = getBaseCount(country);
 
     let dbCount = 0;
     try {
@@ -122,14 +99,14 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       country,
-      countForCountry: baseCount + dbCount,
+      countForCountry: BASE_START_COUNT + dbCount,
       target: TARGET_GOAL,
     });
   } catch (error) {
     console.error("Survey stats API error:", error);
     return NextResponse.json({
       country: "United States",
-      countForCountry: 142,
+      countForCountry: BASE_START_COUNT,
       target: TARGET_GOAL,
     });
   }
