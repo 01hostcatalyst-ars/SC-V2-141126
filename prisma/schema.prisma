@@ -452,3 +452,21 @@ model ContractParty {
   @@index([userId])
 }
 
+model SurveyResponse {
+  id              String   @id @default(uuid())
+  country         String
+  currency        String
+  earningsBracket String   @map("earnings_bracket")
+  platform        String
+  niche           String
+  followerTier    String   @map("follower_tier")
+  engagementRate  String   @map("engagement_rate")
+  dealScope       String[] @map("deal_scope")
+  email           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("survey_responses")
+  @@index([country])
+}
+
+
