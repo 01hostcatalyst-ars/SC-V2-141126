@@ -290,15 +290,35 @@ export default function SurveyPage() {
   };
 
   useEffect(() => {
-    // Fetch dynamic country count on country change
+    // Fetch dynamic country count on country change with local fallback
     fetch(`/api/survey?country=${encodeURIComponent(selectedCountry.name)}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.countForCountry) {
-          setSubmissionCount(data.countForCountry);
+        let count = data.countForCountry || 213;
+        if (typeof window !== "undefined") {
+          try {
+            const localVal = localStorage.getItem(
+              `sc_survey_count_${selectedCountry.name}`
+            );
+            if (localVal) {
+              count = Math.max(count, parseInt(localVal, 10));
+            }
+          } catch {}
         }
+        setSubmissionCount(count);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (typeof window !== "undefined") {
+          try {
+            const localVal = localStorage.getItem(
+              `sc_survey_count_${selectedCountry.name}`
+            );
+            if (localVal) {
+              setSubmissionCount(parseInt(localVal, 10));
+            }
+          } catch {}
+        }
+      });
   }, [selectedCountry]);
 
   const togglePlatform = (plat: string) => {
@@ -340,6 +360,7 @@ export default function SurveyPage() {
 
   const handleSubmitSurvey = async () => {
     setIsSubmitting(true);
+    let nextCount = (submissionCount || 213) + 1;
     try {
       const res = await fetch("/api/survey", {
         method: "POST",
@@ -360,13 +381,20 @@ export default function SurveyPage() {
       });
       const data = await res.json();
       if (data.countForCountry) {
-        setSubmissionCount(data.countForCountry);
-      } else {
-        setSubmissionCount((prev) => prev + 1);
+        nextCount = Math.max(submissionCount + 1, data.countForCountry);
       }
     } catch {
-      setSubmissionCount((prev) => prev + 1);
+      nextCount = (submissionCount || 213) + 1;
     } finally {
+      setSubmissionCount(nextCount);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(
+            `sc_survey_count_${selectedCountry.name}`,
+            String(nextCount)
+          );
+        } catch {}
+      }
       setIsSubmitting(false);
       setIsSubmitted(true);
       if (typeof window !== "undefined") {

@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 const BASE_START_COUNT = 213;
 const TARGET_GOAL = 500;
 
+// Global in-memory counter map for instant increment resilience across server requests
+const memoryCounts: Record<string, number> = {};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -33,6 +36,9 @@ export async function POST(req: Request) {
       );
     }
 
+    // Always increment in-memory counter for instant guaranteed bump
+    memoryCounts[countryName] = (memoryCounts[countryName] || 0) + 1;
+
     let createdId = "local-" + Date.now();
     try {
       const response = await prisma.surveyResponse.create({
@@ -52,10 +58,10 @@ export async function POST(req: Request) {
       });
       createdId = response.id;
     } catch (dbError) {
-      console.warn("Database storage warning (proceeding optimistically):", dbError);
+      console.warn("Database storage warning (proceeding with memory increment):", dbError);
     }
 
-    // Dynamic country counter logic: Starts at 213 + total submissions for country
+    // Count in DB
     let dbCount = 0;
     try {
       dbCount = await prisma.surveyResponse.count({
@@ -65,7 +71,8 @@ export async function POST(req: Request) {
       // Fallback
     }
 
-    const countForCountry = BASE_START_COUNT + dbCount;
+    const effectiveAdditions = Math.max(dbCount, memoryCounts[countryName] || 1);
+    const countForCountry = BASE_START_COUNT + effectiveAdditions;
 
     return NextResponse.json({
       success: true,
@@ -97,9 +104,11 @@ export async function GET(req: Request) {
       // Fallback
     }
 
+    const effectiveAdditions = Math.max(dbCount, memoryCounts[country] || 0);
+
     return NextResponse.json({
       country,
-      countForCountry: BASE_START_COUNT + dbCount,
+      countForCountry: BASE_START_COUNT + effectiveAdditions,
       target: TARGET_GOAL,
     });
   } catch (error) {
