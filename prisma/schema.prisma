@@ -457,7 +457,9 @@ model SurveyResponse {
   country         String
   currency        String
   earningsBracket String   @map("earnings_bracket")
-  platform        String
+  platform        String?  // backwards compatible fallback
+  platforms       String[] @map("platforms")
+  deliverables    Json?    @map("deliverables")
   niche           String
   followerTier    String   @map("follower_tier")
   engagementRate  String   @map("engagement_rate")

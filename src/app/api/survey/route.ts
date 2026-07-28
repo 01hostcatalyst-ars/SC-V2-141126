@@ -1,6 +1,30 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Realistic starting baseline counters for cold-start per country
+const BASELINE_COUNTERS: Record<string, number> = {
+  "United States": 142,
+  "United Kingdom": 64,
+  "European Union": 76,
+  "UAE / GCC": 52,
+  "Pakistan": 48,
+  "India": 87,
+  "Canada": 41,
+  "Australia": 38,
+  "Saudi Arabia": 34,
+  "Qatar": 22,
+  "Kuwait": 19,
+  "Bahrain": 15,
+  "Oman": 14,
+  "Other": 29,
+};
+
+const TARGET_GOAL = 400;
+
+function getBaseCount(country: string): number {
+  return BASELINE_COUNTERS[country] || BASELINE_COUNTERS["Other"] || 30;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -9,6 +33,8 @@ export async function POST(req: Request) {
       currency,
       earningsBracket,
       platform,
+      platforms,
+      deliverables,
       niche,
       followerTier,
       engagementRate,
@@ -16,7 +42,12 @@ export async function POST(req: Request) {
       email,
     } = body;
 
-    if (!country || !earningsBracket || !platform) {
+    const countryName = String(country || "United States");
+    const platformList = Array.isArray(platforms) && platforms.length > 0
+      ? platforms
+      : platform ? [String(platform)] : ["Instagram"];
+
+    if (!countryName || !earningsBracket) {
       return NextResponse.json(
         { error: "Missing required survey fields" },
         { status: 400 }
@@ -27,10 +58,12 @@ export async function POST(req: Request) {
     try {
       const response = await prisma.surveyResponse.create({
         data: {
-          country: String(country),
+          country: countryName,
           currency: String(currency || "USD"),
           earningsBracket: String(earningsBracket),
-          platform: String(platform),
+          platform: platformList[0] || "Instagram",
+          platforms: platformList,
+          deliverables: deliverables ? (deliverables as object) : undefined,
           niche: String(niche || "Other"),
           followerTier: String(followerTier || "Under 5K"),
           engagementRate: String(engagementRate || "Don't Know"),
@@ -40,25 +73,28 @@ export async function POST(req: Request) {
       });
       createdId = response.id;
     } catch (dbError) {
-      console.warn("Database storage warning (proceeding with optimistic success):", dbError);
+      console.warn("Database storage warning (proceeding optimistically):", dbError);
     }
 
-    let countForCountry = 48; // Baseline starting counter for cold start
+    // Dynamic country counter logic
+    const baseCount = getBaseCount(countryName);
+    let dbCount = 0;
     try {
-      const dbCount = await prisma.surveyResponse.count({
-        where: { country: String(country) },
+      dbCount = await prisma.surveyResponse.count({
+        where: { country: countryName },
       });
-      countForCountry = Math.max(dbCount, countForCountry);
     } catch {
       // Fallback
     }
 
+    const countForCountry = baseCount + dbCount;
+
     return NextResponse.json({
       success: true,
       id: createdId,
-      country: String(country),
+      country: countryName,
       countForCountry,
-      target: 200,
+      target: TARGET_GOAL,
     });
   } catch (error) {
     console.error("Survey submission API error:", error);
@@ -72,25 +108,29 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const country = searchParams.get("country") || "Pakistan";
+    const country = searchParams.get("country") || "United States";
+    const baseCount = getBaseCount(country);
 
-    let countForCountry = 48;
+    let dbCount = 0;
     try {
-      const dbCount = await prisma.surveyResponse.count({
+      dbCount = await prisma.surveyResponse.count({
         where: { country },
       });
-      countForCountry = Math.max(dbCount, countForCountry);
     } catch {
       // Fallback
     }
 
     return NextResponse.json({
       country,
-      countForCountry,
-      target: 200,
+      countForCountry: baseCount + dbCount,
+      target: TARGET_GOAL,
     });
   } catch (error) {
     console.error("Survey stats API error:", error);
-    return NextResponse.json({ country: "Pakistan", countForCountry: 48, target: 200 });
+    return NextResponse.json({
+      country: "United States",
+      countForCountry: 142,
+      target: TARGET_GOAL,
+    });
   }
 }
