@@ -208,18 +208,6 @@ export const SEED_ARTICLES: ArticleSummary[] = [
     audience: "All",
     readingTime: 7,
   },
-  {
-    id: "seed-8",
-    slug: "state-of-creator-agreements-2027",
-    title: "State of Creator Agreements 2027 (Data & Benchmarks Report)",
-    excerpt: "SignCollab Academy's flagship annual research report analyzing payment timelines, dispute rates, and usage rights trends across 20,000+ agreements.",
-    modifiedTime: new Date().toISOString(),
-    mimeType: "application/vnd.google-apps.document",
-    clusterId: "C1",
-    blueprintType: "A",
-    audience: "All",
-    readingTime: 12,
-  },
 ];
 
 /**

@@ -393,48 +393,7 @@ export default function AcademyClientPage({
           )}
         </section>
 
-        {/* ============================================================ */}
-        {/* SECTION: FLAGSHIP ANNUAL RESEARCH REPORT                     */}
-        {/* ============================================================ */}
-        <section className="academy-flagship-banner z-10">
-          <div className="max-w-3xl space-y-3">
-            <div className="academy-flagship-badge">
-              <span>Flagship Industry Benchmark Report</span>
-            </div>
-            <h3>State of Creator Agreements 2027</h3>
-            <p>
-              Analyzed dataset of 20,000+ anonymized brand-creator contracts. Deep insights on Net-30 payment timelines, requested revision rounds, usage rights trends, and dispute frequencies.
-            </p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-              <div className="bg-white/10 backdrop-blur rounded-xl p-2.5 text-center">
-                <div className="text-lg font-black text-white">20K+</div>
-                <div className="text-[10px] text-indigo-200 font-bold uppercase">Agreements Analyzed</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-2.5 text-center">
-                <div className="text-lg font-black text-emerald-400">4.2 Days</div>
-                <div className="text-[10px] text-indigo-200 font-bold uppercase">Avg. Signing Velocity</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-2.5 text-center">
-                <div className="text-lg font-black text-amber-400">68%</div>
-                <div className="text-[10px] text-indigo-200 font-bold uppercase">Whitelisting Usage</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-2.5 text-center">
-                <div className="text-lg font-black text-indigo-300">99.8%</div>
-                <div className="text-[10px] text-indigo-200 font-bold uppercase">Audit Integrity</div>
-              </div>
-            </div>
-
-            <div className="pt-3">
-              <Link
-                href="/knowledge/state-of-creator-agreements-2027"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black font-extrabold text-xs rounded-xl shadow-md hover:bg-gray-100 transition-colors"
-              >
-                <span>Read Benchmark Report &rarr;</span>
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* Footer */}
