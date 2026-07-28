@@ -254,8 +254,6 @@ const SCOPE_OPTIONS = [
   },
 ];
 
-const TARGET_GOAL = 500;
-
 export default function SurveyPage() {
   const [step, setStep] = useState<number>(1);
   const [selectedCountry, setSelectedCountry] = useState<CountryOption>(
@@ -273,6 +271,10 @@ export default function SurveyPage() {
   const [engagementRate, setEngagementRate] = useState<string>("1%–3%");
   const [dealScope, setDealScope] = useState<string[]>([]);
 
+  // Validation state warnings
+  const [step4Error, setStep4Error] = useState<string | null>(null);
+  const [step6Error, setStep6Error] = useState<string | null>(null);
+
   // Completion screen state
   const [email, setEmail] = useState<string>("");
   const [surveyId, setSurveyId] = useState<string | null>(null);
@@ -282,6 +284,12 @@ export default function SurveyPage() {
   const [isSavingEmail, setIsSavingEmail] = useState<boolean>(false);
   const [emailSubmitted, setEmailSubmitted] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+
+  // Total quantity calculation for Step 4
+  const totalDeliverablesCount = Object.values(deliverablesCount).reduce(
+    (sum, count) => sum + (count || 0),
+    0
+  );
 
   // Smooth scroll to top on step changes & submission
   const changeStep = (newStep: number) => {
@@ -334,6 +342,7 @@ export default function SurveyPage() {
   };
 
   const updateDeliverableQuantity = (item: string, delta: number) => {
+    setStep4Error(null);
     setDeliverablesCount((prev) => {
       const current = prev[item] || 0;
       const next = Math.max(0, current + delta);
@@ -342,6 +351,7 @@ export default function SurveyPage() {
   };
 
   const toggleScope = (id: string) => {
+    setStep6Error(null);
     setDealScope((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
@@ -360,7 +370,21 @@ export default function SurveyPage() {
     changeStep(3);
   };
 
+  const handleStep4Continue = () => {
+    if (totalDeliverablesCount === 0) {
+      setStep4Error("Please add at least 1 content deliverable (quantity > 0) to continue.");
+      return;
+    }
+    setStep4Error(null);
+    changeStep(5);
+  };
+
   const handleSubmitSurvey = async () => {
+    if (dealScope.length === 0) {
+      setStep6Error("Please select at least 1 commercial term to submit.");
+      return;
+    }
+    setStep6Error(null);
     setIsSubmitting(true);
     let nextCount = (submissionCount || 213) + 1;
     try {
@@ -653,9 +677,15 @@ export default function SurveyPage() {
                   What content items were included in the deal?
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
-                  Specify quantities for deliverables across your selected platforms.
+                  Specify quantities for deliverables across your selected platforms (at least 1 item required).
                 </p>
               </div>
+
+              {step4Error && (
+                <div className="p-3 bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold rounded-xl">
+                  {step4Error}
+                </div>
+              )}
 
               <div className="space-y-4">
                 {selectedPlatforms.map((plat) => {
@@ -708,7 +738,7 @@ export default function SurveyPage() {
               </div>
 
               <button
-                onClick={() => changeStep(5)}
+                onClick={handleStep4Continue}
                 className="w-full py-4 px-6 rounded-xl bg-slate-900 hover:bg-black text-white font-extrabold text-sm transition shadow-lg"
               >
                 Continue to Creator Profile &rarr;
@@ -801,9 +831,15 @@ export default function SurveyPage() {
                   Which commercial terms were included in this price?
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
-                  Click anywhere on a line to check/uncheck (Multi-select).
+                  Click anywhere on a line to check/uncheck (At least 1 selection required).
                 </p>
               </div>
+
+              {step6Error && (
+                <div className="p-3 bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold rounded-xl">
+                  {step6Error}
+                </div>
+              )}
 
               <div className="space-y-3">
                 {SCOPE_OPTIONS.map((opt) => {
@@ -845,7 +881,7 @@ export default function SurveyPage() {
               <button
                 onClick={handleSubmitSurvey}
                 disabled={isSubmitting}
-                className="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm transition shadow-lg shadow-emerald-600/30"
+                className="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-sm transition shadow-lg shadow-emerald-600/30"
               >
                 {isSubmitting
                   ? "Submitting Anonymous Deal Data..."
@@ -870,32 +906,19 @@ export default function SurveyPage() {
                 </p>
               </div>
 
-              {/* Dynamic Progress Box per Country */}
-              <div className="bg-slate-50 border-2 border-slate-200 rounded-2xl p-6 text-left max-w-md mx-auto space-y-4 shadow-sm">
+              {/* Counter Display Box */}
+              <div className="bg-slate-50 border-2 border-slate-200 rounded-2xl p-6 text-left max-w-md mx-auto space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    {selectedCountry.name} Benchmark Goal
+                    {selectedCountry.name} Submissions Counter
                   </span>
-                  <span className="text-xs font-semibold text-emerald-950 bg-emerald-200 px-3 py-1 rounded-full border border-emerald-400">
-                    {submissionCount} / {TARGET_GOAL} Submissions
+                  <span className="text-xs font-bold text-emerald-950 bg-emerald-200 px-3.5 py-1 rounded-full border border-emerald-400">
+                    {submissionCount} Submissions
                   </span>
                 </div>
 
-                {/* Progress Bar (Target 500) */}
-                <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden border border-slate-300">
-                  <div
-                    className="bg-emerald-600 h-full transition-all duration-700 shadow-sm"
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        (submissionCount / TARGET_GOAL) * 100
-                      )}%`,
-                    }}
-                  />
-                </div>
-
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  We need {TARGET_GOAL} verified deals from <strong className="text-slate-900">{selectedCountry.name}</strong> to officially unlock the regional Benchmark Report so pricing standards remain 100% accurate.
+                <p className="text-xs text-slate-600 leading-relaxed font-medium pt-2 border-t border-slate-200">
+                  We need 500 verified deals from <strong className="text-slate-900">{selectedCountry.name}</strong> to officially unlock the regional Benchmark Report so pricing standards remain 100% accurate.
                 </p>
               </div>
 
