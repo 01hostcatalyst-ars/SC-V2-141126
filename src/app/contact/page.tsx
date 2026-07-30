@@ -166,7 +166,6 @@ export default function ContactPage() {
       description: "For product inquiries, feature exploration, and account assistance.",
       badge: "General",
       color: "bg-blue-50 border-blue-200 text-blue-900",
-      icon: "💬",
     },
     {
       title: "Technical Support",
@@ -174,7 +173,6 @@ export default function ContactPage() {
       description: "Technical issues, bug reports, OTP delivery, or contract certificate problems.",
       badge: "Support SLA",
       color: "bg-emerald-50 border-emerald-200 text-emerald-900",
-      icon: "🛠️",
     },
     {
       title: "Sales & Partnerships",
@@ -182,7 +180,6 @@ export default function ContactPage() {
       description: "Enterprise plans, agency accounts, multi-brand licensing, and custom features.",
       badge: "Commercial",
       color: "bg-purple-50 border-purple-200 text-purple-900",
-      icon: "🚀",
     },
     {
       title: "Security & Vulnerabilities",
@@ -190,20 +187,19 @@ export default function ContactPage() {
       description: "Responsible disclosure, vulnerability reporting, and security audits.",
       badge: "Security Priority",
       color: "bg-rose-50 border-rose-200 text-rose-900",
-      icon: "🔒",
     },
   ];
 
   const globalFlags = [
-    { country: "United States", flag: "🇺🇸" },
-    { country: "United Kingdom", flag: "🇬🇧" },
-    { country: "Canada", flag: "🇨🇦" },
-    { country: "Australia", flag: "🇦🇺" },
-    { country: "United Arab Emirates", flag: "🇦🇪" },
-    { country: "Saudi Arabia", flag: "🇸🇦" },
-    { country: "Pakistan", flag: "🇵🇰" },
-    { country: "India", flag: "🇮🇳" },
-    { country: "Singapore", flag: "🇸🇬" },
+    { country: "United States", code: "US" },
+    { country: "United Kingdom", code: "UK" },
+    { country: "Canada", code: "CA" },
+    { country: "Australia", code: "AU" },
+    { country: "United Arab Emirates", code: "AE" },
+    { country: "Saudi Arabia", code: "SA" },
+    { country: "Pakistan", code: "PK" },
+    { country: "India", code: "IN" },
+    { country: "Singapore", code: "SG" },
   ];
 
   return (
@@ -261,7 +257,7 @@ export default function ContactPage() {
               Global Support Portal Active
             </span>
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">
-              🌍 UTC Schedule (Mon–Fri)
+              UTC Schedule (Mon–Fri)
             </span>
           </div>
 
@@ -272,7 +268,7 @@ export default function ContactPage() {
             We are here to assist with contract questions, technical support, enterprise partnerships, legal notices, and platform security.
           </p>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-gray-200 shadow-2xs text-xs font-semibold text-gray-800">
-            <span>⏱️ Average Response SLA:</span>
+            <span>Average Response SLA:</span>
             <span className="font-bold text-blue-900">Within 24 Business Hours</span>
           </div>
         </div>
@@ -294,7 +290,6 @@ export default function ContactPage() {
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl">{dept.icon}</span>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${dept.color}`}
                     >
@@ -354,8 +349,8 @@ export default function ContactPage() {
                 SignCollab is a remote-first, cloud-native platform serving creators, brands, and agencies across multiple legal jurisdictions worldwide. Rather than physical mail handling, all support operations, verification checks, and agreement processing are handled securely via our digital infrastructure.
               </p>
               <div className="p-3 bg-gray-50 border border-gray-200 rounded-2xl text-[11px] text-gray-700 font-semibold space-y-1">
-                <p>📍 <strong>Registered Region Context:</strong> Karachi, Pakistan</p>
-                <p>🌐 <strong>Service Area:</strong> Worldwide Digital Platform</p>
+                <p><strong>Registered Region Context:</strong> Karachi, Pakistan</p>
+                <p><strong>Service Area:</strong> Worldwide Digital Platform</p>
               </div>
             </div>
 
@@ -367,7 +362,9 @@ export default function ContactPage() {
                     key={idx}
                     className="p-2 bg-gray-50 border border-gray-200 rounded-xl flex items-center gap-2 hover:bg-white hover:shadow-2xs transition-all"
                   >
-                    <span className="text-lg leading-none">{item.flag}</span>
+                    <span className="px-1.5 py-0.5 bg-gray-200 text-gray-800 font-mono text-[10px] font-bold rounded">
+                      {item.code}
+                    </span>
                     <span className="text-[11px] font-bold text-gray-800 truncate">{item.country}</span>
                   </div>
                 ))}
@@ -383,21 +380,18 @@ export default function ContactPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-1.5">
-              <span className="text-lg">🔒</span>
               <h3 className="text-xs font-bold text-black uppercase tracking-wider">Cryptographic Proof</h3>
               <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
                 Contracts sealed with SHA-256 hashes and tamper-proof PDF verification logs.
               </p>
             </div>
             <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-1.5">
-              <span className="text-lg">⚖️</span>
               <h3 className="text-xs font-bold text-black uppercase tracking-wider">E-Sign Compliance</h3>
               <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
                 Built to align with US ESIGN, UK/EU eIDAS, UAE Decree 46/2021, &amp; PK ETO 2002.
               </p>
             </div>
             <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-1.5">
-              <span className="text-lg">🚀</span>
               <h3 className="text-xs font-bold text-black uppercase tracking-wider">Secure Infrastructure</h3>
               <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
                 Cloud infrastructure backed by AES-256 data protection and strict OTP verification.

@@ -109,7 +109,7 @@ export function ContactForm() {
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
           {status === "error" && (
             <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center gap-2">
-              <span>⚠️</span>
+              <span>Notice:</span>
               <span>{errorMessage}</span>
             </div>
           )}
@@ -223,7 +223,7 @@ export function ContactForm() {
 
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-[11px] text-gray-500 font-medium">
-              🔒 No phone required. Data handled strictly per SignCollab Privacy Notice.
+              No phone required. Data handled strictly per SignCollab Privacy Notice.
             </p>
             <button
               type="submit"
