@@ -45,12 +45,11 @@ export default function Home() {
             Instant 1-Page Contracts Now Available • No Signup Required
           </span>
           <h1 className="text-4xl md:text-5xl font-black text-black leading-tight tracking-tight">
-            Bilateral Contracts.<br />
-            <span className="text-accent-gradient">Secure Evidence.</span>
+            Stop Sealing Deals in DMs.<br />
+            <span className="text-accent-gradient">Start Signing Them.</span>
           </h1>
           <p className="text-sm md:text-base text-gray-700 leading-relaxed max-w-xl">
-            Stop executing commercial social media partnerships via transient chat logs. 
-            <strong> {company.name}</strong> provides a simple, bilateral proof-layer with tamper-proof signature logs and cryptographic audit trails compliant with global electronic signature standards.
+            Brand deals shouldn&apos;t live in a screenshot. <strong>{company.name}</strong> gives creators, brands, and agencies a real, signed agreement — with proof that holds up if something goes wrong.
           </p>
 
           {/* Badges system */}
