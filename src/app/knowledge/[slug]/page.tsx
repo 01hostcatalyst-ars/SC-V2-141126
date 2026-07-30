@@ -96,7 +96,16 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
       "logo": {
         "@type": "ImageObject",
         "url": defaultImage,
+        "width": 512,
+        "height": 512,
       },
+      "sameAs": [
+        "https://www.facebook.com/signcollab",
+        "https://www.instagram.com/signcollab/",
+        "https://www.linkedin.com/company/signcollab/",
+        "https://x.com/signcollab",
+        "https://www.reddit.com/r/SignCollab/"
+      ],
       "email": company.supportEmail,
     },
     // 2. WebSite Schema
@@ -107,13 +116,17 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
       "url": baseUrl,
       "publisher": { "@id": `${baseUrl}/#organization` },
     },
-    // 3. Person (Author E-E-A-T Schema)
+    // 3. Person (Author E-E-A-T Schema — factual title + sameAs authority)
     {
       "@type": "Person",
       "@id": `${baseUrl}/#author-arsalan`,
       "name": "Muhammad Arsalan",
-      "jobTitle": "Founder & Creator Agreement Architect",
+      "jobTitle": "Founder & Product Lead",
       "worksFor": { "@id": `${baseUrl}/#organization` },
+      "sameAs": [
+        "https://www.linkedin.com/company/signcollab/",
+        "https://x.com/signcollab"
+      ],
       "url": baseUrl,
     },
     // 4. WebPage Schema
@@ -158,7 +171,7 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
         },
       ],
     },
-    // 6. Article Schema
+    // 6. Article Schema with Topical Entity Graph (about + mentions + speakable)
     {
       "@type": "Article",
       "@id": `${articleUrl}/#article`,
@@ -169,9 +182,33 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
       "dateModified": article.modifiedTime,
       "author": { "@id": `${baseUrl}/#author-arsalan` },
       "publisher": { "@id": `${baseUrl}/#organization` },
+      "about": [
+        {
+          "@type": "DefinedTerm",
+          "name": cluster?.name || "Creator Contracts",
+          "inDefinedTermSet": `${baseUrl}/knowledge`
+        },
+        {
+          "@type": "Thing",
+          "name": pillar?.name || "Content Creator Legal Protection"
+        }
+      ],
+      "mentions": [
+        { "@type": "Thing", "name": "Creator Commercial Contracts" },
+        { "@type": "Thing", "name": "Usage Rights & IP Licensing" },
+        { "@type": "Thing", "name": "Bilateral E-Signature Compliance" },
+        { "@type": "Thing", "name": "Deemed Approval Protocol" },
+        { "@type": "Thing", "name": "SHA-256 Audit Trail Verification" }
+      ],
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": ["h1", ".academy-article-header", "article p"]
+      },
       "image": {
         "@type": "ImageObject",
         "url": defaultImage,
+        "width": 1200,
+        "height": 630,
       },
       "inLanguage": "en-US",
     },

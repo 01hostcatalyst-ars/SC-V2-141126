@@ -145,6 +145,15 @@ export default function FeaturesPage() {
         ],
       },
       {
+        "@type": "Service",
+        "@id": `${baseUrl}/features/#service`,
+        "name": "Bilateral Contract Generation & E-Signature Proof Service",
+        "serviceType": "Digital Commercial Contract Execution & Audit Logging",
+        "provider": { "@id": `${baseUrl}/#organization` },
+        "areaServed": "Global (25+ countries)",
+        "description": "Automated bilateral contract creation, OTP email identity verification, SHA-256 cryptographic audit certificate generation, and multi-jurisdiction e-signature legal compliance."
+      },
+      {
         "@type": "WebPage",
         "@id": `${baseUrl}/features`,
         "name": "SignCollab Features — Contract Security Architecture",
