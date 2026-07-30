@@ -1,9 +1,13 @@
 import { MetadataRoute } from "next";
+import { getKnowledgeArticles } from "@/lib/gdocs";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const revalidate = 3600; // Revalidate sitemap every hour
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
 
-  return [
+  // Static core routes
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}`,
       lastModified: new Date(),
@@ -17,10 +21,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/knowledge`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/survey`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/features`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/verify`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
     },
     {
       url: `${baseUrl}/terms`,
@@ -29,4 +51,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
   ];
+
+  // Dynamic article routes fetched live from Google Docs
+  let articleRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const articles = await getKnowledgeArticles();
+    articleRoutes = articles.map((article) => ({
+      url: `${baseUrl}/knowledge/${article.slug}`,
+      lastModified: article.modifiedTime ? new Date(article.modifiedTime) : new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch knowledge articles for sitemap:", error);
+  }
+
+  return [...staticRoutes, ...articleRoutes];
 }
