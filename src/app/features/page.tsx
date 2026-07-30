@@ -370,9 +370,9 @@ export default function FeaturesPage() {
             Terms &amp; Privacy
           </Link>
           <span className="text-gray-300">|</span>
-          <a href={`mailto:${company.supportEmail}`} className="text-xs text-gray-500 hover:text-black font-semibold transition-colors">
-            Support: {company.supportEmail}
-          </a>
+          <Link href="/contact" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
+            Contact &amp; Support
+          </Link>
         </div>
       </footer>
     </div>

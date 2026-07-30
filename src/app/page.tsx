@@ -113,9 +113,9 @@ export default function Home() {
             <Link href="/terms" className="hover:text-black transition-colors">
               Terms &amp; Privacy
             </Link>
-            <a href={`mailto:${company.supportEmail}`} className="hover:text-black transition-colors">
-              Support
-            </a>
+            <Link href="/contact" className="hover:text-black transition-colors font-bold text-gray-800">
+              Contact &amp; Support
+            </Link>
           </div>
         </div>
 
