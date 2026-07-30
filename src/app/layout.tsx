@@ -218,24 +218,6 @@ export default function RootLayout({
             "position": 1,
             "name": "Home",
             "item": baseUrl
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Instant Contract",
-            "item": `${baseUrl}/instant`
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "name": "Features",
-            "item": `${baseUrl}/features`
-          },
-          {
-            "@type": "ListItem",
-            "position": 4,
-            "name": "Terms & Privacy",
-            "item": `${baseUrl}/terms`
           }
         ]
       }

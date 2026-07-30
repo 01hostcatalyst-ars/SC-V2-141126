@@ -85,51 +85,40 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
   const articleUrl = `${baseUrl}/knowledge/${article.slug}`;
   const defaultImage = `${baseUrl}/favicon.ico`;
 
+  // Check if article is legal/compliance/e-sign focused for citation enrichment
+  const isLegalArticle =
+    ["C15", "C16", "C17"].includes(article.clusterId) ||
+    /legal|esign|eidas|eto|law|binding|statute/i.test(article.title);
+
+  // Determine dynamic @type subtyping based on Blueprint Type
+  const articleType = article.blueprintType === "A" ? ["Article", "TechArticle"] : "Article";
+
   // Construct complete @graph multi-schema
+  // Note: Organization and WebSite schemas are already provided by the root layout.tsx
+  // We only add page-specific entities here to avoid duplication.
   const graphEntities: any[] = [
-    // 1. Organization Schema
-    {
-      "@type": "Organization",
-      "@id": `${baseUrl}/#organization`,
-      "name": company.name,
-      "url": baseUrl,
-      "logo": {
-        "@type": "ImageObject",
-        "url": defaultImage,
-        "width": 512,
-        "height": 512,
-      },
-      "sameAs": [
-        "https://www.facebook.com/signcollab",
-        "https://www.instagram.com/signcollab/",
-        "https://www.linkedin.com/company/signcollab/",
-        "https://x.com/signcollab",
-        "https://www.reddit.com/r/SignCollab/"
-      ],
-      "email": company.supportEmail,
-    },
-    // 2. WebSite Schema
-    {
-      "@type": "WebSite",
-      "@id": `${baseUrl}/#website`,
-      "name": company.name,
-      "url": baseUrl,
-      "publisher": { "@id": `${baseUrl}/#organization` },
-    },
-    // 3. Person (Author E-E-A-T Schema — factual title + sameAs authority)
+    // 1. Person (Author E-E-A-T Schema — factual title + sameAs authority + domain knowledge)
     {
       "@type": "Person",
       "@id": `${baseUrl}/#author-arsalan`,
       "name": "Muhammad Arsalan",
       "jobTitle": "Founder & Product Lead",
       "worksFor": { "@id": `${baseUrl}/#organization` },
+      "knowsAbout": [
+        "Digital E-Signatures",
+        "Creator & Influencer Commercial Contracts",
+        "US ESIGN Act & UETA Compliance",
+        "EU & UK eIDAS Regulations",
+        "Commercial Usage Rights & IP Licensing",
+        "Cryptographic SHA-256 Audit Trails"
+      ],
       "sameAs": [
-        "https://www.linkedin.com/company/signcollab/",
-        "https://x.com/signcollab"
+        "https://www.linkedin.com/in/muhammadarsalanofficial/",
+        "https://x.com/ArsalanSignCol"
       ],
       "url": baseUrl,
     },
-    // 4. WebPage Schema
+    // 2. WebPage Schema
     {
       "@type": "WebPage",
       "@id": articleUrl,
@@ -140,7 +129,7 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
       "breadcrumb": { "@id": `${articleUrl}/#breadcrumb` },
       "inLanguage": "en-US",
     },
-    // 5. BreadcrumbList Schema
+    // 3. BreadcrumbList Schema
     {
       "@type": "BreadcrumbList",
       "@id": `${articleUrl}/#breadcrumb`,
@@ -160,20 +149,14 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
         {
           "@type": "ListItem",
           "position": 3,
-          "name": pillar?.shortName || "Knowledge",
-          "item": `${baseUrl}/knowledge`,
-        },
-        {
-          "@type": "ListItem",
-          "position": 4,
           "name": article.title,
           "item": articleUrl,
         },
       ],
     },
-    // 6. Article Schema with Topical Entity Graph (about + mentions + speakable)
+    // 4. Article Schema with Topical Entity Graph (about + mentions + speakable + citations)
     {
-      "@type": "Article",
+      "@type": articleType,
       "@id": `${articleUrl}/#article`,
       "headline": article.title,
       "description": article.excerpt,
@@ -183,6 +166,7 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
       "author": { "@id": `${baseUrl}/#author-arsalan` },
       "publisher": { "@id": `${baseUrl}/#organization` },
       "about": [
+        { "@id": `${baseUrl}/#webapp` },
         {
           "@type": "DefinedTerm",
           "name": cluster?.name || "Creator Contracts",
@@ -200,6 +184,27 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
         { "@type": "Thing", "name": "Deemed Approval Protocol" },
         { "@type": "Thing", "name": "SHA-256 Audit Trail Verification" }
       ],
+      ...(isLegalArticle
+        ? {
+            "citation": [
+              {
+                "@type": "Legislation",
+                "name": "Electronic Signatures in Global and National Commerce Act (15 U.S.C. § 7001)",
+                "url": "https://www.ftc.gov/legal-library/browse/statutes/electronic-signatures-global-national-commerce-act"
+              },
+              {
+                "@type": "Legislation",
+                "name": "EU eIDAS Regulation (EU) No 910/2014",
+                "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32014R0910"
+              },
+              {
+                "@type": "Legislation",
+                "name": "UK Electronic Communications Act 2000",
+                "url": "https://www.legislation.gov.uk/ukpga/2000/7/contents"
+              }
+            ]
+          }
+        : {}),
       "speakable": {
         "@type": "SpeakableSpecification",
         "cssSelector": ["h1", ".academy-article-header", "article p"]
@@ -207,8 +212,8 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
       "image": {
         "@type": "ImageObject",
         "url": defaultImage,
-        "width": 1200,
-        "height": 630,
+        "width": 512,
+        "height": 512,
       },
       "inLanguage": "en-US",
     },

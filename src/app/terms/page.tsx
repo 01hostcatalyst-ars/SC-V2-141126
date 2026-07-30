@@ -99,6 +99,12 @@ export default function TermsPage() {
 
   return (
     <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
+      {/* Terms Page JSON-LD */}
+      <Script
+        id="terms-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(termsJsonLd) }}
+      />
       {/* Background ambient glow shapes */}
       <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
       <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />

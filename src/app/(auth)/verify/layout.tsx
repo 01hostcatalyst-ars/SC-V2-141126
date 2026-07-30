@@ -47,13 +47,13 @@ export default function VerifyLayout({
         "breadcrumb": { "@id": `${baseUrl}/verify/#breadcrumb` },
         "inLanguage": "en-US",
         "potentialAction": {
-          "@type": "CheckAction",
+          "@type": "SearchAction",
           "name": "Verify Document SHA-256 Integrity",
           "target": {
             "@type": "EntryPoint",
-            "urlTemplate": `${baseUrl}/verify?token={search_term_string}`
+            "urlTemplate": `${baseUrl}/verify?token={tracking_token}`
           },
-          "query-input": "required name=search_term_string"
+          "query-input": "required name=tracking_token"
         }
       },
       {
