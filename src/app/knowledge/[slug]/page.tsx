@@ -189,18 +189,38 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
             "citation": [
               {
                 "@type": "Legislation",
-                "name": "Electronic Signatures in Global and National Commerce Act (15 U.S.C. § 7001)",
+                "name": "US Electronic Signatures in Global and National Commerce Act (15 U.S.C. § 7001)",
                 "url": "https://www.ftc.gov/legal-library/browse/statutes/electronic-signatures-global-national-commerce-act"
               },
               {
                 "@type": "Legislation",
-                "name": "EU eIDAS Regulation (EU) No 910/2014",
+                "name": "EU eIDAS Regulation (EU) No 910/2014 & eIDAS 2.0 (EU 2024/1183)",
                 "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32014R0910"
               },
               {
                 "@type": "Legislation",
-                "name": "UK Electronic Communications Act 2000",
+                "name": "UK Electronic Communications Act 2000 & UK eIDAS",
                 "url": "https://www.legislation.gov.uk/ukpga/2000/7/contents"
+              },
+              {
+                "@type": "Legislation",
+                "name": "UAE Federal Decree-Law No. 46 of 2021 on Electronic Transactions & Trust Services",
+                "url": "https://elaws.gov.ae/"
+              },
+              {
+                "@type": "Legislation",
+                "name": "Saudi Arabia Electronic Transactions Law (Royal Decree No. M/18)",
+                "url": "https://mcit.gov.sa/"
+              },
+              {
+                "@type": "Legislation",
+                "name": "India Information Technology Act 2000 & Bharatiya Sakshya Adhiniyam 2023 Section 63",
+                "url": "https://www.meity.gov.in/content/information-technology-act-2000"
+              },
+              {
+                "@type": "Legislation",
+                "name": "Pakistan Electronic Transactions Ordinance (ETO) 2002",
+                "url": "https://pakistanlawsite.com/"
               }
             ]
           }
