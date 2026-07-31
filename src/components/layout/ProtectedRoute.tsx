@@ -53,12 +53,9 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const checkAuth = async () => {
       try {
-        console.log("=== ProtectedRoute checkAuth start ===");
         const { data: { session } } = await supabase.auth.getSession();
-        console.log("Client session found:", session ? `Yes (User ID: ${session.user.id})` : "No session");
         
         if (!session) {
-          console.warn("No session on client, redirecting to /");
           if (active) {
             setUser(null);
             setLoading(false);
@@ -68,27 +65,21 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
         }
 
         // Fetch custom user profile from Database via API
-        console.log("Fetching /api/profile...");
         const res = await fetch("/api/profile");
-        console.log("API profile fetch status:", res.status, res.statusText);
         
         if (res.ok) {
           const data = await res.json();
-          console.log("API profile fetch success, profile data:", data.profile);
           if (active) {
             setUser(data.profile);
           }
         } else {
           // If profile fetch fails, session might be invalid or sync issue
-          const errData = await res.json().catch(() => ({}));
-          console.error("API profile fetch failed, error response:", errData);
           if (active) {
             setUser(null);
             router.push("/");
           }
         }
       } catch (err) {
-        console.error("Auth check failed with exception:", err);
         if (active) {
           setUser(null);
           router.push("/");
