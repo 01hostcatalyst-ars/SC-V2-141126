@@ -726,6 +726,17 @@ export default function ContractDetailPage({ params }: PageProps) {
               </div>
             </div>
 
+            {contract.contentOwnership && (
+              <div className="space-y-2">
+                <span className="text-slate-400 font-bold block uppercase tracking-wider">Content Ownership &amp; License Terms</span>
+                <p className="text-slate-900 font-medium leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs">{contract.contentOwnership}</p>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+
       {/* Audit Log / Verification Visual Signatures Blocks */}
       {(contract.signatures?.length > 0 || contract.status === "PENDING_INITIATOR") && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-xs space-y-6">
