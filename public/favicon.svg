@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="none" stroke="url(#accentGrad)" stroke-width="12" stroke-opacity="0.4"/>
+  <!-- Contract sheet -->
+  <path d="M140 120 C140 106.745 150.745 96 164 96 L296 96 L372 172 L372 392 C372 405.255 361.255 416 348 416 L164 416 C150.745 416 140 405.255 140 392 Z" fill="#ffffff" fill-opacity="0.06" stroke="#ffffff" stroke-width="12" stroke-opacity="0.2"/>
+  <!-- Fold corner -->
+  <path d="M296 96 L296 172 L372 172" fill="none" stroke="#ffffff" stroke-width="12" stroke-opacity="0.2"/>
+  <!-- Signature stroke -->
+  <path d="M180 320 Q 220 250, 250 310 T 310 270 T 340 300" fill="none" stroke="url(#accentGrad)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Verified check badge -->
+  <circle cx="340" cy="340" r="44" fill="url(#shieldGrad)"/>
+  <path d="M322 340 L334 352 L358 328" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
