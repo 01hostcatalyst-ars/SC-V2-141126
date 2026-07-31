@@ -446,297 +446,299 @@ export default function ContractDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Main Grid specs layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        
-        {/* Left column: Summary specs */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
-            <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider">Campaign &amp; Authority Specs</h4>
-            
-            <div className="space-y-4 text-xs">
+      {/* Card Stack Layout (Card after Card) */}
+      <div className="space-y-6">
+
+        {/* Card 1: Campaign & Parties Overview */}
+        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+          <h4 className="text-xs font-bold text-slate-400 border-b border-slate-100 pb-3 uppercase tracking-wider">Campaign &amp; Parties Overview</h4>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-xs">
+            <div>
+              <span className="text-slate-500 font-medium block mb-1">Contract Type / Direction</span>
+              <span className="font-bold text-slate-900 text-sm block uppercase">{contract.contractType.replace(/_/g, " ")}</span>
+            </div>
+
+            {contract.initiatorDesignation && (
               <div>
-                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Contract Type</span>
-                <span className="font-extrabold text-slate-900 text-sm">{contract.contractType.replace(/_/g, " ")}</span>
+                <span className="text-slate-500 font-medium block mb-1">Party A Designation</span>
+                <span className="font-bold text-slate-900 text-sm block">{contract.initiatorDesignation}</span>
               </div>
-              
-              {contract.initiatorDesignation && (
-                <>
-                  <hr className="border-slate-100" />
-                  <div>
-                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Party A Designation</span>
-                    <span className="text-slate-900 font-extrabold text-sm">{contract.initiatorDesignation}</span>
-                  </div>
-                </>
-              )}
+            )}
 
-              {(contract.initiatorNtn || contract.respondentNtn) && (
-                <>
-                  <hr className="border-slate-100" />
-                  <div>
-                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Tax / Registration NTN</span>
-                    {contract.initiatorNtn && <div className="text-slate-900 font-semibold">Party A NTN: {contract.initiatorNtn}</div>}
-                    {contract.respondentNtn && <div className="text-slate-900 font-semibold">Party B NTN: {contract.respondentNtn}</div>}
-                  </div>
-                </>
-              )}
-
-              {contract.brandName && (
-                <>
-                  <hr className="border-slate-100" />
-                  <div>
-                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Client Brand</span>
-                    <span className="text-slate-900 font-extrabold text-sm block">
-                      {contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}
-                    </span>
-                    {contract.campaignName && (
-                      <span className="text-xs text-slate-500 block mt-1 font-semibold">Campaign: {contract.campaignName}</span>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {contract.creatorName && (
-                <>
-                  <hr className="border-slate-100" />
-                  <div>
-                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Creator</span>
-                    <span className="text-slate-900 font-extrabold text-sm block">
-                      {contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}
-                    </span>
-                  </div>
-                </>
-              )}
-
-              <hr className="border-slate-100" />
+            {contract.brandName && (
               <div>
-                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Platforms Allowed</span>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {contract.platformsAllowed?.map((p: string) => (
-                    <span key={p} className="px-2.5 py-1 rounded-lg bg-black text-white text-xs font-bold">
-                      {p}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <hr className="border-slate-100" />
-              <div>
-                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Usage Rights</span>
-                <span className="text-slate-900 font-extrabold text-sm block">{contract.usageRightsDuration}</span>
-                <span className="text-xs text-slate-600 block font-medium mt-1 leading-relaxed">{formatUsageLicenseText(contract.usageType)}</span>
-              </div>
-
-              <hr className="border-slate-100" />
-              <div>
-                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Delivery &amp; Revision Protocol</span>
-                <span className="text-slate-900 font-extrabold text-sm block">{contract.deliveryTimeframeDays} Days (Round 1 Draft)</span>
-                <span className="text-xs text-slate-600 block font-medium mt-1 leading-relaxed">
-                  Starts post product/advance receipt. Revisions: {contract.revisionRounds || 1} Rounds ({contract.revisionTurnaroundDays || 5} days/round).
+                <span className="text-slate-500 font-medium block mb-1">Client Brand</span>
+                <span className="font-bold text-slate-900 text-sm block">
+                  {contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}
                 </span>
-                {contract.brandApprovalRequired && (
-                  <span className="text-xs text-blue-700 block font-bold mt-1">48-Hr Deemed Approval Active</span>
+                {contract.campaignName && (
+                  <span className="text-xs text-slate-500 block mt-0.5">Campaign: {contract.campaignName}</span>
                 )}
               </div>
+            )}
 
-              <hr className="border-slate-100" />
+            {contract.creatorName && (
               <div>
-                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Exclusivity Clause</span>
-                <span className="text-slate-900 font-extrabold text-sm block">
-                  {contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "Not Required"}
+                <span className="text-slate-500 font-medium block mb-1">Creator</span>
+                <span className="font-bold text-slate-900 text-sm block">
+                  {contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}
                 </span>
-                {contract.exclusivityClause && contract.exclusivityCompetitors && (
-                  <span className="text-xs text-slate-600 font-semibold block mt-1">
-                    Prohibited: {contract.exclusivityCompetitors}
+              </div>
+            )}
+
+            {(contract.initiatorNtn || contract.respondentNtn) && (
+              <div>
+                <span className="text-slate-500 font-medium block mb-1">Tax / Registration NTN</span>
+                {contract.initiatorNtn && <div className="text-slate-900 font-semibold">Party A: {contract.initiatorNtn}</div>}
+                {contract.respondentNtn && <div className="text-slate-900 font-semibold">Party B: {contract.respondentNtn}</div>}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Card 2: Financial Settlements */}
+        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+          <h4 className="text-xs font-bold text-slate-400 border-b border-slate-100 pb-3 uppercase tracking-wider">Financial Settlements</h4>
+          
+          <div className="space-y-3">
+            {/* Row 1: Total Valuation */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-600">Total Valuation</span>
+              <span className="text-base font-bold text-slate-900">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
+            </div>
+
+            {/* Row 2: Advance Payment */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span className="text-xs font-semibold text-slate-600 block">Advance Payment</span>
+                {contract.advancePaymentDate && (
+                  <span className="text-xs text-slate-500 block">Due: {formatLegalDate(contract.advancePaymentDate, contract.jurisdictionCountryCode)}</span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-bold text-slate-900">
+                  {contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : formatCurrencyAmount(0, currCode)}
+                </span>
+                {contract.advancePayment && (
+                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                    contract.advanceReceived 
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-800 uppercase" 
+                      : "bg-amber-50 border-amber-200 text-amber-800 uppercase"
+                  }`}>
+                    {contract.advanceReceived ? "Confirmed" : "Pending"}
                   </span>
                 )}
               </div>
+            </div>
 
-              {contract.confidentialityRequired && (
-                <>
-                  <hr className="border-slate-100" />
-                  <div>
-                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Confidentiality / Product NDA</span>
-                    <span className="text-amber-900 font-bold uppercase bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg text-xs inline-block">
-                      Strict NDA Active
-                    </span>
-                    {contract.embargoDate && (
-                      <span className="text-xs text-slate-600 font-semibold block mt-1">
-                        Embargo Until: {formatLegalDate(contract.embargoDate, contract.jurisdictionCountryCode)}
-                      </span>
-                    )}
-                    {contract.earlyDisclosurePenalty && (
-                      <span className="text-xs text-rose-600 font-bold block mt-1">
-                        Early Leak Fine: {formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}
-                      </span>
-                    )}
-                  </div>
-                </>
-              )}
+            {/* Row 3: Remaining Payout */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span className="text-xs font-semibold text-slate-600 block">Remaining Payout</span>
+                {contract.remainingPaymentDate && (
+                  <span className="text-xs text-slate-500 block">Due: {formatLegalDate(contract.remainingPaymentDate, contract.jurisdictionCountryCode)}</span>
+                )}
+              </div>
+              <span className="text-sm font-bold text-slate-900">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
+            </div>
+
+            {/* Row 4: Route Method & Account */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-600">Payment Route Method</span>
+              <div className="text-left sm:text-right">
+                <span className="text-sm font-bold text-slate-900 uppercase block">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
+                <span className="text-xs text-slate-600 block">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right column: Financial & Deliverables list */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Card 3: Required Campaign Deliverables, Platforms & Usage Scope */}
+        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <h4 className="text-xs font-bold text-slate-400 border-b border-slate-100 pb-3 uppercase tracking-wider">Required Campaign Deliverables &amp; Usage Scope</h4>
           
-          {/* Financial details */}
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-            <h4 className="text-xs font-bold text-slate-400 border-b border-slate-100 pb-3 uppercase tracking-wider">Financial Settlements</h4>
-            <div className="space-y-3">
-              {/* Row 1: Total Valuation */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-slate-600">Total Valuation</span>
-                <span className="text-base font-bold text-slate-900">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
-              </div>
-
-              {/* Row 2: Advance Payment */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <span className="text-xs font-semibold text-slate-600 block">Advance Payment</span>
-                  {contract.advancePaymentDate && (
-                    <span className="text-xs text-slate-500 block">Due: {formatLegalDate(contract.advancePaymentDate, contract.jurisdictionCountryCode)}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-slate-900">
-                    {contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : formatCurrencyAmount(0, currCode)}
-                  </span>
-                  {contract.advancePayment && (
-                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                      contract.advanceReceived 
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-800 uppercase" 
-                        : "bg-amber-50 border-amber-200 text-amber-800 uppercase"
-                    }`}>
-                      {contract.advanceReceived ? "Confirmed" : "Pending"}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Row 3: Remaining Payout */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <span className="text-xs font-semibold text-slate-600 block">Remaining Payout</span>
-                  {contract.remainingPaymentDate && (
-                    <span className="text-xs text-slate-500 block">Due: {formatLegalDate(contract.remainingPaymentDate, contract.jurisdictionCountryCode)}</span>
-                  )}
-                </div>
-                <span className="text-sm font-bold text-slate-900">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
-              </div>
-
-              {/* Row 4: Route Method & Account */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-slate-600">Payment Route Method</span>
-                <div className="text-left sm:text-right">
-                  <span className="text-sm font-bold text-slate-900 uppercase block">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
-                  <span className="text-xs text-slate-600 block">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Deliverables details */}
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm">
-            <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider mb-5">Required Campaign Deliverables</h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
-                    <th className="py-3 px-3">Platform format</th>
-                    <th className="py-3 px-3 text-center">Qty</th>
-                    <th className="py-3 px-3 text-center">Stay Published</th>
-                    <th className="py-3 px-3">Instructions / Notes</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead>
+                <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                  <th className="py-3 px-3">Platform Format</th>
+                  <th className="py-3 px-3 text-center">Qty</th>
+                  <th className="py-3 px-3 text-center">Stay Published</th>
+                  <th className="py-3 px-3">Instructions / Brief</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {contract.deliverables?.map((d: any) => (
+                  <tr key={d.id} className="text-slate-900">
+                    <td className="py-3.5 px-3 font-bold text-sm">{formatDeliverableTypeName(d.type)}</td>
+                    <td className="py-3.5 px-3 font-bold text-center text-sm">{d.quantity}</td>
+                    <td className="py-3.5 px-3 font-semibold text-center text-slate-600">{d.duration || "Permanent"}</td>
+                    <td className="py-3.5 px-3 text-slate-600 max-w-xs">{d.notes || "No notes"}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {contract.deliverables?.map((d: any) => (
-                    <tr key={d.id} className="text-slate-900 hover:bg-slate-50/50">
-                      <td className="py-3.5 px-3 font-bold text-sm">{formatDeliverableTypeName(d.type)}</td>
-                      <td className="py-3.5 px-3 font-extrabold text-center text-sm">{d.quantity}</td>
-                      <td className="py-3.5 px-3 font-semibold text-center text-slate-600">{d.duration || "Permanent"}</td>
-                      <td className="py-3.5 px-3 text-slate-600 max-w-xs">{d.notes || "No notes"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          {/* Collaboration Product Details & Loan Return Terms */}
-          {contract.collabProduct && (
-            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm text-xs space-y-5">
-              <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider">Collaboration Product Shipment &amp; Return Terms</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <span className="text-slate-400 font-bold block uppercase tracking-wider">Product Details</span>
-                  <span className="text-slate-900 font-bold bg-slate-50 p-4 rounded-2xl border border-slate-200/80 block text-sm">
-                    {contract.collabProduct} ({contract.collabProductProvisionType || "Provision"})
-                  </span>
-                </div>
+          <div className="space-y-3 pt-2">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-600">Platforms Allowed</span>
+              <div className="flex flex-wrap gap-1.5">
+                {contract.platformsAllowed?.map((p: string) => (
+                  <span key={p} className="px-3 py-1 rounded-lg bg-black text-white text-xs font-bold">{p}</span>
+                ))}
+              </div>
+            </div>
 
-                <div className="space-y-1">
-                  <span className="text-slate-400 font-bold block uppercase tracking-wider">Expected Arrival Date</span>
-                  <span className="text-slate-900 font-bold bg-slate-50 p-4 rounded-2xl border border-slate-200/80 block text-sm">
-                    {contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate, contract.jurisdictionCountryCode) : "Not Specified"}
-                  </span>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-600">Granted License</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-900">{formatUsageLicenseText(contract.usageType)}</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-600">Rights Duration</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-900">{contract.usageRightsDuration}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Delivery Timeline, Revision Protocol & Exclusivity */}
+        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+          <h4 className="text-xs font-bold text-slate-400 border-b border-slate-100 pb-3 uppercase tracking-wider">Delivery Window, Revision Protocol &amp; Exclusivity</h4>
+          
+          <div className="space-y-3 text-xs">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="font-semibold text-slate-600">Delivery Deadline</span>
+              <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.deliveryTimeframeDays} Days (post product/advance)</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="font-semibold text-slate-600">Revision Rounds</span>
+              <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.revisionRounds} Rounds ({contract.revisionTurnaroundDays || 5} days/round)</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="font-semibold text-slate-600">Pre-Approval Protocol</span>
+              <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.brandApprovalRequired ? "Required (48-hr Deemed Approval)" : "Not Required"}</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="font-semibold text-slate-600">Exclusivity Clause</span>
+              <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "No"}</span>
+            </div>
+
+            {contract.exclusivityClause && contract.exclusivityCompetitors && (
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="font-semibold text-slate-600">Prohibited Competitors</span>
+                <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.exclusivityCompetitors}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Card 5: Confidentiality / Pre-Launch NDA (if active) */}
+        {contract.confidentialityRequired && (
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+            <h4 className="text-xs font-bold text-slate-400 border-b border-slate-100 pb-3 uppercase tracking-wider">Confidentiality / Pre-Launch NDA</h4>
+            
+            <div className="space-y-3 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="font-semibold text-slate-600">NDA Embargo Status</span>
+                <span className="font-bold text-slate-900">Strict NDA Active</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="font-semibold text-slate-600">Embargo Launch Date</span>
+                <span className="font-bold text-slate-900">{contract.embargoDate ? formatLegalDate(contract.embargoDate, contract.jurisdictionCountryCode) : "Required until official launch"}</span>
+              </div>
+
+              {contract.earlyDisclosurePenalty && (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-600">Early Leak Penalty</span>
+                  <span className="font-bold text-rose-600 text-xs sm:text-sm">{formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}</span>
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Card 6: Collaboration Product Shipment & Loan Return Terms (if present) */}
+        {contract.collabProduct && (
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+            <h4 className="text-xs font-bold text-slate-400 border-b border-slate-100 pb-3 uppercase tracking-wider">Collaboration Product Shipment &amp; Return Terms</h4>
+            
+            <div className="space-y-3 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="font-semibold text-slate-600">Product Details</span>
+                <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.collabProduct} ({contract.collabProductProvisionType || "Provision"})</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="font-semibold text-slate-600">Expected Arrival Date</span>
+                <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate, contract.jurisdictionCountryCode) : "Not Specified"}</span>
               </div>
 
               {contract.collabDeliveryAddress && (
-                <div className="space-y-1">
-                  <span className="text-slate-400 font-bold block uppercase tracking-wider">Delivery Address</span>
-                  <p className="text-slate-900 font-semibold leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-sm">{contract.collabDeliveryAddress}</p>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                  <span className="font-semibold text-slate-600 block">Delivery Address</span>
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm block">{contract.collabDeliveryAddress}</span>
                 </div>
               )}
 
               {contract.collabProductProvisionType === "Product Loan" && (
-                <div className="bg-amber-50 border border-amber-200/80 rounded-2xl p-5 text-xs space-y-2 leading-relaxed">
-                  <span className="font-bold text-amber-900 uppercase tracking-wider block">Product Loan Return Terms</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-amber-950 font-medium">
-                    <div>Return Deadline: <strong className="font-bold">{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
-                    <div>Shipping Paid By: <strong className="font-bold">{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
-                    {contract.collabProductNonReturnFee && <div>Loss / Non-Return Fee: <strong className="font-bold">{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
-                  </div>
-                  {contract.collabProductReturnAddress && (
-                    <div className="text-xs text-amber-900 font-medium pt-1">Return Address: {contract.collabProductReturnAddress}</div>
-                  )}
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1.5 leading-relaxed">
+                  <div>Product Loan Return Deadline: Within <strong className="font-bold">{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
+                  <div>Return Shipping Paid By: <strong className="font-bold">{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
+                  {contract.collabProductNonReturnFee && <div>Loss / Non-Return Fee: <strong className="font-bold">{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
+                  {contract.collabProductReturnAddress && <div className="pt-1">Return Address: {contract.collabProductReturnAddress}</div>}
                 </div>
               )}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Bilateral Safeguards & Dispute Resolution */}
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm text-xs space-y-5">
-            <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider">Bilateral Safeguard Penalties &amp; Governing Law</h4>
-            
-            <div className="space-y-2">
-              <span className="text-slate-400 font-bold block uppercase tracking-wider">Bilateral Safeguard Penalties</span>
-              <div className="text-slate-800 font-medium bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-2 leading-relaxed text-xs">
-                <div>• Late Payment Delay Penalty (Charged to Brand): <strong className="text-slate-900 font-bold">{Number(contract.latePaymentPenaltyPct)}%/day</strong> (Capped at <strong className="text-slate-900 font-bold">{Number(contract.penaltyCapPct || 20)}%</strong>)</div>
-                <div>• Late Content Delivery Penalty (Charged to Creator): <strong className="text-slate-900 font-bold">{Number(contract.lateContentPenaltyPct)}%/day</strong> (Capped at <strong className="text-slate-900 font-bold">{Number(contract.penaltyCapPct || 20)}%</strong>)</div>
-                <div>• Non-Delivery Cutoff: Content delayed beyond <strong className="text-slate-900 font-bold">{contract.nonDeliveryCutoffDays || 7} calendar days</strong> legally constitutes Non-Delivery, stopping daily fees and triggering 100% advance refundability.</div>
-                <div>• Unauthorized Brand Re-Use Penalty: <strong className="text-slate-900 font-bold">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of contract value per violation</strong></div>
-                <div>• Pre-Delivery Termination Fee: <strong className="text-slate-900 font-bold">{Number(contract.cancellationFeePct || 25)}% of fee</strong></div>
-              </div>
+        {/* Card 7: Bilateral Safeguard Penalties & Governing Law */}
+        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+          <h4 className="text-xs font-bold text-slate-400 border-b border-slate-100 pb-3 uppercase tracking-wider">Bilateral Safeguard Penalties &amp; Governing Law</h4>
+          
+          <div className="space-y-3 text-xs">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="font-semibold text-slate-600">Late Payment / Delivery Penalties</span>
+              <span className="font-bold text-slate-900 text-xs sm:text-sm">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
             </div>
 
-            <div className="space-y-2">
-              <span className="text-slate-400 font-bold block uppercase tracking-wider">Section 11: Governing Law &amp; Dispute Resolution (ADR)</span>
-              <div className="text-blue-950 font-medium bg-blue-50/60 p-5 rounded-2xl border border-blue-200 leading-relaxed text-xs">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="font-semibold text-slate-600">Unauthorized Brand Re-Use Penalty</span>
+              <span className="font-bold text-slate-900 text-xs sm:text-sm">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of contract value</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="font-semibold text-slate-600">Pre-Delivery Cancellation Fee</span>
+              <span className="font-bold text-slate-900 text-xs sm:text-sm">{Number(contract.cancellationFeePct || 25)}% of total fee</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="font-semibold text-slate-600">Non-Delivery Cutoff</span>
+              <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.nonDeliveryCutoffDays || 7} calendar days post-deadline</span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-blue-50/60 border border-blue-200 text-xs text-blue-950 space-y-1 mt-2">
+              <span className="font-bold uppercase tracking-wider text-blue-900 block">Section 11: Governing Law &amp; Dispute Resolution</span>
+              <p className="leading-relaxed">
                 {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>{jur.arbitrationAct}</strong>.
-              </div>
+              </p>
             </div>
 
             {contract.contentOwnership && (
-              <div className="space-y-2">
-                <span className="text-slate-400 font-bold block uppercase tracking-wider">Content Ownership &amp; License Terms</span>
-                <p className="text-slate-900 font-medium leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs">{contract.contentOwnership}</p>
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                <span className="font-bold text-slate-400 uppercase tracking-wider block">Content Ownership &amp; License Terms</span>
+                <p className="text-slate-900 font-medium leading-relaxed text-xs">{contract.contentOwnership}</p>
               </div>
             )}
           </div>
-
         </div>
+
       </div>
 
       {/* Audit Log / Verification Visual Signatures Blocks */}

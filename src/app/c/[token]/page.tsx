@@ -515,9 +515,10 @@ export default function PublicSigningPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* CARD C: Campaign Deliverables Table */}
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Campaign Deliverables Table</span>
+            {/* CARD C: Campaign Deliverables, Platforms & Usage Scope */}
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Required Campaign Deliverables &amp; Usage Scope</span>
+              
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
                   <thead>
@@ -540,13 +541,8 @@ export default function PublicSigningPage({ params }: PageProps) {
                   </tbody>
                 </table>
               </div>
-            </div>
 
-            {/* CARD D: Usage Rights & Scope */}
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Usage Rights &amp; Platform Scope</span>
-              
-              <div className="space-y-3">
+              <div className="space-y-3 pt-2">
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-slate-600">Platforms Allowed</span>
                   <div className="flex flex-wrap gap-1.5">
