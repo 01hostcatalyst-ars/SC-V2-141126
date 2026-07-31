@@ -300,9 +300,9 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-theme-gradient text-slate-700 font-bold text-sm">
-        <div className="flex items-center gap-3 bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-gray-200 shadow-xl">
-          <div className="w-6 h-6 border-3 border-black border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-theme-gradient text-slate-700 font-medium text-sm">
+        <div className="flex items-center gap-3 bg-white/90 backdrop-blur-md p-6 rounded-2xl border border-gray-200 shadow-xl">
+          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
           <span>Retrieving campaign agreement details...</span>
         </div>
       </div>
@@ -311,12 +311,12 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   if (!contract) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-theme-gradient text-rose-600 font-bold text-sm">
-        <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-rose-200 shadow-xl text-center space-y-3 max-w-md">
-          <svg className="w-10 h-10 text-rose-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="min-h-screen flex items-center justify-center bg-theme-gradient text-rose-600 font-medium text-sm">
+        <div className="bg-white/90 backdrop-blur-md p-8 rounded-2xl border border-rose-200 shadow-xl text-center space-y-3 max-w-md">
+          <svg className="w-8 h-8 text-rose-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <div className="text-base font-black text-slate-900">Agreement Unavailable</div>
+          <div className="text-base font-bold text-slate-900">Agreement Unavailable</div>
           <p className="text-xs text-slate-600 leading-relaxed">
             This agreement link may have expired or is no longer accessible. Please contact the initiator for an updated link.
           </p>
@@ -332,12 +332,12 @@ export default function PublicSigningPage({ params }: PageProps) {
       <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[40%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
       {/* Navbar Header */}
-      <header className="w-full border-b border-gray-200/60 bg-white/70 backdrop-blur-md sticky top-0 z-20 px-6 sm:px-12 py-4 flex items-center justify-between">
+      <header className="w-full border-b border-gray-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-20 px-6 sm:px-12 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base shadow-sm">
             {company.name[0]}
           </span>
-          <span className="font-black text-lg tracking-tight text-black uppercase">{company.name}</span>
+          <span className="font-bold text-lg tracking-tight text-black uppercase">{company.name}</span>
         </Link>
 
         <div className="flex items-center gap-3">
@@ -348,25 +348,25 @@ export default function PublicSigningPage({ params }: PageProps) {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-8 md:p-12 space-y-10 z-10">
+      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-8 md:p-10 space-y-8 z-10">
         
         {/* Banner Welcome */}
         {isExecuted ? (
-          <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-3xl p-8 sm:p-10 shadow-xl space-y-6">
+          <div className="bg-emerald-50/90 border border-emerald-200 rounded-3xl p-6 sm:p-8 shadow-md space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-3">
-                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-600 text-white uppercase tracking-wider w-fit">
+              <div className="space-y-2">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white uppercase tracking-wider w-fit">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Bilaterally Executed &amp; Activated</span>
                 </span>
 
-                <h1 className="text-2xl sm:text-3xl font-black text-emerald-950 tracking-tight leading-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold text-emerald-950 tracking-tight">
                   Campaign Agreement Executed &amp; Locked
                 </h1>
 
-                <p className="text-sm text-emerald-900 leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-sm text-emerald-900 leading-relaxed max-w-xl">
                   This agreement was executed under {jur.lawAbbreviation} on {formatLegalDate(contract.activatedAt || contract.updatedAt, contract?.jurisdictionCountryCode)}. The deal terms below are read-only and cryptographically locked.
                 </p>
               </div>
@@ -376,7 +376,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   type="button"
                   onClick={handleDownloadPdf}
                   disabled={downloadingPdf}
-                  className="px-6 py-3.5 rounded-2xl bg-black hover:bg-slate-900 text-white font-bold text-xs uppercase transition-all shadow-md flex items-center justify-center gap-2"
+                  className="px-5 py-3 rounded-2xl bg-black hover:bg-slate-900 text-white font-bold text-xs uppercase transition-all shadow-md flex items-center justify-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -387,7 +387,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   type="button"
                   onClick={handleDownloadCertificate}
                   disabled={downloadingCert}
-                  className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase transition-all shadow-md flex items-center justify-center gap-2"
+                  className="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase transition-all shadow-md flex items-center justify-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -398,80 +398,91 @@ export default function PublicSigningPage({ params }: PageProps) {
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900 uppercase tracking-wider w-fit">
-              <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="space-y-2">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-900 uppercase tracking-wider w-fit">
+              <svg className="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <span>Mutual Legal Agreement Execution ({jur.lawAbbreviation})</span>
             </span>
 
-            <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
               Review &amp; Sign Collaboration Agreement
             </h1>
 
-            <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
               Agreement requested by <strong className="text-slate-900 font-bold">{(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.companyName || (contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.name || (contract as any).initiatorCompanyName || contract.initiator?.name}</strong> ({(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.email || contract.initiator?.email}). Complete the verification below, review all campaign terms, and execute your digital signature.
             </p>
           </div>
         )}
 
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-10">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
           
-          {/* SECTION 1: REVIEW CAMPAIGN TERMS */}
-          <div className="bg-white border border-gray-200/80 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-8">
-            <div className="border-b border-slate-100 pb-5">
-              <h2 className="text-lg font-black text-slate-900 uppercase tracking-wider">
-                1. Review Campaign &amp; Legal Terms
+          {/* SECTION 1: REVIEW CAMPAIGN TERMS (Card after Card Layout) */}
+          <div className="space-y-6">
+            
+            {/* Header Section Title */}
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wider">
+                1. Campaign &amp; Legal Terms
               </h2>
               <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
                 Please review all campaign parameters below. If terms match your negotiated values, complete your profile details and execute your digital signature in section 2 below.
               </p>
             </div>
 
-            <div className="space-y-6 text-sm">
+            {/* CARD A: Campaign & Parties Overview */}
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Campaign &amp; Parties Overview</span>
               
-              {/* Card 1: Overview & Parties */}
-              <div className="p-6 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Campaign &amp; Parties Overview</span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-slate-500 block">Direction:</span>
-                    <span className="font-extrabold text-slate-900 uppercase text-sm block">{contract.contractType.replace(/_/g, " ")}</span>
-                  </div>
-
-                  {contract.brandName && (
-                    <div className="space-y-1">
-                      <span className="text-xs font-semibold text-slate-500 block">Client Brand:</span>
-                      <span className="font-extrabold text-slate-900 text-sm block">{contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</span>
-                      {contract.campaignName && <span className="text-xs text-slate-500 block">Campaign: {contract.campaignName}</span>}
-                    </div>
-                  )}
-
-                  {contract.creatorName && (
-                    <div className="space-y-1">
-                      <span className="text-xs font-semibold text-slate-500 block">Creator:</span>
-                      <span className="font-extrabold text-slate-900 text-sm block">{contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}</span>
-                    </div>
-                  )}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-slate-500 block">Direction</span>
+                  <span className="font-bold text-slate-900 uppercase text-sm block">{contract.contractType.replace(/_/g, " ")}</span>
                 </div>
-              </div>
 
-              {/* Card 2: Financial Compensation */}
-              <div className="p-6 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Financial Compensation &amp; Payout Terms</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                  <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-white shadow-sm space-y-1 min-w-0 overflow-hidden">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block truncate">Total Valuation</span>
-                    <span className="font-black text-slate-900 text-base sm:text-lg lg:text-xl block truncate">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
+                {contract.brandName && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium text-slate-500 block">Client Brand</span>
+                    <span className="font-bold text-slate-900 text-sm block">{contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</span>
+                    {contract.campaignName && <span className="text-xs text-slate-500 block">Campaign: {contract.campaignName}</span>}
                   </div>
+                )}
 
-                  <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-white shadow-sm space-y-1 min-w-0 overflow-hidden">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block truncate">Advance Payment</span>
-                    <span className="font-extrabold text-slate-900 text-sm sm:text-base block truncate">{contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : "No Advance"}</span>
-                    {contract.advancePaymentDate && <span className="text-xs text-slate-500 block truncate">Due: {formatLegalDate(contract.advancePaymentDate, contract?.jurisdictionCountryCode)}</span>}
+                {contract.creatorName && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium text-slate-500 block">Creator</span>
+                    <span className="font-bold text-slate-900 text-sm block">{contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* CARD B: Financial Compensation & Payout Terms (Full Width Rows - No side-by-side squishing) */}
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Financial Compensation &amp; Payout Terms</span>
+              
+              <div className="space-y-3">
+                {/* Row 1: Total Valuation */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-600">Total Valuation</span>
+                  <span className="text-base font-bold text-slate-900">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
+                </div>
+
+                {/* Row 2: Advance Payment */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-semibold text-slate-600 block">Advance Payment</span>
+                    {contract.advancePaymentDate && (
+                      <span className="text-xs text-slate-500 block">Due: {formatLegalDate(contract.advancePaymentDate, contract?.jurisdictionCountryCode)}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-slate-900">
+                      {contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : "No Advance"}
+                    </span>
                     {contract.advancePayment && (
-                      <span className={`text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full border block w-fit mt-1.5 tracking-wider ${
+                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
                         contract.advanceReceived 
                           ? "bg-emerald-50 border-emerald-200 text-emerald-800 uppercase" 
                           : "bg-amber-50 border-amber-200 text-amber-800 uppercase"
@@ -480,206 +491,219 @@ export default function PublicSigningPage({ params }: PageProps) {
                       </span>
                     )}
                   </div>
-
-                  <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-white shadow-sm space-y-1 min-w-0 overflow-hidden">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block truncate">Remaining Payout</span>
-                    <span className="font-extrabold text-slate-900 text-sm sm:text-base block truncate">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
-                    {contract.remainingPaymentDate && <span className="text-xs text-slate-500 block truncate">Due: {formatLegalDate(contract.remainingPaymentDate, contract?.jurisdictionCountryCode)}</span>}
-                  </div>
-
-                  <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-white shadow-sm space-y-1 min-w-0 overflow-hidden">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block truncate">Route Method</span>
-                    <span className="font-extrabold text-slate-900 uppercase text-sm sm:text-base block truncate">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
-                    <span className="text-xs text-slate-600 block truncate">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3: Deliverables Requirements */}
-              <div className="p-6 rounded-2xl border border-slate-200/80 bg-white space-y-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Campaign Deliverables Table</span>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
-                        <th className="py-3 px-3">Platform Format</th>
-                        <th className="py-3 px-3 text-center">Qty</th>
-                        <th className="py-3 px-3 text-center">Stay Published</th>
-                        <th className="py-3 px-3">Instructions / Brief</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {contract.deliverables?.map((d: any) => (
-                        <tr key={d.id} className="text-slate-900 hover:bg-slate-50/50">
-                          <td className="py-3.5 px-3 font-bold text-sm">{formatDeliverableTypeName(d.type)}</td>
-                          <td className="py-3.5 px-3 font-extrabold text-center text-sm">{d.quantity}</td>
-                          <td className="py-3.5 px-3 text-slate-600 font-semibold text-center">{d.duration || "Permanent"}</td>
-                          <td className="py-3.5 px-3 text-slate-600 max-w-xs">{d.notes || "No notes"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Card 4: Usage Rights & Scope */}
-              <div className="p-6 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Usage Rights &amp; Platform Scope</span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  <div className="space-y-1.5">
-                    <span className="text-xs font-semibold text-slate-500 block">Platforms Allowed:</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {contract.platformsAllowed?.map((p: string) => (
-                        <span key={p} className="px-3 py-1 rounded-lg bg-black text-white text-xs font-bold">{p}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-slate-500 block">Granted License:</span>
-                    <span className="font-extrabold text-slate-900 text-sm block">{formatUsageLicenseText(contract.usageType)}</span>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-slate-500 block">Rights Duration:</span>
-                    <span className="font-extrabold text-slate-900 text-sm block">{contract.usageRightsDuration}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 5: Delivery, Exclusivity & NDA */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="p-6 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-3">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Delivery Window &amp; Pre-Approval Protocol</span>
-                  
-                  <div className="flex justify-between items-center text-xs py-1 border-b border-slate-200/60">
-                    <span className="font-semibold text-slate-600">Delivery Deadline:</span>
-                    <span className="font-extrabold text-slate-900">{contract.deliveryTimeframeDays} Days (post product/advance)</span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs py-1 border-b border-slate-200/60">
-                    <span className="font-semibold text-slate-600">Revision Rounds:</span>
-                    <span className="font-extrabold text-slate-900">{contract.revisionRounds} Rounds ({contract.revisionTurnaroundDays || 5} days/round)</span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs py-1 border-b border-slate-200/60">
-                    <span className="font-semibold text-slate-600">Pre-Approval Protocol:</span>
-                    <span className="font-extrabold text-slate-900">{contract.brandApprovalRequired ? "Required (48-hr Deemed Approval)" : "Not Required"}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs py-1">
-                    <span className="font-semibold text-slate-600">Exclusivity Clause:</span>
-                    <span className="font-extrabold text-slate-900">{contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "No"}</span>
-                  </div>
-
-                  {contract.exclusivityClause && contract.exclusivityCompetitors && (
-                    <div className="flex justify-between items-center text-xs pt-1 border-t border-slate-200/60">
-                      <span className="font-semibold text-slate-600">Prohibited Competitors:</span>
-                      <span className="font-extrabold text-slate-900 truncate max-w-[180px]" title={contract.exclusivityCompetitors}>{contract.exclusivityCompetitors}</span>
-                    </div>
-                  )}
                 </div>
 
-                <div className="p-6 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-3">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Confidentiality / Pre-Launch NDA</span>
-                  
-                  <div className="flex justify-between items-center text-xs py-1 border-b border-slate-200/60">
-                    <span className="font-semibold text-slate-600">NDA Embargo Status:</span>
-                    <span className="font-extrabold text-slate-900">{contract.confidentialityRequired ? "Strict NDA Active" : "Standard Confidentiality"}</span>
-                  </div>
-
-                  {contract.confidentialityRequired && (
-                    <>
-                      <div className="flex justify-between items-center text-xs py-1 border-b border-slate-200/60">
-                        <span className="font-semibold text-slate-600">Embargo Launch Date:</span>
-                        <span className="font-extrabold text-slate-900">{contract.embargoDate ? formatLegalDate(contract.embargoDate, contract?.jurisdictionCountryCode) : "Required until official launch"}</span>
-                      </div>
-                      {contract.earlyDisclosurePenalty && (
-                        <div className="flex justify-between items-center text-xs py-1">
-                          <span className="font-semibold text-slate-600">Early Leak Penalty:</span>
-                          <span className="font-extrabold text-rose-600">{formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Card 6: Collaboration Product & Loan Return Terms (if present) */}
-              {contract.collabProduct && (
-                <div className="p-6 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-4">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Collaboration Product Shipment &amp; Return Terms</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="space-y-1">
-                      <span className="text-xs font-semibold text-slate-500 block">Product:</span>
-                      <span className="font-extrabold text-slate-900 text-sm block">{contract.collabProduct} ({contract.collabProductProvisionType})</span>
-                    </div>
-
-                    <div className="space-y-1">
-                      <span className="text-xs font-semibold text-slate-500 block">Expected Arrival:</span>
-                      <span className="font-extrabold text-slate-900 text-sm block">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate, contract?.jurisdictionCountryCode) : "Not Specified"}</span>
-                    </div>
-
-                    {contract.collabDeliveryAddress && (
-                      <div className="space-y-1">
-                        <span className="text-xs font-semibold text-slate-500 block">Delivery Address:</span>
-                        <span className="font-extrabold text-slate-900 text-sm block">{contract.collabDeliveryAddress}</span>
-                      </div>
+                {/* Row 3: Remaining Payout */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-semibold text-slate-600 block">Remaining Payout</span>
+                    {contract.remainingPaymentDate && (
+                      <span className="text-xs text-slate-500 block">Due: {formatLegalDate(contract.remainingPaymentDate, contract?.jurisdictionCountryCode)}</span>
                     )}
                   </div>
+                  <span className="text-sm font-bold text-slate-900">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
+                </div>
+
+                {/* Row 4: Route Method & Account */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-600">Payment Route Method</span>
+                  <div className="text-left sm:text-right">
+                    <span className="text-sm font-bold text-slate-900 uppercase block">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
+                    <span className="text-xs text-slate-600 block">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CARD C: Campaign Deliverables Table */}
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Campaign Deliverables Table</span>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                      <th className="py-3 px-3">Platform Format</th>
+                      <th className="py-3 px-3 text-center">Quantity</th>
+                      <th className="py-3 px-3 text-center">Stay Published</th>
+                      <th className="py-3 px-3">Instructions / Brief</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {contract.deliverables?.map((d: any) => (
+                      <tr key={d.id} className="text-slate-900">
+                        <td className="py-3.5 px-3 font-bold text-xs sm:text-sm">{formatDeliverableTypeName(d.type)}</td>
+                        <td className="py-3.5 px-3 font-bold text-center text-xs sm:text-sm">{d.quantity}</td>
+                        <td className="py-3.5 px-3 text-slate-600 font-medium text-center">{d.duration || "Permanent"}</td>
+                        <td className="py-3.5 px-3 text-slate-600 max-w-xs">{d.notes || "No notes"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* CARD D: Usage Rights & Scope */}
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Usage Rights &amp; Platform Scope</span>
+              
+              <div className="space-y-3">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-600">Platforms Allowed</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {contract.platformsAllowed?.map((p: string) => (
+                      <span key={p} className="px-3 py-1 rounded-lg bg-black text-white text-xs font-bold">{p}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-600">Granted License</span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-900">{formatUsageLicenseText(contract.usageType)}</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-600">Rights Duration</span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-900">{contract.usageRightsDuration}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* CARD E: Delivery Timeline & Pre-Approval Protocol */}
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Delivery Window &amp; Pre-Approval Protocol</span>
+              
+              <div className="space-y-3 text-xs">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-600">Delivery Deadline</span>
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.deliveryTimeframeDays} Days (post product/advance)</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-600">Revision Rounds</span>
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.revisionRounds} Rounds ({contract.revisionTurnaroundDays || 5} days/round)</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-600">Pre-Approval Protocol</span>
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.brandApprovalRequired ? "Required (48-hr Deemed Approval)" : "Not Required"}</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-600">Exclusivity Clause</span>
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "No"}</span>
+                </div>
+
+                {contract.exclusivityClause && contract.exclusivityCompetitors && (
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-semibold text-slate-600">Prohibited Competitors</span>
+                    <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.exclusivityCompetitors}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* CARD F: Confidentiality / Pre-Launch NDA (if required) */}
+            {contract.confidentialityRequired && (
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Confidentiality / Pre-Launch NDA</span>
+                
+                <div className="space-y-3 text-xs">
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-semibold text-slate-600">NDA Embargo Status</span>
+                    <span className="font-bold text-slate-900">Strict NDA Active</span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-semibold text-slate-600">Embargo Launch Date</span>
+                    <span className="font-bold text-slate-900">{contract.embargoDate ? formatLegalDate(contract.embargoDate, contract?.jurisdictionCountryCode) : "Required until official launch"}</span>
+                  </div>
+
+                  {contract.earlyDisclosurePenalty && (
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <span className="font-semibold text-slate-600">Early Leak Penalty</span>
+                      <span className="font-bold text-rose-600 text-xs sm:text-sm">{formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* CARD G: Collaboration Product Shipment & Return Terms (if present) */}
+            {contract.collabProduct && (
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Collaboration Product Shipment &amp; Return Terms</span>
+                
+                <div className="space-y-3 text-xs">
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-semibold text-slate-600">Product Details</span>
+                    <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.collabProduct} ({contract.collabProductProvisionType})</span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-semibold text-slate-600">Expected Arrival Date</span>
+                    <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate, contract?.jurisdictionCountryCode) : "Not Specified"}</span>
+                  </div>
+
+                  {contract.collabDeliveryAddress && (
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                      <span className="font-semibold text-slate-600 block">Delivery Address</span>
+                      <span className="font-bold text-slate-900 text-xs sm:text-sm block">{contract.collabDeliveryAddress}</span>
+                    </div>
+                  )}
 
                   {contract.collabProductProvisionType === "Product Loan" && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-950 space-y-1.5 leading-relaxed">
+                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1.5 leading-relaxed">
                       <div>Product Loan Return Deadline: Within <strong className="font-bold">{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
                       <div>Return Shipping Paid By: <strong className="font-bold">{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
                       {contract.collabProductNonReturnFee && <div>Loss / Non-Return Fee: <strong className="font-bold">{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
                     </div>
                   )}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Card 7: Bilateral Safeguard Penalties */}
-              <div className="p-6 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Bilateral Safeguard Penalties &amp; Caps</span>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-slate-500 block">Late Payment / Delivery:</span>
-                    <span className="font-extrabold text-slate-900 text-sm block">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
-                  </div>
+            {/* CARD H: Bilateral Safeguard Penalties */}
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Bilateral Safeguard Penalties &amp; Caps</span>
+              
+              <div className="space-y-3 text-xs">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-600">Late Payment / Delivery</span>
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
+                </div>
 
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-slate-500 block">Unauthorized Brand Re-Use:</span>
-                    <span className="font-extrabold text-slate-900 text-sm block">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of fee</span>
-                  </div>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-600">Unauthorized Brand Re-Use</span>
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of fee</span>
+                </div>
 
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-slate-500 block">Non-Delivery Advance Refund:</span>
-                    <span className="font-extrabold text-slate-900 text-sm block">{contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</span>
-                  </div>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-600">Non-Delivery Advance Refund</span>
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</span>
+                </div>
 
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-slate-500 block">Non-Delivery Cutoff:</span>
-                    <span className="font-extrabold text-slate-900 text-sm block">{contract.nonDeliveryCutoffDays || 7} Days post-deadline</span>
-                  </div>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-600">Non-Delivery Cutoff</span>
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.nonDeliveryCutoffDays || 7} Days post-deadline</span>
                 </div>
               </div>
-
-              {/* Card 8: Dispute Resolution (ADR) Clause */}
-              <div className="p-6 rounded-2xl border border-blue-200 bg-blue-50/50 space-y-2 text-xs text-blue-950">
-                <span className="font-extrabold uppercase tracking-wider block text-blue-900 text-xs">Section 11: Governing Law &amp; Dispute Resolution</span>
-                <p className="leading-relaxed">
-                  {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>{jur.arbitrationAct}</strong>.
-                </p>
-              </div>
-
             </div>
+
+            {/* CARD I: Section 11 - Governing Law & Dispute Resolution (ADR) */}
+            <div className="bg-blue-50/60 border border-blue-200 rounded-3xl p-6 sm:p-8 space-y-2 text-xs text-blue-950">
+              <span className="font-bold uppercase tracking-wider block text-blue-900 text-xs">Section 11: Governing Law &amp; Dispute Resolution</span>
+              <p className="leading-relaxed">
+                {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>{jur.arbitrationAct}</strong>.
+              </p>
+            </div>
+
           </div>
 
           {/* SECTION 2: VERIFICATION & DIGITAL SIGNATURE EXECUTION / PDF DOWNLOAD CENTER */}
           {isExecuted ? (
-            <div className="bg-white border border-gray-200/80 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6 text-left">
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 text-left">
               <div className="border-b border-slate-100 pb-4">
-                <h2 className="text-lg font-black text-slate-900 uppercase tracking-wider">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wider">
                   2. Bilateral Execution &amp; PDF Download Center
                 </h2>
                 <p className="text-xs text-slate-500 font-medium mt-1">
@@ -689,7 +713,7 @@ export default function PublicSigningPage({ params }: PageProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="p-6 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-4">
-                  <div className="font-extrabold text-slate-900 text-base">Bilateral Executed Contract PDF</div>
+                  <div className="font-bold text-slate-900 text-sm sm:text-base">Bilateral Executed Contract PDF</div>
                   <p className="text-xs text-slate-600 leading-relaxed">
                     Contains the full A4 legal agreement with all 11 standardized clauses, party signatures, and payment details.
                   </p>
@@ -707,7 +731,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                 </div>
 
                 <div className="p-6 rounded-2xl border border-blue-200 bg-blue-50/40 space-y-4">
-                  <div className="font-extrabold text-blue-950 text-base">Standalone Legal Audit Certificate PDF</div>
+                  <div className="font-bold text-blue-950 text-sm sm:text-base">Standalone Legal Audit Certificate PDF</div>
                   <p className="text-xs text-blue-900/70 leading-relaxed">
                     Contains verification QR code, SHA-256 document checksums, IP addresses, device fingerprints, and time logs.
                   </p>
@@ -726,10 +750,10 @@ export default function PublicSigningPage({ params }: PageProps) {
               </div>
             </div>
           ) : (
-            <div className="bg-white border border-gray-200/80 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-8">
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-2">
                 <div>
-                  <h2 className="text-lg font-black text-slate-900 uppercase tracking-wider">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wider">
                     2. Counterparty Verification &amp; Digital Signature Execution
                   </h2>
                   <p className="text-xs text-slate-500 font-medium mt-1">
@@ -737,7 +761,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   </p>
                 </div>
                 {otpVerified && (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-900 bg-emerald-100 border border-emerald-300 px-3.5 py-1.5 rounded-full uppercase tracking-wider w-fit">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-3.5 py-1.5 rounded-full uppercase tracking-wider w-fit">
                     <svg className="w-3.5 h-3.5 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -759,7 +783,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     value={respondentEmail}
                     onChange={(e) => setRespondentEmail(e.target.value)}
                     disabled={otpDispatched || otpVerified}
-                    className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                    className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -775,7 +799,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     value={respondentPhone}
                     onChange={(e) => setRespondentPhone(e.target.value)}
                     disabled={otpDispatched || otpVerified}
-                    className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                    className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -813,7 +837,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     value={respondentName}
                     onChange={(e) => setRespondentName(e.target.value)}
                     disabled={otpDispatched || otpVerified}
-                    className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                    className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -830,7 +854,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                       value={respondentCompany}
                       onChange={(e) => setRespondentCompany(e.target.value)}
                       disabled={otpDispatched || otpVerified}
-                      className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                      className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                     />
                   </div>
                 ) : isRespondentAgency ? (
@@ -845,11 +869,11 @@ export default function PublicSigningPage({ params }: PageProps) {
                       value={respondentCompany}
                       onChange={(e) => setRespondentCompany(e.target.value)}
                       disabled={otpDispatched || otpVerified}
-                      className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                      className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                     />
                   </div>
                 ) : (
-                  <div className="flex items-start gap-3.5 p-5 bg-slate-50 border border-slate-200/80 rounded-2xl sm:col-span-2">
+                  <div className="flex items-start gap-3.5 p-4 bg-slate-50 border border-slate-200/80 rounded-xl sm:col-span-2">
                     <input
                       type="checkbox"
                       id="confirmHandle"
@@ -877,7 +901,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                       value={creatorLegalName}
                       onChange={(e) => setCreatorLegalName(e.target.value)}
                       disabled={otpDispatched || otpVerified}
-                      className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                      className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                     />
                   </div>
                 )}
@@ -894,7 +918,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     value={respondentAddress}
                     onChange={(e) => setRespondentAddress(e.target.value)}
                     disabled={otpDispatched || otpVerified}
-                    className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                    className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -924,7 +948,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                         value={respondentNtn}
                         onChange={(e) => setRespondentNtn(e.target.value)}
                         disabled={otpDispatched || otpVerified}
-                        className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                        className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                       />
                     </>
                   ) : (
@@ -939,7 +963,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                         value={respondentCnic}
                         onChange={(e) => setRespondentCnic(e.target.value)}
                         disabled={otpDispatched || otpVerified}
-                        className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                        className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                       />
                     </>
                   )}
@@ -1012,7 +1036,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                               ? "GB29 NWBK 6016 1331 9268 19"
                               : "Enter your IBAN or Account details"
                           }
-                          className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
@@ -1025,7 +1049,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder="e.g. paypal@example.com"
-                          className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
@@ -1038,7 +1062,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder="e.g. name@domain.com or @handle"
-                          className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
@@ -1051,7 +1075,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder="e.g. Card ending in 4321"
-                          className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
@@ -1070,7 +1094,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder={jur.phonePlaceholder}
-                          className="px-4 py-3.5 text-sm rounded-2xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                           value={mobileWalletNumber}
                           onChange={(e) => setMobileWalletNumber(e.target.value)}
                         />
@@ -1096,7 +1120,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <div className="flex items-center gap-3">
                       <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm">
                         <img src={stagedSignatureB64} alt="Signature Preview" className="h-9 max-w-[140px] object-contain" />
-                        <span className="text-xs font-extrabold text-emerald-900 bg-emerald-100 px-2.5 py-1 rounded-lg uppercase">Drawn</span>
+                        <span className="text-xs font-bold text-emerald-900 bg-emerald-100 px-2.5 py-1 rounded-lg uppercase">Drawn</span>
                       </div>
                       <button
                         type="button"
@@ -1111,7 +1135,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                       type="button"
                       onClick={() => setIsSignModalOpen(true)}
                       disabled={!isFormValid}
-                      className={`font-bold px-7 py-3.5 rounded-2xl text-xs uppercase transition-all whitespace-nowrap ${
+                      className={`font-bold px-7 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
                         isFormValid
                           ? "bg-black text-white hover:bg-slate-900 shadow-md cursor-pointer"
                           : "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed"
@@ -1141,7 +1165,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                         type="button"
                         onClick={handleSendOTP}
                         disabled={!isFormValid || !stagedSignatureB64 || otpLoading}
-                        className={`font-bold px-7 py-3.5 rounded-2xl text-xs uppercase transition-all whitespace-nowrap ${
+                        className={`font-bold px-7 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
                           isFormValid && stagedSignatureB64 && !otpLoading
                             ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md cursor-pointer"
                             : "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed"
@@ -1160,13 +1184,13 @@ export default function PublicSigningPage({ params }: PageProps) {
                         placeholder="6-digit OTP"
                         value={otpCode}
                         onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                        className="w-full sm:w-auto bg-white border border-slate-300 focus:border-black text-center font-bold tracking-widest text-base py-3 px-5 rounded-2xl outline-none"
+                        className="w-full sm:w-auto bg-white border border-slate-300 focus:border-black text-center font-bold tracking-widest text-base py-2.5 px-4 rounded-xl outline-none"
                       />
                       <button
                         type="button"
                         onClick={handleVerifyAndExecuteOTP}
                         disabled={otpLoading || otpCode.length !== 6 || signing}
-                        className="w-full sm:w-auto bg-black hover:bg-slate-900 text-white font-bold px-8 py-3.5 rounded-2xl text-xs uppercase shadow-md transition-all whitespace-nowrap cursor-pointer disabled:opacity-50"
+                        className="w-full sm:w-auto bg-black hover:bg-slate-900 text-white font-bold px-8 py-3 rounded-xl text-xs uppercase shadow-md transition-all whitespace-nowrap cursor-pointer disabled:opacity-50"
                       >
                         {signing ? "Processing Signature..." : otpLoading ? "Verifying..." : "Verify OTP & Execute Contract"}
                       </button>
@@ -1183,7 +1207,7 @@ export default function PublicSigningPage({ params }: PageProps) {
 
       {/* Footer */}
       <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-6 flex flex-col md:flex-row items-center justify-between px-6 sm:px-12 gap-4 z-10 mt-12">
-        <span className="text-xs text-slate-500 font-semibold">
+        <span className="text-xs text-slate-500 font-medium">
           © {new Date().getFullYear()} {company.name}. Powered by {jur.lawAbbreviation} legal security layer.
         </span>
         <div className="flex gap-4 items-center flex-wrap justify-center">
