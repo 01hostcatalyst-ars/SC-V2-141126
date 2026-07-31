@@ -295,20 +295,20 @@ export default function ContractDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-8 text-left">
       {/* Header Info Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
         <div>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-black text-blue-600 uppercase tracking-wider font-mono">
-              {contract.contractNumber}
+            <span className="text-xs font-bold text-blue-700 uppercase tracking-wider bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+              Ref: {contract.contractNumber}
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-800 uppercase tracking-wider">
+            <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-800 border border-slate-200 uppercase tracking-wider">
               {contract.status.replace(/_/g, " ")}
             </span>
           </div>
-          <h1 className="text-2xl font-black text-black mt-1">
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mt-2">
             {contract.campaignName || contract.contractType.replace(/_/g, " ")}
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
             Created on {formatLegalDate(contract.createdAt)} by {contract.initiator?.name} ({contract.initiator?.email})
           </p>
         </div>
@@ -320,14 +320,14 @@ export default function ContractDetailPage({ params }: PageProps) {
               <button
                 onClick={() => setIsPublishModalOpen(true)}
                 disabled={actionLoading}
-                className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
+                className="bg-black hover:bg-slate-900 text-white font-bold px-6 py-3.5 rounded-2xl text-xs uppercase shadow-md transition-all flex items-center gap-2"
               >
                 Publish &amp; Verify Identity to Share
               </button>
               <button
                 onClick={handleDownloadPDF}
                 disabled={actionLoading}
-                className="bg-white border border-gray-300 hover:bg-gray-50 text-black font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
+                className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-900 font-bold px-6 py-3.5 rounded-2xl text-xs uppercase shadow-sm transition-all flex items-center gap-2"
               >
                 Download Draft PDF Preview
               </button>
@@ -337,9 +337,12 @@ export default function ContractDetailPage({ params }: PageProps) {
           {contract.status === "PENDING_RESPONDENT" && (
             <button
               onClick={copySigningLink}
-              className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all flex items-center gap-2"
+              className="bg-black hover:bg-slate-900 text-white font-bold px-6 py-3.5 rounded-2xl text-xs uppercase shadow-md transition-all flex items-center gap-2"
             >
-              Copy Signing Link
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span>Copy Signing Link</span>
             </button>
           )}
 
@@ -347,7 +350,7 @@ export default function ContractDetailPage({ params }: PageProps) {
             <button
               onClick={() => setIsSignModalOpen(true)}
               disabled={actionLoading}
-              className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all"
+              className="bg-black hover:bg-slate-900 text-white font-bold px-6 py-3.5 rounded-2xl text-xs uppercase shadow-md transition-all"
             >
               Sign &amp; Activate Contract
             </button>
@@ -358,16 +361,22 @@ export default function ContractDetailPage({ params }: PageProps) {
               <button
                 onClick={handleDownloadPDF}
                 disabled={actionLoading}
-                className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all text-center"
+                className="bg-black hover:bg-slate-900 text-white font-bold px-6 py-3.5 rounded-2xl text-xs uppercase shadow-md transition-all text-center flex items-center gap-2"
               >
-                Download Signed PDF
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Download Signed PDF</span>
               </button>
               <button
                 onClick={handleDownloadCertificate}
                 disabled={actionLoading}
-                className="bg-slate-800 text-white hover:bg-slate-900 font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all text-center"
+                className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-3.5 rounded-2xl text-xs uppercase shadow-md transition-all text-center flex items-center gap-2"
               >
-                Download Audit Certificate
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>Download Audit Certificate</span>
               </button>
             </>
           )}
@@ -378,7 +387,7 @@ export default function ContractDetailPage({ params }: PageProps) {
                 <button
                   onClick={handleMarkAdvanceReceived}
                   disabled={actionLoading}
-                  className="bg-white border border-gray-300 hover:bg-gray-50 text-black font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all"
+                  className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-900 font-bold px-6 py-3.5 rounded-2xl text-xs uppercase shadow-sm transition-all"
                 >
                   Confirm Advance Payment Received
                 </button>
@@ -386,7 +395,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               <button
                 onClick={handleMarkComplete}
                 disabled={actionLoading}
-                className="bg-white border border-gray-300 hover:bg-gray-50 text-black font-bold px-6 py-2.5 rounded-xl text-xs uppercase shadow transition-all"
+                className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-900 font-bold px-6 py-3.5 rounded-2xl text-xs uppercase shadow-sm transition-all"
               >
                 Mark Deal Completed
               </button>
@@ -397,31 +406,31 @@ export default function ContractDetailPage({ params }: PageProps) {
 
       {/* PENDING RESPONDENT SHAREABLE LINK BANNER */}
       {contract.status === "PENDING_RESPONDENT" && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 uppercase tracking-wider">
-                Party 1 Signed & Identity Locked
+        <div className="bg-blue-50/70 border border-blue-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900 uppercase tracking-wider">
+                Party 1 Signed &amp; Identity Locked
               </span>
-              <h3 className="text-base font-black text-black mt-1">
-                Counterparty Signing Link Active & Ready
+              <h3 className="text-lg font-black text-slate-900 mt-1">
+                Counterparty Signing Link Active &amp; Ready
               </h3>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-slate-600 leading-relaxed">
                 Share this link with Party 2 (counterparty) to complete their profile verification and execute their digital signature.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
             <input
               type="text"
               readOnly
               value={`${typeof window !== "undefined" ? window.location.origin : ""}/c/${contract.shareToken}`}
-              className="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-xs font-mono text-gray-800 select-all focus:outline-none w-full"
+              className="flex-1 bg-white border border-slate-300 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 select-all outline-none w-full"
             />
             <button
               onClick={copySigningLink}
-              className="bg-black hover:bg-black/90 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
+              className="bg-black hover:bg-slate-900 text-white font-bold px-6 py-3 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto shadow-sm"
             >
               Copy Link
             </button>
@@ -429,7 +438,7 @@ export default function ContractDetailPage({ params }: PageProps) {
               href={`/c/${contract.shareToken}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap w-full sm:w-auto"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap w-full sm:w-auto shadow-sm"
             >
               Open Link
             </a>
@@ -438,120 +447,126 @@ export default function ContractDetailPage({ params }: PageProps) {
       )}
 
       {/* Main Grid specs layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
         {/* Left column: Summary specs */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
-            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Campaign & Authority Specs</h4>
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+            <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider">Campaign &amp; Authority Specs</h4>
             
-            <div className="space-y-3 text-xs">
+            <div className="space-y-4 text-xs">
               <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Contract Type</span>
-                <span className="font-bold text-black">{contract.contractType.replace(/_/g, " ")}</span>
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Contract Type</span>
+                <span className="font-extrabold text-slate-900 text-sm">{contract.contractType.replace(/_/g, " ")}</span>
               </div>
               
               {contract.initiatorDesignation && (
                 <>
-                  <hr className="border-gray-50" />
+                  <hr className="border-slate-100" />
                   <div>
-                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Party A Designation</span>
-                    <span className="text-black font-bold">{contract.initiatorDesignation}</span>
+                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Party A Designation</span>
+                    <span className="text-slate-900 font-extrabold text-sm">{contract.initiatorDesignation}</span>
                   </div>
                 </>
               )}
 
               {(contract.initiatorNtn || contract.respondentNtn) && (
                 <>
-                  <hr className="border-gray-50" />
+                  <hr className="border-slate-100" />
                   <div>
-                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Tax / Registration NTN</span>
-                    {contract.initiatorNtn && <div className="text-black font-semibold">Party A NTN: {contract.initiatorNtn}</div>}
-                    {contract.respondentNtn && <div className="text-black font-semibold">Party B NTN: {contract.respondentNtn}</div>}
+                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Tax / Registration NTN</span>
+                    {contract.initiatorNtn && <div className="text-slate-900 font-semibold">Party A NTN: {contract.initiatorNtn}</div>}
+                    {contract.respondentNtn && <div className="text-slate-900 font-semibold">Party B NTN: {contract.respondentNtn}</div>}
                   </div>
                 </>
               )}
 
               {contract.brandName && (
                 <>
-                  <hr className="border-gray-50" />
+                  <hr className="border-slate-100" />
                   <div>
-                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Client Brand</span>
-                    <span className="text-black font-bold">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Client Brand</span>
+                    <span className="text-slate-900 font-extrabold text-sm block">
                       {contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}
                     </span>
                     {contract.campaignName && (
-                      <span className="text-[10px] text-gray-400 block mt-0.5 font-bold uppercase">Campaign: {contract.campaignName}</span>
+                      <span className="text-xs text-slate-500 block mt-1 font-semibold">Campaign: {contract.campaignName}</span>
                     )}
                   </div>
                 </>
               )}
+
               {contract.creatorName && (
                 <>
-                  <hr className="border-gray-50" />
+                  <hr className="border-slate-100" />
                   <div>
-                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Creator</span>
-                    <span className="text-black font-bold">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Creator</span>
+                    <span className="text-slate-900 font-extrabold text-sm block">
                       {contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}
                     </span>
                   </div>
                 </>
               )}
-              <hr className="border-gray-50" />
+
+              <hr className="border-slate-100" />
               <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Platforms Allowed</span>
-                <div className="flex flex-wrap gap-1 mt-1">
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Platforms Allowed</span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
                   {contract.platformsAllowed?.map((p: string) => (
-                    <span key={p} className="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-800 text-[10px] font-bold">
+                    <span key={p} className="px-2.5 py-1 rounded-lg bg-black text-white text-xs font-bold">
                       {p}
                     </span>
                   ))}
                 </div>
               </div>
-              <hr className="border-gray-50" />
+
+              <hr className="border-slate-100" />
               <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Usage Rights</span>
-                <span className="text-black font-bold">{contract.usageRightsDuration}</span>
-                <span className="text-[10px] text-gray-500 block font-semibold mt-0.5">{formatUsageLicenseText(contract.usageType)}</span>
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Usage Rights</span>
+                <span className="text-slate-900 font-extrabold text-sm block">{contract.usageRightsDuration}</span>
+                <span className="text-xs text-slate-600 block font-medium mt-1 leading-relaxed">{formatUsageLicenseText(contract.usageType)}</span>
               </div>
-              <hr className="border-gray-50" />
+
+              <hr className="border-slate-100" />
               <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Delivery &amp; Revision Protocol</span>
-                <span className="text-black font-bold">{contract.deliveryTimeframeDays} Days (Round 1 Draft)</span>
-                <span className="text-[10px] text-gray-500 block font-semibold mt-0.5">
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Delivery &amp; Revision Protocol</span>
+                <span className="text-slate-900 font-extrabold text-sm block">{contract.deliveryTimeframeDays} Days (Round 1 Draft)</span>
+                <span className="text-xs text-slate-600 block font-medium mt-1 leading-relaxed">
                   Starts post product/advance receipt. Revisions: {contract.revisionRounds || 1} Rounds ({contract.revisionTurnaroundDays || 5} days/round).
                 </span>
                 {contract.brandApprovalRequired && (
-                  <span className="text-[10px] text-blue-700 block font-semibold mt-0.5">48-Hr Deemed Approval Active</span>
+                  <span className="text-xs text-blue-700 block font-bold mt-1">48-Hr Deemed Approval Active</span>
                 )}
               </div>
-              <hr className="border-gray-50" />
+
+              <hr className="border-slate-100" />
               <div>
-                <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Exclusivity Clause</span>
-                <span className="text-black font-bold">
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Exclusivity Clause</span>
+                <span className="text-slate-900 font-extrabold text-sm block">
                   {contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "Not Required"}
                 </span>
                 {contract.exclusivityClause && contract.exclusivityCompetitors && (
-                  <span className="text-[10px] text-gray-500 font-semibold block mt-0.5">
+                  <span className="text-xs text-slate-600 font-semibold block mt-1">
                     Prohibited: {contract.exclusivityCompetitors}
                   </span>
                 )}
               </div>
+
               {contract.confidentialityRequired && (
                 <>
-                  <hr className="border-gray-50" />
+                  <hr className="border-slate-100" />
                   <div>
-                    <span className="text-gray-400 font-bold uppercase tracking-wide block mb-1">Confidentiality / Product NDA</span>
-                    <span className="text-amber-800 uppercase bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-bold inline-block">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Confidentiality / Product NDA</span>
+                    <span className="text-amber-900 font-bold uppercase bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg text-xs inline-block">
                       Strict NDA Active
                     </span>
                     {contract.embargoDate && (
-                      <span className="text-[10px] text-gray-500 font-semibold block mt-1">
+                      <span className="text-xs text-slate-600 font-semibold block mt-1">
                         Embargo Until: {formatLegalDate(contract.embargoDate, contract.jurisdictionCountryCode)}
                       </span>
                     )}
                     {contract.earlyDisclosurePenalty && (
-                      <span className="text-[10px] text-rose-600 font-bold block mt-0.5">
+                      <span className="text-xs text-rose-600 font-bold block mt-1">
                         Early Leak Fine: {formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}
                       </span>
                     )}
@@ -566,27 +581,28 @@ export default function ContractDetailPage({ params }: PageProps) {
         <div className="lg:col-span-2 space-y-6">
           
           {/* Financial details */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider mb-4">Financial Settlements</h4>
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider mb-5">Financial Settlements</h4>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-semibold">
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Total Valuation</span>
-                <span className="text-base font-black text-black">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
+              <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-1">
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Total Valuation</span>
+                <span className="text-lg font-black text-slate-900">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
               </div>
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col justify-between min-h-[90px]">
+
+              <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex flex-col justify-between space-y-1">
                 <div>
-                  <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Advance Payment</span>
-                  <span className="text-base font-black text-black">
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Advance Payment</span>
+                  <span className="text-base font-black text-slate-900">
                     {contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : formatCurrencyAmount(0, currCode)}
                   </span>
                   {contract.advancePaymentDate && (
-                    <span className="text-[10px] text-gray-500 block mt-1">
+                    <span className="text-xs text-slate-500 block mt-1">
                       Due: {formatLegalDate(contract.advancePaymentDate, contract.jurisdictionCountryCode)}
                     </span>
                   )}
                 </div>
                 {contract.advancePayment && (
-                  <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded border block w-fit mt-1.5 tracking-wider ${
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-md border block w-fit mt-2 tracking-wider ${
                     contract.advanceReceived 
                       ? "bg-emerald-50 border-emerald-200 text-emerald-800 uppercase" 
                       : "bg-amber-50 border-amber-200 text-amber-800 uppercase"
@@ -595,21 +611,23 @@ export default function ContractDetailPage({ params }: PageProps) {
                   </span>
                 )}
               </div>
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Remaining Payout</span>
-                <span className="text-base font-black text-black">
+
+              <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-1">
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Remaining Payout</span>
+                <span className="text-base font-black text-slate-900">
                   {formatCurrencyAmount(contract.remainingAmount || 0, currCode)}
                 </span>
                 {contract.remainingPaymentDate && (
-                  <span className="text-[10px] text-gray-500 block mt-1">
+                  <span className="text-xs text-slate-500 block mt-1">
                     Due: {formatLegalDate(contract.remainingPaymentDate, contract.jurisdictionCountryCode)}
                   </span>
                 )}
               </div>
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50">
-                <span className="text-gray-400 font-bold uppercase tracking-wider block mb-1">Route Method</span>
-                <span className="text-base font-black text-black uppercase">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
-                <span className="text-[10px] text-gray-500 font-semibold block mt-1 truncate">
+
+              <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-1">
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Route Method</span>
+                <span className="text-base font-black text-slate-900 uppercase block">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
+                <span className="text-xs text-slate-600 font-semibold block mt-1 truncate">
                   {contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}
                 </span>
               </div>
@@ -617,25 +635,25 @@ export default function ContractDetailPage({ params }: PageProps) {
           </div>
 
           {/* Deliverables details */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider mb-4">Required Campaign Deliverables</h4>
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider mb-5">Required Campaign Deliverables</h4>
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
                 <thead>
-                  <tr className="border-b border-gray-100 text-gray-400 font-bold">
-                    <th className="py-2">Platform format</th>
-                    <th className="py-2 text-center">Qty</th>
-                    <th className="py-2 text-center">Stay Published</th>
-                    <th className="py-2">Instructions / Notes</th>
+                  <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
+                    <th className="py-3 px-3">Platform format</th>
+                    <th className="py-3 px-3 text-center">Qty</th>
+                    <th className="py-3 px-3 text-center">Stay Published</th>
+                    <th className="py-3 px-3">Instructions / Notes</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {contract.deliverables?.map((d: any) => (
-                    <tr key={d.id} className="border-b border-gray-50 text-black">
-                      <td className="py-3 font-bold">{formatDeliverableTypeName(d.type)}</td>
-                      <td className="py-3 font-bold text-center">{d.quantity}</td>
-                      <td className="py-3 font-bold text-center text-gray-500">{d.duration || "Permanent"}</td>
-                      <td className="py-3 text-gray-500">{d.notes || "No notes"}</td>
+                    <tr key={d.id} className="text-slate-900 hover:bg-slate-50/50">
+                      <td className="py-3.5 px-3 font-bold text-sm">{formatDeliverableTypeName(d.type)}</td>
+                      <td className="py-3.5 px-3 font-extrabold text-center text-sm">{d.quantity}</td>
+                      <td className="py-3.5 px-3 font-semibold text-center text-slate-600">{d.duration || "Permanent"}</td>
+                      <td className="py-3.5 px-3 text-slate-600 max-w-xs">{d.notes || "No notes"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -645,39 +663,41 @@ export default function ContractDetailPage({ params }: PageProps) {
 
           {/* Collaboration Product Details & Loan Return Terms */}
           {contract.collabProduct && (
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-xs space-y-4">
-              <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Collaboration Product Shipment &amp; Return Terms</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Product Details</span>
-                  <span className="text-black font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 block">
+            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm text-xs space-y-5">
+              <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider">Collaboration Product Shipment &amp; Return Terms</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <span className="text-slate-400 font-bold block uppercase tracking-wider">Product Details</span>
+                  <span className="text-slate-900 font-bold bg-slate-50 p-4 rounded-2xl border border-slate-200/80 block text-sm">
                     {contract.collabProduct} ({contract.collabProductProvisionType || "Provision"})
                   </span>
                 </div>
-                <div>
-                  <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Expected Arrival Date</span>
-                  <span className="text-black font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 block">
+
+                <div className="space-y-1">
+                  <span className="text-slate-400 font-bold block uppercase tracking-wider">Expected Arrival Date</span>
+                  <span className="text-slate-900 font-bold bg-slate-50 p-4 rounded-2xl border border-slate-200/80 block text-sm">
                     {contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate, contract.jurisdictionCountryCode) : "Not Specified"}
                   </span>
                 </div>
               </div>
+
               {contract.collabDeliveryAddress && (
-                <div>
-                  <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Delivery Address</span>
-                  <p className="text-black leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-200">{contract.collabDeliveryAddress}</p>
+                <div className="space-y-1">
+                  <span className="text-slate-400 font-bold block uppercase tracking-wider">Delivery Address</span>
+                  <p className="text-slate-900 font-semibold leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-sm">{contract.collabDeliveryAddress}</p>
                 </div>
               )}
 
               {contract.collabProductProvisionType === "Product Loan" && (
-                <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 text-xs space-y-2">
+                <div className="bg-amber-50 border border-amber-200/80 rounded-2xl p-5 text-xs space-y-2 leading-relaxed">
                   <span className="font-bold text-amber-900 uppercase tracking-wider block">Product Loan Return Terms</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-amber-950">
-                    <div>• Return Deadline: Within <strong>{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
-                    <div>• Shipping Paid By: <strong>{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
-                    {contract.collabProductNonReturnFee && <div>• Loss / Non-Return Penalty Fee: <strong>{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-amber-950 font-medium">
+                    <div>Return Deadline: <strong className="font-bold">{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
+                    <div>Shipping Paid By: <strong className="font-bold">{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
+                    {contract.collabProductNonReturnFee && <div>Loss / Non-Return Fee: <strong className="font-bold">{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
                   </div>
                   {contract.collabProductReturnAddress && (
-                    <div className="text-[11px] text-amber-900">Return Address: {contract.collabProductReturnAddress}</div>
+                    <div className="text-xs text-amber-900 font-medium pt-1">Return Address: {contract.collabProductReturnAddress}</div>
                   )}
                 </div>
               )}
@@ -685,36 +705,26 @@ export default function ContractDetailPage({ params }: PageProps) {
           )}
 
           {/* Bilateral Safeguards & Dispute Resolution */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-xs space-y-4">
-            <h4 className="text-xs font-black text-black border-b border-gray-100 pb-2 uppercase tracking-wider">Bilateral Safeguard Penalties &amp; Governing Law</h4>
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm text-xs space-y-5">
+            <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider">Bilateral Safeguard Penalties &amp; Governing Law</h4>
             
-            <div>
-              <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Bilateral Safeguard Penalties</span>
-              <div className="text-black font-medium bg-gray-50 p-3.5 rounded-lg border border-gray-200 space-y-1.5 leading-relaxed">
-                <div>• Late Payment Delay Penalty (Charged to Brand): <strong>{Number(contract.latePaymentPenaltyPct)}%/day</strong> (Capped at <strong>{Number(contract.penaltyCapPct || 20)}%</strong>)</div>
-                <div>• Late Content Delivery Penalty (Charged to Creator): <strong>{Number(contract.lateContentPenaltyPct)}%/day</strong> (Capped at <strong>{Number(contract.penaltyCapPct || 20)}%</strong>)</div>
-                <div>• Non-Delivery Cutoff: Content delayed beyond <strong>{contract.nonDeliveryCutoffDays || 7} calendar days</strong> legally constitutes Non-Delivery, stopping daily fees and triggering 100% advance refundability.</div>
-                <div>• Unauthorized Brand Re-Use Penalty: <strong>{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of contract value per violation</strong></div>
-                <div>• Pre-Delivery Termination Fee: <strong>{Number(contract.cancellationFeePct || 25)}% of fee</strong></div>
+            <div className="space-y-2">
+              <span className="text-slate-400 font-bold block uppercase tracking-wider">Bilateral Safeguard Penalties</span>
+              <div className="text-slate-800 font-medium bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-2 leading-relaxed text-xs">
+                <div>• Late Payment Delay Penalty (Charged to Brand): <strong className="text-slate-900 font-bold">{Number(contract.latePaymentPenaltyPct)}%/day</strong> (Capped at <strong className="text-slate-900 font-bold">{Number(contract.penaltyCapPct || 20)}%</strong>)</div>
+                <div>• Late Content Delivery Penalty (Charged to Creator): <strong className="text-slate-900 font-bold">{Number(contract.lateContentPenaltyPct)}%/day</strong> (Capped at <strong className="text-slate-900 font-bold">{Number(contract.penaltyCapPct || 20)}%</strong>)</div>
+                <div>• Non-Delivery Cutoff: Content delayed beyond <strong className="text-slate-900 font-bold">{contract.nonDeliveryCutoffDays || 7} calendar days</strong> legally constitutes Non-Delivery, stopping daily fees and triggering 100% advance refundability.</div>
+                <div>• Unauthorized Brand Re-Use Penalty: <strong className="text-slate-900 font-bold">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of contract value per violation</strong></div>
+                <div>• Pre-Delivery Termination Fee: <strong className="text-slate-900 font-bold">{Number(contract.cancellationFeePct || 25)}% of fee</strong></div>
               </div>
             </div>
 
-            <div>
-              <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Section 11: Governing Law &amp; Dispute Resolution (ADR)</span>
-              <div className="text-blue-950 font-medium bg-blue-50/60 p-3.5 rounded-lg border border-blue-200 leading-relaxed">
+            <div className="space-y-2">
+              <span className="text-slate-400 font-bold block uppercase tracking-wider">Section 11: Governing Law &amp; Dispute Resolution (ADR)</span>
+              <div className="text-blue-950 font-medium bg-blue-50/60 p-5 rounded-2xl border border-blue-200 leading-relaxed text-xs">
                 {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>{jur.arbitrationAct}</strong>.
               </div>
             </div>
-
-
-            <div>
-              <span className="text-gray-400 font-bold block mb-1 uppercase tracking-wide">Content Ownership &amp; License Terms</span>
-              <p className="text-black leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-200">{contract.contentOwnership}</p>
-            </div>
-          </div>
-
-        </div>
-      </div>
 
       {/* Audit Log / Verification Visual Signatures Blocks */}
       {(contract.signatures?.length > 0 || contract.status === "PENDING_INITIATOR") && (
