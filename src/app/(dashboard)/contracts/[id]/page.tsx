@@ -583,26 +583,26 @@ export default function ContractDetailPage({ params }: PageProps) {
           {/* Financial details */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm">
             <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-3 uppercase tracking-wider mb-5">Financial Settlements</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-semibold">
-              <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-1">
-                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Total Valuation</span>
-                <span className="text-lg font-black text-slate-900">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 text-xs font-semibold">
+              <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-1 min-w-0 overflow-hidden">
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1 truncate">Total Valuation</span>
+                <span className="text-base sm:text-lg font-black text-slate-900 block truncate">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
               </div>
 
-              <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex flex-col justify-between space-y-1">
+              <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex flex-col justify-between space-y-1 min-w-0 overflow-hidden">
                 <div>
-                  <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Advance Payment</span>
-                  <span className="text-base font-black text-slate-900">
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1 truncate">Advance Payment</span>
+                  <span className="text-sm sm:text-base font-black text-slate-900 block truncate">
                     {contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : formatCurrencyAmount(0, currCode)}
                   </span>
                   {contract.advancePaymentDate && (
-                    <span className="text-xs text-slate-500 block mt-1">
+                    <span className="text-xs text-slate-500 block mt-1 truncate">
                       Due: {formatLegalDate(contract.advancePaymentDate, contract.jurisdictionCountryCode)}
                     </span>
                   )}
                 </div>
                 {contract.advancePayment && (
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-md border block w-fit mt-2 tracking-wider ${
+                  <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-md border block w-fit mt-2 tracking-wider ${
                     contract.advanceReceived 
                       ? "bg-emerald-50 border-emerald-200 text-emerald-800 uppercase" 
                       : "bg-amber-50 border-amber-200 text-amber-800 uppercase"
@@ -612,21 +612,21 @@ export default function ContractDetailPage({ params }: PageProps) {
                 )}
               </div>
 
-              <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-1">
-                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Remaining Payout</span>
-                <span className="text-base font-black text-slate-900">
+              <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-1 min-w-0 overflow-hidden">
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1 truncate">Remaining Payout</span>
+                <span className="text-sm sm:text-base font-black text-slate-900 block truncate">
                   {formatCurrencyAmount(contract.remainingAmount || 0, currCode)}
                 </span>
                 {contract.remainingPaymentDate && (
-                  <span className="text-xs text-slate-500 block mt-1">
+                  <span className="text-xs text-slate-500 block mt-1 truncate">
                     Due: {formatLegalDate(contract.remainingPaymentDate, contract.jurisdictionCountryCode)}
                   </span>
                 )}
               </div>
 
-              <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-1">
-                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1">Route Method</span>
-                <span className="text-base font-black text-slate-900 uppercase block">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
+              <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-1 min-w-0 overflow-hidden">
+                <span className="text-slate-400 font-bold uppercase tracking-wider block mb-1 truncate">Route Method</span>
+                <span className="text-sm sm:text-base font-black text-slate-900 uppercase block truncate">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
                 <span className="text-xs text-slate-600 font-semibold block mt-1 truncate">
                   {contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}
                 </span>
