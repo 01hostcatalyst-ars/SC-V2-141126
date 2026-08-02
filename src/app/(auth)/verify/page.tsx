@@ -4,6 +4,8 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getCompanyConfig } from "@/lib/config";
+import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 function VerifyContent() {
   const router = useRouter();
@@ -577,25 +579,7 @@ export default function VerifyPage() {
         <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
         {/* Header */}
-        <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-6 z-10 sticky top-0">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base shadow-sm">
-              {company.name[0]}
-            </span>
-            <span className="font-black text-lg text-black tracking-tight uppercase">
-              {company.name}
-            </span>
-          </Link>
-          <Link
-            href="/"
-            className="text-xs font-bold px-4 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-all flex items-center gap-2 shadow-sm"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span>Back to Home</span>
-          </Link>
-        </header>
+        <PublicHeader activeRoute="/verify" />
 
         {/* Main Body */}
         <main className="flex-1 flex items-center justify-center p-6 sm:p-10 md:p-16 z-10">
@@ -603,28 +587,7 @@ export default function VerifyPage() {
         </main>
 
         {/* Footer */}
-        <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-6 flex flex-col md:flex-row items-center justify-between px-6 gap-4 z-10">
-          <span className="text-xs text-gray-500 font-semibold">
-            © {new Date().getFullYear()} {company.name}. All rights reserved.
-          </span>
-          <div className="flex gap-4 items-center flex-wrap justify-center">
-            <Link href="/features" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
-              Features
-            </Link>
-            <span className="text-gray-300">|</span>
-            <Link href="/verify" className="text-xs text-black font-bold hover:underline">
-              Verify Document
-            </Link>
-            <span className="text-gray-300">|</span>
-            <Link href="/terms" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
-              Terms &amp; Privacy
-            </Link>
-            <span className="text-gray-300">|</span>
-            <a href={`mailto:${company.supportEmail}`} className="text-xs text-gray-500 hover:text-black font-semibold transition-colors">
-              Support: {company.supportEmail}
-            </a>
-          </div>
-        </footer>
+        <PublicFooter />
       </div>
     </Suspense>
   );

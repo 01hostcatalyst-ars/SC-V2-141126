@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 interface CountryOption {
   name: string;
@@ -473,21 +475,7 @@ export default function SurveyPage() {
       <div className="absolute bottom-[10%] right-[-5%] w-[70%] h-[40%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
       {/* Header */}
-      <header className="w-full border-b border-gray-200/80 bg-white/80 backdrop-blur-md px-6 py-4 z-20 sticky top-0">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-[11px] font-semibold uppercase tracking-widest bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded">
-              SIGNCOLLAB
-            </span>
-            <span className="text-sm font-bold text-slate-700 group-hover:text-black transition">
-              Pricing Index
-            </span>
-          </Link>
-          <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-            100% Anonymous Survey
-          </span>
-        </div>
-      </header>
+      <PublicHeader activeRoute="/survey" />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 md:py-12 z-10 flex flex-col">
@@ -991,9 +979,7 @@ export default function SurveyPage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-gray-200/80 bg-white/80 backdrop-blur-md py-6 px-6 z-10 text-center text-xs text-slate-500 font-medium">
-        SignCollab &copy; 2026 • Bilateral Agreement Proof-Layer &amp; Creator Rate Transparency Initiative
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import { getCompanyConfig } from "@/lib/config";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFaqAccordion } from "@/components/contact/ContactFaqAccordion";
+import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
 
@@ -211,48 +213,7 @@ export default function ContactPage() {
       <div className="absolute top-[35%] right-[-10%] w-[600px] h-[600px] rounded-full ambient-glow-blue pointer-events-none z-0 opacity-30 blur-3xl" />
 
       {/* Navigation Header */}
-      <header className="w-full border-b border-gray-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-xl tracking-tight text-black uppercase">
-              {company.name}
-            </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase tracking-wide">
-              Support Portal
-            </span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-700">
-            <Link href="/" className="hover:text-black transition-colors">
-              Home
-            </Link>
-            <Link href="/about" className="hover:text-black transition-colors">
-              About Us
-            </Link>
-            <Link href="/vision" className="hover:text-black transition-colors">
-              Vision &amp; Mission
-            </Link>
-            <Link href="/features" className="hover:text-black transition-colors">
-              Features
-            </Link>
-            <Link href="/knowledge" className="hover:text-black transition-colors">
-              Academy
-            </Link>
-            <Link href="/contact" className="text-black font-bold border-b-2 border-black pb-0.5">
-              Contact
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/instant"
-              className="px-4 py-2 text-xs font-bold rounded-lg bg-black text-white hover:bg-gray-800 transition-all shadow-sm"
-            >
-              Create Free Contract
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PublicHeader activeRoute="/contact" />
 
       {/* Main Body */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-12 z-10 space-y-12">
@@ -465,57 +426,7 @@ export default function ContactPage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-gray-200/80 bg-white/80 backdrop-blur-md py-8 px-6 z-10 mt-auto">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex flex-col items-center md:items-start gap-1 text-center md:text-left">
-            <span className="font-bold text-sm tracking-tight text-black uppercase">
-              {company.name}
-            </span>
-            <p className="text-xs text-gray-500 font-medium">
-              Bilateral Agreement Proof-Layer &amp; Tamper-Proof Audit Trails
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-gray-600">
-            <Link href="/" className="hover:text-black transition-colors">
-              Home
-            </Link>
-            <Link href="/about" className="hover:text-black transition-colors">
-              About Us
-            </Link>
-            <Link href="/vision" className="hover:text-black transition-colors">
-              Vision &amp; Mission
-            </Link>
-            <Link href="/knowledge" className="hover:text-black transition-colors">
-              Knowledge Base
-            </Link>
-            <Link href="/survey" className="hover:text-emerald-600 transition-colors text-emerald-700 font-bold">
-              Pricing Index Survey
-            </Link>
-            <Link href="/features" className="hover:text-black transition-colors">
-              Features
-            </Link>
-            <Link href="/verify" className="hover:text-black transition-colors">
-              Verify Document
-            </Link>
-            <Link href="/terms" className="hover:text-black transition-colors">
-              Terms &amp; Privacy
-            </Link>
-            <Link href="/contact" className="text-black font-bold hover:underline">
-              Contact &amp; Support
-            </Link>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto border-t border-gray-100 mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-2 text-center sm:text-left">
-          <span>
-            © {new Date().getFullYear()} {company.name}. All rights reserved.
-          </span>
-          <span className="text-gray-400 font-medium">
-            {company.supportEmail}
-          </span>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

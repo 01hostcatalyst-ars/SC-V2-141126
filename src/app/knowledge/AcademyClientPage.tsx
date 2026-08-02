@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 import {
   PILLARS,
   LEARNING_JOURNEYS,
@@ -101,36 +103,7 @@ export default function AcademyClientPage({
       <div className="absolute bottom-[10%] right-[-5%] w-[70%] h-[45%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
       {/* Header */}
-      <header className="w-full h-16 border-b border-gray-200/60 bg-white/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-8 z-20 sticky top-0">
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <span className="w-8 h-8 rounded-xl bg-black flex items-center justify-center font-black text-white text-base shadow-sm">
-            {companyName[0]}
-          </span>
-          <div className="flex flex-col">
-            <span className="font-black text-sm sm:text-base text-black tracking-tight uppercase leading-none">
-              {companyName}
-            </span>
-            <span className="text-[10px] font-extrabold text-blue-600 tracking-wider uppercase leading-none mt-0.5">
-              Academy
-            </span>
-          </div>
-        </Link>
-
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/instant"
-            className="hidden sm:inline-flex text-xs font-extrabold px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm items-center gap-1.5 whitespace-nowrap"
-          >
-            <span>Instant Contract</span>
-          </Link>
-          <Link
-            href="/"
-            className="text-xs font-bold px-3.5 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors"
-          >
-            Back to Home
-          </Link>
-        </div>
-      </header>
+      <PublicHeader activeRoute="/knowledge" />
 
       {/* Academy Hero */}
       <section className="academy-hero z-10">
@@ -397,28 +370,7 @@ export default function AcademyClientPage({
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-gray-200/60 bg-white/80 backdrop-blur-md py-6 flex flex-col md:flex-row items-center justify-between px-6 gap-4 z-20 mt-auto">
-        <span className="text-xs text-gray-500 font-semibold">
-          © {new Date().getFullYear()} {companyName}. All rights reserved.
-        </span>
-        <div className="flex gap-4 items-center flex-wrap justify-center text-xs font-bold text-gray-600">
-          <Link href="/knowledge" className="text-black hover:underline">
-            Academy
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/instant" className="hover:text-black transition-colors">
-            Instant Contract
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/verify" className="hover:text-black transition-colors">
-            Verify Document
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/terms" className="hover:text-black transition-colors">
-            Terms &amp; Privacy
-          </Link>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

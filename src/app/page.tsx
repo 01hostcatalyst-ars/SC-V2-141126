@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getCompanyConfig } from "@/lib/config";
 import { HomeAuthCard } from "@/components/home/HomeAuthCard";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
 
@@ -84,58 +85,8 @@ export default function Home() {
         </div>
       </HomeAuthCard>
 
-      {/* Footer — fully server-rendered */}
-      <footer className="w-full border-t border-gray-200/80 bg-white/80 backdrop-blur-md py-8 px-6 z-10 mt-auto">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex flex-col items-center md:items-start gap-1 text-center md:text-left">
-            <span className="font-bold text-sm tracking-tight text-black uppercase">
-              {company.name}
-            </span>
-            <p className="text-xs text-gray-500 font-medium">
-              Bilateral Agreement Proof-Layer &amp; Tamper-Proof Audit Trails
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-gray-600">
-            <Link href="/knowledge" className="hover:text-black transition-colors">
-              Knowledge Base
-            </Link>
-            <Link href="/survey" className="hover:text-emerald-600 transition-colors text-emerald-700 font-bold">
-              Pricing Index Survey
-            </Link>
-            <Link href="/about" className="hover:text-black transition-colors font-bold text-gray-800">
-              About Us
-            </Link>
-            <Link href="/vision" className="hover:text-black transition-colors">
-              Vision &amp; Mission
-            </Link>
-            <Link href="/features" className="hover:text-black transition-colors">
-              Features
-            </Link>
-            <Link href="/pricing" className="hover:text-black transition-colors font-bold text-gray-800">
-              Pricing
-            </Link>
-            <Link href="/verify" className="hover:text-black transition-colors">
-              Verify Document
-            </Link>
-            <Link href="/terms" className="hover:text-black transition-colors">
-              Terms &amp; Privacy
-            </Link>
-            <Link href="/contact" className="hover:text-black transition-colors font-bold text-gray-800">
-              Contact &amp; Support
-            </Link>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto border-t border-gray-100 mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-2 text-center sm:text-left">
-          <span>
-            © {new Date().getFullYear()} {company.name}. All rights reserved.
-          </span>
-          <span className="text-gray-400 font-medium">
-            {company.supportEmail}
-          </span>
-        </div>
-      </footer>
+      {/* Footer */}
+      <PublicFooter />
     </div>
   );
 }
