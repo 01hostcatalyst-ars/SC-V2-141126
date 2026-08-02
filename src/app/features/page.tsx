@@ -7,24 +7,24 @@ import type { Metadata } from "next";
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
 
 export const metadata: Metadata = {
-  title: "Features — How SignCollab Secures Creator & Brand Contracts",
+  title: "Platform Features — Security & Contract Architecture | SignCollab",
   description:
-    "Explore SignCollab's 6-step contract creation wizard, bilateral e-signatures with OTP verification, SHA-256 tamper-proof audit trails, and cryptographic document verification. Compliant with US ESIGN, UK eIDAS, EU eIDAS, UAE, Pakistan ETO, and India IT Act.",
+    "Explore SignCollab's complete feature architecture: 6-step contract wizard, OTP bilateral e-signatures, SHA-256 tamper-proof audit certificates, local browser verification, and 27-jurisdiction global compliance engine.",
   alternates: {
     canonical: "/features",
   },
   openGraph: {
-    title: "Features — How SignCollab Secures Creator & Brand Contracts",
+    title: "Platform Features — Security & Contract Architecture | SignCollab",
     description:
-      "Explore the complete platform architecture: contract wizards, bilateral e-signatures, SHA-256 audit trails, and multi-jurisdiction compliance across 25+ countries.",
+      "Explore SignCollab's 6-step contract wizard, OTP-verified e-signatures, SHA-256 tamper-proof audit trails, and multi-jurisdiction compliance across 27 countries.",
     url: `${baseUrl}/features`,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SignCollab Features — Contract Security Architecture",
+    title: "SignCollab Features — Creator & Brand Contract Architecture",
     description:
-      "6-step contract wizard, OTP-verified e-signatures, SHA-256 audit trails, and global e-signature compliance for creators, brands, and agencies.",
+      "6-step contract wizard, OTP-verified e-signatures, SHA-256 audit certificates, and global legal compliance for creators, brands, and agencies.",
   },
 };
 
@@ -35,55 +35,59 @@ export default function FeaturesPage() {
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "WebPage",
+        "@id": `${baseUrl}/features`,
+        "name": "SignCollab Features & Architecture",
+        "description":
+          "Detailed breakdown of SignCollab's contract wizard, bilateral e-signature engine, SHA-256 audit certificate generation, document verification, and 27-jurisdiction legal compliance framework.",
+        "url": `${baseUrl}/features`,
+        "isPartOf": { "@id": `${baseUrl}/#website` },
+        "about": { "@id": `${baseUrl}/#organization` },
+        "breadcrumb": { "@id": `${baseUrl}/#breadcrumb` },
+        "inLanguage": "en-US",
+      },
+      {
         "@type": "FAQPage",
         "@id": `${baseUrl}/features/#faqpage`,
         "mainEntity": [
           {
             "@type": "Question",
-            "name": "How does SignCollab create contracts for creators and brands?",
+            "name": "How does SignCollab's 6-step contract wizard work?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "SignCollab uses a 6-step guided contract creation wizard that covers deliverable specifications (Reels, Stories, Posts, YouTube, TikTok), commercial usage rights scope, financial milestones and payout routes, turnaround times and deemed approval protocols, bilateral penalty clauses, and OTP email authentication. No legal expertise is required — the platform auto-generates compliant bilateral agreements.",
+              "text": "SignCollab guides users through 6 structured steps: (1) Deliverables & Tagging, (2) Usage Rights & Licensing, (3) Financial & Payment Terms, (4) Delivery, Revisions & Product Provisions, (5) Safeguards, Penalties & Exclusivity, and (6) Workflow & Identity Verification. It turns informal conversations into binding, legally sound digital contracts.",
             },
           },
           {
             "@type": "Question",
-            "name": "What e-signature laws does SignCollab comply with?",
+            "name": "How many legal jurisdictions does SignCollab support?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "SignCollab's electronic signatures are compliant with the US ESIGN Act (15 U.S.C. § 7001) and UETA, UK Electronic Communications Act 2000 and UK eIDAS, EU eIDAS Regulation (EU) No 910/2014, UAE Federal Decree-Law No. 46 of 2021, Pakistan Electronic Transactions Ordinance (ETO) 2002, India Information Technology Act 2000, and electronic transaction laws in 25+ countries worldwide.",
+              "text": "SignCollab supports 27 global jurisdictions: United States (US ESIGN & UETA), United Kingdom (UK eIDAS), European Union (EU eIDAS Reg 910/2014 & eIDAS 2.0), UAE (Decree-Law 46/2021), Saudi Arabia (Royal Decree M/18), Canada (UECA & PIPEDA), Australia (ETA 1999), Singapore (ETA 2010), India (IT Act 2000 & Section 63 BSA 2023), Pakistan (ETO 2002), Brazil (MP 2.200-2 & Law 14.063), Mexico (Commerce Code), Colombia (Law 527/1999), Indonesia (ITE Law), Malaysia (ECA 2006), Philippines (RA 8792), Thailand (ETA B.E. 2544), Vietnam (ET Law 2023), China (PRC E-Signature Law), Nigeria (Evidence Act 2011), South Africa (ECTA 2002), Kenya (KICA 2020), Egypt (Law 15/2004), Qatar (Law 16/2010), Oman (RD 69/2008), Ghana (Act 772), and Jamaica (ET Act 2006).",
             },
           },
           {
             "@type": "Question",
-            "name": "How does SignCollab verify that contracts have not been tampered with?",
+            "name": "How does local browser document verification work?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "SignCollab uses SHA-256 cryptographic hashing to generate a unique fingerprint for every signed contract PDF. Any modification — even changing a single comma — produces a completely different hash. Users can verify document integrity by uploading the PDF or entering the tracking token on the /verify page. The verification runs locally in the browser before contacting SignCollab servers.",
+              "text": "SignCollab's verification engine processes contract PDFs locally inside your browser to compute their SHA-256 hash fingerprint before contacting servers. If even a single character or comma is altered, the SHA-256 hash changes completely, flagging the document as tampered.",
             },
           },
           {
             "@type": "Question",
-            "name": "What does the SignCollab audit trail certificate include?",
+            "name": "What is Guest Mode in SignCollab?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "The audit certificate PDF includes the SHA-256 hash of the master contract, verified email addresses of both signatories, phone numbers and job titles, detailed timestamps for every action, IP addresses for all signing events, and client user-agent strings identifying operating systems and devices used during signing.",
+              "text": "Guest Mode lets users generate up to 2 free, fully signed instant contracts per 24 hours per email address without creating an account or paying upfront fees.",
             },
           },
           {
             "@type": "Question",
-            "name": "Can I use SignCollab for international creator contracts across different countries?",
+            "name": "What information is included in the SHA-256 audit trail certificate?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. SignCollab supports contracts in 25+ jurisdictions including the United States, United Kingdom, Canada, Australia, European Union, UAE, Saudi Arabia, India, Pakistan, Singapore, Brazil, Mexico, Colombia, Indonesia, Malaysia, Philippines, Thailand, Vietnam, China, Nigeria, South Africa, Kenya, Egypt, Qatar, Oman, Ghana, and Jamaica. Each jurisdiction automatically maps the correct governing law, dispute resolution clauses, and e-signature compliance framework.",
-            },
-          },
-          {
-            "@type": "Question",
-            "name": "What is the deemed approval protocol in SignCollab contracts?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "The 48-hour deemed approval protocol means that if a brand does not respond to a creator's submitted content draft within 48 hours, the content is automatically deemed approved. This prevents brands from holding creator content hostage by indefinitely ignoring submissions.",
+              "text": "The audit certificate includes the master contract SHA-256 hash checksum, verified signatory email addresses, phone numbers, job titles, exact UTC timestamps, IP addresses, browser user-agent signatures, OTP verification logs, and governing legal jurisdiction notices.",
             },
           },
         ],
@@ -93,290 +97,483 @@ export default function FeaturesPage() {
         "@id": `${baseUrl}/features/#howto`,
         "name": "How to Create a Bilateral Creator-Brand Contract on SignCollab",
         "description":
-          "A step-by-step guide to creating a legally compliant bilateral agreement between creators, brands, and agencies using SignCollab's 6-step contract wizard.",
-        "totalTime": "PT10M",
-        "tool": [
-          {
-            "@type": "HowToTool",
-            "name": "Web browser (Chrome, Safari, Firefox, or Edge)",
-          },
-          {
-            "@type": "HowToTool",
-            "name": "Valid email address for OTP verification",
-          },
-        ],
+          "A step-by-step guide to generating a legally compliant bilateral contract using SignCollab's 6-step guided wizard.",
+        "totalTime": "PT5M",
         "step": [
           {
             "@type": "HowToStep",
             "position": 1,
-            "name": "Specify Deliverables",
-            "text": "Define the content format (Reel, Story, Post, YouTube Video, TikTok Short), post quantities, and retention deadlines (permanent vs. 30-day post duration).",
+            "name": "Specify Deliverables & Tagging",
+            "text": "Define content formats (Reels, TikToks, Shorts, YouTube, Carousels), post counts, tagging instructions (#ad #collab), and promo code rules.",
           },
           {
             "@type": "HowToStep",
             "position": 2,
             "name": "Set Commercial Usage Rights",
-            "text": "Determine where the brand can re-use creator IP (organic reposts, paid digital ads, print/out-of-home, broadcast media) and for how long (30 days, 6 months, perpetuity).",
+            "text": "Configure usage scope (Organic Social, Paid Ads, Print & Billboard, Broadcast Media), platform permissions, and licensing duration.",
           },
           {
             "@type": "HowToStep",
             "position": 3,
-            "name": "Configure Financial Milestones",
-            "text": "Input total contract valuation, advance deposit requirements, due dates, and select the payout route method (bank IBAN, mobile wallet, or wire transfer).",
+            "name": "Configure Financials & Payouts",
+            "text": "Select currency, statutory tax treatment, advance deposit terms, milestone payment dates, and payout routes (Bank IBAN, Local Mobile Wallet, Wire).",
           },
           {
             "@type": "HowToStep",
             "position": 4,
-            "name": "Set Turnaround and Approval Terms",
-            "text": "Configure delivery turnaround times, maximum revision rounds, product shipment details, and the 48-hour deemed approval protocol.",
+            "name": "Define Delivery & Product Provisions",
+            "text": "Set delivery turnaround days, revision caps, product shipment details, return policies, and the 48-hour deemed approval rule.",
           },
           {
             "@type": "HowToStep",
             "position": 5,
-            "name": "Define Bilateral Penalties",
-            "text": "Set late payment fees (% per day), late content delivery penalties, pre-delivery cancellation fees, and the 7-day non-delivery cutoff rule.",
+            "name": "Establish Safeguards & Penalties",
+            "text": "Configure late payment penalties, late content delivery fees, non-delivery cutoff rules, category exclusivity terms, and confidentiality embargoes.",
           },
           {
             "@type": "HowToStep",
             "position": 6,
-            "name": "Verify Identity via OTP",
-            "text": "Complete 6-digit email OTP verification to authenticate your identity before the contract draft is published for counterparty signing.",
+            "name": "Verify Identity & Execute",
+            "text": "Select workflow relationship, complete email OTP authentication, and generate a secure counterparty signing link.",
           },
         ],
-      },
-      {
-        "@type": "Service",
-        "@id": `${baseUrl}/features/#service`,
-        "name": "Bilateral Contract Generation & E-Signature Proof Service",
-        "serviceType": "Digital Commercial Contract Execution & Audit Logging",
-        "provider": { "@id": `${baseUrl}/#organization` },
-        "areaServed": "Global (25+ countries)",
-        "description": "Automated bilateral contract creation, OTP email identity verification, SHA-256 cryptographic audit certificate generation, and multi-jurisdiction e-signature legal compliance."
-      },
-      {
-        "@type": "WebPage",
-        "@id": `${baseUrl}/features`,
-        "name": "SignCollab Features — Contract Security Architecture",
-        "description":
-          "Complete breakdown of SignCollab's bilateral contract execution flow, digital e-signatures, tamper-proof audit logs, and cryptographic verification layer for creators, brands, and agencies.",
-        "url": `${baseUrl}/features`,
-        "isPartOf": { "@id": `${baseUrl}/#website` },
-        "about": { "@id": `${baseUrl}/#webapp` },
-        "breadcrumb": { "@id": `${baseUrl}/#breadcrumb` },
       },
     ],
   };
 
+  const coreFeatures = [
+    {
+      badge: "Guided Contract Builder",
+      title: "6-Step Commercial Wizard",
+      desc: "Turn informal DM promises into structured, enforceable legal agreements with smart autocompletions for deliverables, usage scope, and financial terms.",
+      icon: (
+        <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+    },
+    {
+      badge: "Cryptographic Security",
+      title: "SHA-256 Tamper-Proof Audit Certificates",
+      desc: "Every executed agreement generates a master contract PDF and an Audit Certificate featuring SHA-256 hash checksums, verified emails, IP addresses, and timestamps.",
+      icon: (
+        <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      ),
+    },
+    {
+      badge: "Global Legal Engine",
+      title: "27 Jurisdiction Compliance Engine",
+      desc: "Automated mapping of governing law, dispute resolution clauses, and electronic signature compliance across 27 countries in North America, Europe, Middle East, Asia-Pacific, Latin America, and Africa.",
+      icon: (
+        <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h1.5a2.5 2.5 0 002.5-2.5V14.39M15 15.5H14a2 2 0 01-2-2v-.5a2 2 0 00-2-2H9" />
+        </svg>
+      ),
+    },
+    {
+      badge: "Identity Authentication",
+      title: "OTP Email Verification & Device Fingerprinting",
+      desc: "Prevent unauthorized signoffs with mandatory 6-digit email OTP verification, device user-agent logging, and IP tracking before contract activation.",
+      icon: (
+        <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 004 11c0 2.473.345 4.866.99 7.132M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+    },
+    {
+      badge: "Client-Side Privacy",
+      title: "Local Browser Verification Tool",
+      desc: "Upload contract PDFs to compute SHA-256 hashes locally in your browser. Document content never leaves your device during authenticity checks.",
+      icon: (
+        <svg className="w-6 h-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      ),
+    },
+    {
+      badge: "Instant Access",
+      title: "Guest Mode (2 Free Contracts/24 Hours)",
+      desc: "Generate and sign 2 full-featured, bilaterally signed contracts per 24 hours per email address with zero mandatory signup or upfront fees.",
+      icon: (
+        <svg className="w-6 h-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      ),
+    },
+  ];
+
+  const wizardSteps = [
+    {
+      number: "01",
+      title: "Deliverables & Tagging",
+      desc: "Specify exact deliverables (Reels, TikToks, Shorts, YouTube Videos, Carousels), post counts, tagging instructions (#ad #collab), promo codes, and co-author IG collab tags.",
+    },
+    {
+      number: "02",
+      title: "Usage Rights & Licensing",
+      desc: "Define licensing scope (Organic Social, Paid Ads, Print & Billboard, Broadcast Media), platform allowances (Instagram, TikTok, YouTube, LinkedIn, X), and duration terms.",
+    },
+    {
+      number: "03",
+      title: "Financials & Payout Routes",
+      desc: "Select currency, statutory tax rules, advance deposit requirements, milestone payment dates, and local payout channels (Bank IBAN, Mobile Wallets, Wire Transfer).",
+    },
+    {
+      number: "04",
+      title: "Delivery, Revisions & Products",
+      desc: "Set turnaround days, revision caps, product shipment details, return shipping rules, and the 48-hour deemed approval protocol to prevent hostage submissions.",
+    },
+    {
+      number: "05",
+      title: "Safeguards, Penalties & Exclusivity",
+      desc: "Establish late payment penalties, late content delivery fees, non-delivery cutoff rules, category exclusivity terms, and confidentiality embargoes.",
+    },
+    {
+      number: "06",
+      title: "Workflow & Identity Verification",
+      desc: "Choose relationship workflows (Creator ➔ Brand, Brand ➔ Creator, Agency ➔ Creator), enter tax/company IDs, complete OTP email verification, and launch counterparty signing links.",
+    },
+  ];
+
+  const regions = [
+    { name: "North America", countries: "United States (ESIGN & UETA), Canada (UECA & PIPEDA), Mexico (Commerce Code)" },
+    { name: "Europe & UK", countries: "United Kingdom (eIDAS & ECA 2000), European Union (eIDAS Reg 910/2014 & eIDAS 2.0)" },
+    { name: "Middle East & Gulf", countries: "UAE (Decree-Law 46/2021), Saudi Arabia (Royal Decree M/18), Qatar (Law 16/2010), Oman (RD 69/2008), Egypt (Law 15/2004)" },
+    { name: "Asia-Pacific", countries: "India (IT Act & BSA 2023 Sec 63), Pakistan (ETO 2002), Singapore (ETA 2010), Australia (ETA 1999), Indonesia (ITE Law), Malaysia (ECA 2006), Philippines (RA 8792), Thailand (ETA B.E. 2544), Vietnam (ET Law 2023), China (PRC E-Signature Law)" },
+    { name: "Latin America", countries: "Brazil (MP 2.200-2 & Law 14.063), Colombia (Law 527/1999), Jamaica (ET Act 2006)" },
+    { name: "Africa", countries: "Nigeria (Evidence Act 2011), South Africa (ECTA 2002), Kenya (KICA 2020), Ghana (Act 772)" },
+  ];
+
   return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
-      {/* Features Page JSON-LD */}
+    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden">
+      {/* Schema.org Structured Data */}
       <Script
         id="features-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(featuresJsonLd) }}
       />
-      {/* Background ambient glow shapes */}
-      <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
 
-      {/* Header */}
-      <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 z-10 sticky top-0">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="hidden sm:flex w-8 h-8 rounded-lg bg-black items-center justify-center font-bold text-white text-base shrink-0">
-            {company.name[0]}
-          </span>
-          <span className="font-bold text-base sm:text-lg text-black tracking-tight uppercase">
-            {company.name}
-          </span>
-        </Link>
-        <Link
-          href="/"
-          className="text-xs font-semibold px-4 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors"
-        >
-          ← Back to Home
-        </Link>
+      {/* Ambient background glow elements */}
+      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[500px] rounded-full ambient-glow-purple pointer-events-none z-0 opacity-40 blur-3xl" />
+      <div className="absolute top-[35%] right-[-10%] w-[600px] h-[600px] rounded-full ambient-glow-blue pointer-events-none z-0 opacity-30 blur-3xl" />
+
+      {/* Navigation Header */}
+      <header className="w-full border-b border-gray-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="font-black text-xl tracking-tight text-black uppercase">
+              {company.name}
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200 uppercase tracking-wide">
+              Architecture
+            </span>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-700">
+            <Link href="/" className="hover:text-black transition-colors">
+              Home
+            </Link>
+            <Link href="/about" className="hover:text-black transition-colors">
+              About Us
+            </Link>
+            <Link href="/vision" className="hover:text-black transition-colors">
+              Vision &amp; Mission
+            </Link>
+            <Link href="/features" className="text-black font-bold border-b-2 border-black pb-0.5">
+              Features
+            </Link>
+            <Link href="/knowledge" className="hover:text-black transition-colors">
+              Academy
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <Link
+              href="/instant"
+              className="px-4 py-2 text-xs font-bold rounded-lg bg-black text-white hover:bg-gray-800 transition-all shadow-sm"
+            >
+              Create Free Contract
+            </Link>
+          </div>
+        </div>
       </header>
 
-      {/* Main Body */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-6 md:p-12 z-10 space-y-12">
-        {/* Hero Section */}
-        <div className="space-y-4 text-center sm:text-left">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-200">
-            Platform Architecture &amp; Capabilities
+      {/* Main Content */}
+      <main className="flex-1 z-10">
+        {/* HERO SECTION */}
+        <section className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold bg-blue-100/90 text-blue-900 border border-blue-300 mb-6 shadow-sm">
+            Platform Architecture • Security &amp; Legal Compliance
           </span>
-          <h1 className="text-3xl md:text-5xl font-black text-black leading-tight tracking-tight">
-            How {company.name} Secures Your Campaigns
+          <h1 className="text-4xl md:text-6xl font-black text-black leading-tight tracking-tight mb-6">
+            Engineered for <span className="text-accent-gradient">Trust &amp; Clarity</span>
           </h1>
-          <p className="text-sm md:text-base text-gray-700 leading-relaxed max-w-2xl">
-            A comprehensive, end-to-end breakdown of our bilateral contract execution flow, digital signatures, audit logs, and cryptographic verification layer.
+          <p className="text-lg md:text-xl text-gray-800 font-medium leading-relaxed max-w-3xl mx-auto mb-8 bg-white/60 backdrop-blur-md p-6 rounded-2xl border border-gray-200/80 shadow-sm">
+            SignCollab combines a 6-step guided contract wizard, OTP email authentication, SHA-256 cryptographic audit trails, local document verification, and a 27-jurisdiction legal compliance engine.
           </p>
-        </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <span className="px-3 py-1 rounded-md text-xs font-bold bg-blue-50 border border-blue-200 text-blue-800">
+              #27Jurisdictions
+            </span>
+            <span className="px-3 py-1 rounded-md text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-800">
+              #SHA256Checksum
+            </span>
+            <span className="px-3 py-1 rounded-md text-xs font-bold bg-purple-50 border border-purple-200 text-purple-800">
+              #OTPAuthentication
+            </span>
+            <span className="px-3 py-1 rounded-md text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800">
+              #GuestMode
+            </span>
+            <span className="px-3 py-1 rounded-md text-xs font-bold bg-rose-50 border border-rose-200 text-rose-800">
+              #LocalVerification
+            </span>
+          </div>
+        </section>
 
-        {/* Section 1: The Contract Creation Wizard Options */}
-        <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          <h2 className="text-lg font-black text-black uppercase tracking-wider border-b border-gray-100 pb-3">
-            The Contract Creation Wizard: Every Option Explained
-          </h2>
-          <p className="text-xs text-gray-600 leading-relaxed font-medium">
-            Verbal agreements and chat transcripts do not hold up in billing departments or courts. Here is how our 6-step creation wizard secures every detail of your deals:
-          </p>
+        {/* CORE PLATFORM FEATURES GRID */}
+        <section className="max-w-6xl mx-auto px-6 py-10">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-3xl font-black text-black tracking-tight mb-3">
+              Core Platform Capabilities
+            </h2>
+            <p className="text-sm text-gray-600">
+              Purpose-built infrastructure for modern creator, brand, and agency partnerships.
+            </p>
+          </div>
 
-          <div className="space-y-6 mt-4">
-            {/* Step 1 */}
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">Step 1: Deliverables Specification</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Define the content format (Reel, Story, Post, YouTube Video, TikTok Short), post quantities, and retention deadlines (e.g. permanent vs. 30-day post duration).
-              </p>
-              <p className="text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                <strong>Why it matters:</strong> Prevents creators from deleting campaign content early or claiming they did not agree to permanent feed placements.
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {coreFeatures.map((feat, i) => (
+              <div
+                key={i}
+                className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-4 shadow-inner">
+                    {feat.icon}
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full mb-2 inline-block border border-blue-100">
+                    {feat.badge}
+                  </span>
+                  <h3 className="text-lg font-bold text-black mb-2">{feat.title}</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed">{feat.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 6-STEP CONTRACT WIZARD ARCHITECTURE */}
+        <section className="max-w-5xl mx-auto px-6 py-12">
+          <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 md:p-12 border border-gray-200 shadow-xl">
+            <div className="max-w-3xl mx-auto text-center mb-10">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
+                Contract Creation Flow
+              </span>
+              <h2 className="text-3xl md:text-4xl font-black text-black tracking-tight mt-4 mb-3">
+                The 6-Step Guided Contract Wizard
+              </h2>
+              <p className="text-sm text-gray-600">
+                Eliminate ambiguity and legal gaps in under 5 minutes without needing a lawyer.
               </p>
             </div>
 
-            {/* Step 2 */}
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">Step 2: Commercial Usage Rights Scope</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Determine exactly where the brand can re-use the creator&apos;s intellectual property (Organic reposts, Paid digital ads, Print/Out-of-home billboards, or Full broadcast media) and for how long (e.g., 30 Days, 6 Months, or Perpetuity).
-              </p>
-              <p className="text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                <strong>Why it matters:</strong> Ensures brands don&apos;t run creator content as paid advertisements indefinitely without paying secondary licensing fees.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">Step 3: Financial Milestones &amp; Payout Routes</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Input total valuation, optional advance deposit requirements, and specific due dates. The system locks in the payout route method selected (Direct Bank IBAN, JazzCash Mobile, or EasyPaisa Mobile) and account details.
-              </p>
-              <p className="text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                <strong>Why it matters:</strong> Protects creators from billing payment defaults. Binding payout routes inside the signed contract prevents payment details interception or email payment fraud.
-              </p>
-            </div>
-
-            {/* Step 4 */}
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">Step 4: Turnaround, Deemed Approval &amp; Product Shipment</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Includes delivery turnaround times, maximum revision rounds, product shipment details (Provision vs. Loan), damage fees, and the 48-Hour Deemed Approval Protocol.
-              </p>
-              <p className="text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                <strong>Why it matters:</strong> The 48-hour deemed approval stops brands from holding creator content hostage by ignoring drafts. Product loan return clauses prevent creators from keeping high-value loan items without returning them.
-              </p>
-            </div>
-
-            {/* Step 5 */}
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">Step 5: Bilateral Safeguard Penalties</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Define late payment fees (% per day), late content delivery penalties, pre-delivery cancellation fees, and the 7-day non-delivery cutoff rule.
-              </p>
-              <p className="text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                <strong>Why it matters:</strong> Establishes clear financial consequences. Late payment penalties keep brands accountable, and late delivery penalties protect brand marketing schedules.
-              </p>
-            </div>
-
-            {/* Step 6 */}
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">Step 6: OTP Authentication</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Before any agreement draft can be published or shared for counterparty signing, the creator/brand initiator must complete a 6-digit email OTP (One-Time Password) check to verify their identity.
-              </p>
-              <p className="text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                <strong>Why it matters:</strong> Establishes identity proof, stops spoofing, and logs the email address in the audit logs.
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {wizardSteps.map((step, idx) => (
+                <div key={idx} className="bg-gray-50/80 border border-gray-200/80 p-6 rounded-2xl flex gap-4">
+                  <span className="text-2xl font-black text-emerald-600 shrink-0 font-mono">
+                    {step.number}
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-black text-base mb-1">{step.title}</h3>
+                    <p className="text-xs text-gray-600 leading-relaxed">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Section 2: Contract PDF and Certificate PDF */}
-        <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          <h2 className="text-lg font-black text-black uppercase tracking-wider border-b border-gray-100 pb-3">
-            Anatomy of the Tamper-Proof Document Pair
-          </h2>
-          <p className="text-xs text-gray-600 leading-relaxed font-medium">
-            Once signed by both parties, {company.name} compiles the agreement into two distinct PDF documents that secure your legal rights:
-          </p>
+        {/* 27 JURISDICTION GLOBAL COMPLIANCE ENGINE */}
+        <section className="max-w-6xl mx-auto px-6 py-12">
+          <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-800">
+            <div className="max-w-3xl mx-auto text-center mb-10">
+              <span className="text-xs font-black uppercase tracking-wider text-blue-400 bg-blue-950 border border-blue-800 px-3.5 py-1 rounded-full">
+                Multi-Jurisdiction Compliance Engine
+              </span>
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight mt-4 mb-3">
+                Supported Across 27 Countries Worldwide
+              </h2>
+              <p className="text-sm text-gray-300 leading-relaxed">
+                SignCollab automatically binds appropriate governing law, dispute resolution clauses, statutory tax notes, and electronic signature compliance frameworks based on selected country jurisdiction.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">1. The Executed Agreement PDF</h3>
-              <ul className="text-[11px] text-gray-600 space-y-1.5 leading-relaxed list-disc pl-4">
-                <li>Bilateral terms compiled into standard formatting.</li>
-                <li>Clear tables detailing deliverables, usage rights, and payment methods.</li>
-                <li>Both party signatures, timestamps, and designators directly embedded.</li>
-                <li>Governing law and ADR clauses mapped under applicable jurisdiction acts.</li>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {regions.map((r, idx) => (
+                <div key={idx} className="bg-white/5 border border-white/10 p-5 rounded-2xl">
+                  <h3 className="font-bold text-emerald-400 text-sm mb-2 uppercase tracking-wide">
+                    {r.name}
+                  </h3>
+                  <p className="text-xs text-gray-300 leading-relaxed">
+                    {r.countries}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* LOCAL VERIFICATION & AUDIT CERTIFICATE SECURITY */}
+        <section className="max-w-5xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Local Browser Verification */}
+          <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200 flex flex-col justify-between">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-100 px-3 py-1 rounded-full mb-4 inline-block">
+                Privacy Protection
+              </span>
+              <h3 className="text-2xl font-bold text-black mb-3">
+                Local Client-Side Document Verification
+              </h3>
+              <p className="text-xs md:text-sm text-gray-600 leading-relaxed mb-4">
+                Our verification tool running at <code className="bg-gray-100 px-1.5 py-0.5 rounded text-rose-700 font-mono">/verify</code> calculates the SHA-256 hash locally in your web browser using Web Crypto APIs.
+              </p>
+              <ul className="space-y-2 text-xs text-gray-700 font-medium">
+                <li className="flex items-center gap-2">
+                  <span className="text-rose-600 font-bold">✓</span> Document contents are never uploaded over the wire during hash checks.
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-rose-600 font-bold">✓</span> Instant validation against stored cryptographic transaction ledger.
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-rose-600 font-bold">✓</span> Flag tampered documents instantly if a single character is modified.
+                </li>
               </ul>
             </div>
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <Link href="/verify" className="text-xs font-bold text-rose-700 hover:underline flex items-center gap-1">
+                Try Document Verification Tool ➔
+              </Link>
+            </div>
+          </div>
 
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">2. The Audit Certificate PDF</h3>
-              <ul className="text-[11px] text-gray-600 space-y-1.5 leading-relaxed list-disc pl-4">
-                <li>Cryptographic SHA-256 hash of the master contract PDF.</li>
-                <li>Verification log of both signatory emails, phone numbers, and job titles.</li>
-                <li>Detailed timestamps and IP addresses for every action taken.</li>
-                <li>Client user-agent string metadata identifying operating systems and devices.</li>
+          {/* Audit Certificate Contents */}
+          <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200 flex flex-col justify-between">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full mb-4 inline-block">
+                Proof Certificate
+              </span>
+              <h3 className="text-2xl font-bold text-black mb-3">
+                SHA-256 Audit Trail Certificate PDF
+              </h3>
+              <p className="text-xs md:text-sm text-gray-600 leading-relaxed mb-4">
+                Every completed contract outputs an official Audit Certificate detailing complete execution provenance:
+              </p>
+              <ul className="space-y-2 text-xs text-gray-700 font-medium">
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span> SHA-256 master contract checksum fingerprint.
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span> OTP verified email addresses &amp; mobile numbers.
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span> Signatory job titles, IP addresses &amp; device user-agents.
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span> Microsecond-accurate UTC timestamps for all actions.
+                </li>
               </ul>
             </div>
-          </div>
-        </div>
-
-        {/* Section 3: Verification System - How & Why It Works */}
-        <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          <h2 className="text-lg font-black text-black uppercase tracking-wider border-b border-gray-100 pb-3">
-            The Verification Layer: How it Works &amp; Why it is Solid
-          </h2>
-          <p className="text-xs text-gray-600 leading-relaxed font-medium">
-            Our verification module (accessible via `/verify`) offers two separate layers of security to prove that a document is authentic and unmodified:
-          </p>
-
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">Method A: Database Lookup Verification</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                By entering a contract&apos;s unique tracking token, anyone (auditor, billing team, lawyer) can look up the contract inside the platform. The system retrieves signature logs, execution dates, and active contract status directly from our database.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
-              <h3 className="text-xs font-bold text-black uppercase tracking-wider">Method B: Local Cryptographic File Hash Check</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Simply upload the contract PDF. Our page computes the SHA-256 hash locally in your browser before contacting our servers. This hash is compared against the database.
-              </p>
-              <p className="text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                <strong>Why it is 100% Solid:</strong> Changing even a single comma, fee amount, or date alters the computed SHA-256 hash. If any tampering has occurred, the verification check fails instantly, identifying the document as modified.
-              </p>
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <Link href="/instant" className="text-xs font-bold text-emerald-800 hover:underline flex items-center gap-1">
+                Generate Instant Contract PDF ➔
+              </Link>
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* CALL TO ACTION BANNER */}
+        <section className="max-w-4xl mx-auto px-6 py-12 text-center">
+          <div className="bg-black text-white p-8 md:p-12 rounded-3xl shadow-2xl relative overflow-hidden">
+            <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+            <span className="inline-block text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950 border border-emerald-800 px-3 py-1 rounded-full mb-4">
+              Get Started Free
+            </span>
+            <h3 className="text-2xl md:text-4xl font-black tracking-tight mb-4">
+              Ready to Secure Your Next Commercial Collaboration?
+            </h3>
+            <p className="text-sm md:text-base text-gray-300 max-w-xl mx-auto leading-relaxed mb-8">
+              Generate a bilaterally signed digital agreement in minutes. No credit card or mandatory account creation required.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/instant"
+                className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm transition-all shadow-lg hover:shadow-emerald-500/20"
+              >
+                Create Instant Contract
+              </Link>
+              <Link
+                href="/about"
+                className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm transition-all border border-white/20"
+              >
+                Read About SignCollab
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-6 flex flex-col md:flex-row items-center justify-between px-6 gap-4 z-10">
-        <span className="text-xs text-gray-500 font-semibold">
-          © {new Date().getFullYear()} {company.name}. All rights reserved.
-        </span>
-        <div className="flex gap-4 items-center flex-wrap justify-center">
-          <Link href="/vision" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
-            Vision &amp; Mission
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/features" className="text-xs text-black font-bold hover:underline">
-            Features
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/verify" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
-            Verify Document
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/terms" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
-            Terms &amp; Privacy
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/contact" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
-            Contact &amp; Support
-          </Link>
+      <footer className="w-full border-t border-gray-200/80 bg-white/80 backdrop-blur-md py-8 px-6 z-10 mt-auto">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col items-center md:items-start gap-1 text-center md:text-left">
+            <span className="font-bold text-sm tracking-tight text-black uppercase">
+              {company.name}
+            </span>
+            <p className="text-xs text-gray-500 font-medium">
+              Bilateral Agreement Proof-Layer &amp; Tamper-Proof Audit Trails
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-gray-600">
+            <Link href="/" className="hover:text-black transition-colors">
+              Home
+            </Link>
+            <Link href="/about" className="hover:text-black transition-colors">
+              About Us
+            </Link>
+            <Link href="/vision" className="hover:text-black transition-colors">
+              Vision &amp; Mission
+            </Link>
+            <Link href="/knowledge" className="hover:text-black transition-colors">
+              Knowledge Base
+            </Link>
+            <Link href="/survey" className="hover:text-emerald-600 transition-colors text-emerald-700 font-bold">
+              Pricing Index Survey
+            </Link>
+            <Link href="/features" className="text-black font-bold hover:underline">
+              Features
+            </Link>
+            <Link href="/verify" className="hover:text-black transition-colors">
+              Verify Document
+            </Link>
+            <Link href="/terms" className="hover:text-black transition-colors">
+              Terms &amp; Privacy
+            </Link>
+            <Link href="/contact" className="hover:text-black transition-colors font-bold text-gray-800">
+              Contact &amp; Support
+            </Link>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto border-t border-gray-100 mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-2 text-center sm:text-left">
+          <span>
+            © {new Date().getFullYear()} {company.name}. All rights reserved.
+          </span>
+          <span className="text-gray-400 font-medium">
+            {company.supportEmail}
+          </span>
         </div>
       </footer>
     </div>
