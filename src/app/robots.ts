@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/about", "/instant", "/features", "/vision", "/terms"],
+        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms"],
         disallow: ["/api/", "/dashboard/"],
       },
       {
@@ -21,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
           "PerplexityBot",
           "CCBot",
         ],
-        allow: ["/", "/about", "/instant", "/features", "/vision", "/terms"],
+        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms"],
         disallow: ["/api/", "/dashboard/"],
       },
     ],

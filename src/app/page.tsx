@@ -112,6 +112,9 @@ export default function Home() {
             <Link href="/features" className="hover:text-black transition-colors">
               Features
             </Link>
+            <Link href="/pricing" className="hover:text-black transition-colors font-bold text-gray-800">
+              Pricing
+            </Link>
             <Link href="/verify" className="hover:text-black transition-colors">
               Verify Document
             </Link>
