@@ -57,6 +57,44 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
     { title: "On-Device Local Verification", desc: "Web Crypto API hash computation at /verify running locally inside your browser." },
   ];
 
+  const comparisonRows = [
+    { feature: "Legally Binding E-Signatures", starter: true, pro: true, business: true, team: true },
+    { feature: "OTP Verification", starter: true, pro: true, business: true, team: true },
+    { feature: "SHA-256 Audit Trail", starter: true, pro: true, business: true, team: true },
+    { feature: "Creator Contract Templates", starter: true, pro: true, business: true, team: true },
+    { feature: "Usage Rights Clauses", starter: true, pro: true, business: true, team: true },
+    { feature: "Whitelisting Clauses", starter: true, pro: true, business: true, team: true },
+    { feature: "Exclusivity Clauses", starter: true, pro: true, business: true, team: true },
+    { feature: "Commercial Licensing", starter: true, pro: true, business: true, team: true },
+    { feature: "Multi-Party Signing", starter: true, pro: true, business: true, team: true },
+    { feature: "PDF Download", starter: true, pro: true, business: true, team: true },
+    { feature: "Dashboard", starter: false, pro: true, business: true, team: true },
+    { feature: "Saved Contracts", starter: false, pro: true, business: true, team: true },
+    { feature: "Contract Search", starter: false, pro: true, business: true, team: true },
+    { feature: "Reusable Templates", starter: false, pro: true, business: true, team: true },
+    { feature: "Priority Support", starter: false, pro: false, business: true, team: true },
+    { feature: "Team Workspace", starter: false, pro: false, business: false, team: true },
+    { feature: "Team Members", starter: "✕", pro: "1", business: "1", team: "5" },
+    { feature: "API Access (Coming Soon)", starter: false, pro: false, business: true, team: true },
+  ];
+
+  const renderCell = (val: boolean | string) => {
+    if (typeof val === "string") {
+      if (val === "✕") {
+        return <span className="text-gray-300 font-bold text-sm">✕</span>;
+      }
+      return <span className="font-extrabold text-black text-sm">{val}</span>;
+    }
+    if (val) {
+      return (
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs">
+          ✓
+        </span>
+      );
+    }
+    return <span className="text-gray-300 font-bold text-sm">✕</span>;
+  };
+
   return (
     <div className="space-y-12">
       {/* HERO SECTION */}
@@ -118,8 +156,8 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
         </div>
       </section>
 
-      {/* PRICING CARDS GRID (5 TIERS) */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+      {/* PRICING CARDS TOP GRID (4 COLUMNS ON DESKTOP) */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {/* Tier 1: Starter */}
         <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-gray-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
           <div>
@@ -381,59 +419,79 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
             </Link>
           </div>
         </div>
+      </section>
 
-        {/* Tier 5: Enterprise */}
-        <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white rounded-3xl p-6 border border-gray-800 shadow-xl flex flex-col justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-950/80 border border-amber-800 px-3 py-1 rounded-full inline-block mb-3">
-              Enterprise
+      {/* FULL WIDTH ENTERPRISE CARD BELOW TOP 4 TIERS */}
+      <section className="max-w-7xl mx-auto">
+        <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white rounded-3xl p-8 border border-gray-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="space-y-3 text-center md:text-left flex-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-950/80 border border-amber-800 px-3 py-1 rounded-full inline-block">
+              Enterprise &amp; White-Label
             </span>
-            <h3 className="text-xl font-bold text-white mb-1">Enterprise</h3>
-            <p className="text-xs text-gray-300 font-medium mb-4 leading-relaxed">
-              Ideal for enterprise brands, large agency networks &amp; white-label requirements
+            <h3 className="text-2xl md:text-3xl font-black text-white">Enterprise Plan</h3>
+            <p className="text-xs md:text-sm text-gray-300 font-medium max-w-2xl leading-relaxed">
+              Ideal for enterprise brands, large agency networks, and organizations requiring custom contract volume, white-label PDF signing pages, dedicated SLA support, and API integrations.
             </p>
-
-            <div className="mb-4">
-              <span className="text-2xl font-black text-white">Custom Pricing</span>
-              <p className="text-[11px] text-amber-400 font-bold mt-1">Tailored to your organization</p>
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2 text-xs font-semibold text-amber-300 pt-2">
+              <span>✓ Unlimited Agreements &amp; Seats</span>
+              <span>✓ White-Label PDF Branding</span>
+              <span>✓ Dedicated Onboarding &amp; SLA</span>
+              <span>✓ Custom Legal Templates</span>
             </div>
-
-            <div className="p-3 bg-white/10 rounded-xl border border-white/10 mb-4 text-xs font-semibold text-white space-y-1">
-              <p>Unlimited agreements &amp; custom seats</p>
-              <p className="text-[10px] text-gray-300 font-normal">White-label branding included</p>
-            </div>
-
-            <ul className="space-y-2 text-xs text-gray-300 mb-6 font-medium">
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold shrink-0">✓</span>
-                <span>Unlimited team members &amp; custom volume</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold shrink-0">✓</span>
-                <span>White-label signing &amp; custom PDF certificates</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold shrink-0">✓</span>
-                <span>Dedicated onboarding &amp; custom legal templates</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold shrink-0">✓</span>
-                <span>Guaranteed SLA &amp; custom API integration</span>
-              </li>
-            </ul>
           </div>
 
-          <div>
-            <span className="block text-[10px] font-bold text-center text-amber-300 bg-white/10 py-1 px-2 rounded-lg mb-3 border border-white/10">
-              ✓ White-Label &amp; Enterprise SLA
-            </span>
+          <div className="shrink-0 flex flex-col items-center md:items-end space-y-3">
+            <div className="text-center md:text-right">
+              <span className="text-2xl md:text-3xl font-black text-white">Custom Pricing</span>
+              <p className="text-xs text-amber-400 font-bold">Tailored to your organization</p>
+            </div>
             <Link
               href="/contact"
-              className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold rounded-xl flex items-center justify-center transition-all shadow-md"
+              className="px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-black text-xs font-black rounded-xl transition-all shadow-lg hover:shadow-amber-500/20 whitespace-nowrap"
             >
               Contact Sales ↗
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* FEATURE COMPARISON TABLE */}
+      <section className="max-w-7xl mx-auto bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-10 border border-gray-200 shadow-xl space-y-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-purple-800 bg-purple-100 px-3 py-1 rounded-full">
+            Detailed Comparison
+          </span>
+          <h2 className="text-2xl md:text-4xl font-black text-black tracking-tight">
+            Feature Comparison Matrix
+          </h2>
+          <p className="text-xs md:text-sm text-gray-600">
+            Compare platform features across all plans to choose the right fit for your collaboration scale.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[640px]">
+            <thead>
+              <tr className="border-b-2 border-gray-200 text-xs font-black uppercase text-black bg-gray-50/80">
+                <th className="py-4 px-4 text-left">Feature</th>
+                <th className="py-4 px-4 text-center">Starter</th>
+                <th className="py-4 px-4 text-center">Professional</th>
+                <th className="py-4 px-4 text-center">Business</th>
+                <th className="py-4 px-4 text-center">Team</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-xs font-medium text-gray-800">
+              {comparisonRows.map((row, idx) => (
+                <tr key={idx} className="hover:bg-gray-50/60 transition-colors">
+                  <td className="py-3.5 px-4 font-bold text-gray-900">{row.feature}</td>
+                  <td className="py-3.5 px-4 text-center">{renderCell(row.starter)}</td>
+                  <td className="py-3.5 px-4 text-center">{renderCell(row.pro)}</td>
+                  <td className="py-3.5 px-4 text-center">{renderCell(row.business)}</td>
+                  <td className="py-3.5 px-4 text-center">{renderCell(row.team)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
