@@ -358,6 +358,10 @@ export default function FeaturesPage() {
           © {new Date().getFullYear()} {company.name}. All rights reserved.
         </span>
         <div className="flex gap-4 items-center flex-wrap justify-center">
+          <Link href="/vision" className="text-xs text-gray-600 hover:text-black font-semibold transition-colors">
+            Vision &amp; Mission
+          </Link>
+          <span className="text-gray-300">|</span>
           <Link href="/features" className="text-xs text-black font-bold hover:underline">
             Features
           </Link>

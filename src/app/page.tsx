@@ -103,6 +103,12 @@ export default function Home() {
             <Link href="/survey" className="hover:text-emerald-600 transition-colors text-emerald-700 font-bold">
               Pricing Index Survey
             </Link>
+            <Link href="/about" className="hover:text-black transition-colors font-bold text-gray-800">
+              About Us
+            </Link>
+            <Link href="/vision" className="hover:text-black transition-colors">
+              Vision &amp; Mission
+            </Link>
             <Link href="/features" className="hover:text-black transition-colors">
               Features
             </Link>
