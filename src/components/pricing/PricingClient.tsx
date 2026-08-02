@@ -62,7 +62,7 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
       {/* HERO SECTION */}
       <section className="text-center max-w-4xl mx-auto space-y-4 pt-8">
         <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-950 border border-amber-300 shadow-sm">
-          🔥 Launch Offer • 50% OFF First 3 Months
+          Launch Offer • 50% OFF First 3 Months
         </span>
         <h1 className="text-4xl md:text-6xl font-black text-black leading-tight tracking-tight">
           Simple, Transparent Pricing Built for <span className="text-accent-gradient">Creator Marketing</span>
@@ -113,7 +113,7 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
             </button>
           </div>
           <span className="text-xs text-emerald-800 font-semibold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            ✨ Launch Offer: Discount automatically applied at checkout • No coupon required
+            Launch Offer: Discount automatically applied at checkout • No coupon required
           </span>
         </div>
       </section>
@@ -178,7 +178,7 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
         {/* Tier 2: Professional */}
         <div className="bg-white rounded-3xl p-6 border-2 border-emerald-500 shadow-xl flex flex-col justify-between relative overflow-hidden transform lg:-translate-y-2">
           <div className="absolute top-0 right-0 bg-emerald-500 text-black text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider">
-            ⭐ Most Popular
+            Most Popular
           </div>
           <div>
             <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full inline-block mb-3">
@@ -238,10 +238,10 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
               ✓ All Collaboration Types Included
             </span>
             <Link
-              href="/instant"
+              href="/contact"
               className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-xl flex items-center justify-center transition-all shadow-md"
             >
-              Start 14-Day Free Trial
+              Get Started with Professional
             </Link>
           </div>
         </div>
@@ -309,7 +309,7 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
               href="/contact"
               className="w-full py-3 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center transition-all shadow-sm"
             >
-              Upgrade to Business
+              Get Started with Business
             </Link>
           </div>
         </div>
@@ -377,7 +377,7 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
               href="/contact"
               className="w-full py-3 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center transition-all shadow-sm"
             >
-              Start Team Trial
+              Get Started with Team
             </Link>
           </div>
         </div>
@@ -427,12 +427,12 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
             <span className="block text-[10px] font-bold text-center text-amber-300 bg-white/10 py-1 px-2 rounded-lg mb-3 border border-white/10">
               ✓ White-Label &amp; Enterprise SLA
             </span>
-            <a
-              href={`mailto:${supportEmail}?subject=Enterprise%20Inquiry%20-%20SignCollab`}
+            <Link
+              href="/contact"
               className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold rounded-xl flex items-center justify-center transition-all shadow-md"
             >
               Contact Sales ↗
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -455,10 +455,10 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
           {universalFeatures.map((feat, idx) => (
             <div key={idx} className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-1">
               <h3 className="font-bold text-black text-xs flex items-center gap-2">
-                <span className="text-emerald-600 text-base">✅</span>
+                <span className="text-emerald-600 font-bold text-base">✓</span>
                 {feat.title}
               </h3>
-              <p className="text-[11px] text-gray-600 leading-relaxed font-medium pl-6">
+              <p className="text-[11px] text-gray-600 leading-relaxed font-medium pl-5">
                 {feat.desc}
               </p>
             </div>
@@ -494,7 +494,7 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
           {collaborationTypes.map((c, idx) => (
             <div key={idx} className="bg-white/5 border border-white/10 p-4 rounded-xl space-y-1">
               <h3 className="font-bold text-emerald-400 text-sm flex items-center gap-2">
-                <span>🤝</span> {c.flow}
+                <span className="text-xs px-2 py-0.5 bg-emerald-950 text-emerald-300 rounded border border-emerald-800 font-mono">FLOW</span> {c.flow}
               </h3>
               <p className="text-xs text-gray-300 leading-relaxed">{c.desc}</p>
             </div>
@@ -515,8 +515,8 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-gray-200/80 shadow-sm space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-lg">
-              🎯
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs uppercase tracking-wider border border-blue-100">
+              SPEC
             </div>
             <h3 className="font-bold text-black text-sm">Built for Creator Marketing</h3>
             <p className="text-xs text-gray-600 leading-relaxed">
@@ -525,8 +525,8 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
           </div>
 
           <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-gray-200/80 shadow-sm space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg">
-              ⚖️
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs uppercase tracking-wider border border-emerald-100">
+              LAW
             </div>
             <h3 className="font-bold text-black text-sm">Global Legal Recognition</h3>
             <p className="text-xs text-gray-600 leading-relaxed">
@@ -535,8 +535,8 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
           </div>
 
           <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-gray-200/80 shadow-sm space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-lg">
-              ⚡
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-xs uppercase tracking-wider border border-purple-100">
+              FAST
             </div>
             <h3 className="font-bold text-black text-sm">Faster Campaign Workflows</h3>
             <p className="text-xs text-gray-600 leading-relaxed">
@@ -545,8 +545,8 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
           </div>
 
           <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-gray-200/80 shadow-sm space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-lg">
-              🏷️
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-xs uppercase tracking-wider border border-amber-100">
+              FLAT
             </div>
             <h3 className="font-bold text-black text-sm">Transparent Pricing</h3>
             <p className="text-xs text-gray-600 leading-relaxed">
