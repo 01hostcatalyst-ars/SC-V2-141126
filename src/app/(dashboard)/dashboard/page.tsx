@@ -130,7 +130,7 @@ export default function DashboardPage() {
               <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              <span>+ Create Agreement</span>
+              <span>Create Agreement</span>
             </button>
           </Link>
         </div>
@@ -200,25 +200,22 @@ export default function DashboardPage() {
         <div className="flex border border-gray-200 bg-white/80 backdrop-blur-md p-1.5 rounded-2xl max-w-md shadow-sm">
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-              activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
-            }`}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
           >
             All Deals
           </button>
           <button
             onClick={() => setActiveTab("brand")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-              activeTab === "brand" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
-            }`}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${activeTab === "brand" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
           >
             Brand Deals
           </button>
           <button
             onClick={() => setActiveTab("creator")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-              activeTab === "creator" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
-            }`}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${activeTab === "creator" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
           >
             Creator Deals
           </button>
@@ -230,25 +227,22 @@ export default function DashboardPage() {
         <div className="flex border border-gray-200 bg-white/80 backdrop-blur-md p-1.5 rounded-2xl max-w-md shadow-sm">
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-              activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
-            }`}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
           >
             All Deals
           </button>
           <button
             onClick={() => setActiveTab("creator")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-              activeTab === "creator" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
-            }`}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${activeTab === "creator" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
           >
             Creator Deals
           </button>
           <button
             onClick={() => setActiveTab("agency")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-              activeTab === "agency" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
-            }`}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${activeTab === "agency" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
           >
             Agency Deals
           </button>
@@ -260,25 +254,22 @@ export default function DashboardPage() {
         <div className="flex border border-gray-200 bg-white/80 backdrop-blur-md p-1.5 rounded-2xl max-w-md shadow-sm">
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-              activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
-            }`}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
           >
             All Deals
           </button>
           <button
             onClick={() => setActiveTab("brand")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-              activeTab === "brand" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
-            }`}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${activeTab === "brand" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
           >
             Brand Deals
           </button>
           <button
             onClick={() => setActiveTab("agency")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-              activeTab === "agency" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
-            }`}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${activeTab === "agency" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
+              }`}
           >
             Agency Deals
           </button>
@@ -291,7 +282,7 @@ export default function DashboardPage() {
           <h3 className="text-sm font-bold uppercase tracking-wider text-black font-display">Active Partnership Agreements</h3>
           <span className="text-xs text-gray-500 font-semibold">{filteredContracts.length} agreements found</span>
         </div>
-        
+
         {loading ? (
           <div className="py-20 flex justify-center items-center flex-col gap-3 bg-white/80 backdrop-blur-md rounded-3xl border border-gray-200 shadow-sm">
             <div className="w-8 h-8 border-3 border-black border-t-transparent rounded-full animate-spin" />

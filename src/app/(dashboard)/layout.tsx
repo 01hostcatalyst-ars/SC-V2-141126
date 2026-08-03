@@ -75,7 +75,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              <span>+ Create New Agreement</span>
+              <span>Create New Agreement</span>
             </button>
           </Link>
         </div>
@@ -92,11 +92,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 key={link.name}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  isActive
-                    ? "bg-black text-white shadow-sm"
-                    : "text-gray-600 hover:text-black hover:bg-gray-100/80"
-                }`}
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive
+                  ? "bg-black text-white shadow-sm"
+                  : "text-gray-600 hover:text-black hover:bg-gray-100/80"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   {link.icon}
