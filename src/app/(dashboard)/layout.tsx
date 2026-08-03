@@ -67,20 +67,22 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   const navContent = (
     <div className="flex flex-col flex-1 justify-between p-5 space-y-6">
-      <div className="space-y-6">
-        {/* Primary Sidebar Action CTA */}
-        <Link href="/contracts/new" onClick={() => setMobileMenuOpen(false)}>
-          <button className="w-full bg-black hover:bg-gray-900 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md">
-            <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Create New Agreement</span>
-          </button>
-        </Link>
+      <div>
+        {/* Primary Sidebar Action CTA - Emerald Accent to differentiate from black Nav tabs */}
+        <div className="mb-6">
+          <Link href="/contracts/new" onClick={() => setMobileMenuOpen(false)}>
+            <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>+ Create New Agreement</span>
+            </button>
+          </Link>
+        </div>
 
-        {/* Menu Navigation */}
-        <nav className="space-y-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 mb-2 block">
+        {/* Menu Navigation with Generous Spacing */}
+        <nav className="space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 mb-3 block">
             Workspace Navigation
           </span>
           {NAV_LINKS.map((link) => {
@@ -111,7 +113,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Monthly Plan Quota Meter Widget */}
-        <div className="p-4 bg-gradient-to-br from-slate-900 to-black text-white rounded-2xl border border-gray-800 space-y-3 shadow-sm">
+        <div className="mt-8 p-4 bg-gradient-to-br from-slate-900 to-black text-white rounded-2xl border border-gray-800 space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
               Professional Plan
@@ -120,7 +122,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
               Upgrade
             </Link>
           </div>
-          <div className="text-xs font-bold text-gray-200">
+          <div className="text-xs font-bold text-gray-200 font-display">
             14 / 250 Agreements Used
           </div>
           <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
@@ -133,7 +135,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* User Profile Footer */}
-      <div className="pt-4 border-t border-gray-200/80 space-y-3">
+      <div className="pt-4 border-t border-gray-200/80 space-y-3 shrink-0">
         <div className="flex items-center gap-3 px-1">
           <div className="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm uppercase shadow-sm shrink-0">
             {user?.name[0]}
@@ -165,7 +167,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Mobile Top Header */}
       <header className="md:hidden w-full h-16 border-b border-gray-200/80 bg-white/80 backdrop-blur-md flex items-center justify-between px-6 z-30 sticky top-0">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="font-bold text-xl tracking-tight text-black uppercase">
+          <span className="font-bold text-xl tracking-tight text-black uppercase font-display">
             {company.name}
           </span>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200 uppercase">
@@ -192,7 +194,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         {/* Sidebar Brand Header */}
         <div className="h-16 border-b border-gray-200/80 flex items-center px-6 justify-between shrink-0">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-xl tracking-tight text-black uppercase">
+            <span className="font-bold text-xl tracking-tight text-black uppercase font-display">
               {company.name}
             </span>
           </Link>
@@ -212,7 +214,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <main className="flex-1 p-6 md:p-10 lg:p-12 z-10 overflow-y-auto">
-        <div className="max-w-6xl mx-auto w-full space-y-8">
+        <div className="max-w-6xl mx-auto w-full space-y-10">
           {children}
         </div>
       </main>

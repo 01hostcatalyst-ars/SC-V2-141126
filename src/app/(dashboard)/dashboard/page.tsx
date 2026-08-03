@@ -102,17 +102,17 @@ export default function DashboardPage() {
   return (
     <div className="space-y-10 text-left">
       {/* Title & Quick Search Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-black text-black tracking-tight">Workspace Dashboard</h1>
-          <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 pb-2 border-b border-gray-200/60">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold text-black tracking-tight font-display">Workspace Dashboard</h1>
+          <p className="text-xs text-gray-500 font-medium leading-relaxed">
             Welcome back, <strong className="text-black font-semibold">{user?.name}</strong>. Manage your commercial agreements &amp; audit trails.
           </p>
         </div>
 
         {/* Quick Search Input & Action Button */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-[260px]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="relative min-w-[280px]">
             <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -126,11 +126,11 @@ export default function DashboardPage() {
           </div>
 
           <Link href="/contracts/new">
-            <button className="bg-black hover:bg-gray-900 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md text-xs whitespace-nowrap flex items-center gap-2">
+            <button className="w-full sm:w-auto bg-black hover:bg-gray-900 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md text-xs whitespace-nowrap flex items-center justify-center gap-2">
               <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              <span>Create Agreement</span>
+              <span>+ Create Agreement</span>
             </button>
           </Link>
         </div>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
               </svg>
             </div>
           </div>
-          <span className="text-3xl font-black text-black block">{total}</span>
+          <span className="text-3xl font-bold text-black block font-display">{total}</span>
           <span className="text-[10px] text-gray-500 font-medium block">All time campaign agreements</span>
         </div>
 
@@ -162,7 +162,7 @@ export default function DashboardPage() {
               </svg>
             </div>
           </div>
-          <span className="text-3xl font-black text-blue-600 block">{active}</span>
+          <span className="text-3xl font-bold text-blue-600 block font-display">{active}</span>
           <span className="text-[10px] text-gray-500 font-medium block">Fully executed &amp; active</span>
         </div>
 
@@ -176,7 +176,7 @@ export default function DashboardPage() {
               </svg>
             </div>
           </div>
-          <span className="text-3xl font-black text-emerald-600 block">{completed}</span>
+          <span className="text-3xl font-bold text-emerald-600 block font-display">{completed}</span>
           <span className="text-[10px] text-gray-500 font-medium block">Fulfilled &amp; archived</span>
         </div>
 
@@ -190,7 +190,7 @@ export default function DashboardPage() {
               </svg>
             </div>
           </div>
-          <span className="text-3xl font-black text-amber-700 block">{pendingSign}</span>
+          <span className="text-3xl font-bold text-amber-700 block font-display">{pendingSign}</span>
           <span className="text-[10px] text-amber-900 font-bold block">Awaiting your signature</span>
         </div>
       </div>
@@ -288,7 +288,7 @@ export default function DashboardPage() {
       {/* Contract list container */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-black">Active Partnership Agreements</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-black font-display">Active Partnership Agreements</h3>
           <span className="text-xs text-gray-500 font-semibold">{filteredContracts.length} agreements found</span>
         </div>
         
@@ -301,10 +301,10 @@ export default function DashboardPage() {
           <div className="py-20 text-center bg-white/80 backdrop-blur-md border border-gray-200 rounded-3xl p-10 shadow-sm flex flex-col items-center justify-center space-y-4">
             <div className="w-14 h-14 rounded-2xl bg-gray-100 text-gray-400 flex items-center justify-center">
               <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h4 className="font-bold text-black text-lg">No Agreements Found</h4>
+            <h4 className="font-bold text-black text-lg font-display">No Agreements Found</h4>
             <p className="text-xs text-gray-500 max-w-sm font-medium leading-relaxed">
               You haven&apos;t initiated or received any agreements matching this view yet. Generate your first legally binding agreement draft to get started.
             </p>
