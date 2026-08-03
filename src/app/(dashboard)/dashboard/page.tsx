@@ -4,24 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/layout/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
-
 import ContractCard from "@/components/contracts/ContractCard";
-
-interface Contract {
-  id: string;
-  contractNumber: string;
-  contractType: string;
-  status: string;
-  totalAmount: string;
-  advancePayment: string | null;
-  respondentName: string | null;
-  respondentEmail: string | null;
-  respondentCompany: string | null;
-  createdAt: string;
-  linkedContractId: string | null;
-  initiator: { name: string; role: string; email: string };
-  respondent: { name: string; role: string; email: string } | null;
-}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -30,6 +13,7 @@ export default function DashboardPage() {
   const [contracts, setContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"all" | "brand" | "creator" | "agency">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchContracts = async () => {
@@ -41,7 +25,7 @@ export default function DashboardPage() {
         } else {
           showToast(data.error || "Failed to load agreements.", "error");
         }
-      } catch (err) {
+      } catch {
         showToast("Error retrieving dashboard agreements.", "error");
       } finally {
         setLoading(false);
@@ -59,7 +43,7 @@ export default function DashboardPage() {
       } else {
         showToast(data.error || "Failed to generate download link.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Error retrieving PDF document.", "error");
     }
   };
@@ -73,7 +57,7 @@ export default function DashboardPage() {
       } else {
         showToast(data.error || "Failed to generate certificate link.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Error retrieving Audit Certificate document.", "error");
     }
   };
@@ -83,52 +67,22 @@ export default function DashboardPage() {
   const active = contracts.filter((c) => c.status === "ACTIVE").length;
   const completed = contracts.filter((c) => c.status === "COMPLETED").length;
   const pendingSign = contracts.filter((c) => {
-    // Awaiting current user signature
-    if (c.status === "PENDING_INITIATOR" && c.initiator.email === user?.email) return true;
+    if (c.status === "PENDING_INITIATOR" && c.initiator?.email === user?.email) return true;
     if (c.status === "PENDING_RESPONDENT" && c.respondentEmail === user?.email) return true;
     return false;
   }).length;
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "DRAFT":
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-800 uppercase tracking-wider">Draft</span>;
-      case "PENDING_RESPONDENT":
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 border border-blue-200 text-blue-800 uppercase tracking-wider">Awaiting Receiver</span>;
-      case "PENDING_INITIATOR":
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-orange-50 border border-orange-200 text-orange-800 uppercase tracking-wider">Awaiting You</span>;
-      case "ACTIVE":
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 uppercase tracking-wider">Active</span>;
-      case "COMPLETED":
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 border border-indigo-200 text-indigo-800 uppercase tracking-wider">Completed</span>;
-      case "EXPIRED":
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 border border-rose-200 text-rose-800 uppercase tracking-wider">Expired</span>;
-      default:
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-50 border border-gray-200 text-gray-800 uppercase tracking-wider">{status}</span>;
-    }
-  };
-
-  const getContractTypeBadge = (type: string) => {
-    switch (type) {
-      case "CREATOR_TO_BRAND":
-        return <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">Creator ➔ Brand</span>;
-      case "BRAND_TO_CREATOR":
-        return <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">Brand ➔ Creator</span>;
-      case "BRAND_TO_AGENCY":
-        return <span className="text-[10px] font-bold bg-teal-50 text-teal-700 px-2 py-0.5 rounded border border-teal-200">Brand ➔ Agency</span>;
-      case "AGENCY_TO_BRAND":
-        return <span className="text-[10px] font-bold bg-orange-50 text-orange-700 px-2 py-0.5 rounded border border-orange-200">Agency ➔ Brand</span>;
-      case "AGENCY_TO_CREATOR":
-        return <span className="text-[10px] font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-200">Agency ➔ Creator</span>;
-      case "CREATOR_TO_AGENCY":
-        return <span className="text-[10px] font-bold bg-violet-50 text-violet-700 px-2 py-0.5 rounded border border-violet-200">Creator ➔ Agency</span>;
-      default:
-        return <span className="text-[10px] font-bold bg-gray-50 text-gray-700 px-2 py-0.5 rounded border border-gray-200">{type}</span>;
-    }
-  };
-
-  // Filtered list for role-specific tabs
+  // Filtered list for role-specific tabs and search query
   const filteredContracts = contracts.filter((c) => {
+    // Search query match
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const numMatch = (c.contractNumber || "").toLowerCase().includes(q);
+      const partyAMatch = (c.initiatorName || c.brandName || "").toLowerCase().includes(q);
+      const partyBMatch = (c.respondentName || c.creatorName || c.respondentCompany || "").toLowerCase().includes(q);
+      if (!numMatch && !partyAMatch && !partyBMatch) return false;
+    }
+
     if (activeTab === "all") return true;
     if (user?.role === "AGENCY") {
       if (activeTab === "brand") return c.contractType === "AGENCY_TO_BRAND";
@@ -147,47 +101,106 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 text-left">
-      {/* Title block */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Title & Quick Search Header Bar */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-black">Workspace Dashboard</h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Welcome back, <strong className="text-black">{user?.name}</strong>. Manage your agreements here.
+          <h1 className="text-3xl font-black text-black tracking-tight">Workspace Dashboard</h1>
+          <p className="text-xs text-gray-500 font-medium mt-1">
+            Welcome back, <strong className="text-black">{user?.name}</strong>. Manage your commercial agreements &amp; audit trails.
           </p>
         </div>
-        <Link href="/contracts/new">
-          <button className="bg-black text-white hover:bg-black/90 font-bold px-6 py-3 rounded-xl transition-all shadow-md text-sm">
-            + Create Agreement
-          </button>
-        </Link>
+
+        {/* Quick Search Input */}
+        <div className="flex items-center gap-3">
+          <div className="relative min-w-[260px]">
+            <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search contract # or party..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-white/90 backdrop-blur-md border border-gray-200 focus:border-black rounded-xl text-xs font-bold outline-none transition-all shadow-sm"
+            />
+          </div>
+
+          <Link href="/contracts/new">
+            <button className="bg-black hover:bg-gray-900 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md text-xs whitespace-nowrap flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>+ Create Agreement</span>
+            </button>
+          </Link>
+        </div>
       </div>
 
-      {/* Stats Counter Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Total Deals</span>
-          <span className="text-3xl font-black text-black block mt-1">{total}</span>
+      {/* 4 REDESIGNED ACTION METRIC CARDS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Metric 1: Total Deals */}
+        <div className="bg-white/80 backdrop-blur-md border border-gray-200/80 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Total Deals</span>
+            <div className="w-7 h-7 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+          </div>
+          <span className="text-3xl font-black text-black block">{total}</span>
+          <span className="text-[10px] text-gray-500 font-medium block">All time campaign agreements</span>
         </div>
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Active Deals</span>
-          <span className="text-3xl font-black text-blue-600 block mt-1">{active}</span>
+
+        {/* Metric 2: Active Deals */}
+        <div className="bg-white/80 backdrop-blur-md border border-gray-200/80 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-wider text-blue-600">Active Deals</span>
+            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <svg className="w-4 h-4 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+          </div>
+          <span className="text-3xl font-black text-blue-600 block">{active}</span>
+          <span className="text-[10px] text-gray-500 font-medium block">Fully executed &amp; active</span>
         </div>
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Completed Deals</span>
-          <span className="text-3xl font-black text-emerald-600 block mt-1">{completed}</span>
+
+        {/* Metric 3: Completed Deals */}
+        <div className="bg-white/80 backdrop-blur-md border border-gray-200/80 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Completed</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <span className="text-3xl font-black text-emerald-600 block">{completed}</span>
+          <span className="text-[10px] text-gray-500 font-medium block">Fulfilled &amp; archived</span>
         </div>
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Action Required</span>
-          <span className="text-3xl font-black text-orange-600 block mt-1">{pendingSign}</span>
+
+        {/* Metric 4: Action Required */}
+        <div className="bg-white/80 backdrop-blur-md border border-amber-200 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-all relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-wider text-amber-800">Action Required</span>
+            <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
+              <svg className="w-4 h-4 animate-bounce text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+          </div>
+          <span className="text-3xl font-black text-amber-700 block">{pendingSign}</span>
+          <span className="text-[10px] text-amber-900 font-bold block">Awaiting your signature</span>
         </div>
       </div>
 
       {/* Role specific header features & links (Agency Tabs) */}
       {user?.role === "AGENCY" && (
-        <div className="flex border-b border-gray-200 bg-white p-1 rounded-xl border max-w-md">
+        <div className="flex border border-gray-200 bg-white/80 backdrop-blur-md p-1 rounded-2xl max-w-md shadow-sm">
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
               activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
             }`}
           >
@@ -195,7 +208,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab("brand")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
               activeTab === "brand" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
             }`}
           >
@@ -203,7 +216,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab("creator")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
               activeTab === "creator" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
             }`}
           >
@@ -214,10 +227,10 @@ export default function DashboardPage() {
 
       {/* Role specific tabs for Brands */}
       {user?.role === "BRAND" && (
-        <div className="flex border-b border-gray-200 bg-white p-1 rounded-xl border max-w-md">
+        <div className="flex border border-gray-200 bg-white/80 backdrop-blur-md p-1 rounded-2xl max-w-md shadow-sm">
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
               activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
             }`}
           >
@@ -225,7 +238,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab("creator")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
               activeTab === "creator" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
             }`}
           >
@@ -233,7 +246,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab("agency")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
               activeTab === "agency" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
             }`}
           >
@@ -244,10 +257,10 @@ export default function DashboardPage() {
 
       {/* Role specific tabs for Creators */}
       {user?.role === "CREATOR" && (
-        <div className="flex border-b border-gray-200 bg-white p-1 rounded-xl border max-w-md">
+        <div className="flex border border-gray-200 bg-white/80 backdrop-blur-md p-1 rounded-2xl max-w-md shadow-sm">
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
               activeTab === "all" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
             }`}
           >
@@ -255,7 +268,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab("brand")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
               activeTab === "brand" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
             }`}
           >
@@ -263,7 +276,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab("agency")}
-            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
               activeTab === "agency" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black"
             }`}
           >
@@ -274,25 +287,33 @@ export default function DashboardPage() {
 
       {/* Contract list container */}
       <div className="space-y-4">
-        <h3 className="text-sm font-black uppercase tracking-wider text-black">Active Partnership Agreements</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-black uppercase tracking-wider text-black">Active Partnership Agreements</h3>
+          <span className="text-xs text-gray-500 font-bold">{filteredContracts.length} agreements found</span>
+        </div>
         
         {loading ? (
-          <div className="py-12 flex justify-center items-center flex-col gap-2 bg-white rounded-2xl border border-gray-200 shadow-sm">
+          <div className="py-16 flex justify-center items-center flex-col gap-3 bg-white/80 backdrop-blur-md rounded-3xl border border-gray-200 shadow-sm">
             <div className="w-8 h-8 border-3 border-black border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Syncing documents...</span>
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Syncing agreement vault...</span>
           </div>
         ) : filteredContracts.length === 0 ? (
-          <div className="py-16 text-center bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col items-center justify-center">
-            <svg className="w-12 h-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h4 className="font-bold text-black text-lg">No Agreements Found</h4>
-            <p className="text-xs text-gray-500 mt-1 max-w-sm">
-              You haven&apos;t initiated or received any campaigns yet. Generate your first legally binding agreement draft to get started.
+          <div className="py-16 text-center bg-white/80 backdrop-blur-md border border-gray-200 rounded-3xl p-8 shadow-sm flex flex-col items-center justify-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-gray-100 text-gray-400 flex items-center justify-center">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h4 className="font-black text-black text-lg">No Agreements Found</h4>
+            <p className="text-xs text-gray-500 max-w-sm font-medium">
+              You haven&apos;t initiated or received any agreements matching this view yet. Generate your first legally binding agreement draft to get started.
             </p>
-            <Link href="/contracts/new" className="mt-5">
-              <button className="bg-black text-white hover:bg-black/90 font-bold px-6 py-2.5 rounded-xl transition-all shadow-md text-xs">
-                Create Agreement
+            <Link href="/contracts/new">
+              <button className="bg-black hover:bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-md text-xs flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Create Agreement</span>
               </button>
             </Link>
           </div>
