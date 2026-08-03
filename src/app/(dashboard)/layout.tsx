@@ -55,22 +55,22 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case "CREATOR":
-        return <span className="text-[9px] font-black px-2 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200 uppercase tracking-wider">CREATOR</span>;
+        return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200 uppercase tracking-wider">CREATOR</span>;
       case "BRAND":
-        return <span className="text-[9px] font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-200 uppercase tracking-wider">BRAND</span>;
+        return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-200 uppercase tracking-wider">BRAND</span>;
       case "AGENCY":
-        return <span className="text-[9px] font-black px-2 py-0.5 rounded bg-orange-100 text-orange-900 border border-orange-200 uppercase tracking-wider">AGENCY</span>;
+        return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-orange-100 text-orange-900 border border-orange-200 uppercase tracking-wider">AGENCY</span>;
       default:
-        return <span className="text-[9px] font-black px-2 py-0.5 rounded bg-gray-100 text-gray-900 border border-gray-200 uppercase tracking-wider">{role}</span>;
+        return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-900 border border-gray-200 uppercase tracking-wider">{role}</span>;
     }
   };
 
   const navContent = (
-    <div className="flex flex-col flex-1 justify-between p-4 space-y-6">
-      <div className="space-y-4">
+    <div className="flex flex-col flex-1 justify-between p-5 space-y-6">
+      <div className="space-y-6">
         {/* Primary Sidebar Action CTA */}
         <Link href="/contracts/new" onClick={() => setMobileMenuOpen(false)}>
-          <button className="w-full bg-black hover:bg-gray-900 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md">
+          <button className="w-full bg-black hover:bg-gray-900 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md">
             <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
@@ -79,8 +79,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </Link>
 
         {/* Menu Navigation */}
-        <nav className="space-y-1">
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 px-3 mb-2 block">
+        <nav className="space-y-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 mb-2 block">
             Workspace Navigation
           </span>
           {NAV_LINKS.map((link) => {
@@ -90,18 +90,18 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 key={link.name}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   isActive
                     ? "bg-black text-white shadow-sm"
                     : "text-gray-600 hover:text-black hover:bg-gray-100/80"
                 }`}
               >
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-3">
                   {link.icon}
                   <span>{link.name}</span>
                 </div>
                 {link.name === "My Contracts" && (
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isActive ? "bg-emerald-400 text-black" : "bg-gray-200 text-gray-700"}`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-emerald-400 text-black" : "bg-gray-200 text-gray-700"}`}>
                     Active
                   </span>
                 )}
@@ -111,12 +111,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Monthly Plan Quota Meter Widget */}
-        <div className="p-3.5 bg-gradient-to-br from-slate-900 to-black text-white rounded-2xl border border-gray-800 space-y-2 shadow-sm">
+        <div className="p-4 bg-gradient-to-br from-slate-900 to-black text-white rounded-2xl border border-gray-800 space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
               Professional Plan
             </span>
-            <Link href="/pricing" className="text-[10px] font-bold text-gray-400 hover:text-white underline">
+            <Link href="/pricing" className="text-[10px] font-semibold text-gray-400 hover:text-white underline">
               Upgrade
             </Link>
           </div>
@@ -126,7 +126,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
             <div className="h-full bg-emerald-400 rounded-full" style={{ width: "5.6%" }} />
           </div>
-          <p className="text-[10px] text-gray-400 font-medium leading-none pt-0.5">
+          <p className="text-[10px] text-gray-400 font-medium leading-normal pt-0.5">
             5.6% monthly quota used • 236 remaining
           </p>
         </div>
@@ -134,8 +134,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* User Profile Footer */}
       <div className="pt-4 border-t border-gray-200/80 space-y-3">
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm uppercase shadow-sm">
+        <div className="flex items-center gap-3 px-1">
+          <div className="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm uppercase shadow-sm shrink-0">
             {user?.name[0]}
           </div>
           <div className="flex flex-col text-left overflow-hidden min-w-0">
@@ -165,10 +165,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Mobile Top Header */}
       <header className="md:hidden w-full h-16 border-b border-gray-200/80 bg-white/80 backdrop-blur-md flex items-center justify-between px-6 z-30 sticky top-0">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="font-black text-xl tracking-tight text-black uppercase">
+          <span className="font-bold text-xl tracking-tight text-black uppercase">
             {company.name}
           </span>
-          <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200 uppercase">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200 uppercase">
             Workspace
           </span>
         </Link>
@@ -190,13 +190,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Desktop Fixed Left Sidebar */}
       <aside className="hidden md:flex w-64 border-r border-gray-200/80 bg-white/90 backdrop-blur-md h-screen sticky top-0 flex-col z-20 shadow-sm">
         {/* Sidebar Brand Header */}
-        <div className="h-16 border-b border-gray-200/80 flex items-center px-6 justify-between">
+        <div className="h-16 border-b border-gray-200/80 flex items-center px-6 justify-between shrink-0">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-xl tracking-tight text-black uppercase">
+            <span className="font-bold text-xl tracking-tight text-black uppercase">
               {company.name}
             </span>
           </Link>
-          <span className="text-[9px] font-black px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 uppercase tracking-wider">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 uppercase tracking-wider">
             APP
           </span>
         </div>
@@ -212,7 +212,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <main className="flex-1 p-6 md:p-10 lg:p-12 z-10 overflow-y-auto">
-        <div className="max-w-6xl mx-auto w-full">
+        <div className="max-w-6xl mx-auto w-full space-y-8">
           {children}
         </div>
       </main>
