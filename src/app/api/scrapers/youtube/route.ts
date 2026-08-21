@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { scrapeYouTube, saveYouTubeScrape } from '@/lib/scrapers/youtube';
+import { scrapeYouTube, saveAndFetchYouTubeScrape, getSavedYouTubeScrape } from '@/lib/scrapers/youtube';
 import { ScraperResponse, YouTubeScraperData } from '@/lib/scrapers/types';
 
 export async function POST(req: NextRequest) {
@@ -17,18 +17,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const data: YouTubeScraperData = await scrapeYouTube(url.trim());
+    const trimmedUrl = url.trim();
 
-    // Auto-save to database (upsert to youtube_scrapes table)
-    await saveYouTubeScrape(data);
+    // 1. Fetch live data from YouTube
+    const liveData: YouTubeScraperData = await scrapeYouTube(trimmedUrl);
 
+    // 2. Save into Database (table: youtube_scrapes) and read back the stored record
+    const databaseSavedData: YouTubeScraperData = await saveAndFetchYouTubeScrape(liveData);
+
+    // 3. Return the verified database data to frontend
     return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
       success: true,
-      data,
+      data: databaseSavedData,
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     console.error('YouTube Scraper Route Error:', error);
+
+    // Fallback: Check if we have this channel saved in database
+    try {
+      const body = await req.json().catch(() => ({}));
+      if (body?.url) {
+        const cached = await getSavedYouTubeScrape(body.url);
+        if (cached) {
+          console.log('[YouTube Route] Serving cached database record as fallback');
+          return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
+            success: true,
+            data: cached,
+          });
+        }
+      }
+    } catch {
+      // Ignore fallback error
+    }
 
     return NextResponse.json<ScraperResponse>(
       {
@@ -55,11 +76,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const data = await scrapeYouTube(url);
-    await saveYouTubeScrape(data);
+    // 1. Fetch live data
+    const liveData = await scrapeYouTube(url);
+
+    // 2. Save into Database and fetch back
+    const databaseSavedData = await saveAndFetchYouTubeScrape(liveData);
+
+    // 3. Return data from database
     return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
       success: true,
-      data,
+      data: databaseSavedData,
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
