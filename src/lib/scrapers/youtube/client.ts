@@ -9,6 +9,7 @@ import {
   parseYouTubeDuration,
   formatCompactNumber,
   extractEmailFromText,
+  extractExternalLinks,
 } from './parser';
 
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
@@ -185,6 +186,27 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
   const description = rawChannel.snippet?.description || '';
   const extractedEmail = extractEmailFromText(description);
 
+  // Optional: Fetch public channel page for rich custom header links
+  let rawPageHtml = '';
+  try {
+    const targetHandle = rawChannel.snippet?.customUrl || handle || rawChannel.id;
+    const pageUrl = targetHandle.startsWith('@')
+      ? `https://www.youtube.com/${targetHandle}`
+      : `https://www.youtube.com/@${targetHandle}`;
+    const pageRes = await fetch(pageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+    if (pageRes.ok) {
+      rawPageHtml = await pageRes.text();
+    }
+  } catch {
+    // Graceful fallback to description links only
+  }
+
+  const externalLinks = extractExternalLinks(description, rawPageHtml);
   const uploadsPlaylistId = rawChannel.contentDetails?.relatedPlaylists?.uploads || '';
 
   const channelProfile: YouTubeChannelProfile = {
@@ -215,71 +237,84 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
       return decodeURIComponent(parts[parts.length - 1] || url).replace(/_/g, ' ');
     }),
     extractedEmail,
+    externalLinks,
     uploadsPlaylistId,
   };
 
-  // 2. Fetch Uploaded Videos from playlist
+  // 2. Fetch Uploaded Videos with Pagination to ALWAYS collect 10 Long & 10 Shorts
   const longVideos: YouTubeVideoItem[] = [];
   const shortVideos: YouTubeVideoItem[] = [];
 
   if (uploadsPlaylistId) {
-    // Fetch up to 50 recent items from uploads playlist
-    const plUrl = `${BASE_URL}/playlistItems?part=contentDetails&playlistId=${uploadsPlaylistId}&maxResults=50&key=${apiKey}`;
-    const plRes = await fetch(plUrl);
-    const plData = await plRes.json();
+    let pageToken = '';
+    let pagesFetched = 0;
+    const maxPages = 4; // Fetch up to 200 items maximum to find 10 long & 10 shorts
 
-    const rawPlaylistItems: RawPlaylistItem[] = plData.items || [];
-    const videoIds = rawPlaylistItems
-      .map(item => item.contentDetails?.videoId)
-      .filter((id): id is string => Boolean(id));
+    while ((longVideos.length < 10 || shortVideos.length < 10) && pagesFetched < maxPages) {
+      pagesFetched++;
+      const pageParam = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
+      const plUrl = `${BASE_URL}/playlistItems?part=contentDetails&playlistId=${uploadsPlaylistId}&maxResults=50${pageParam}&key=${apiKey}`;
+      const plRes = await fetch(plUrl);
+      const plData = await plRes.json();
 
-    if (videoIds.length > 0) {
-      // Query video stats and duration in one batch
-      const vUrl = `${BASE_URL}/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${apiKey}`;
-      const vRes = await fetch(vUrl);
-      const vData = await vRes.json();
+      const rawPlaylistItems: RawPlaylistItem[] = plData.items || [];
+      if (rawPlaylistItems.length === 0) break;
 
-      const rawVideos: RawVideoItem[] = vData.items || [];
+      const videoIds = rawPlaylistItems
+        .map(item => item.contentDetails?.videoId)
+        .filter((id): id is string => Boolean(id));
 
-      for (const item of rawVideos) {
-        const dur = parseYouTubeDuration(item.contentDetails?.duration);
-        const thumbs = item.snippet?.thumbnails;
-        const bestThumb =
-          thumbs?.maxres?.url ||
-          thumbs?.standard?.url ||
-          thumbs?.high?.url ||
-          thumbs?.medium?.url ||
-          thumbs?.default?.url ||
-          '';
+      if (videoIds.length > 0) {
+        // Query video stats and duration in one batch
+        const vUrl = `${BASE_URL}/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${apiKey}`;
+        const vRes = await fetch(vUrl);
+        const vData = await vRes.json();
 
-        const videoObj: YouTubeVideoItem = {
-          id: item.id,
-          title: item.snippet?.title || 'Untitled',
-          description: item.snippet?.description || '',
-          publishedAt: item.snippet?.publishedAt || '',
-          thumbnailUrl: bestThumb,
-          durationIso: item.contentDetails?.duration || '',
-          durationSeconds: dur.seconds,
-          durationFormatted: dur.formatted,
-          viewCount: parseInt(item.statistics?.viewCount || '0', 10),
-          likeCount: parseInt(item.statistics?.likeCount || '0', 10),
-          commentCount: parseInt(item.statistics?.commentCount || '0', 10),
-          tags: item.snippet?.tags,
-          url: `https://www.youtube.com/watch?v=${item.id}`,
-          comments: [],
-        };
+        const rawVideos: RawVideoItem[] = vData.items || [];
 
-        // Shorts: duration <= 60 seconds
-        if (dur.seconds <= 60 && shortVideos.length < 10) {
-          shortVideos.push(videoObj);
-        } else if (dur.seconds > 60 && longVideos.length < 10) {
-          longVideos.push(videoObj);
-        }
+        for (const item of rawVideos) {
+          const dur = parseYouTubeDuration(item.contentDetails?.duration);
+          const thumbs = item.snippet?.thumbnails;
+          const bestThumb =
+            thumbs?.maxres?.url ||
+            thumbs?.standard?.url ||
+            thumbs?.high?.url ||
+            thumbs?.medium?.url ||
+            thumbs?.default?.url ||
+            '';
 
-        if (longVideos.length >= 10 && shortVideos.length >= 10) {
-          break;
+          const videoObj: YouTubeVideoItem = {
+            id: item.id,
+            title: item.snippet?.title || 'Untitled',
+            description: item.snippet?.description || '',
+            publishedAt: item.snippet?.publishedAt || '',
+            thumbnailUrl: bestThumb,
+            durationIso: item.contentDetails?.duration || '',
+            durationSeconds: dur.seconds,
+            durationFormatted: dur.formatted,
+            viewCount: parseInt(item.statistics?.viewCount || '0', 10),
+            likeCount: parseInt(item.statistics?.likeCount || '0', 10),
+            commentCount: parseInt(item.statistics?.commentCount || '0', 10),
+            tags: item.snippet?.tags,
+            url: `https://www.youtube.com/watch?v=${item.id}`,
+            comments: [],
+          };
+
+          // Shorts: duration <= 60 seconds
+          if (dur.seconds <= 60 && shortVideos.length < 10) {
+            shortVideos.push(videoObj);
+          } else if (dur.seconds > 60 && longVideos.length < 10) {
+            longVideos.push(videoObj);
+          }
+
+          if (longVideos.length >= 10 && shortVideos.length >= 10) {
+            break;
+          }
         }
       }
+
+      pageToken = plData.nextPageToken;
+      if (!pageToken) break; // Reached end of channel's uploads
     }
   }
 
@@ -306,7 +341,6 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
         });
       }
     } catch {
-      // Comments might be disabled on this video
       vid.comments = [];
     }
   }
@@ -334,7 +368,6 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
         });
       }
     } catch {
-      // Comments might be disabled on this video
       vid.comments = [];
     }
   }

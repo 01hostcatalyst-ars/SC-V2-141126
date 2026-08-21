@@ -25,6 +25,12 @@ export interface YouTubeVideoItem {
   comments: YouTubeCommentItem[];
 }
 
+export interface YouTubeExternalLink {
+  title: string;
+  url: string;
+  domain: string;
+}
+
 export interface YouTubeChannelProfile {
   id: string;
   title: string;
@@ -44,6 +50,7 @@ export interface YouTubeChannelProfile {
   keywords?: string[];
   topicCategories?: string[];
   extractedEmail?: string;
+  externalLinks: YouTubeExternalLink[];
   uploadsPlaylistId: string;
 }
 

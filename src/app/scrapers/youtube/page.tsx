@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 import { ScraperInput } from "@/components/scrapers/ScraperInput";
@@ -46,16 +46,11 @@ export default function YouTubeScraperPage() {
     }
   };
 
-  // Optional: Auto-load default sample on initial visit for immediate wow factor
-  useEffect(() => {
-    handleSearch("@VideoWaliSarkar1");
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col bg-[#f9fafb] text-gray-900 selection:bg-black selection:text-white">
       <PublicHeader />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 sm:space-y-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 sm:space-y-10">
         {/* Page Hero Header */}
         <div className="text-center space-y-3 max-w-3xl mx-auto pt-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 border border-red-200/80 rounded-full text-red-700 text-xs font-bold shadow-2xs">
@@ -68,22 +63,24 @@ export default function YouTubeScraperPage() {
           </h1>
 
           <p className="text-sm sm:text-base text-gray-600 font-medium">
-            Extract verified channel metrics, the 10 most recent long videos & shorts, and top comments in seconds.
+            Extract verified channel metrics, all profile links, 10 most recent long videos, 10 shorts, and top 5 recent comments.
           </p>
         </div>
 
-        {/* Search Input Bar */}
-        <ScraperInput onSearch={handleSearch} isLoading={isLoading} initialValue="@VideoWaliSarkar1" />
+        {/* Search Input Bar (No auto-search, completely user controlled) */}
+        <ScraperInput onSearch={handleSearch} isLoading={isLoading} />
 
         {/* Error Notification Banner */}
         {error && (
           <div className="max-w-4xl mx-auto p-4 sm:p-5 bg-red-50 border-2 border-red-200 rounded-2xl flex items-start gap-3 text-red-800 shadow-sm animate-shake">
-            <div className="text-xl shrink-0">⚠️</div>
+            <svg className="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
             <div className="space-y-1 text-sm">
               <div className="font-bold">Scraping Error</div>
               <div className="font-medium text-red-700">{error}</div>
               <div className="text-xs text-red-500 mt-1">
-                Tip: Try passing the direct channel link (e.g. <code className="bg-red-100 px-1 py-0.5 rounded font-mono">https://www.youtube.com/@VideoWaliSarkar1</code>)
+                Tip: Try passing the direct channel link (e.g. <code className="bg-red-100 px-1 py-0.5 rounded font-mono">https://www.youtube.com/@username</code>)
               </div>
             </div>
           </div>
@@ -95,37 +92,32 @@ export default function YouTubeScraperPage() {
         {/* Main Content View */}
         {!isLoading && data && (
           <div className="space-y-8 sm:space-y-10">
-            {/* 1. Channel Profile Card */}
+            {/* 1. Channel Profile Card (With all profile links and 4 core stats, No banner) */}
             <ChannelProfileCard channel={data.channel} />
 
-            {/* 2. Content Performance Benchmark */}
+            {/* 2. Content Performance Benchmark Overview */}
             <EngagementSummary stats={data.stats} />
 
-            {/* 3. 10 Long vs 10 Shorts Video Tabs */}
-            <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-xs">
-              <div className="mb-6">
-                <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
-                  Recent Uploads Catalog
-                </h2>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                  10 most recent long-form uploads & 10 most recent shorts with real-time views, likes, and comment threads.
-                </p>
-              </div>
-
-              <VideoTabs
-                longVideos={data.longVideos}
-                shortVideos={data.shortVideos}
-              />
-            </div>
+            {/* 3. 10 Long Videos (5x2) & 10 Shorts (5x2) */}
+            <VideoTabs
+              longVideos={data.longVideos}
+              shortVideos={data.shortVideos}
+            />
           </div>
         )}
 
-        {/* Empty State before any search */}
-        {!isLoading && !data && !error && hasSearched && (
-          <div className="py-20 text-center space-y-3 bg-white rounded-3xl border border-gray-200">
-            <div className="text-4xl">🔍</div>
-            <h3 className="text-lg font-bold text-gray-800">No channel data to display</h3>
-            <p className="text-xs text-gray-500">Enter a YouTube link above to start extracting data.</p>
+        {/* Initial Empty State before any search */}
+        {!isLoading && !data && !error && !hasSearched && (
+          <div className="py-20 text-center space-y-3 bg-white rounded-3xl border border-gray-200/80 shadow-xs max-w-3xl mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-gray-100 text-gray-500 flex items-center justify-center mx-auto">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-800">Ready to Scrape</h3>
+            <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
+              Paste any YouTube channel URL, custom handle (@username), or video link above to extract data without wasting API quota.
+            </p>
           </div>
         )}
       </main>

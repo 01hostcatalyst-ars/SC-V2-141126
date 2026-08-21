@@ -9,7 +9,6 @@ interface ScraperInputProps {
 }
 
 const SAMPLE_CHANNELS = [
-  { label: "@VideoWaliSarkar1", url: "https://www.youtube.com/@VideoWaliSarkar1" },
   { label: "@MrBeast", url: "https://www.youtube.com/@MrBeast" },
   { label: "@MKBHD", url: "https://www.youtube.com/@mkbhd" },
   { label: "@Veritasium", url: "https://www.youtube.com/@veritasium" },
@@ -32,7 +31,7 @@ export function ScraperInput({ onSearch, isLoading, initialValue = "" }: Scraper
         setUrl(text);
       }
     } catch {
-      // Clipboard access denied or unsupported
+      // Clipboard access not allowed or unsupported
     }
   };
 
@@ -113,7 +112,7 @@ export function ScraperInput({ onSearch, isLoading, initialValue = "" }: Scraper
 
       {/* Sample channels clickable chips */}
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-        <span className="font-semibold text-gray-400">Try sample:</span>
+        <span className="font-semibold text-gray-400">Quick test:</span>
         {SAMPLE_CHANNELS.map((ch) => (
           <button
             key={ch.label}
