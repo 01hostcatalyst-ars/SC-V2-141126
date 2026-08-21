@@ -7,8 +7,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms"],
-        disallow: ["/api/", "/dashboard/"],
+        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/calculator", "/knowledge", "/survey", "/verify", "/contact"],
+        disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers"],
       },
       {
         userAgent: [
@@ -20,9 +20,11 @@ export default function robots(): MetadataRoute.Robots {
           "Google-Extended",
           "PerplexityBot",
           "CCBot",
+          "Googlebot",
+          "bingbot",
         ],
-        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms"],
-        disallow: ["/api/", "/dashboard/"],
+        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/calculator", "/knowledge", "/survey", "/verify", "/contact"],
+        disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

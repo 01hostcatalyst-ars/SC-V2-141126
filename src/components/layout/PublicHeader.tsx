@@ -22,15 +22,6 @@ export function PublicHeader({ authButton }: PublicHeaderProps) {
         {/* Right Action Buttons */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
-            href="/scrapers/youtube"
-            className="px-3 py-2 text-xs font-bold rounded-lg border border-gray-300 text-gray-700 hover:text-black hover:border-black hover:bg-gray-50 transition-all shadow-2xs whitespace-nowrap hidden sm:inline-flex items-center gap-1.5"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <span>YouTube Scraper</span>
-          </Link>
-          <Link
             href="/calculator"
             className="px-3 py-2 text-xs font-bold rounded-lg border border-gray-300 text-gray-700 hover:text-black hover:border-black hover:bg-gray-50 transition-all shadow-2xs whitespace-nowrap hidden sm:inline-flex items-center gap-1.5"
           >
