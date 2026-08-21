@@ -471,4 +471,47 @@ model SurveyResponse {
   @@index([country])
 }
 
+// ==========================================
+// YOUTUBE SCRAPER & CREATOR DATA TABLE
+// ==========================================
+
+model YouTubeScrape {
+  id                    String    @id @default(uuid())
+  youtubeChannelId      String    @unique @map("youtube_channel_id")
+  handle                String?
+  title                 String
+  customUrl             String?   @map("custom_url")
+  description           String?   @db.Text
+  country               String?
+  avatarUrl             String    @map("avatar_url")
+  extractedEmail        String?   @map("extracted_email")
+  
+  // Channel Lifetime Metrics
+  subscriberCount       BigInt    @default(0) @map("subscriber_count")
+  lifetimeViewCount     BigInt    @default(0) @map("lifetime_view_count")
+  videoCount            Int       @default(0) @map("video_count")
+  avgViewsPerVideo      BigInt    @default(0) @map("avg_views_per_video")
+  
+  // All Arrays & Nested Content (JSONB)
+  externalLinks         Json      @default("[]") @map("external_links") // All profile links & domains
+  longVideos            Json      @default("[]") @map("long_videos")     // 10 long videos + top comments
+  shortVideos           Json      @default("[]") @map("short_videos")    // 10 shorts + top comments
+  stats                 Json?     @map("stats")                          // Average views & engagement %
+  keywords              String[]  @default([])
+  topicCategories       String[]  @default([]) @map("topic_categories")
+  uploadsPlaylistId     String?   @map("uploads_playlist_id")
+  
+  // Complete Raw Metadata Backup
+  rawMetadata           Json?     @map("raw_metadata")
+  
+  lastScrapedAt         DateTime  @default(now()) @map("last_scraped_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@index([handle])
+  @@index([youtubeChannelId])
+  @@map("youtube_scrapes")
+}
+
+
 

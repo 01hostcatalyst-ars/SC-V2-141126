@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { scrapeYouTube } from '@/lib/scrapers/youtube';
+import { scrapeYouTube, saveYouTubeScrape } from '@/lib/scrapers/youtube';
 import { ScraperResponse, YouTubeScraperData } from '@/lib/scrapers/types';
 
 export async function POST(req: NextRequest) {
@@ -18,6 +18,9 @@ export async function POST(req: NextRequest) {
     }
 
     const data: YouTubeScraperData = await scrapeYouTube(url.trim());
+
+    // Auto-save to database (upsert to youtube_scrapes table)
+    await saveYouTubeScrape(data);
 
     return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
       success: true,
@@ -53,6 +56,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const data = await scrapeYouTube(url);
+    await saveYouTubeScrape(data);
     return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
       success: true,
       data,
