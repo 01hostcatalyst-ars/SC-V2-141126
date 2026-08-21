@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getCompanyConfig } from "@/lib/config";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
 import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
@@ -103,9 +103,10 @@ const USAGE_TYPE_OPTIONS = [
   { id: "ALL_MEDIA", label: "Full Commercial Broadcast" },
 ];
 
-export default function InstantContractPage() {
+function InstantContractForm() {
   const company = getCompanyConfig();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Section 1: Campaign Deliverables & Tagging
   const [deliverables, setDeliverables] = useState<DeliverableItem[]>([
@@ -237,6 +238,56 @@ export default function InstantContractPage() {
       setInitiatorRole("AGENCY");
     }
   }, [contractType]);
+
+  // Pre-fill fields if navigated from the Influencer Rate Calculator
+  useEffect(() => {
+    if (!searchParams || searchParams.get("from") !== "calculator") return;
+
+    const amountParam = searchParams.get("amount");
+    if (amountParam) setTotalAmount(amountParam);
+
+    const currencyParam = searchParams.get("currency");
+    if (currencyParam) setCurrency(currencyParam);
+
+    const regionParam = searchParams.get("region");
+    if (regionParam && ["US", "PK", "IN", "UK", "CA", "AE", "SA", "AU"].includes(regionParam)) {
+      setJurisdictionCountryCode(regionParam);
+    }
+
+    const platformParam = searchParams.get("platform");
+    if (platformParam && ["INSTAGRAM", "TIKTOK", "YOUTUBE"].includes(platformParam)) {
+      setPlatformsAllowed([platformParam]);
+    }
+
+    const deliverablesParam = searchParams.get("deliverables");
+    if (deliverablesParam) {
+      try {
+        const parsed = JSON.parse(deliverablesParam);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDeliverables(
+            parsed.map((item: any) => ({
+              type: (item.type || "REEL").replace("IG_", "").replace("YT_", ""),
+              quantity: Number(item.quantity) || 1,
+              duration: item.duration || "2 Months",
+              notes: item.notes || "",
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to parse deliverables from calculator", err);
+      }
+    }
+
+    const usageScopeParam = searchParams.get("usageScope");
+    if (usageScopeParam && usageScopeParam.includes("paid")) {
+      setUsageType(["PAID_AD"]);
+    }
+
+    const exclusivityScopeParam = searchParams.get("exclusivityScope");
+    if (exclusivityScopeParam && exclusivityScopeParam !== "none") {
+      setExclusivityClause(true);
+    }
+  }, [searchParams]);
 
   // Counterparty fields (Reactive based on contractType)
   const [brandName, setBrandName] = useState("");
@@ -1681,5 +1732,13 @@ export default function InstantContractPage() {
       />
 
     </div>
+  );
+}
+
+export default function InstantContractPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center text-sm font-semibold text-gray-500">Loading instant contract wizard...</div>}>
+      <InstantContractForm />
+    </Suspense>
   );
 }

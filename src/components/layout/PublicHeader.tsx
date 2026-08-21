@@ -21,6 +21,18 @@ export function PublicHeader({ authButton }: PublicHeaderProps) {
 
         {/* Right Action Buttons */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Link
+            href="/scrapers/youtube"
+            className="px-3 py-2 text-xs font-bold rounded-lg border border-gray-300 text-gray-700 hover:text-black hover:border-black hover:bg-gray-50 transition-all shadow-2xs whitespace-nowrap hidden sm:inline-flex items-center gap-1.5"
+          >
+            <span>🔍 YouTube Scraper</span>
+          </Link>
+          <Link
+            href="/calculator"
+            className="px-3 py-2 text-xs font-bold rounded-lg border border-gray-300 text-gray-700 hover:text-black hover:border-black hover:bg-gray-50 transition-all shadow-2xs whitespace-nowrap hidden sm:inline-flex items-center gap-1.5"
+          >
+            <span>📊 Rate Calculator</span>
+          </Link>
           {authButton}
           <Link
             href="/instant"
