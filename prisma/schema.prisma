@@ -477,7 +477,7 @@ model SurveyResponse {
 
 model YouTubeScrape {
   id                    String    @id @default(uuid())
-  youtubeChannelId      String    @unique @map("youtube_channel_id")
+  youtubeChannelId      String    @map("youtube_channel_id")
   handle                String?
   title                 String
   customUrl             String?   @map("custom_url")
@@ -510,6 +510,7 @@ model YouTubeScrape {
 
   @@index([handle])
   @@index([youtubeChannelId])
+  @@index([youtubeChannelId, createdAt(sort: Desc)])
   @@map("youtube_scrapes")
 }
 

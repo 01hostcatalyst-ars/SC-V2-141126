@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { scrapeYouTube, saveAndFetchYouTubeScrape, getSavedYouTubeScrape } from '@/lib/scrapers/youtube';
+import {
+  scrapeYouTube,
+  getRecentYouTubeSnapshot,
+  insertNewYouTubeSnapshot,
+} from '@/lib/scrapers/youtube';
 import { ScraperResponse, YouTubeScraperData } from '@/lib/scrapers/types';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const url = body?.url;
+    const forceRefresh = Boolean(body?.forceRefresh);
 
     if (!url || typeof url !== 'string' || !url.trim()) {
       return NextResponse.json<ScraperResponse>(
@@ -19,31 +24,43 @@ export async function POST(req: NextRequest) {
 
     const trimmedUrl = url.trim();
 
-    // 1. Fetch live data from YouTube
+    // 1. Check 24-Hour Smart Cache in Database (unless forceRefresh is true)
+    if (!forceRefresh) {
+      const cachedSnapshot = await getRecentYouTubeSnapshot(trimmedUrl);
+      if (cachedSnapshot) {
+        console.log(`[YouTube API Route] ⚡ 24h Cache Hit for "${trimmedUrl}" (Age: ${cachedSnapshot.cacheAgeHours}h) - 0 quota consumed`);
+        return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
+          success: true,
+          data: cachedSnapshot,
+        });
+      }
+    }
+
+    // 2. Fetch fresh live data from YouTube API
+    console.log(`[YouTube API Route] 📡 Cache expired or not found. Fetching fresh data from YouTube for "${trimmedUrl}"...`);
     const liveData: YouTubeScraperData = await scrapeYouTube(trimmedUrl);
 
-    // 2. Save into Database (table: youtube_scrapes) and read back the stored record
-    const databaseSavedData: YouTubeScraperData = await saveAndFetchYouTubeScrape(liveData);
+    // 3. Insert Brand New Snapshot Row into Database (Preserving all previous historical records)
+    const savedSnapshot: YouTubeScraperData = await insertNewYouTubeSnapshot(liveData);
 
-    // 3. Return the verified database data to frontend
     return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
       success: true,
-      data: databaseSavedData,
+      data: savedSnapshot,
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     console.error('YouTube Scraper Route Error:', error);
 
-    // Fallback: Check if we have this channel saved in database
+    // Fallback: If live API fails, serve whatever latest snapshot we have regardless of age
     try {
       const body = await req.json().catch(() => ({}));
       if (body?.url) {
-        const cached = await getSavedYouTubeScrape(body.url);
-        if (cached) {
-          console.log('[YouTube Route] Serving cached database record as fallback');
+        const fallback = await getRecentYouTubeSnapshot(body.url, 999999); // Ignore age limit on fallback
+        if (fallback) {
+          console.log('[YouTube Route] Serving older database record as emergency fallback');
           return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
             success: true,
-            data: cached,
+            data: fallback,
           });
         }
       }
@@ -64,6 +81,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const url = searchParams.get('url') || searchParams.get('handle');
+  const forceRefresh = searchParams.get('refresh') === 'true';
 
   if (!url) {
     return NextResponse.json<ScraperResponse>(
@@ -76,16 +94,22 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // 1. Fetch live data
+    if (!forceRefresh) {
+      const cached = await getRecentYouTubeSnapshot(url);
+      if (cached) {
+        return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
+          success: true,
+          data: cached,
+        });
+      }
+    }
+
     const liveData = await scrapeYouTube(url);
+    const savedSnapshot = await insertNewYouTubeSnapshot(liveData);
 
-    // 2. Save into Database and fetch back
-    const databaseSavedData = await saveAndFetchYouTubeScrape(liveData);
-
-    // 3. Return data from database
     return NextResponse.json<ScraperResponse<YouTubeScraperData>>({
       success: true,
-      data: databaseSavedData,
+      data: savedSnapshot,
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';

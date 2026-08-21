@@ -5,9 +5,21 @@ import { YouTubeChannelProfile } from "@/lib/scrapers/types";
 
 interface ChannelProfileCardProps {
   channel: YouTubeChannelProfile;
+  scrapedAt?: string;
+  isCached?: boolean;
+  cacheAgeHours?: number;
+  onForceRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export function ChannelProfileCard({ channel }: ChannelProfileCardProps) {
+export function ChannelProfileCard({
+  channel,
+  scrapedAt,
+  isCached,
+  cacheAgeHours,
+  onForceRefresh,
+  isRefreshing = false,
+}: ChannelProfileCardProps) {
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
@@ -34,9 +46,71 @@ export function ChannelProfileCard({ channel }: ChannelProfileCardProps) {
       })
     : "N/A";
 
+  const formattedSnapshotTime = scrapedAt
+    ? new Date(scrapedAt).toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : "Just now";
+
   return (
     <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
-      {/* Top Header: Avatar + Channel Info + Actions (No Banner) */}
+      {/* 24-Hour Snapshot Timestamp & Cache Notice Banner */}
+      <div className="bg-gray-50 border border-gray-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-start sm:items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-white border border-gray-200 flex items-center justify-center shrink-0 text-gray-700 shadow-2xs">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-gray-900">
+                Data Snapshot Recorded: <span className="font-black text-black">{formattedSnapshotTime}</span>
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
+                  isCached
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-emerald-100 text-emerald-800"
+                }`}
+              >
+                {isCached ? `24H Cache Active (${cacheAgeHours}h old)` : "Fresh Daily Snapshot"}
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Data is preserved till this exact timestamp. Any new videos or metrics posted after this time will be recorded in the next 24-hour snapshot.
+            </p>
+          </div>
+        </div>
+
+        {/* Force Refresh Button */}
+        {onForceRefresh && (
+          <button
+            type="button"
+            onClick={onForceRefresh}
+            disabled={isRefreshing}
+            className="px-3 py-1.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 hover:border-black text-gray-700 hover:text-black font-bold transition-all flex items-center gap-1.5 shrink-0 shadow-2xs disabled:opacity-50 text-[11px]"
+            title="Bypass 24-hour cache and fetch fresh snapshot immediately"
+          >
+            <svg
+              className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>{isRefreshing ? "Re-fetching..." : "Force Re-fetch"}</span>
+          </button>
+        )}
+      </div>
+
+      {/* Top Header: Avatar + Channel Info + Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100">
         {/* Avatar & Channel Details */}
         <div className="flex items-start sm:items-center gap-4 sm:gap-6">

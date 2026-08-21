@@ -12,22 +12,27 @@ import { YouTubeScraperData, ScraperResponse } from "@/lib/scrapers/types";
 
 export default function YouTubeScraperPage() {
   const [data, setData] = useState<YouTubeScraperData | null>(null);
+  const [currentUrl, setCurrentUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
 
-  const handleSearch = async (targetUrl: string) => {
+  const handleSearch = async (targetUrl: string, forceRefresh: boolean = false) => {
     if (!targetUrl.trim()) return;
 
     setIsLoading(true);
     setError(null);
     setHasSearched(true);
+    setCurrentUrl(targetUrl.trim());
 
     try {
       const response = await fetch("/api/scrapers/youtube", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: targetUrl.trim() }),
+        body: JSON.stringify({
+          url: targetUrl.trim(),
+          forceRefresh,
+        }),
       });
 
       const resJson: ScraperResponse<YouTubeScraperData> = await response.json();
@@ -63,12 +68,15 @@ export default function YouTubeScraperPage() {
           </h1>
 
           <p className="text-sm sm:text-base text-gray-600 font-medium">
-            Extract verified channel metrics, all profile links, 10 most recent long videos, 10 shorts, and top 5 recent comments.
+            Extract verified channel metrics, all profile links, 10 most recent long videos, 10 shorts, and top comments with 24-hour historical snapshot tracking.
           </p>
         </div>
 
         {/* Search Input Bar (No auto-search, completely user controlled) */}
-        <ScraperInput onSearch={handleSearch} isLoading={isLoading} />
+        <ScraperInput
+          onSearch={(url) => handleSearch(url, false)}
+          isLoading={isLoading}
+        />
 
         {/* Error Notification Banner */}
         {error && (
@@ -92,8 +100,15 @@ export default function YouTubeScraperPage() {
         {/* Main Content View */}
         {!isLoading && data && (
           <div className="space-y-8 sm:space-y-10">
-            {/* 1. Channel Profile Card (With all profile links and 4 core stats, No banner) */}
-            <ChannelProfileCard channel={data.channel} />
+            {/* 1. Channel Profile Card (With 24h snapshot notice, timestamp, and force refresh) */}
+            <ChannelProfileCard
+              channel={data.channel}
+              scrapedAt={data.scrapedAt}
+              isCached={data.isCached}
+              cacheAgeHours={data.cacheAgeHours}
+              onForceRefresh={() => handleSearch(currentUrl, true)}
+              isRefreshing={isLoading}
+            />
 
             {/* 2. Content Performance Benchmark Overview */}
             <EngagementSummary stats={data.stats} />
@@ -116,7 +131,7 @@ export default function YouTubeScraperPage() {
             </div>
             <h3 className="text-lg font-bold text-gray-800">Ready to Scrape</h3>
             <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
-              Paste any YouTube channel URL, custom handle (@username), or video link above to extract data without wasting API quota.
+              Paste any YouTube channel URL, custom handle (@username), or video link above to extract data and store daily snapshots.
             </p>
           </div>
         )}

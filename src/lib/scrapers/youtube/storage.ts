@@ -1,45 +1,68 @@
 import { prisma } from '@/lib/prisma';
 import { YouTubeScraperData, YouTubeExternalLink, YouTubeVideoItem } from '../types';
-import { formatCompactNumber } from './parser';
+import { formatCompactNumber, extractYouTubeIdentifier } from './parser';
+
+const CACHE_WINDOW_HOURS = 24;
 
 /**
- * Saves or updates scraped YouTube channel data into `youtube_scrapes` and returns the DB record.
+ * Checks if a valid snapshot already exists in the database within the last 24 hours.
  */
-export async function saveAndFetchYouTubeScrape(data: YouTubeScraperData): Promise<YouTubeScraperData> {
+export async function getRecentYouTubeSnapshot(
+  input: string,
+  maxAgeHours: number = CACHE_WINDOW_HOURS
+): Promise<YouTubeScraperData | null> {
+  const parsed = extractYouTubeIdentifier(input);
+  const cleanVal = parsed.value.trim().replace(/^@/, '');
+
+  if (!cleanVal) return null;
+
+  // Query the latest snapshot for this channel (fast indexed query)
+  const latestRecord = await prisma.youTubeScrape.findFirst({
+    where: {
+      OR: [
+        { youtubeChannelId: cleanVal },
+        { handle: `@${cleanVal}` },
+        { handle: cleanVal },
+        { customUrl: `@${cleanVal}` },
+        { title: { equals: cleanVal, mode: 'insensitive' } },
+      ],
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  if (!latestRecord) return null;
+
+  const now = new Date().getTime();
+  const recordTime = new Date(latestRecord.createdAt).getTime();
+  const ageInHours = (now - recordTime) / (1000 * 60 * 60);
+
+  // If the record is younger than 24 hours, return it as a valid cache hit
+  if (ageInHours < maxAgeHours) {
+    const formatted = formatDbRecordToScraperData(latestRecord);
+    formatted.isCached = true;
+    formatted.cacheAgeHours = Math.round(ageInHours * 10) / 10;
+    return formatted;
+  }
+
+  // Older than 24 hours -> cache expired, ready for a new snapshot row
+  return null;
+}
+
+/**
+ * Inserts a brand new immutable snapshot row into `youtube_scrapes` table.
+ * Preserves all historical records for analytics.
+ */
+export async function insertNewYouTubeSnapshot(data: YouTubeScraperData): Promise<YouTubeScraperData> {
   if (!data?.channel?.id) {
-    throw new Error('Cannot save scrape: missing channel ID.');
+    throw new Error('Cannot save snapshot: missing YouTube channel ID.');
   }
 
   const channel = data.channel;
 
-  // 1. Store / Upsert in Database first
-  const record = await prisma.youTubeScrape.upsert({
-    where: {
-      youtubeChannelId: channel.id,
-    },
-    update: {
-      handle: channel.handle || null,
-      title: channel.title,
-      customUrl: channel.customUrl || null,
-      description: channel.description || null,
-      country: channel.country || null,
-      avatarUrl: channel.avatarUrl,
-      extractedEmail: channel.extractedEmail || null,
-      subscriberCount: BigInt(channel.subscriberCount || 0),
-      lifetimeViewCount: BigInt(channel.lifetimeViewCount || 0),
-      videoCount: channel.videoCount || 0,
-      avgViewsPerVideo: BigInt(channel.avgViewsPerVideo || 0),
-      externalLinks: JSON.parse(JSON.stringify(channel.externalLinks || [])),
-      longVideos: JSON.parse(JSON.stringify(data.longVideos || [])),
-      shortVideos: JSON.parse(JSON.stringify(data.shortVideos || [])),
-      stats: JSON.parse(JSON.stringify(data.stats || {})),
-      keywords: channel.keywords || [],
-      topicCategories: channel.topicCategories || [],
-      uploadsPlaylistId: channel.uploadsPlaylistId || null,
-      rawMetadata: JSON.parse(JSON.stringify(data)),
-      lastScrapedAt: new Date(),
-    },
-    create: {
+  const newRecord = await prisma.youTubeScrape.create({
+    data: {
       youtubeChannelId: channel.id,
       handle: channel.handle || null,
       title: channel.title,
@@ -64,36 +87,16 @@ export async function saveAndFetchYouTubeScrape(data: YouTubeScraperData): Promi
     },
   });
 
-  console.log(`[YouTube Storage] Stored & queried record from database for: "${record.title}" (${record.youtubeChannelId})`);
+  console.log(`[YouTube Storage] Inserted new 24h snapshot row for "${newRecord.title}" (ID: ${newRecord.id})`);
 
-  // 2. Format database record into YouTubeScraperData to return to frontend
-  return formatDbRecordToScraperData(record);
+  const formatted = formatDbRecordToScraperData(newRecord);
+  formatted.isCached = false;
+  formatted.cacheAgeHours = 0;
+  return formatted;
 }
 
 /**
- * Retrieves a saved record directly from the database
- */
-export async function getSavedYouTubeScrape(identifier: string): Promise<YouTubeScraperData | null> {
-  const cleanId = identifier.trim().replace(/^@/, '');
-
-  const record = await prisma.youTubeScrape.findFirst({
-    where: {
-      OR: [
-        { youtubeChannelId: cleanId },
-        { handle: `@${cleanId}` },
-        { handle: cleanId },
-        { customUrl: `@${cleanId}` },
-        { title: { equals: cleanId, mode: 'insensitive' } },
-      ],
-    },
-  });
-
-  if (!record) return null;
-  return formatDbRecordToScraperData(record);
-}
-
-/**
- * Formats a raw Prisma database record into YouTubeScraperData for the frontend
+ * Formats a Prisma database record into the standard YouTubeScraperData structure
  */
 export function formatDbRecordToScraperData(record: {
   id: string;
@@ -117,6 +120,7 @@ export function formatDbRecordToScraperData(record: {
   topicCategories: string[];
   uploadsPlaylistId: string | null;
   lastScrapedAt: Date;
+  createdAt: Date;
 }): YouTubeScraperData {
   const subCount = Number(record.subscriberCount);
   const viewsCount = Number(record.lifetimeViewCount);
@@ -170,6 +174,6 @@ export function formatDbRecordToScraperData(record: {
     longVideos,
     shortVideos,
     stats,
-    scrapedAt: record.lastScrapedAt.toISOString(),
+    scrapedAt: record.createdAt.toISOString(),
   };
 }

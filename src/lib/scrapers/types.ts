@@ -67,6 +67,8 @@ export interface YouTubeScraperData {
     avgShortEngagementRate: number;
   };
   scrapedAt: string;
+  isCached?: boolean;
+  cacheAgeHours?: number;
 }
 
 export interface ScraperResponse<T = unknown> {
