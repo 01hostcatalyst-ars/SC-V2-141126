@@ -73,7 +73,6 @@ export function extractYouTubeIdentifier(input: string): ParsedYouTubeInput {
       return { type: 'handle', value: cleanPath };
     }
   } catch {
-    // If URL parsing fails, fallback to simple clean string
     return { type: 'handle', value: trimmed.replace(/^@/, '') };
   }
 
@@ -138,9 +137,11 @@ export function extractEmailFromText(text: string): string | undefined {
 }
 
 /**
- * Extracts all external website and social links from description text and channel data
+ * Extracts ONLY true official channel profile & social links from YouTube metadata (exact match to YouTube About modal)
  */
-export function extractExternalLinks(text: string, rawPageHtml?: string): YouTubeExternalLink[] {
+export function extractOfficialProfileLinks(rawPageHtml?: string): YouTubeExternalLink[] {
+  if (!rawPageHtml) return [];
+
   const linksMap = new Map<string, YouTubeExternalLink>();
 
   const getDomain = (urlStr: string): string => {
@@ -152,65 +153,68 @@ export function extractExternalLinks(text: string, rawPageHtml?: string): YouTub
     }
   };
 
-  const getTitleForDomain = (domain: string, fullUrl: string): string => {
+  const getTitleForDomain = (domain: string): string => {
     const d = domain.toLowerCase();
     if (d.includes('instagram.com')) return 'Instagram';
     if (d.includes('twitter.com') || d.includes('x.com')) return 'X (Twitter)';
     if (d.includes('facebook.com')) return 'Facebook';
     if (d.includes('tiktok.com')) return 'TikTok';
     if (d.includes('linkedin.com')) return 'LinkedIn';
-    if (d.includes('discord.')) return 'Discord';
+    if (d.includes('discord.') || d.includes('discordapp.')) return 'Discord';
+    if (d.includes('reddit.com')) return 'Reddit';
     if (d.includes('patreon.com')) return 'Patreon';
     if (d.includes('github.com')) return 'GitHub';
     if (d.includes('twitch.tv')) return 'Twitch';
     if (d.includes('threads.net')) return 'Threads';
     if (d.includes('t.me') || d.includes('telegram.me')) return 'Telegram';
+    if (d.includes('youtube.com')) return 'YouTube';
     return domain;
   };
 
-  // 1. Extract from description text
-  if (text) {
-    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.(?:com|ai|io|co|net|org|pk|in|uk|me|tv|gg|link)[^\s]*)/gi;
-    const matches = text.match(urlRegex) || [];
-    for (let rawUrl of matches) {
-      // Clean trailing punctuation
-      rawUrl = rawUrl.replace(/[),.;:!]+$/, '');
-      if (rawUrl.includes('@') && !rawUrl.startsWith('http')) continue; // Skip emails
-      const formattedUrl = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
-      const domain = getDomain(formattedUrl);
-      if (domain && !domain.includes('youtube.com') && !domain.includes('youtu.be') && !domain.endsWith('.png') && !domain.endsWith('.jpg')) {
-        const key = formattedUrl.toLowerCase();
-        if (!linksMap.has(key)) {
-          linksMap.set(key, {
-            title: getTitleForDomain(domain, formattedUrl),
-            url: formattedUrl,
-            domain,
-          });
+  try {
+    const match = rawPageHtml.match(/ytInitialData\s*=\s*({.+?});<\/script>/);
+    if (match) {
+      const data = JSON.parse(match[1]);
+
+      // 1. Official schema sameAs links from channelProfileMicroformatDetails
+      const sameAsList: unknown[] =
+        data.microformat?.microformatDataRenderer?.channelProfileMicroformatDetails?.profilePage?.mainEntity?.sameAs || [];
+      for (const rawUrl of sameAsList) {
+        if (typeof rawUrl === 'string' && rawUrl.startsWith('http')) {
+          const domain = getDomain(rawUrl);
+          const key = rawUrl.toLowerCase();
+          if (!linksMap.has(key) && !domain.includes('google.com') && !domain.includes('googlevideo.com')) {
+            linksMap.set(key, {
+              title: getTitleForDomain(domain),
+              url: rawUrl,
+              domain,
+            });
+          }
         }
       }
-    }
-  }
 
-  // 2. Extract from page HTML if available (YouTube redirects & custom channel links)
-  if (rawPageHtml) {
-    const redirectRegex = /q=(https?%3A%2F%2F[^"&]+)/gi;
-    let m;
-    while ((m = redirectRegex.exec(rawPageHtml)) !== null) {
-      try {
-        const decoded = decodeURIComponent(m[1]);
-        const domain = getDomain(decoded);
-        if (domain && !domain.includes('youtube.com') && !domain.includes('google.com') && !domain.includes('googlevideo.com')) {
+      // 2. Primary Header attribution redirect link
+      const headerCommand =
+        data.header?.pageHeaderRenderer?.content?.pageHeaderViewModel?.attribution?.attributionViewModel?.text
+          ?.commandRuns?.[0]?.onTap?.innertubeCommand?.commandMetadata?.webCommandMetadata?.url;
+      if (headerCommand && typeof headerCommand === 'string' && headerCommand.includes('q=')) {
+        const qMatch = headerCommand.match(/q=([^&]+)/);
+        if (qMatch) {
+          const decoded = decodeURIComponent(qMatch[1]);
+          const domain = getDomain(decoded);
           const key = decoded.toLowerCase();
-          if (!linksMap.has(key)) {
+          if (!linksMap.has(key) && !domain.includes('google.com') && !domain.includes('googlevideo.com')) {
             linksMap.set(key, {
-              title: getTitleForDomain(domain, decoded),
+              title: getTitleForDomain(domain),
               url: decoded,
               domain,
             });
           }
         }
-      } catch {}
+      }
     }
+  } catch {
+    // If JSON parsing fails, fallback safely
   }
 
   return Array.from(linksMap.values());

@@ -9,7 +9,7 @@ import {
   parseYouTubeDuration,
   formatCompactNumber,
   extractEmailFromText,
-  extractExternalLinks,
+  extractOfficialProfileLinks,
 } from './parser';
 
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
@@ -206,7 +206,7 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     // Graceful fallback to description links only
   }
 
-  const externalLinks = extractExternalLinks(description, rawPageHtml);
+  const externalLinks = extractOfficialProfileLinks(rawPageHtml);
   const uploadsPlaylistId = rawChannel.contentDetails?.relatedPlaylists?.uploads || '';
 
   const channelProfile: YouTubeChannelProfile = {
