@@ -141,7 +141,6 @@ export interface InstagramProfile {
 export interface InstagramScraperData {
   profile: InstagramProfile;
   posts: InstagramPostItem[];       // Chronological uploads (12 posts)
-  pinnedPosts?: InstagramPostItem[]; // Pinned posts separated
   stats: {
     totalPostsFetched: number;
     avgLikesPerPost: number;

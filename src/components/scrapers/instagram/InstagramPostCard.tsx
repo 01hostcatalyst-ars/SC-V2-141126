@@ -37,18 +37,6 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
           </div>
         )}
 
-        {/* PINNED BADGE (Prominent Top Left Badge) */}
-        {post.isPinned && (
-          <div className="absolute top-2 left-2 z-10">
-            <span className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black flex items-center gap-1.5 shadow-md border border-amber-300/40">
-              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                <path d="M16 9V4l1 0V2H7v2l1 0v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/>
-              </svg>
-              <span>PINNED</span>
-            </span>
-          </div>
-        )}
-
         {/* Content Type Badge (Top Right) */}
         <div className="absolute top-2 right-2 flex items-center gap-1">
           {post.contentType === "Reel" || post.contentType === "Video" ? (

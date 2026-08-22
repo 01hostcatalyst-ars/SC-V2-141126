@@ -207,7 +207,8 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
   // ==========================================
   const rawPosts = Array.isArray(rawItem.posts) ? (rawItem.posts as Array<Record<string, unknown>>).slice(0, 12) : [];
 
-  const basePosts: InstagramPostItem[] = rawPosts.map((p, idx) => {
+  // 3. Detect and exclude pinned posts so only chronological recent uploads are extracted & enriched
+  const allPosts: InstagramPostItem[] = rawPosts.map((p, idx) => {
     let postUrl = (p.url as string) || '';
     if (!postUrl && p.id) {
       postUrl = `https://www.instagram.com/p/${p.id}/`;
@@ -233,14 +234,25 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     };
   });
 
-  const postUrlsToEnrich = basePosts
+  // Detect chronological inversion in top items (Instagram places older pinned posts before newer uploads)
+  for (let i = 0; i < Math.min(3, allPosts.length - 1); i++) {
+    const currentPostTime = allPosts[i].datetime ? new Date(allPosts[i].datetime!).getTime() : 0;
+    const nextPostTime = allPosts[i + 1].datetime ? new Date(allPosts[i + 1].datetime!).getTime() : 0;
+    if (currentPostTime > 0 && nextPostTime > 0 && (nextPostTime - currentPostTime) > (5 * 24 * 60 * 60 * 1000)) {
+      allPosts[i].isPinned = true;
+    }
+  }
+
+  // Filter out any pinned post so we only process and return 12 unpinned recent uploads
+  const unpinnedPosts = allPosts.filter((p) => !p.isPinned).slice(0, 12);
+
+  const postUrlsToEnrich = unpinnedPosts
     .filter((p) => Boolean(p.url))
-    .slice(0, 12)
     .map((p) => ({ url: p.url }));
 
   if (postUrlsToEnrich.length > 0) {
     try {
-      console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} posts via dataset ${DATASET_POSTS}...`);
+      console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} unpinned posts via dataset ${DATASET_POSTS}...`);
       const enrichedList = await fetchBrightDataWithPolling(
         DATASET_POSTS,
         postUrlsToEnrich,
@@ -257,8 +269,8 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
           }
         }
 
-        // Merge complete rich metadata into basePosts
-        for (const post of basePosts) {
+        // Merge complete rich metadata into unpinnedPosts
+        for (const post of unpinnedPosts) {
           const cleanPostUrl = post.url.replace(/\/$/, '').toLowerCase();
           const item = metricsMap.get(cleanPostUrl);
           if (item) {
@@ -314,11 +326,6 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
                 post.videoUrl = post.videos[0];
               }
             }
-
-            // Check pinned flag from post details if available
-            if (item.is_pinned || item.pinned) {
-              post.isPinned = true;
-            }
           }
         }
       }
@@ -327,30 +334,12 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     }
   }
 
-  // ==========================================
-  // SMART PINNED POSTS SEPARATION
-  // ==========================================
-  // In addition to explicit flags, detect if initial posts are pinned chronologically
-  for (let i = 0; i < Math.min(3, basePosts.length - 1); i++) {
-    const currentPostTime = basePosts[i].datetime ? new Date(basePosts[i].datetime!).getTime() : 0;
-    const nextPostTime = basePosts[i + 1].datetime ? new Date(basePosts[i + 1].datetime!).getTime() : 0;
-    
-    // If post i is older than post i+1 by more than 5 days, post i is pinned to the front!
-    if (currentPostTime > 0 && nextPostTime > 0 && (nextPostTime - currentPostTime) > (5 * 24 * 60 * 60 * 1000)) {
-      basePosts[i].isPinned = true;
-    }
-  }
-
-  const pinnedPosts = basePosts.filter((p) => p.isPinned);
-  const unpinnedPosts = basePosts.filter((p) => !p.isPinned);
-
-  // Compute Aggregated Stats & Engagement Rate
-  const stats = calculateInstagramStats(basePosts, followerCount);
+  // Compute Aggregated Stats & Engagement Rate on unpinned posts
+  const stats = calculateInstagramStats(unpinnedPosts, followerCount);
 
   return {
     profile,
-    posts: unpinnedPosts.slice(0, 12),
-    pinnedPosts: pinnedPosts.length > 0 ? pinnedPosts : undefined,
+    posts: unpinnedPosts,
     stats,
     scrapedAt: new Date().toISOString(),
     isCached: false,
