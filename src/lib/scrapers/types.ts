@@ -1,3 +1,7 @@
+// ==========================================
+// YOUTUBE TYPES
+// ==========================================
+
 export interface YouTubeCommentItem {
   id: string;
   authorDisplayName: string;
@@ -70,6 +74,77 @@ export interface YouTubeScraperData {
   isCached?: boolean;
   cacheAgeHours?: number;
 }
+
+// ==========================================
+// INSTAGRAM TYPES
+// ==========================================
+
+export interface InstagramHighlightItem {
+  id: string;
+  title: string;
+  image?: string;
+  highlightUrl: string;
+}
+
+export interface InstagramExternalUrl {
+  title?: string;
+  url: string;
+}
+
+export interface InstagramPostItem {
+  id: string;
+  url: string;
+  caption?: string;
+  contentType: 'Image' | 'Video' | 'Carousel' | 'Reel' | string;
+  datetime?: string;
+  imageUrl: string;
+  videoUrl?: string;
+  likes: number;
+  likesFormatted: string;
+  commentsCount: number;
+  commentsCountFormatted: string;
+  isPinned?: boolean;
+  postHashtags?: string[];
+}
+
+export interface InstagramProfile {
+  username: string;
+  fullName: string;
+  biography: string;
+  avatarUrl: string;
+  isVerified: boolean;
+  isBusinessAccount: boolean;
+  followerCount: number;
+  followerCountFormatted: string;
+  followingCount: number;
+  followingCountFormatted: string;
+  postsCount: number;
+  postsCountFormatted: string;
+  externalUrls: InstagramExternalUrl[];
+  highlights: InstagramHighlightItem[];
+  extractedEmail?: string;
+  categoryName?: string;
+}
+
+export interface InstagramScraperData {
+  profile: InstagramProfile;
+  posts: InstagramPostItem[];
+  stats: {
+    totalPostsFetched: number;
+    avgLikesPerPost: number;
+    avgLikesFormatted: string;
+    avgCommentsPerPost: number;
+    avgCommentsFormatted: string;
+    avgEngagementRate: number;
+  };
+  scrapedAt: string;
+  isCached?: boolean;
+  cacheAgeHours?: number;
+}
+
+// ==========================================
+// GENERIC SCRAPER RESPONSE WRAPPER
+// ==========================================
 
 export interface ScraperResponse<T = unknown> {
   success: boolean;

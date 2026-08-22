@@ -514,5 +514,46 @@ model YouTubeScrape {
   @@map("youtube_scrapes")
 }
 
+// ==========================================
+// INSTAGRAM SCRAPER & CREATOR DATA TABLE
+// ==========================================
+
+model InstagramScrape {
+  id                    String    @id @default(uuid())
+  instagramUsername     String    @map("instagram_username")
+  instagramUserId       String?   @map("instagram_user_id")
+  fullName              String?   @map("full_name")
+  biography             String?   @db.Text
+  avatarUrl             String    @map("avatar_url")
+  isVerified            Boolean   @default(false) @map("is_verified")
+  isBusinessAccount     Boolean   @default(false) @map("is_business_account")
+  extractedEmail        String?   @map("extracted_email")
+  externalUrls          Json      @default("[]") @map("external_urls")
+  categoryName          String?   @map("category_name")
+  
+  // Follower & Profile Metrics
+  followerCount         BigInt    @default(0) @map("follower_count")
+  followingCount        Int       @default(0) @map("following_count")
+  postsCount            Int       @default(0) @map("posts_count")
+  avgEngagementRate     Float     @default(0) @map("avg_engagement_rate")
+  
+  // Content & Highlights (JSONB)
+  highlights            Json      @default("[]") @map("highlights")
+  posts                 Json      @default("[]") @map("posts") // 10-12 recent posts with likes, comments, captions
+  stats                 Json?     @map("stats")                 // Average likes, average comments, engagement rate
+  
+  // Raw Data Backup
+  rawMetadata           Json?     @map("raw_metadata")
+  
+  lastScrapedAt         DateTime  @default(now()) @map("last_scraped_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@index([instagramUsername])
+  @@index([instagramUsername, createdAt(sort: Desc)])
+  @@map("instagram_scrapes")
+}
+
+
 
 

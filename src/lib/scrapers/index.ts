@@ -1,5 +1,6 @@
 export * from './types';
 export * as YouTubeScraper from './youtube';
+export * as InstagramScraper from './instagram';
 
 export type SupportedPlatform = 'youtube' | 'instagram' | 'tiktok' | 'unknown';
 
