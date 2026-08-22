@@ -218,19 +218,19 @@ export function InstagramProfileCard({
           </div>
         </div>
 
-        {/* Highlights Count */}
+        {/* Account Status / Verified */}
         <div className="p-4 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 flex flex-col justify-between">
           <div className="flex items-center justify-between text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">
-            <span>Story Highlights</span>
+            <span>Account Type</span>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
           <div className="text-xl sm:text-2xl font-black text-black">
-            {profile.highlights.length}
+            {profile.isVerified ? "Verified" : "Standard"}
           </div>
           <div className="text-[11px] text-gray-400 font-medium mt-1">
-            Active Story Highlights
+            {profile.isBusinessAccount ? "Creator / Business" : "Public Account"}
           </div>
         </div>
       </div>
@@ -282,46 +282,6 @@ export function InstagramProfileCard({
               {showFullBio ? "Show less" : "Read full bio"}
             </button>
           )}
-        </div>
-      )}
-
-      {/* Story Highlights Preview */}
-      {profile.highlights && profile.highlights.length > 0 && (
-        <div className="space-y-3 pt-2">
-          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-            Story Highlights ({profile.highlights.length})
-          </div>
-          <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
-            {profile.highlights.map((hl) => (
-              <a
-                key={hl.id}
-                href={hl.highlightUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center gap-1.5 shrink-0 group"
-              >
-                <div className="w-14 h-14 rounded-full p-0.5 border-2 border-pink-500/80 group-hover:border-pink-600 transition-all bg-white shadow-2xs overflow-hidden">
-                  {hl.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={hl.image}
-                      alt={hl.title}
-                      className="w-full h-full rounded-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                  ) : (
-                    <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <span className="text-[11px] font-bold text-gray-700 max-w-[70px] truncate text-center group-hover:text-black">
-                  {hl.title}
-                </span>
-              </a>
-            ))}
-          </div>
         </div>
       )}
     </div>

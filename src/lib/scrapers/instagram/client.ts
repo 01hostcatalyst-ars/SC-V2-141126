@@ -70,9 +70,12 @@ async function fetchBrightDataWithPolling(
 
   const startTime = Date.now();
   const maxWaitMs = 120000; // 2 minutes max
+  let pollInterval = 1200;  // Start at 1.2s for ultra-fast completion detection
 
   while (Date.now() - startTime < maxWaitMs) {
-    await new Promise((resolve) => setTimeout(resolve, 3500));
+    await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    // Gently increase poll interval up to 2000ms max
+    pollInterval = Math.min(pollInterval + 300, 2000);
 
     try {
       const progRes = await fetch(`${BRIGHTDATA_BASE_URL}/progress/${snapshotId}`, {
@@ -99,7 +102,7 @@ async function fetchBrightDataWithPolling(
         }
 
         const flatSnap = (Array.isArray(snapData) ? snapData.flat(2) : [snapData]) as Array<Record<string, unknown>>;
-        console.log(`[BrightData Engine] Snapshot ${snapshotId} completed with ${flatSnap.length} records!`);
+        console.log(`[BrightData Engine] Snapshot ${snapshotId} completed in ${((Date.now() - startTime) / 1000).toFixed(1)}s with ${flatSnap.length} records!`);
         return flatSnap;
       }
 
