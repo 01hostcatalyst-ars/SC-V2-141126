@@ -76,23 +76,15 @@ export interface YouTubeScraperData {
 }
 
 // ==========================================
-// INSTAGRAM TYPES
+// INSTAGRAM TYPES (PROCESS 1 & PROCESS 2)
 // ==========================================
 
-export interface InstagramCommentItem {
-  id: string;
-  authorUsername: string;
-  authorProfileImageUrl?: string;
-  textDisplay: string;
-  likeCount: number;
-  publishedAt: string;
-}
-
-export interface InstagramHighlightItem {
-  id: string;
-  title: string;
-  image?: string;
-  highlightUrl: string;
+export interface InstagramTaggedUser {
+  id?: string;
+  username?: string;
+  fullName?: string;
+  isVerified?: boolean;
+  profilePicUrl?: string;
 }
 
 export interface InstagramExternalUrl {
@@ -102,6 +94,7 @@ export interface InstagramExternalUrl {
 
 export interface InstagramPostItem {
   id: string;
+  shortcode?: string;
   url: string;
   caption?: string;
   contentType: 'Image' | 'Video' | 'Carousel' | 'Reel' | string;
@@ -112,18 +105,26 @@ export interface InstagramPostItem {
   likesFormatted: string;
   commentsCount: number;
   commentsCountFormatted: string;
-  isPinned?: boolean;
+  isPinned: boolean;
   postHashtags?: string[];
-  comments?: InstagramCommentItem[]; // Top 5 most recent comments
+  taggedUsers?: InstagramTaggedUser[];
+  coauthors?: string[];
+  photos?: string[];
+  videos?: string[];
+  altText?: string;
 }
 
 export interface InstagramProfile {
   username: string;
   fullName: string;
+  userId?: string;
+  fbid?: string;
   biography: string;
   avatarUrl: string;
   isVerified: boolean;
   isBusinessAccount: boolean;
+  isPrivate: boolean;
+  isJoinedRecently: boolean;
   followerCount: number;
   followerCountFormatted: string;
   followingCount: number;
@@ -131,14 +132,14 @@ export interface InstagramProfile {
   postsCount: number;
   postsCountFormatted: string;
   externalUrls: InstagramExternalUrl[];
-  highlights: InstagramHighlightItem[];
+  bioHashtags?: string[];
   extractedEmail?: string;
   categoryName?: string;
 }
 
 export interface InstagramScraperData {
   profile: InstagramProfile;
-  posts: InstagramPostItem[];       // Up to 15 recent posts (5 per row)
+  posts: InstagramPostItem[];       // Chronological uploads (12 posts)
   pinnedPosts?: InstagramPostItem[]; // Pinned posts separated
   stats: {
     totalPostsFetched: number;

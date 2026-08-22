@@ -3,7 +3,6 @@ import {
   InstagramScraperData,
   InstagramProfile,
   InstagramPostItem,
-  InstagramHighlightItem,
   InstagramExternalUrl,
 } from '../types';
 import { extractInstagramUsername, formatCompactNumber } from './parser';
@@ -59,6 +58,7 @@ export async function insertNewInstagramSnapshot(data: InstagramScraperData): Pr
   const newRecord = await prisma.instagramScrape.create({
     data: {
       instagramUsername: profile.username.toLowerCase(),
+      instagramUserId: profile.userId || null,
       fullName: profile.fullName || null,
       biography: profile.biography || null,
       avatarUrl: profile.avatarUrl,
@@ -71,7 +71,6 @@ export async function insertNewInstagramSnapshot(data: InstagramScraperData): Pr
       followingCount: profile.followingCount || 0,
       postsCount: profile.postsCount || 0,
       avgEngagementRate: data.stats.avgEngagementRate || 0,
-      highlights: JSON.parse(JSON.stringify(profile.highlights || [])),
       posts: JSON.parse(JSON.stringify(data.posts || [])),
       stats: JSON.parse(JSON.stringify(data.stats || {})),
       rawMetadata: JSON.parse(JSON.stringify(data)),
@@ -93,6 +92,7 @@ export async function insertNewInstagramSnapshot(data: InstagramScraperData): Pr
 export function formatDbRecordToInstagramData(record: {
   id: string;
   instagramUsername: string;
+  instagramUserId: string | null;
   fullName: string | null;
   biography: string | null;
   avatarUrl: string;
@@ -105,7 +105,6 @@ export function formatDbRecordToInstagramData(record: {
   followingCount: number;
   postsCount: number;
   avgEngagementRate: number;
-  highlights: unknown;
   posts: unknown;
   stats: unknown;
   lastScrapedAt: Date;
@@ -116,10 +115,6 @@ export function formatDbRecordToInstagramData(record: {
   const externalUrls = (Array.isArray(record.externalUrls)
     ? record.externalUrls
     : []) as InstagramExternalUrl[];
-
-  const highlights = (Array.isArray(record.highlights)
-    ? record.highlights
-    : []) as InstagramHighlightItem[];
 
   const posts = (Array.isArray(record.posts)
     ? record.posts
@@ -139,10 +134,13 @@ export function formatDbRecordToInstagramData(record: {
   const profile: InstagramProfile = {
     username: record.instagramUsername,
     fullName: record.fullName || record.instagramUsername,
+    userId: record.instagramUserId || undefined,
     biography: record.biography || '',
     avatarUrl: record.avatarUrl,
     isVerified: record.isVerified,
     isBusinessAccount: record.isBusinessAccount,
+    isPrivate: false,
+    isJoinedRecently: false,
     followerCount,
     followerCountFormatted: formatCompactNumber(followerCount),
     followingCount: record.followingCount,
@@ -150,16 +148,16 @@ export function formatDbRecordToInstagramData(record: {
     postsCount: record.postsCount,
     postsCountFormatted: formatCompactNumber(record.postsCount),
     externalUrls,
-    highlights,
     extractedEmail: record.extractedEmail || undefined,
     categoryName: record.categoryName || undefined,
   };
 
   const pinnedPosts = posts.filter((p) => p.isPinned);
+  const unpinnedPosts = posts.filter((p) => !p.isPinned);
 
   return {
     profile,
-    posts,
+    posts: unpinnedPosts.length > 0 ? unpinnedPosts : posts,
     pinnedPosts: pinnedPosts.length > 0 ? pinnedPosts : undefined,
     stats,
     scrapedAt: record.createdAt.toISOString(),

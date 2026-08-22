@@ -2,7 +2,7 @@ import {
   InstagramScraperData,
   InstagramProfile,
   InstagramPostItem,
-  InstagramHighlightItem,
+  InstagramTaggedUser,
   InstagramExternalUrl,
 } from '../types';
 import {
@@ -17,7 +17,7 @@ const DATASET_PROFILES = 'gd_l1vikfch901nx3by4'; // Profiles & Post URLs Dataset
 const DATASET_POSTS = 'gd_lk5ns7kz21pck8jpis';   // Posts Details, Likes & Comments Dataset
 
 /**
- * Universal Bright Data Requester with safe JSON parsing and automatic snapshot resolution
+ * Universal Bright Data Requester with safe JSON parsing and fast adaptive polling
  */
 async function fetchBrightDataWithPolling(
   datasetId: string,
@@ -66,15 +66,14 @@ async function fetchBrightDataWithPolling(
     return single ? [single] : [];
   }
 
-  console.log(`[BrightData Engine] Async snapshot queued: ${snapshotId}. Polling for completion...`);
+  console.log(`[BrightData Engine] Async snapshot queued: ${snapshotId}. Fast adaptive polling...`);
 
   const startTime = Date.now();
   const maxWaitMs = 120000; // 2 minutes max
-  let pollInterval = 1200;  // Start at 1.2s for ultra-fast completion detection
+  let pollInterval = 1200;  // Start at 1.2s
 
   while (Date.now() - startTime < maxWaitMs) {
     await new Promise((resolve) => setTimeout(resolve, pollInterval));
-    // Gently increase poll interval up to 2000ms max
     pollInterval = Math.min(pollInterval + 300, 2000);
 
     try {
@@ -121,7 +120,7 @@ async function fetchBrightDataWithPolling(
 }
 
 /**
- * Scrapes Instagram creator profile and 12 recent posts with pinned posts separation
+ * Scrapes complete Instagram creator profile (Process 1) and enriched 12 posts (Process 2)
  */
 export async function scrapeInstagram(input: string): Promise<InstagramScraperData> {
   const username = extractInstagramUsername(input);
@@ -135,9 +134,11 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
   }
 
   const targetProfileUrl = `https://www.instagram.com/${username}/`;
-  console.log(`[Instagram Scraper] 1. Fetching profile info for @${username}...`);
+  console.log(`[Instagram Scraper] 1. Fetching complete profile info for @${username}...`);
 
-  // 1. Fetch Profile Data with Snapshot Resolver
+  // ==========================================
+  // PROCESS 1: Profile & Initial Posts
+  // ==========================================
   const profileRecords = await fetchBrightDataWithPolling(
     DATASET_PROFILES,
     [{ url: targetProfileUrl }],
@@ -151,7 +152,6 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     throw new Error(`Failed to scrape @${username}: ${msg}`);
   }
 
-  // 2. Parse Profile Details & Followers
   const followerCount = Number(rawItem.followers || 0);
   const followingCount = Number(rawItem.following || 0);
   const postsCount = Number(rawItem.posts_count || 0);
@@ -175,22 +175,21 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     externalUrls = [{ url: rawItem.external_url }];
   }
 
-  const highlights: InstagramHighlightItem[] = Array.isArray(rawItem.highlights)
-    ? (rawItem.highlights as Array<Record<string, unknown>>).map((h) => ({
-        id: String(h.id || ''),
-        title: (h.title as string) || 'Highlight',
-        image: (h.image as string) || undefined,
-        highlightUrl: (h.highlight_url as string) || '',
-      }))
+  const bioHashtags: string[] = Array.isArray(rawItem.bio_hashtags)
+    ? (rawItem.bio_hashtags as string[])
     : [];
 
   const profile: InstagramProfile = {
     username: (rawItem.account as string) || username,
     fullName: (rawItem.full_name as string) || (rawItem.profile_name as string) || username,
+    userId: rawItem.id ? String(rawItem.id) : undefined,
+    fbid: rawItem.fbid ? String(rawItem.fbid) : undefined,
     biography: bio,
     avatarUrl,
     isVerified: Boolean(rawItem.is_verified),
     isBusinessAccount: Boolean(rawItem.is_business_account || rawItem.is_professional_account),
+    isPrivate: Boolean(rawItem.is_private),
+    isJoinedRecently: Boolean(rawItem.is_joined_recently),
     followerCount,
     followerCountFormatted: formatCompactNumber(followerCount),
     followingCount,
@@ -198,12 +197,14 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     postsCount,
     postsCountFormatted: formatCompactNumber(postsCount),
     externalUrls,
-    highlights,
+    bioHashtags,
     extractedEmail: (rawItem.email_address as string) || extractEmailFromBio(bio),
     categoryName: (rawItem.category_name as string) || (rawItem.business_category_name as string) || undefined,
   };
 
-  // 3. Extract Recent Posts (12 posts)
+  // ==========================================
+  // PROCESS 2: 12 Posts Enrichment
+  // ==========================================
   const rawPosts = Array.isArray(rawItem.posts) ? (rawItem.posts as Array<Record<string, unknown>>).slice(0, 12) : [];
 
   const basePosts: InstagramPostItem[] = rawPosts.map((p, idx) => {
@@ -212,8 +213,11 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
       postUrl = `https://www.instagram.com/p/${p.id}/`;
     }
 
+    const isExplicitlyPinned = Boolean(p.is_pinned || p.pinned);
+
     return {
       id: String(p.id || idx),
+      shortcode: postUrl ? postUrl.split('/p/')[1]?.replace(/\/$/, '') : undefined,
       url: postUrl,
       caption: (p.caption as string) || undefined,
       contentType: (p.content_type as string) || 'Image',
@@ -224,12 +228,11 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
       likesFormatted: formatCompactNumber(Number(p.likes || 0)),
       commentsCount: Number(p.comments || p.num_comments || 0),
       commentsCountFormatted: formatCompactNumber(Number(p.comments || p.num_comments || 0)),
-      isPinned: Boolean(p.is_pinned),
+      isPinned: isExplicitlyPinned,
       postHashtags: Array.isArray(p.post_hashtags) ? (p.post_hashtags as string[]) : undefined,
     };
   });
 
-  // 4. Batch Enrich Exact Likes & Comments for 12 Posts
   const postUrlsToEnrich = basePosts
     .filter((p) => Boolean(p.url))
     .slice(0, 12)
@@ -237,7 +240,7 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
 
   if (postUrlsToEnrich.length > 0) {
     try {
-      console.log(`[Instagram Scraper] 2. Enriching likes & comments for ${postUrlsToEnrich.length} posts via dataset ${DATASET_POSTS}...`);
+      console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} posts via dataset ${DATASET_POSTS}...`);
       const enrichedList = await fetchBrightDataWithPolling(
         DATASET_POSTS,
         postUrlsToEnrich,
@@ -245,30 +248,70 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
       );
 
       if (Array.isArray(enrichedList)) {
-        const metricsMap = new Map<string, { likes: number; comments: number; description?: string }>();
+        const metricsMap = new Map<string, Record<string, unknown>>();
 
         for (const item of enrichedList) {
           if (item && item.url) {
             const cleanUrl = (item.url as string).replace(/\/$/, '').toLowerCase();
-            metricsMap.set(cleanUrl, {
-              likes: Number(item.likes || 0),
-              comments: Number(item.num_comments || item.comments || 0),
-              description: item.description as string,
-            });
+            metricsMap.set(cleanUrl, item);
           }
         }
 
-        // Merge metrics into basePosts
+        // Merge complete rich metadata into basePosts
         for (const post of basePosts) {
           const cleanPostUrl = post.url.replace(/\/$/, '').toLowerCase();
-          const metrics = metricsMap.get(cleanPostUrl);
-          if (metrics) {
-            post.likes = metrics.likes;
-            post.likesFormatted = formatCompactNumber(metrics.likes);
-            post.commentsCount = metrics.comments;
-            post.commentsCountFormatted = formatCompactNumber(metrics.comments);
-            if (!post.caption && metrics.description) {
-              post.caption = metrics.description;
+          const item = metricsMap.get(cleanPostUrl);
+          if (item) {
+            post.likes = Number(item.likes || 0);
+            post.likesFormatted = formatCompactNumber(post.likes);
+            post.commentsCount = Number(item.num_comments || item.comments || 0);
+            post.commentsCountFormatted = formatCompactNumber(post.commentsCount);
+
+            if (item.description) {
+              post.caption = item.description as string;
+            }
+            if (item.shortcode) {
+              post.shortcode = item.shortcode as string;
+            }
+            if (item.alt_text) {
+              post.altText = item.alt_text as string;
+            }
+            if (item.date_posted) {
+              post.datetime = item.date_posted as string;
+            }
+
+            // Tagged users
+            if (Array.isArray(item.tagged_users)) {
+              post.taggedUsers = (item.tagged_users as Array<Record<string, unknown>>).map((u) => ({
+                id: u.id ? String(u.id) : undefined,
+                username: (u.username as string) || (u.full_name as string),
+                fullName: (u.full_name as string) || undefined,
+                isVerified: Boolean(u.is_verified),
+                profilePicUrl: (u.profile_pic_url as string) || undefined,
+              }));
+            }
+
+            // Co-authors
+            if (Array.isArray(item.coauthor_producers)) {
+              post.coauthors = item.coauthor_producers as string[];
+            }
+
+            // High-res carousel photos
+            if (Array.isArray(item.photos)) {
+              post.photos = item.photos as string[];
+            }
+
+            // Video streams
+            if (Array.isArray(item.videos)) {
+              post.videos = item.videos as string[];
+              if (!post.videoUrl && post.videos.length > 0) {
+                post.videoUrl = post.videos[0];
+              }
+            }
+
+            // Check pinned flag from post details if available
+            if (item.is_pinned || item.pinned) {
+              post.isPinned = true;
             }
           }
         }
@@ -278,11 +321,24 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     }
   }
 
-  // 5. Separate Pinned Posts
+  // ==========================================
+  // SMART PINNED POSTS SEPARATION
+  // ==========================================
+  // In addition to explicit flags, detect if initial posts are pinned chronologically
+  for (let i = 0; i < Math.min(3, basePosts.length - 1); i++) {
+    const currentPostTime = basePosts[i].datetime ? new Date(basePosts[i].datetime!).getTime() : 0;
+    const nextPostTime = basePosts[i + 1].datetime ? new Date(basePosts[i + 1].datetime!).getTime() : 0;
+    
+    // If post i is older than post i+1 by more than 5 days, post i is pinned to the front!
+    if (currentPostTime > 0 && nextPostTime > 0 && (nextPostTime - currentPostTime) > (5 * 24 * 60 * 60 * 1000)) {
+      basePosts[i].isPinned = true;
+    }
+  }
+
   const pinnedPosts = basePosts.filter((p) => p.isPinned);
   const unpinnedPosts = basePosts.filter((p) => !p.isPinned);
 
-  // 6. Compute Aggregated Stats & Engagement Rate
+  // Compute Aggregated Stats & Engagement Rate
   const stats = calculateInstagramStats(basePosts, followerCount);
 
   return {
