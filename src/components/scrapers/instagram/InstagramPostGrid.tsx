@@ -29,8 +29,8 @@ export function InstagramPostGrid({ posts, pinnedPosts = [] }: InstagramPostGrid
     return true;
   });
 
-  // Limit to top 15 posts (5 in 1 row, 3 rows total)
-  const displayPosts = filteredPosts.slice(0, 15);
+  // Limit to top 12 posts
+  const displayPosts = filteredPosts.slice(0, 12);
 
   return (
     <div className="space-y-6">
@@ -61,7 +61,7 @@ export function InstagramPostGrid({ posts, pinnedPosts = [] }: InstagramPostGrid
         </div>
       )}
 
-      {/* 2. RECENT UPLOADS GRID (15 POSTS: 5 PER ROW, 3 ROWS) */}
+      {/* 2. RECENT UPLOADS GRID (12 POSTS) */}
       <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
         {/* Header & Filter Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
@@ -70,7 +70,7 @@ export function InstagramPostGrid({ posts, pinnedPosts = [] }: InstagramPostGrid
               Recent Uploads & Timeline
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Showing top {displayPosts.length} posts (5 per row, up to 3 rows)
+              Showing {displayPosts.length} recent uploads
             </p>
           </div>
 

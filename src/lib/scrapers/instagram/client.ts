@@ -2,7 +2,6 @@ import {
   InstagramScraperData,
   InstagramProfile,
   InstagramPostItem,
-  InstagramCommentItem,
   InstagramHighlightItem,
   InstagramExternalUrl,
 } from '../types';
@@ -16,10 +15,9 @@ import {
 const BRIGHTDATA_BASE_URL = 'https://api.brightdata.com/datasets/v3';
 const DATASET_PROFILES = 'gd_l1vikfch901nx3by4'; // Profiles & Post URLs Dataset
 const DATASET_POSTS = 'gd_lk5ns7kz21pck8jpis';   // Posts Details, Likes & Comments Dataset
-const DATASET_COMMENTS = 'gd_ltppn085pokosxh13'; // Comments by URL Dataset
 
 /**
- * Universal Bright Data Requester with automatic snapshot resolution
+ * Universal Bright Data Requester with safe JSON parsing and automatic snapshot resolution
  */
 async function fetchBrightDataWithPolling(
   datasetId: string,
@@ -37,12 +35,18 @@ async function fetchBrightDataWithPolling(
     body: JSON.stringify(inputItems),
   });
 
+  const rawText = await initialRes.text().catch(() => '');
+
   if (!initialRes.ok) {
-    const errText = await initialRes.text().catch(() => '');
-    throw new Error(`Bright Data API request failed (${initialRes.status} ${initialRes.statusText}): ${errText.slice(0, 200)}`);
+    throw new Error(`Bright Data API request failed (${initialRes.status} ${initialRes.statusText}): ${rawText.slice(0, 200)}`);
   }
 
-  const rawJson = await initialRes.json();
+  let rawJson: unknown;
+  try {
+    rawJson = JSON.parse(rawText);
+  } catch {
+    throw new Error(`Bright Data returned unexpected response: ${rawText.slice(0, 200)}`);
+  }
 
   // 1. Direct Array Response
   if (Array.isArray(rawJson) && rawJson.length > 0 && !rawJson[0]?.snapshot_id) {
@@ -52,9 +56,10 @@ async function fetchBrightDataWithPolling(
   }
 
   // 2. Asynchronous Snapshot Response
+  const recordObj = rawJson as Record<string, unknown>;
   const snapshotId =
-    rawJson?.snapshot_id ||
-    (Array.isArray(rawJson) && rawJson[0]?.snapshot_id);
+    (recordObj?.snapshot_id as string) ||
+    (Array.isArray(rawJson) && (rawJson[0]?.snapshot_id as string));
 
   if (!snapshotId) {
     const single = (Array.isArray(rawJson) ? rawJson[0] : rawJson) as Record<string, unknown>;
@@ -73,13 +78,26 @@ async function fetchBrightDataWithPolling(
       const progRes = await fetch(`${BRIGHTDATA_BASE_URL}/progress/${snapshotId}`, {
         headers: { 'Authorization': `Bearer ${apiKey}` },
       });
-      const progData = await progRes.json();
+      const progText = await progRes.text();
+      let progData: { status?: string } = {};
+      try {
+        progData = JSON.parse(progText);
+      } catch {
+        continue;
+      }
 
       if (progData.status === 'ready' || progData.status === 'done') {
         const snapRes = await fetch(`${BRIGHTDATA_BASE_URL}/snapshot/${snapshotId}?format=json`, {
           headers: { 'Authorization': `Bearer ${apiKey}` },
         });
-        const snapData = await snapRes.json();
+        const snapText = await snapRes.text();
+        let snapData: unknown = [];
+        try {
+          snapData = JSON.parse(snapText);
+        } catch {
+          throw new Error(`Failed to parse completed snapshot data: ${snapText.slice(0, 200)}`);
+        }
+
         const flatSnap = (Array.isArray(snapData) ? snapData.flat(2) : [snapData]) as Array<Record<string, unknown>>;
         console.log(`[BrightData Engine] Snapshot ${snapshotId} completed with ${flatSnap.length} records!`);
         return flatSnap;
@@ -100,7 +118,7 @@ async function fetchBrightDataWithPolling(
 }
 
 /**
- * Scrapes complete Instagram creator profile, up to 15 posts, and 5 most recent comments for latest 3 posts
+ * Scrapes Instagram creator profile and 12 recent posts with pinned posts separation
  */
 export async function scrapeInstagram(input: string): Promise<InstagramScraperData> {
   const username = extractInstagramUsername(input);
@@ -182,8 +200,8 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     categoryName: (rawItem.category_name as string) || (rawItem.business_category_name as string) || undefined,
   };
 
-  // 3. Extract Recent Posts (Up to 15 posts)
-  const rawPosts = Array.isArray(rawItem.posts) ? (rawItem.posts as Array<Record<string, unknown>>).slice(0, 15) : [];
+  // 3. Extract Recent Posts (12 posts)
+  const rawPosts = Array.isArray(rawItem.posts) ? (rawItem.posts as Array<Record<string, unknown>>).slice(0, 12) : [];
 
   const basePosts: InstagramPostItem[] = rawPosts.map((p, idx) => {
     let postUrl = (p.url as string) || '';
@@ -205,14 +223,13 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
       commentsCountFormatted: formatCompactNumber(Number(p.comments || p.num_comments || 0)),
       isPinned: Boolean(p.is_pinned),
       postHashtags: Array.isArray(p.post_hashtags) ? (p.post_hashtags as string[]) : undefined,
-      comments: [],
     };
   });
 
-  // 4. Batch Enrich Exact Likes & Comments for up to 15 Posts
+  // 4. Batch Enrich Exact Likes & Comments for 12 Posts
   const postUrlsToEnrich = basePosts
     .filter((p) => Boolean(p.url))
-    .slice(0, 15)
+    .slice(0, 12)
     .map((p) => ({ url: p.url }));
 
   if (postUrlsToEnrich.length > 0) {
@@ -258,77 +275,16 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     }
   }
 
-  // 5. Fetch 5 Most Recent Comments for the Latest 3 Posts
-  const latest3Posts = basePosts.slice(0, 3).filter((p) => Boolean(p.url));
-  if (latest3Posts.length > 0) {
-    try {
-      console.log(`[Instagram Scraper] 3. Fetching 5 most recent comments for the latest ${latest3Posts.length} posts via dataset ${DATASET_COMMENTS}...`);
-      const commentInput = latest3Posts.map((p) => ({ url: p.url }));
-
-      const rawComments = await fetchBrightDataWithPolling(
-        DATASET_COMMENTS,
-        commentInput,
-        apiKey
-      );
-
-      if (Array.isArray(rawComments)) {
-        // Group comments by post URL
-        const commentsByPostUrl = new Map<string, InstagramCommentItem[]>();
-
-        for (const c of rawComments) {
-          const rawInput = c.input as Record<string, unknown> | undefined;
-          const postUrl = ((c.post_url || c.url || rawInput?.url) as string)?.replace(/\/$/, '').toLowerCase();
-          const username = (c.comment_user || c.user || c.author || 'Instagram User') as string;
-          const text = (c.comment || c.text || '') as string;
-          const publishedAt = (c.comment_date || c.date || new Date().toISOString()) as string;
-          const likeCount = Number(c.likes_number || c.likes || 0);
-          const avatar = (c.profile_image_link || c.user_avatar) as string | undefined;
-
-          if (text) {
-            const commentObj: InstagramCommentItem = {
-              id: String(c.id || Math.random()),
-              authorUsername: username,
-              authorProfileImageUrl: avatar,
-              textDisplay: text,
-              likeCount,
-              publishedAt,
-            };
-
-            const existing = commentsByPostUrl.get(postUrl) || [];
-            existing.push(commentObj);
-            commentsByPostUrl.set(postUrl, existing);
-          }
-        }
-
-        // Attach top 5 most recent comments to each of the 3 latest posts
-        for (const post of latest3Posts) {
-          const cleanUrl = post.url.replace(/\/$/, '').toLowerCase();
-          const postComments = commentsByPostUrl.get(cleanUrl) || [];
-          
-          // Sort chronologically (newest first) and take top 5
-          const sorted5 = postComments
-            .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-            .slice(0, 5);
-
-          post.comments = sorted5;
-        }
-      }
-    } catch (commentErr) {
-      console.warn('[Instagram Scraper] Note: Could not fetch post comments:', commentErr);
-    }
-  }
-
-  // 6. Separate Pinned Posts
+  // 5. Separate Pinned Posts
   const pinnedPosts = basePosts.filter((p) => p.isPinned);
   const unpinnedPosts = basePosts.filter((p) => !p.isPinned);
-  const finalPostsList = pinnedPosts.length > 0 ? [...pinnedPosts, ...unpinnedPosts].slice(0, 15) : basePosts;
 
-  // 7. Compute Aggregated Stats & Engagement Rate
-  const stats = calculateInstagramStats(finalPostsList, followerCount);
+  // 6. Compute Aggregated Stats & Engagement Rate
+  const stats = calculateInstagramStats(basePosts, followerCount);
 
   return {
     profile,
-    posts: finalPostsList,
+    posts: unpinnedPosts.slice(0, 12),
     pinnedPosts: pinnedPosts.length > 0 ? pinnedPosts : undefined,
     stats,
     scrapedAt: new Date().toISOString(),
