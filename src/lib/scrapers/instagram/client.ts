@@ -13,10 +13,11 @@ import {
 } from './parser';
 
 const BRIGHTDATA_BASE_URL = 'https://api.brightdata.com/datasets/v3/scrape';
-const DATASET_PROFILES = 'gd_l1vikfch901nx3by4'; // Bright Data Instagram Profiles & Posts Dataset
+const DATASET_PROFILES = 'gd_l1vikfch901nx3by4'; // Profiles & Post URLs Dataset
+const DATASET_POSTS = 'gd_lk5ns7kz21pck8jpis';   // Posts Details, Likes & Comments Dataset
 
 /**
- * Scrapes complete Instagram creator profile and recent posts via Bright Data
+ * Scrapes complete Instagram creator profile and enriches recent posts with exact likes and comments
  */
 export async function scrapeInstagram(input: string): Promise<InstagramScraperData> {
   const username = extractInstagramUsername(input);
@@ -30,9 +31,10 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
   }
 
   const targetProfileUrl = `https://www.instagram.com/${username}/`;
-  console.log(`[Instagram Scraper] Fetching live data for @${username} via Bright Data...`);
+  console.log(`[Instagram Scraper] 1. Fetching profile info for @${username} via Bright Data...`);
 
-  const response = await fetch(`${BRIGHTDATA_BASE_URL}?dataset_id=${DATASET_PROFILES}&include_errors=true&format=json`, {
+  // 1. Fetch Profile Data
+  const profileRes = await fetch(`${BRIGHTDATA_BASE_URL}?dataset_id=${DATASET_PROFILES}&include_errors=true&format=json`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -43,20 +45,20 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     ]),
   });
 
-  if (!response.ok) {
-    const errText = await response.text().catch(() => '');
-    throw new Error(`Bright Data API request failed (${response.status} ${response.statusText}): ${errText.slice(0, 200)}`);
+  if (!profileRes.ok) {
+    const errText = await profileRes.text().catch(() => '');
+    throw new Error(`Bright Data Profile API request failed (${profileRes.status} ${profileRes.statusText}): ${errText.slice(0, 200)}`);
   }
 
-  const payload = await response.json();
-  const rawItem = Array.isArray(payload) ? payload[0] : payload;
+  const profilePayload = await profileRes.json();
+  const rawItem = Array.isArray(profilePayload) ? profilePayload[0] : profilePayload;
 
   if (!rawItem || rawItem.error) {
     const msg = rawItem?.error || 'Profile not found or restricted by Instagram.';
     throw new Error(`Failed to scrape @${username}: ${msg}`);
   }
 
-  // 1. Parse Profile Identity & Followers
+  // Parse Profile Identity & Followers
   const followerCount = Number(rawItem.followers || 0);
   const followingCount = Number(rawItem.following || 0);
   const postsCount = Number(rawItem.posts_count || 0);
@@ -96,13 +98,15 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     categoryName: rawItem.category_name || rawItem.business_category_name || undefined,
   };
 
-  // 2. Parse 10-12 Recent Posts / Reels
-  const rawPosts: Array<Record<string, unknown>> = Array.isArray(rawItem.posts) ? rawItem.posts : [];
-
-  const posts: InstagramPostItem[] = rawPosts.slice(0, 10).map((p, idx) => {
-    const postLikes = Number(p.likes || 0);
-    const postComments = Number(p.comments || 0);
-    const postUrl = (p.url as string) || `https://www.instagram.com/p/${p.id || idx}/`;
+  // 2. Extract Recent Posts (Top 10)
+  const rawPosts: Array<Record<string, unknown>> = Array.isArray(rawItem.posts) ? rawItem.posts.slice(0, 10) : [];
+  
+  // Normalize post items
+  const basePosts: InstagramPostItem[] = rawPosts.map((p, idx) => {
+    let postUrl = (p.url as string) || '';
+    if (!postUrl && p.id) {
+      postUrl = `https://www.instagram.com/p/${p.id}/`;
+    }
 
     return {
       id: String(p.id || idx),
@@ -112,21 +116,77 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
       datetime: (p.datetime as string) || undefined,
       imageUrl: (p.image_url as string) || '',
       videoUrl: (p.video_url as string) || undefined,
-      likes: postLikes,
-      likesFormatted: formatCompactNumber(postLikes),
-      commentsCount: postComments,
-      commentsCountFormatted: formatCompactNumber(postComments),
+      likes: Number(p.likes || 0),
+      likesFormatted: formatCompactNumber(Number(p.likes || 0)),
+      commentsCount: Number(p.comments || p.num_comments || 0),
+      commentsCountFormatted: formatCompactNumber(Number(p.comments || p.num_comments || 0)),
       isPinned: Boolean(p.is_pinned),
       postHashtags: Array.isArray(p.post_hashtags) ? (p.post_hashtags as string[]) : undefined,
     };
   });
 
-  // 3. Compute Aggregated Stats & Engagement Rate
-  const stats = calculateInstagramStats(posts, followerCount);
+  // 3. Batch Enrich Exact Likes & Comments for Posts
+  const postUrlsToEnrich = basePosts
+    .filter((p) => Boolean(p.url))
+    .slice(0, 10)
+    .map((p) => ({ url: p.url }));
+
+  if (postUrlsToEnrich.length > 0) {
+    try {
+      console.log(`[Instagram Scraper] 2. Enriching likes & comments for ${postUrlsToEnrich.length} posts via dataset ${DATASET_POSTS}...`);
+      const postsRes = await fetch(`${BRIGHTDATA_BASE_URL}?dataset_id=${DATASET_POSTS}&include_errors=true&format=json`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postUrlsToEnrich),
+      });
+
+      if (postsRes.ok) {
+        const enrichedList = await postsRes.json();
+        if (Array.isArray(enrichedList)) {
+          // Create lookup map by clean URL / Shortcode
+          const metricsMap = new Map<string, { likes: number; comments: number; description?: string }>();
+          
+          for (const item of enrichedList) {
+            if (item && item.url) {
+              const cleanUrl = item.url.replace(/\/$/, '').toLowerCase();
+              metricsMap.set(cleanUrl, {
+                likes: Number(item.likes || 0),
+                comments: Number(item.num_comments || item.comments || 0),
+                description: item.description,
+              });
+            }
+          }
+
+          // Merge metrics into basePosts
+          for (const post of basePosts) {
+            const cleanPostUrl = post.url.replace(/\/$/, '').toLowerCase();
+            const metrics = metricsMap.get(cleanPostUrl);
+            if (metrics) {
+              post.likes = metrics.likes;
+              post.likesFormatted = formatCompactNumber(metrics.likes);
+              post.commentsCount = metrics.comments;
+              post.commentsCountFormatted = formatCompactNumber(metrics.comments);
+              if (!post.caption && metrics.description) {
+                post.caption = metrics.description;
+              }
+            }
+          }
+        }
+      }
+    } catch (enrichErr) {
+      console.warn('[Instagram Scraper] Note: Could not batch-enrich post metrics:', enrichErr);
+    }
+  }
+
+  // 4. Compute Aggregated Stats & Engagement Rate
+  const stats = calculateInstagramStats(basePosts, followerCount);
 
   return {
     profile,
-    posts,
+    posts: basePosts,
     stats,
     scrapedAt: new Date().toISOString(),
     isCached: false,
