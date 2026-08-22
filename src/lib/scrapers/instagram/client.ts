@@ -2,6 +2,7 @@ import {
   InstagramScraperData,
   InstagramProfile,
   InstagramPostItem,
+  InstagramCommentItem,
   InstagramHighlightItem,
   InstagramExternalUrl,
 } from '../types';
@@ -15,6 +16,7 @@ import {
 const BRIGHTDATA_BASE_URL = 'https://api.brightdata.com/datasets/v3';
 const DATASET_PROFILES = 'gd_l1vikfch901nx3by4'; // Profiles & Post URLs Dataset
 const DATASET_POSTS = 'gd_lk5ns7kz21pck8jpis';   // Posts Details, Likes & Comments Dataset
+const DATASET_COMMENTS = 'gd_ltppn085pokosxh13'; // Comments by URL Dataset
 
 /**
  * Universal Bright Data Requester with automatic snapshot resolution
@@ -98,7 +100,7 @@ async function fetchBrightDataWithPolling(
 }
 
 /**
- * Scrapes complete Instagram creator profile and enriches recent posts with exact likes and comments
+ * Scrapes complete Instagram creator profile, up to 15 posts, and 5 most recent comments for latest 3 posts
  */
 export async function scrapeInstagram(input: string): Promise<InstagramScraperData> {
   const username = extractInstagramUsername(input);
@@ -134,7 +136,6 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
   const postsCount = Number(rawItem.posts_count || 0);
   const bio = (rawItem.biography as string) || '';
 
-  // Avatar URL resolution across all potential key names
   const avatarUrl =
     (rawItem.profile_image_link as string) ||
     (rawItem.profile_pic_url as string) ||
@@ -142,7 +143,6 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     (rawItem.image as string) ||
     '';
 
-  // External URLs resolution
   let externalUrls: InstagramExternalUrl[] = [];
   if (Array.isArray(rawItem.external_urls)) {
     externalUrls = (rawItem.external_urls as Array<{ title?: string; url?: string }>)
@@ -154,7 +154,6 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     externalUrls = [{ url: rawItem.external_url }];
   }
 
-  // Highlights
   const highlights: InstagramHighlightItem[] = Array.isArray(rawItem.highlights)
     ? (rawItem.highlights as Array<Record<string, unknown>>).map((h) => ({
         id: String(h.id || ''),
@@ -183,8 +182,8 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     categoryName: (rawItem.category_name as string) || (rawItem.business_category_name as string) || undefined,
   };
 
-  // 3. Extract Recent Posts (Top 10)
-  const rawPosts = Array.isArray(rawItem.posts) ? (rawItem.posts as Array<Record<string, unknown>>).slice(0, 10) : [];
+  // 3. Extract Recent Posts (Up to 15 posts)
+  const rawPosts = Array.isArray(rawItem.posts) ? (rawItem.posts as Array<Record<string, unknown>>).slice(0, 15) : [];
 
   const basePosts: InstagramPostItem[] = rawPosts.map((p, idx) => {
     let postUrl = (p.url as string) || '';
@@ -206,13 +205,14 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
       commentsCountFormatted: formatCompactNumber(Number(p.comments || p.num_comments || 0)),
       isPinned: Boolean(p.is_pinned),
       postHashtags: Array.isArray(p.post_hashtags) ? (p.post_hashtags as string[]) : undefined,
+      comments: [],
     };
   });
 
-  // 4. Batch Enrich Exact Likes & Comments for Posts
+  // 4. Batch Enrich Exact Likes & Comments for up to 15 Posts
   const postUrlsToEnrich = basePosts
     .filter((p) => Boolean(p.url))
-    .slice(0, 10)
+    .slice(0, 15)
     .map((p) => ({ url: p.url }));
 
   if (postUrlsToEnrich.length > 0) {
@@ -258,12 +258,78 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
     }
   }
 
-  // 5. Compute Aggregated Stats & Engagement Rate
-  const stats = calculateInstagramStats(basePosts, followerCount);
+  // 5. Fetch 5 Most Recent Comments for the Latest 3 Posts
+  const latest3Posts = basePosts.slice(0, 3).filter((p) => Boolean(p.url));
+  if (latest3Posts.length > 0) {
+    try {
+      console.log(`[Instagram Scraper] 3. Fetching 5 most recent comments for the latest ${latest3Posts.length} posts via dataset ${DATASET_COMMENTS}...`);
+      const commentInput = latest3Posts.map((p) => ({ url: p.url }));
+
+      const rawComments = await fetchBrightDataWithPolling(
+        DATASET_COMMENTS,
+        commentInput,
+        apiKey
+      );
+
+      if (Array.isArray(rawComments)) {
+        // Group comments by post URL
+        const commentsByPostUrl = new Map<string, InstagramCommentItem[]>();
+
+        for (const c of rawComments) {
+          const rawInput = c.input as Record<string, unknown> | undefined;
+          const postUrl = ((c.post_url || c.url || rawInput?.url) as string)?.replace(/\/$/, '').toLowerCase();
+          const username = (c.comment_user || c.user || c.author || 'Instagram User') as string;
+          const text = (c.comment || c.text || '') as string;
+          const publishedAt = (c.comment_date || c.date || new Date().toISOString()) as string;
+          const likeCount = Number(c.likes_number || c.likes || 0);
+          const avatar = (c.profile_image_link || c.user_avatar) as string | undefined;
+
+          if (text) {
+            const commentObj: InstagramCommentItem = {
+              id: String(c.id || Math.random()),
+              authorUsername: username,
+              authorProfileImageUrl: avatar,
+              textDisplay: text,
+              likeCount,
+              publishedAt,
+            };
+
+            const existing = commentsByPostUrl.get(postUrl) || [];
+            existing.push(commentObj);
+            commentsByPostUrl.set(postUrl, existing);
+          }
+        }
+
+        // Attach top 5 most recent comments to each of the 3 latest posts
+        for (const post of latest3Posts) {
+          const cleanUrl = post.url.replace(/\/$/, '').toLowerCase();
+          const postComments = commentsByPostUrl.get(cleanUrl) || [];
+          
+          // Sort chronologically (newest first) and take top 5
+          const sorted5 = postComments
+            .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+            .slice(0, 5);
+
+          post.comments = sorted5;
+        }
+      }
+    } catch (commentErr) {
+      console.warn('[Instagram Scraper] Note: Could not fetch post comments:', commentErr);
+    }
+  }
+
+  // 6. Separate Pinned Posts
+  const pinnedPosts = basePosts.filter((p) => p.isPinned);
+  const unpinnedPosts = basePosts.filter((p) => !p.isPinned);
+  const finalPostsList = pinnedPosts.length > 0 ? [...pinnedPosts, ...unpinnedPosts].slice(0, 15) : basePosts;
+
+  // 7. Compute Aggregated Stats & Engagement Rate
+  const stats = calculateInstagramStats(finalPostsList, followerCount);
 
   return {
     profile,
-    posts: basePosts,
+    posts: finalPostsList,
+    pinnedPosts: pinnedPosts.length > 0 ? pinnedPosts : undefined,
     stats,
     scrapedAt: new Date().toISOString(),
     isCached: false,

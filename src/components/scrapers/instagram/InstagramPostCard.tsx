@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { InstagramPostItem } from "@/lib/scrapers/types";
 
 interface InstagramPostCardProps {
@@ -8,6 +8,8 @@ interface InstagramPostCardProps {
 }
 
 export function InstagramPostCard({ post }: InstagramPostCardProps) {
+  const [showComments, setShowComments] = useState(false);
+
   // Format Date
   const dateFormatted = post.datetime
     ? new Date(post.datetime).toLocaleDateString("en-US", {
@@ -16,6 +18,8 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
         year: "numeric",
       })
     : "";
+
+  const hasRecentComments = post.comments && post.comments.length > 0;
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between hover:border-black">
@@ -34,6 +38,18 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
+          </div>
+        )}
+
+        {/* Pinned Badge (Top Left) */}
+        {post.isPinned && (
+          <div className="absolute top-2 left-2">
+            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-black flex items-center gap-1 shadow-2xs">
+              <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                <path d="M16 9V4l1 0V2H7v2l1 0v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/>
+              </svg>
+              <span>Pinned</span>
+            </span>
           </div>
         )}
 
@@ -84,20 +100,73 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
           <p className="text-xs text-gray-400 italic">No caption provided</p>
         )}
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-[11px] text-gray-500 font-medium">
-          <span>{dateFormatted}</span>
+        <div className="space-y-2 pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between text-[11px] text-gray-500 font-medium">
+            <span>{dateFormatted}</span>
 
-          <a
-            href={post.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-black font-bold hover:underline"
-          >
-            <span>View</span>
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
+            <a
+              href={post.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-black font-bold hover:underline"
+            >
+              <span>View</span>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+
+          {/* Expandable Recent Comments Drawer */}
+          {hasRecentComments && (
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowComments(!showComments)}
+                className="w-full py-1 px-2 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-[11px] font-bold text-gray-700 hover:text-black flex items-center justify-between transition-all"
+              >
+                <div className="flex items-center gap-1 text-blue-600">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span>Recent Comments ({post.comments?.length})</span>
+                </div>
+                <svg
+                  className={`w-3 h-3 text-gray-400 transform transition-transform ${showComments ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showComments && (
+                <div className="mt-2 space-y-2 p-2 bg-gray-50/90 rounded-xl border border-gray-100 text-[11px] max-h-48 overflow-y-auto scrollbar-thin">
+                  {post.comments?.map((comment) => (
+                    <div key={comment.id} className="space-y-0.5 pb-1.5 border-b border-gray-200/60 last:border-0 last:pb-0">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-bold text-gray-900 truncate max-w-[120px]">
+                          @{comment.authorUsername}
+                        </span>
+                        {comment.likeCount > 0 && (
+                          <span className="text-gray-400 font-semibold flex items-center gap-0.5">
+                            <svg className="w-2.5 h-2.5 text-pink-500 fill-current" viewBox="0 0 24 24">
+                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+                            {comment.likeCount}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-700 leading-tight">
+                        {comment.textDisplay}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

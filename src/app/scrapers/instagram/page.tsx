@@ -233,8 +233,8 @@ export default function InstagramScraperPage() {
               totalFollowers={data.profile.followerCount}
             />
 
-            {/* 5 Posts Per Row (2 Rows = 10 Posts) */}
-            <InstagramPostGrid posts={data.posts} />
+            {/* 5 Posts Per Row (Up to 3 Rows = 15 Posts) */}
+            <InstagramPostGrid posts={data.posts} pinnedPosts={data.pinnedPosts} />
           </div>
         )}
       </div>

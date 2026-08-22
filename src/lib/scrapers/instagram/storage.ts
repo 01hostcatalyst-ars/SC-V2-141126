@@ -155,9 +155,12 @@ export function formatDbRecordToInstagramData(record: {
     categoryName: record.categoryName || undefined,
   };
 
+  const pinnedPosts = posts.filter((p) => p.isPinned);
+
   return {
     profile,
     posts,
+    pinnedPosts: pinnedPosts.length > 0 ? pinnedPosts : undefined,
     stats,
     scrapedAt: record.createdAt.toISOString(),
   };

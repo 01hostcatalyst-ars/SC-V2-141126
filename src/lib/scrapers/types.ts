@@ -79,6 +79,15 @@ export interface YouTubeScraperData {
 // INSTAGRAM TYPES
 // ==========================================
 
+export interface InstagramCommentItem {
+  id: string;
+  authorUsername: string;
+  authorProfileImageUrl?: string;
+  textDisplay: string;
+  likeCount: number;
+  publishedAt: string;
+}
+
 export interface InstagramHighlightItem {
   id: string;
   title: string;
@@ -105,6 +114,7 @@ export interface InstagramPostItem {
   commentsCountFormatted: string;
   isPinned?: boolean;
   postHashtags?: string[];
+  comments?: InstagramCommentItem[]; // Top 5 most recent comments
 }
 
 export interface InstagramProfile {
@@ -128,7 +138,8 @@ export interface InstagramProfile {
 
 export interface InstagramScraperData {
   profile: InstagramProfile;
-  posts: InstagramPostItem[];
+  posts: InstagramPostItem[];       // Up to 15 recent posts (5 per row)
+  pinnedPosts?: InstagramPostItem[]; // Pinned posts separated
   stats: {
     totalPostsFetched: number;
     avgLikesPerPost: number;
