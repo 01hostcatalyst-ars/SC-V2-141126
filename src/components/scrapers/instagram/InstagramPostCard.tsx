@@ -96,6 +96,17 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
           <p className="text-xs text-gray-400 italic">No caption provided</p>
         )}
 
+        {/* Geotagged Location */}
+        {post.location && (
+          <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium truncate">
+            <svg className="w-3 h-3 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="truncate">{post.location}</span>
+          </div>
+        )}
+
         {/* Tagged Accounts Indicator */}
         {post.taggedUsers && post.taggedUsers.length > 0 && (
           <div className="flex items-center gap-1 text-[10px] text-gray-500 font-semibold truncate">
@@ -105,6 +116,17 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
             <span className="truncate">
               Tagged: {post.taggedUsers.map((u) => `@${u.username || u.fullName}`).join(", ")}
             </span>
+          </div>
+        )}
+
+        {/* Post Hashtags */}
+        {post.postHashtags && post.postHashtags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1">
+            {post.postHashtags.slice(0, 3).map((tag, idx) => (
+              <span key={idx} className="text-[10px] font-semibold text-blue-600">
+                #{tag.replace(/^#/, '')}
+              </span>
+            ))}
           </div>
         )}
 

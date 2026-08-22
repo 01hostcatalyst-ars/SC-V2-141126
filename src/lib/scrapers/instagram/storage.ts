@@ -131,16 +131,20 @@ export function formatDbRecordToInstagramData(record: {
         avgEngagementRate: record.avgEngagementRate || 0,
       }) as InstagramScraperData['stats'];
 
+  const rawData = record as unknown as { rawMetadata?: { profile?: Partial<InstagramProfile> } };
+  const rawProfile = rawData.rawMetadata?.profile;
+
   const profile: InstagramProfile = {
     username: record.instagramUsername,
     fullName: record.fullName || record.instagramUsername,
-    userId: record.instagramUserId || undefined,
+    userId: record.instagramUserId || rawProfile?.userId || undefined,
+    fbid: rawProfile?.fbid || undefined,
     biography: record.biography || '',
     avatarUrl: record.avatarUrl,
     isVerified: record.isVerified,
     isBusinessAccount: record.isBusinessAccount,
-    isPrivate: false,
-    isJoinedRecently: false,
+    isPrivate: Boolean(rawProfile?.isPrivate),
+    isJoinedRecently: Boolean(rawProfile?.isJoinedRecently),
     followerCount,
     followerCountFormatted: formatCompactNumber(followerCount),
     followingCount: record.followingCount,
@@ -148,6 +152,7 @@ export function formatDbRecordToInstagramData(record: {
     postsCount: record.postsCount,
     postsCountFormatted: formatCompactNumber(record.postsCount),
     externalUrls,
+    bioHashtags: rawProfile?.bioHashtags || [],
     extractedEmail: record.extractedEmail || undefined,
     categoryName: record.categoryName || undefined,
   };

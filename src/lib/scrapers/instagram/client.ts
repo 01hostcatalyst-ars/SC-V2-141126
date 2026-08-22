@@ -279,6 +279,12 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
             if (item.date_posted) {
               post.datetime = item.date_posted as string;
             }
+            if (item.location) {
+              post.location = typeof item.location === 'string' ? item.location : ((item.location as { name?: string })?.name || String(item.location));
+            }
+            if (Array.isArray(item.hashtags)) {
+              post.postHashtags = item.hashtags as string[];
+            }
 
             // Tagged users
             if (Array.isArray(item.tagged_users)) {

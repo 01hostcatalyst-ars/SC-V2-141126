@@ -112,6 +112,7 @@ export interface InstagramPostItem {
   photos?: string[];
   videos?: string[];
   altText?: string;
+  location?: string;
 }
 
 export interface InstagramProfile {

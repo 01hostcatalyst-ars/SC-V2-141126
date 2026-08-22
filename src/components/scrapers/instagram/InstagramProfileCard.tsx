@@ -129,11 +129,29 @@ export function InstagramProfileCard({
 
             <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-semibold text-gray-500">
               <span className="text-gray-900 font-bold">@{profile.username}</span>
+              {profile.userId && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span className="px-2 py-0.5 text-[11px] font-mono font-medium bg-gray-100 text-gray-600 rounded-md border border-gray-200">
+                    ID: {profile.userId}
+                  </span>
+                </>
+              )}
               {profile.isBusinessAccount && (
                 <>
                   <span className="text-gray-300">•</span>
                   <span className="text-gray-600 font-medium">Business / Creator Account</span>
                 </>
+              )}
+              {profile.isPrivate && (
+                <span className="px-2 py-0.5 text-[11px] font-bold bg-amber-50 text-amber-700 rounded-md border border-amber-200">
+                  Private
+                </span>
+              )}
+              {profile.isJoinedRecently && (
+                <span className="px-2 py-0.5 text-[11px] font-bold bg-rose-50 text-rose-700 rounded-md border border-rose-200">
+                  New Account
+                </span>
               )}
             </div>
           </div>
