@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { InstagramScraperData } from "@/lib/scrapers/types";
 import { InstagramProfileCard } from "@/components/scrapers/instagram/InstagramProfileCard";
 import { InstagramEngagementCard } from "@/components/scrapers/instagram/InstagramEngagementCard";
@@ -73,8 +74,32 @@ export default function InstagramScraperPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-10 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-gray-50/50 py-6 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
+        {/* Top Platform Switcher */}
+        <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Scraper Suite:</span>
+          </div>
+          <div className="flex items-center gap-1.5 p-1 bg-gray-200/80 rounded-xl">
+            <Link
+              href="/scrapers/youtube"
+              className="px-3 py-1 text-xs font-bold rounded-lg text-gray-600 hover:text-black transition-colors"
+            >
+              YouTube
+            </Link>
+            <span className="px-3 py-1 text-xs font-bold rounded-lg bg-white text-black shadow-2xs">
+              Instagram
+            </span>
+            <Link
+              href="/scrapers/tiktok"
+              className="px-3 py-1 text-xs font-bold rounded-lg text-gray-600 hover:text-black transition-colors"
+            >
+              TikTok
+            </Link>
+          </div>
+        </div>
+
         {/* Top Header */}
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 border border-pink-200 text-gray-800 text-xs font-bold shadow-2xs">

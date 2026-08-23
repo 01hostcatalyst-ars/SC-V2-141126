@@ -554,6 +554,43 @@ model InstagramScrape {
   @@map("instagram_scrapes")
 }
 
+// ==========================================
+// TIKTOK SCRAPER & CREATOR DATA TABLE
+// ==========================================
+
+model TikTokScrape {
+  id                    String    @id @default(uuid())
+  tiktokUsername        String    @map("tiktok_username")
+  nickname              String?   @map("nickname")
+  biography             String?   @db.Text
+  avatarUrl             String    @map("avatar_url")
+  isVerified            Boolean   @default(false) @map("is_verified")
+  isCommerceUser        Boolean   @default(false) @map("is_commerce_user")
+  bioLink               String?   @map("bio_link")
+  
+  // Follower & Profile Metrics
+  followerCount         BigInt    @default(0) @map("follower_count")
+  followingCount        Int       @default(0) @map("following_count")
+  heartCount            BigInt    @default(0) @map("heart_count")
+  videoCount            Int       @default(0) @map("video_count")
+  avgEngagementRate     Float     @default(0) @map("avg_engagement_rate")
+  
+  // Videos & Statistics (JSONB)
+  videos                Json      @default("[]") @map("videos") // 12-23 recent videos with views, likes, comments, shares
+  stats                 Json?     @map("stats")                 // Average views, likes, shares, engagement rate
+  
+  // Raw Data Backup
+  rawMetadata           Json?     @map("raw_metadata")
+  
+  lastScrapedAt         DateTime  @default(now()) @map("last_scraped_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@index([tiktokUsername])
+  @@index([tiktokUsername, createdAt(sort: Desc)])
+  @@map("tiktok_scrapes")
+}
+
 
 
 

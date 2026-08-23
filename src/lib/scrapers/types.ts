@@ -155,6 +155,69 @@ export interface InstagramScraperData {
 }
 
 // ==========================================
+// TIKTOK TYPES
+// ==========================================
+
+export interface TikTokVideoItem {
+  id: string;
+  url: string;
+  description: string;
+  coverImage: string;
+  playCount: number;
+  playCountFormatted: string;
+  diggCount: number;
+  diggCountFormatted: string;
+  commentCount: number;
+  commentCountFormatted: string;
+  shareCount: number;
+  shareCountFormatted: string;
+  favoritesCount: number;
+  favoritesCountFormatted: string;
+  createDate?: string;
+  postType?: string;
+}
+
+export interface TikTokProfile {
+  username: string;
+  nickname: string;
+  biography: string;
+  avatarUrl: string;
+  isVerified: boolean;
+  isCommerceUser: boolean;
+  isPrivate: boolean;
+  bioLink?: string;
+  followerCount: number;
+  followerCountFormatted: string;
+  followingCount: number;
+  followingCountFormatted: string;
+  heartCount: number;
+  heartCountFormatted: string;
+  videoCount: number;
+  videoCountFormatted: string;
+  createTime?: string;
+}
+
+export interface TikTokScraperData {
+  profile: TikTokProfile;
+  videos: TikTokVideoItem[];
+  stats: {
+    totalVideosFetched: number;
+    avgViewsPerVideo: number;
+    avgViewsFormatted: string;
+    avgLikesPerVideo: number;
+    avgLikesFormatted: string;
+    avgCommentsPerVideo: number;
+    avgCommentsFormatted: string;
+    avgSharesPerVideo: number;
+    avgSharesFormatted: string;
+    avgEngagementRate: number;
+  };
+  scrapedAt: string;
+  isCached?: boolean;
+  cacheAgeHours?: number;
+}
+
+// ==========================================
 // GENERIC SCRAPER RESPONSE WRAPPER
 // ==========================================
 
@@ -164,3 +227,4 @@ export interface ScraperResponse<T = unknown> {
   error?: string;
   details?: string;
 }
+
