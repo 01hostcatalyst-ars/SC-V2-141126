@@ -122,7 +122,10 @@ async function fetchBrightDataWithPolling(
 /**
  * Scrapes complete Instagram creator profile (Process 1) and enriched 12 posts (Process 2)
  */
-export async function scrapeInstagram(input: string): Promise<InstagramScraperData> {
+export async function scrapeInstagram(
+  input: string,
+  options?: { fastMode?: boolean }
+): Promise<InstagramScraperData> {
   const username = extractInstagramUsername(input);
   if (!username) {
     throw new Error('Invalid Instagram handle or URL. Please provide a valid username (e.g. @mkbhd).');
@@ -246,101 +249,105 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
   // Filter out any pinned post so we only process and return 12 unpinned recent uploads
   const unpinnedPosts = allPosts.filter((p) => !p.isPinned).slice(0, 12);
 
-  const postUrlsToEnrich = unpinnedPosts
-    .filter((p) => Boolean(p.url))
-    .map((p) => ({ url: p.url }));
+  if (options?.fastMode) {
+    console.log(`[Instagram Scraper] Fast mode enabled: returning Process 1 summary for @${username} in sub-6s.`);
+  } else {
+    const postUrlsToEnrich = unpinnedPosts
+      .filter((p) => Boolean(p.url))
+      .map((p) => ({ url: p.url }));
 
-  if (postUrlsToEnrich.length > 0) {
-    try {
-      console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} unpinned posts via dataset ${DATASET_POSTS}...`);
-      
-      // Fast 15-second timeout race so we never trigger 504 gateway timeouts
-      const fetchPromise = fetchBrightDataWithPolling(
-        DATASET_POSTS,
-        postUrlsToEnrich,
-        apiKey
-      );
-      
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Process 2 timeout')), 15000)
-      );
+      if (postUrlsToEnrich.length > 0) {
+        try {
+          console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} unpinned posts via dataset ${DATASET_POSTS}...`);
+          
+          // Fast 15-second timeout race so we never trigger 504 gateway timeouts
+          const fetchPromise = fetchBrightDataWithPolling(
+            DATASET_POSTS,
+            postUrlsToEnrich,
+            apiKey
+          );
+          
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Process 2 timeout')), 15000)
+          );
 
-      const enrichedList = await Promise.race([fetchPromise, timeoutPromise]);
+          const enrichedList = await Promise.race([fetchPromise, timeoutPromise]);
 
-      if (Array.isArray(enrichedList)) {
-        const metricsMap = new Map<string, Record<string, unknown>>();
+          if (Array.isArray(enrichedList)) {
+            const metricsMap = new Map<string, Record<string, unknown>>();
 
-        for (const item of enrichedList) {
-          if (item && item.url) {
-            const cleanUrl = (item.url as string).replace(/\/$/, '').toLowerCase();
-            metricsMap.set(cleanUrl, item);
-          }
-        }
-
-        // Merge complete rich metadata into unpinnedPosts
-        for (const post of unpinnedPosts) {
-          const cleanPostUrl = post.url.replace(/\/$/, '').toLowerCase();
-          const item = metricsMap.get(cleanPostUrl);
-          if (item) {
-            post.likes = Number(item.likes || 0);
-            post.likesFormatted = formatCompactNumber(post.likes);
-            post.commentsCount = Number(item.num_comments || item.comments || 0);
-            post.commentsCountFormatted = formatCompactNumber(post.commentsCount);
-
-            if (item.description) {
-              post.caption = item.description as string;
-            }
-            if (item.shortcode) {
-              post.shortcode = item.shortcode as string;
-            }
-            if (item.alt_text) {
-              post.altText = item.alt_text as string;
-            }
-            if (item.date_posted) {
-              post.datetime = item.date_posted as string;
-            }
-            if (item.location) {
-              post.location = typeof item.location === 'string' ? item.location : ((item.location as { name?: string })?.name || String(item.location));
-            }
-            if (Array.isArray(item.hashtags)) {
-              post.postHashtags = item.hashtags as string[];
+            for (const item of enrichedList) {
+              if (item && item.url) {
+                const cleanUrl = (item.url as string).replace(/\/$/, '').toLowerCase();
+                metricsMap.set(cleanUrl, item);
+              }
             }
 
-            // Tagged users
-            if (Array.isArray(item.tagged_users)) {
-              post.taggedUsers = (item.tagged_users as Array<Record<string, unknown>>).map((u) => ({
-                id: u.id ? String(u.id) : undefined,
-                username: (u.username as string) || (u.full_name as string),
-                fullName: (u.full_name as string) || undefined,
-                isVerified: Boolean(u.is_verified),
-                profilePicUrl: (u.profile_pic_url as string) || undefined,
-              }));
-            }
+            // Merge complete rich metadata into unpinnedPosts
+            for (const post of unpinnedPosts) {
+              const cleanPostUrl = post.url.replace(/\/$/, '').toLowerCase();
+              const item = metricsMap.get(cleanPostUrl);
+              if (item) {
+                post.likes = Number(item.likes || 0);
+                post.likesFormatted = formatCompactNumber(post.likes);
+                post.commentsCount = Number(item.num_comments || item.comments || 0);
+                post.commentsCountFormatted = formatCompactNumber(post.commentsCount);
 
-            // Co-authors
-            if (Array.isArray(item.coauthor_producers)) {
-              post.coauthors = item.coauthor_producers as string[];
-            }
+                if (item.description) {
+                  post.caption = item.description as string;
+                }
+                if (item.shortcode) {
+                  post.shortcode = item.shortcode as string;
+                }
+                if (item.alt_text) {
+                  post.altText = item.alt_text as string;
+                }
+                if (item.date_posted) {
+                  post.datetime = item.date_posted as string;
+                }
+                if (item.location) {
+                  post.location = typeof item.location === 'string' ? item.location : ((item.location as { name?: string })?.name || String(item.location));
+                }
+                if (Array.isArray(item.hashtags)) {
+                  post.postHashtags = item.hashtags as string[];
+                }
 
-            // High-res carousel photos
-            if (Array.isArray(item.photos)) {
-              post.photos = item.photos as string[];
-            }
+                // Tagged users
+                if (Array.isArray(item.tagged_users)) {
+                  post.taggedUsers = (item.tagged_users as Array<Record<string, unknown>>).map((u) => ({
+                    id: u.id ? String(u.id) : undefined,
+                    username: (u.username as string) || (u.full_name as string),
+                    fullName: (u.full_name as string) || undefined,
+                    isVerified: Boolean(u.is_verified),
+                    profilePicUrl: (u.profile_pic_url as string) || undefined,
+                  }));
+                }
 
-            // Video streams
-            if (Array.isArray(item.videos)) {
-              post.videos = item.videos as string[];
-              if (!post.videoUrl && post.videos.length > 0) {
-                post.videoUrl = post.videos[0];
+                // Co-authors
+                if (Array.isArray(item.coauthor_producers)) {
+                  post.coauthors = item.coauthor_producers as string[];
+                }
+
+                // High-res carousel photos
+                if (Array.isArray(item.photos)) {
+                  post.photos = item.photos as string[];
+                }
+
+                // Video streams
+                if (Array.isArray(item.videos)) {
+                  post.videos = item.videos as string[];
+                  if (!post.videoUrl && post.videos.length > 0) {
+                    post.videoUrl = post.videos[0];
+                  }
+                }
               }
             }
           }
+        } catch (enrichErr) {
+          console.warn('[Instagram Scraper] Note: Could not batch-enrich post metrics:', enrichErr);
         }
       }
-    } catch (enrichErr) {
-      console.warn('[Instagram Scraper] Note: Could not batch-enrich post metrics:', enrichErr);
     }
-  }
 
   // Compute Aggregated Stats & Engagement Rate on unpinned posts
   const stats = calculateInstagramStats(unpinnedPosts, followerCount);

@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     } else if (platform === 'instagram') {
       let igData = await InstagramScraper.getRecentInstagramSnapshot(input);
       if (!igData) {
-        igData = await InstagramScraper.scrapeInstagram(input);
+        igData = await InstagramScraper.scrapeInstagram(input, { fastMode: true });
         try {
           await InstagramScraper.insertNewInstagramSnapshot(igData);
         } catch (e) {
