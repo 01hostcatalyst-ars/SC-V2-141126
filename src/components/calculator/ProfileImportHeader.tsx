@@ -1,0 +1,249 @@
+"use client";
+
+import React, { useState } from "react";
+import { Platform } from "@/lib/calculator/types";
+import { CreatorAIClassification } from "@/lib/ai/gemini";
+
+interface ImportedCreatorData {
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+  biography?: string;
+  platform: Platform;
+  followerCount: number;
+  avgLikes: number;
+  avgComments: number;
+  avgViews: number;
+  avgShares?: number;
+  externalLinks?: Array<{ platform: string; url: string }>;
+}
+
+interface ProfileImportHeaderProps {
+  onImportSuccess: (data: {
+    creator: ImportedCreatorData;
+    aiEnrichment: CreatorAIClassification;
+  }) => void;
+  onSelectSecondaryNiche: (nicheId: number) => void;
+  activeNicheId: number;
+  importedCreator: ImportedCreatorData | null;
+  aiEnrichment: CreatorAIClassification | null;
+}
+
+export function ProfileImportHeader({
+  onImportSuccess,
+  onSelectSecondaryNiche,
+  activeNicheId,
+  importedCreator,
+  aiEnrichment,
+}: ProfileImportHeaderProps) {
+  const [urlInput, setUrlInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleImport = async (overrideUrl?: string) => {
+    const target = (overrideUrl || urlInput).trim();
+    if (!target) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/calculator/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: target }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to import creator data.");
+      }
+
+      onImportSuccess({
+        creator: json.creator,
+        aiEnrichment: json.aiEnrichment,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to import profile.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-7 space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+              Live Scraper &amp; AI Integration
+            </span>
+            <span className="text-xs font-semibold text-gray-400">Gemini 3.7 Flash Powered</span>
+          </div>
+          <h2 className="text-lg font-black text-black tracking-tight mt-1">
+            Import Creator Profile (YouTube, Instagram, or TikTok)
+          </h2>
+        </div>
+      </div>
+
+      {/* Search Input */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleImport();
+        }}
+        className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-2xl border border-gray-200 focus-within:border-black transition-colors"
+      >
+        <div className="pl-3 text-gray-400">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          placeholder="Paste URL or handle (e.g. @mkbhd, instagram.com/mkbhd, tiktok.com/@mrbeast)"
+          className="flex-1 px-2 py-2 text-xs sm:text-sm bg-transparent outline-none text-gray-900 placeholder:text-gray-400 font-medium"
+          disabled={loading}
+        />
+        <button
+          type="submit"
+          disabled={loading || !urlInput.trim()}
+          className="px-4 sm:px-6 py-2.5 bg-black hover:bg-gray-800 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center gap-1.5 shrink-0"
+        >
+          {loading ? (
+            <>
+              <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Analyzing...</span>
+            </>
+          ) : (
+            <span>Import Profile</span>
+          )}
+        </button>
+      </form>
+
+      {/* Quick Test Handles */}
+      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-500">
+        <span className="text-gray-400">Quick Test:</span>
+        {["@mkbhd", "@mrbeast", "@zachking", "@bellapoarch"].map((handle) => (
+          <button
+            key={handle}
+            type="button"
+            onClick={() => {
+              setUrlInput(handle);
+              handleImport(handle);
+            }}
+            className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-black transition-all border border-gray-200/60"
+          >
+            {handle}
+          </button>
+        ))}
+      </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
+          {error}
+        </div>
+      )}
+
+      {/* AI Enriched Creator Card */}
+      {importedCreator && aiEnrichment && (
+        <div className="p-5 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200/90 space-y-4 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              {importedCreator.avatarUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={importedCreator.avatarUrl}
+                  alt={importedCreator.displayName}
+                  className="w-12 h-12 rounded-full border border-gray-200 object-cover shadow-2xs"
+                />
+              )}
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-black text-black text-base tracking-tight">
+                    {importedCreator.displayName}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-black text-white text-[10px] font-bold uppercase">
+                    {importedCreator.platform}
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-gray-500">@{importedCreator.username}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 text-xs font-bold text-gray-700">
+              <div className="text-right">
+                <div className="text-[10px] text-gray-400 uppercase">Followers</div>
+                <div className="font-black text-black">{importedCreator.followerCount.toLocaleString()}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-gray-400 uppercase">Avg Likes</div>
+                <div className="font-black text-black">{importedCreator.avgLikes.toLocaleString()}</div>
+              </div>
+              {importedCreator.avgViews > 0 && (
+                <div className="text-right">
+                  <div className="text-[10px] text-gray-400 uppercase">Avg Views</div>
+                  <div className="font-black text-black">{importedCreator.avgViews.toLocaleString()}</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* AI Executive Summary */}
+          {aiEnrichment.creatorSummary && (
+            <div className="p-3.5 bg-blue-50/50 rounded-xl border border-blue-100 text-xs text-blue-950 leading-relaxed">
+              <span className="font-bold text-blue-900">AI Creator Summary: </span>
+              {aiEnrichment.creatorSummary}
+            </div>
+          )}
+
+          {/* 3 Niches Display (1 Primary + 2 Secondary Quick Switch) */}
+          <div className="space-y-2 pt-2 border-t border-gray-100">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Identified Content Niches:
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Primary Niche Badge */}
+              <div
+                className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-2xs border ${
+                  activeNicheId === aiEnrichment.primaryNiche.id
+                    ? "bg-black text-white border-black"
+                    : "bg-gray-100 text-gray-800 border-gray-200 cursor-pointer"
+                }`}
+                onClick={() => onSelectSecondaryNiche(aiEnrichment.primaryNiche.id)}
+              >
+                <span>Primary: {aiEnrichment.primaryNiche.name}</span>
+                <span className="px-1.5 py-0.5 rounded bg-white/20 text-[10px]">
+                  {aiEnrichment.primaryNiche.multiplier}x
+                </span>
+              </div>
+
+              {/* Secondary Niche Pills */}
+              {aiEnrichment.secondaryNiches.map((sec) => (
+                <button
+                  key={sec.id}
+                  type="button"
+                  onClick={() => onSelectSecondaryNiche(sec.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                    activeNicheId === sec.id
+                      ? "bg-black text-white border-black"
+                      : "bg-white hover:bg-gray-100 text-gray-700 border-gray-200 shadow-2xs"
+                  }`}
+                  title="Click to apply this secondary niche multiplier to calculation"
+                >
+                  <span>{sec.name}</span>
+                  <span className="ml-1.5 text-[10px] text-gray-400">({sec.multiplier}x)</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

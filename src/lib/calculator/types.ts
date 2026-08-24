@@ -44,15 +44,46 @@ export type TurnaroundSpeed =
   | 'rush_48h'
   | 'ultra_rush_24h';
 
-export type RegionCode = 'US' | 'UK' | 'CA' | 'PK' | 'IN';
+export type RegionCode =
+  | 'US'
+  | 'GB'
+  | 'UK'
+  | 'CA'
+  | 'AU'
+  | 'DE'
+  | 'FR'
+  | 'NL'
+  | 'AE'
+  | 'SA'
+  | 'SG'
+  | 'JP'
+  | 'BR'
+  | 'MX'
+  | 'IN'
+  | 'PK'
+  | 'BD'
+  | 'NG'
+  | 'EG'
+  | 'TR'
+  | 'ZA';
+
+export interface NicheInfo {
+  id: number;
+  name: string;
+  multiplier: number;
+  description?: string;
+  confidence?: number;
+}
 
 export interface CreatorMetrics {
   followerCount: number;
   last3PostsAvgLikes: number;
   last3PostsAvgComments: number;
   last3PostsAvgViews?: number;
+  last3PostsAvgShares?: number;
   primaryPlatform?: Platform;
   primaryNicheId: number;
+  secondaryNicheIds?: number[];
   subNicheId?: number;
   isLuxuryOrHighEnd?: boolean;
   regionCode?: RegionCode;
@@ -64,6 +95,7 @@ export interface DeliverableItem {
   format: DeliverableFormat;
   quantity: number;
   isCrossPost?: boolean;
+  isYouTubeShort?: boolean;
 }
 
 export interface CommercialTerms {
@@ -75,6 +107,7 @@ export interface CommercialTerms {
     scope: ExclusivityScope;
     duration: ExclusivityDuration;
   };
+  whitelisting?: boolean;
 }
 
 export interface ProductionAddons {
@@ -109,6 +142,8 @@ export interface CalculationResult {
     benchmarkER: number;
     performanceMultiplier: number;
     nicheMultiplier: number;
+    primaryNicheName: string;
+    secondaryNiches?: NicheInfo[];
     regionApplied: RegionCode;
     currency: string;
     currencySymbol: string;
@@ -132,5 +167,10 @@ export interface CalculationResult {
       typical: string;
       high: string;
     };
+  };
+  negotiationRange?: {
+    budgetOffer: number;
+    typicalMedian: number;
+    premiumAsk: number;
   };
 }

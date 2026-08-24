@@ -3,11 +3,15 @@ import {
   CalculationResult,
   TurnaroundSpeed,
   RegionCode,
+  DeliverableFormat,
+  NicheInfo,
 } from './types';
 import {
-  ANCHOR_KNOTS,
-  BENCHMARK_ER_KNOTS,
-  EXPECTED_VIEW_RATE_KNOTS,
+  INSTAGRAM_16_KNOTS,
+  TIKTOK_16_KNOTS,
+  YOUTUBE_16_KNOTS,
+  PlatformKnot,
+  getKnotsForFormat,
   PRIMARY_NICHES,
   SUB_NICHES,
   USAGE_RATES,
@@ -15,74 +19,180 @@ import {
   REGIONAL_CONFIG,
 } from './constants';
 
-export function interpolateLinear(knots: Array<[number, number]>, x: number): number {
-  if (x <= knots[0][0]) return knots[0][1];
-  if (x >= knots[knots.length - 1][0]) {
+/**
+ * Continuous 16-Knot Piecewise Linear Interpolator
+ */
+export function interpolateKnot(
+  followers: number,
+  deliverableKey: string,
+  knots: PlatformKnot[]
+): { baseRate: number; targetBenchmarkEr: number; expectedViews: number } {
+  const safeFollowers = Math.max(followers, 1000);
+
+  if (safeFollowers <= knots[0].followers) {
+    return {
+      baseRate: knots[0].rates[deliverableKey] || 100,
+      targetBenchmarkEr: knots[0].benchmarkEr,
+      expectedViews: knots[0].expectedViews || Math.round(safeFollowers * 0.1),
+    };
+  }
+
+  if (safeFollowers >= knots[knots.length - 1].followers) {
     const last = knots[knots.length - 1];
     const prev = knots[knots.length - 2];
-    const slope = (last[1] - prev[1]) / (last[0] - prev[0]);
-    return last[1] + slope * (x - last[0]);
+    const slopeRate = (last.rates[deliverableKey] - prev.rates[deliverableKey]) / (last.followers - prev.followers);
+    const extrapolatedRate = last.rates[deliverableKey] + slopeRate * (safeFollowers - last.followers);
+
+    return {
+      baseRate: Math.round(extrapolatedRate),
+      targetBenchmarkEr: last.benchmarkEr,
+      expectedViews: last.expectedViews || Math.round(safeFollowers * 0.05),
+    };
   }
+
   for (let i = 0; i < knots.length - 1; i++) {
-    const [x0, y0] = knots[i];
-    const [x1, y1] = knots[i + 1];
-    if (x >= x0 && x <= x1) {
-      const progress = (x - x0) / (x1 - x0);
-      return y0 + progress * (y1 - y0);
+    const k0 = knots[i];
+    const k1 = knots[i + 1];
+
+    if (safeFollowers >= k0.followers && safeFollowers <= k1.followers) {
+      const progress = (safeFollowers - k0.followers) / (k1.followers - k0.followers);
+      const rate0 = k0.rates[deliverableKey] || 100;
+      const rate1 = k1.rates[deliverableKey] || rate0;
+      const interpolatedRate = rate0 + progress * (rate1 - rate0);
+      const interpolatedEr = k0.benchmarkEr + progress * (k1.benchmarkEr - k0.benchmarkEr);
+      const interpolatedViews = (k0.expectedViews || 0) + progress * ((k1.expectedViews || 0) - (k0.expectedViews || 0));
+
+      return {
+        baseRate: Math.round(interpolatedRate),
+        targetBenchmarkEr: parseFloat(interpolatedEr.toFixed(4)),
+        expectedViews: Math.round(interpolatedViews),
+      };
     }
   }
-  return knots[0][1];
+
+  return {
+    baseRate: knots[0].rates[deliverableKey] || 100,
+    targetBenchmarkEr: knots[0].benchmarkEr,
+    expectedViews: 0,
+  };
 }
 
+/**
+ * Universal 9-Step Deterministic Valuation Engine for SignCollab
+ */
 export function calculateInfluencerRate(input: PricingInput): CalculationResult {
   const { creator, deliverables, commercialTerms, productionAddons } = input;
   const followers = Math.max(creator.followerCount || 1000, 1000);
 
-  // 1. Smooth ER Calculation & Resolution
-  const totalInteractions = Math.max(0, (creator.last3PostsAvgLikes || 0) + (creator.last3PostsAvgComments || 0));
-  const observedER = (totalInteractions / followers) * 100;
-  const smoothBaselineER = interpolateLinear(BENCHMARK_ER_KNOTS, followers);
-
-  // Explicit safety against JavaScript 0 falsy bug: clamp to 0.05 min ratio
-  const erRatio = totalInteractions === 0 ? 0.05 : Math.max(observedER / smoothBaselineER, 0.05);
-  const erLogFactor = 0.15 * Math.log2(erRatio);
-
-  // 2. Smooth View Velocity Factor
-  let viewLogFactor = 0.0;
-  if (creator.last3PostsAvgViews !== undefined && creator.last3PostsAvgViews >= 0) {
-    const expectedRate = interpolateLinear(EXPECTED_VIEW_RATE_KNOTS, followers);
-    const expectedViews = Math.max(1, followers * expectedRate);
-    const viewRatio = creator.last3PostsAvgViews === 0 ? 0.05 : Math.max(creator.last3PostsAvgViews / expectedViews, 0.05);
-    viewLogFactor = 0.15 * Math.log2(viewRatio);
-  }
-
-  // Clamped performance multiplier [0.70x, 1.40x]
-  const performanceMultiplier = Math.min(Math.max(1.0 + erLogFactor + viewLogFactor, 0.70), 1.40);
-
-  // 3. Niche Modifier Resolution
+  // 1. Resolve Primary & Secondary Niche Multipliers
   const subNicheObj = creator.subNicheId ? SUB_NICHES.find((s) => s.id === creator.subNicheId) : undefined;
-  const primaryNicheObj = PRIMARY_NICHES.find((p) => p.id === creator.primaryNicheId);
+  const primaryNicheObj = PRIMARY_NICHES.find((p) => p.id === creator.primaryNicheId) || PRIMARY_NICHES[7]; // Default Lifestyle (1.00x)
 
-  let nicheMultiplier = subNicheObj ? subNicheObj.multiplier : primaryNicheObj ? primaryNicheObj.multiplier : 1.00;
-
+  let nicheMultiplier = subNicheObj ? subNicheObj.multiplier : primaryNicheObj.multiplier;
   if (creator.isLuxuryOrHighEnd) {
     nicheMultiplier *= 1.25;
   }
 
-  // 4. Itemized Deliverables Calculation with Damped Base Cap (2.25x unadjusted base)
+  const secondaryNiches: NicheInfo[] = [];
+  if (creator.secondaryNicheIds) {
+    for (const id of creator.secondaryNicheIds) {
+      const p = PRIMARY_NICHES.find((item) => item.id === id);
+      if (p) {
+        secondaryNiches.push({
+          id: p.id,
+          name: p.name,
+          multiplier: p.multiplier,
+          description: p.description,
+        });
+      }
+    }
+  }
+
+  // 2. Performance Multiplier Calculation (Platform-Native)
+  let observedER = 0;
+  let benchmarkER = 1.0;
+  let clampedPerfMultiplier = 1.0;
+
+  // Interactions
+  const likes = Math.max(0, creator.last3PostsAvgLikes || 0);
+  const comments = Math.max(0, creator.last3PostsAvgComments || 0);
+  const shares = Math.max(0, creator.last3PostsAvgShares || 0);
+  const views = Math.max(1, creator.last3PostsAvgViews || 1);
+
+  const platform = creator.primaryPlatform || (deliverables[0]?.platform || 'instagram');
+
+  if (platform === 'instagram') {
+    // Track 1: Follower-Based Interaction Rate (Instagram deprecated public views)
+    observedER = ((likes + comments) / followers) * 100;
+    const knotInfo = interpolateKnot(followers, 'ig_reel', INSTAGRAM_16_KNOTS);
+    benchmarkER = knotInfo.targetBenchmarkEr;
+
+    const ratio = observedER === 0 ? 0.05 : Math.max(observedER / benchmarkER, 0.05);
+    const erLogFactor = 0.15 * Math.log2(ratio);
+    clampedPerfMultiplier = Math.min(Math.max(1.0 + erLogFactor, 0.70), 1.40);
+
+  } else if (platform === 'tiktok') {
+    // Track 2: View-Based Interaction Rate including Shares
+    observedER = ((likes + comments + shares) / views) * 100;
+    const knotInfo = interpolateKnot(followers, 'tiktok_video', TIKTOK_16_KNOTS);
+    benchmarkER = knotInfo.targetBenchmarkEr;
+
+    const erRatio = observedER === 0 ? 0.05 : Math.max(observedER / benchmarkER, 0.05);
+    const erLogFactor = 0.15 * Math.log2(erRatio);
+
+    const expectedViews = knotInfo.expectedViews || Math.max(1, followers * 0.1);
+    const viewRatio = views === 0 ? 0.05 : Math.max(views / expectedViews, 0.05);
+    const viewLogFactor = 0.15 * Math.log2(viewRatio);
+
+    clampedPerfMultiplier = Math.min(Math.max(1.0 + erLogFactor + viewLogFactor, 0.70), 1.40);
+
+  } else if (platform === 'youtube') {
+    const isShorts = deliverables.some(d => d.format === 'yt_short');
+    if (isShorts && !deliverables.some(d => d.format !== 'yt_short')) {
+      // Track B: YouTube Shorts
+      observedER = ((likes + comments) / views) * 100;
+      benchmarkER = 4.50; // Shorts baseline
+      const knotInfo = interpolateKnot(followers, 'yt_short', YOUTUBE_16_KNOTS);
+
+      const erRatio = observedER === 0 ? 0.05 : Math.max(observedER / benchmarkER, 0.05);
+      const erLogFactor = 0.15 * Math.log2(erRatio);
+
+      const expectedViews = knotInfo.expectedViews || Math.max(1, followers * 0.2);
+      const viewRatio = views === 0 ? 0.05 : Math.max(views / expectedViews, 0.05);
+      const viewLogFactor = 0.15 * Math.log2(viewRatio);
+
+      clampedPerfMultiplier = Math.min(Math.max(1.0 + erLogFactor + viewLogFactor, 0.70), 1.40);
+    } else {
+      // Track A: YouTube Long-Form (Dedicated & 60s Integration)
+      observedER = ((likes + comments) / views) * 100;
+      const knotInfo = interpolateKnot(followers, 'yt_integrated', YOUTUBE_16_KNOTS);
+      benchmarkER = knotInfo.targetBenchmarkEr;
+
+      const erRatio = observedER === 0 ? 0.05 : Math.max(observedER / benchmarkER, 0.05);
+      const erLogFactor = 0.15 * Math.log2(erRatio);
+
+      const expectedViews = knotInfo.expectedViews || Math.max(1, followers * 0.1);
+      const viewRatio = views === 0 ? 0.05 : Math.max(views / expectedViews, 0.05);
+      const viewLogFactor = 0.15 * Math.log2(viewRatio);
+
+      clampedPerfMultiplier = Math.min(Math.max(1.0 + erLogFactor + viewLogFactor, 0.70), 1.40);
+    }
+  }
+
+  // 3. Itemized Deliverables with Damped Base Cap (2.25x unadjusted base)
   let grossDeliverablesTotalUSD = 0;
   let totalAssetCount = 0;
 
   const itemizedBreakdown = deliverables.map((item) => {
-    const knots = ANCHOR_KNOTS[item.format] || ANCHOR_KNOTS['ig_reel'];
-    const rawInterpolatedBase = interpolateLinear(knots, followers);
-    let quantityAdjusted = rawInterpolatedBase * item.quantity;
+    const knots = getKnotsForFormat(item.format);
+    const { baseRate } = interpolateKnot(followers, item.format, knots);
 
+    let quantityAdjusted = baseRate * item.quantity;
     if (item.isCrossPost) {
       quantityAdjusted *= 0.50; // 50% discount for cross-posted secondary asset
     }
 
-    const unconstrainedFee = quantityAdjusted * nicheMultiplier * performanceMultiplier;
+    const unconstrainedFee = quantityAdjusted * nicheMultiplier * clampedPerfMultiplier;
     const maxCap = quantityAdjusted * 2.25; // Damped cap against runaway compounding
     const effectiveFeeUSD = Math.min(unconstrainedFee, maxCap);
 
@@ -94,20 +204,20 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
       format: item.format,
       platform: item.platform,
       quantity: item.quantity,
-      unitInterpolatedBaseUSD: Math.round(rawInterpolatedBase),
+      unitInterpolatedBaseUSD: Math.round(baseRate),
       finalDeliverableFeeUSD: Math.round(effectiveFeeUSD),
     };
   });
 
-  // 5. Volume Bundle Discount
+  // 4. Multi-Asset Volume Bundle Discount (0% / 10% / 15%)
   let bundleDiscountPercent = 0.00;
-  if (totalAssetCount >= 2 && totalAssetCount <= 3) bundleDiscountPercent = 0.10;
-  else if (totalAssetCount >= 4) bundleDiscountPercent = 0.15;
+  if (totalAssetCount >= 4) bundleDiscountPercent = 0.15;
+  else if (totalAssetCount >= 2) bundleDiscountPercent = 0.10;
 
   const bundleDiscountAmountUSD = grossDeliverablesTotalUSD * bundleDiscountPercent;
   const netDeliverableFeeUSD = grossDeliverablesTotalUSD - bundleDiscountAmountUSD;
 
-  // 6. Additive Commercial Rights & Exclusivity Upcharges
+  // 5. Additive Commercial Rights & Exclusivity Surcharges
   let usagePercent = 0.0;
   if (commercialTerms?.usageRights) {
     const { scope, duration } = commercialTerms.usageRights;
@@ -120,9 +230,11 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
     exclusivityPercent = EXCLUSIVITY_RATES[scope]?.[duration] || 0.0;
   }
 
-  const commercialRightsFeeUSD = netDeliverableFeeUSD * (usagePercent + exclusivityPercent);
+  let whitelistingPercent = commercialTerms?.whitelisting ? 0.30 : 0.0;
 
-  // 7. Production Surcharges & Out-of-Pocket Expenses
+  const commercialRightsFeeUSD = netDeliverableFeeUSD * (usagePercent + exclusivityPercent + whitelistingPercent);
+
+  // 6. Production Addons & Turnaround Fees
   let productionAddonsUSD = 0;
   if (productionAddons?.turnaround) {
     const rushMap: Record<TurnaroundSpeed, number> = {
@@ -149,21 +261,27 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
     productionAddonsUSD += productionAddons.reimbursedExpenses;
   }
 
-  // 8. Regional Calibration & Currency Output
+  // 7. Global GDP PPP & FX Calibration (20 Countries)
   const regionCode: RegionCode = creator.regionCode || 'US';
   const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG['US'];
   const totalUSDMedian = netDeliverableFeeUSD + commercialRightsFeeUSD + productionAddonsUSD;
 
-  // Localized Economic Value = USD Valuation × Regional Purchasing Power Index × FX Rate
+  // Localized Target Median = Total Global USD × PPP Index × FX Rate
   const localizedMedian = totalUSDMedian * regConfig.pppIndex * regConfig.fxRateToUSD;
+
+  const lowP25 = Math.round(localizedMedian * 0.80);
+  const typicalMedian = Math.round(localizedMedian * 1.00);
+  const highP75 = Math.round(localizedMedian * 1.25);
 
   return {
     metrics: {
       followerCount: followers,
       observedER: Number(observedER.toFixed(2)),
-      benchmarkER: Number(smoothBaselineER.toFixed(2)),
-      performanceMultiplier: Number(performanceMultiplier.toFixed(2)),
+      benchmarkER: Number(benchmarkER.toFixed(2)),
+      performanceMultiplier: Number(clampedPerfMultiplier.toFixed(2)),
       nicheMultiplier: Number(nicheMultiplier.toFixed(2)),
+      primaryNicheName: primaryNicheObj.name,
+      secondaryNiches,
       regionApplied: regionCode,
       currency: regConfig.currency,
       currencySymbol: regConfig.symbol,
@@ -179,14 +297,19 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
       totalUSD: Math.round(totalUSDMedian),
     },
     valuationRange: {
-      lowP25: Math.round(localizedMedian * 0.80),
-      typicalMedian: Math.round(localizedMedian),
-      highP75: Math.round(localizedMedian * 1.25),
+      lowP25,
+      typicalMedian,
+      highP75,
       formatted: {
-        low: `${regConfig.symbol}${Math.round(localizedMedian * 0.80).toLocaleString()}`,
-        typical: `${regConfig.symbol}${Math.round(localizedMedian).toLocaleString()}`,
-        high: `${regConfig.symbol}${Math.round(localizedMedian * 1.25).toLocaleString()}`,
+        low: `${regConfig.symbol}${lowP25.toLocaleString()}`,
+        typical: `${regConfig.symbol}${typicalMedian.toLocaleString()}`,
+        high: `${regConfig.symbol}${highP75.toLocaleString()}`,
       },
+    },
+    negotiationRange: {
+      budgetOffer: lowP25,
+      typicalMedian: typicalMedian,
+      premiumAsk: highP75,
     },
   };
 }
