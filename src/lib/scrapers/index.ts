@@ -13,10 +13,10 @@ export function detectPlatform(input: string): SupportedPlatform {
   if (trimmed.includes('tiktok.com')) {
     return 'tiktok';
   }
-  if (trimmed.includes('instagram.com')) {
+  if (trimmed.includes('instagram.com') || trimmed.includes('instagr.am')) {
     return 'instagram';
   }
-  if (trimmed.includes('youtube.com') || trimmed.includes('youtu.be') || trimmed.startsWith('@')) {
+  if (trimmed.includes('youtube.com') || trimmed.includes('youtu.be')) {
     return 'youtube';
   }
   return 'unknown';

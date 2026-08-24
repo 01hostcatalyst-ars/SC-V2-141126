@@ -29,6 +29,8 @@ interface ProfileImportHeaderProps {
   aiEnrichment: CreatorAIClassification | null;
 }
 
+type PlatformTab = "auto" | "instagram" | "youtube" | "tiktok";
+
 export function ProfileImportHeader({
   onImportSuccess,
   onSelectSecondaryNiche,
@@ -37,21 +39,27 @@ export function ProfileImportHeader({
   aiEnrichment,
 }: ProfileImportHeaderProps) {
   const [urlInput, setUrlInput] = useState("");
+  const [selectedPlatform, setSelectedPlatform] = useState<PlatformTab>("auto");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleImport = async (overrideUrl?: string) => {
+  const handleImport = async (overrideUrl?: string, overridePlatform?: PlatformTab) => {
     const target = (overrideUrl || urlInput).trim();
     if (!target) return;
 
     setLoading(true);
     setError(null);
 
+    const platformToSend = overridePlatform || selectedPlatform;
+
     try {
       const res = await fetch("/api/calculator/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: target }),
+        body: JSON.stringify({
+          input: target,
+          requestedPlatform: platformToSend !== "auto" ? platformToSend : undefined,
+        }),
       });
 
       const text = await res.text();
@@ -85,7 +93,7 @@ export function ProfileImportHeader({
 
   return (
     <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-7 space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
@@ -94,8 +102,31 @@ export function ProfileImportHeader({
             <span className="text-xs font-semibold text-gray-400">Gemini 3.7 Flash Powered</span>
           </div>
           <h2 className="text-lg font-black text-black tracking-tight mt-1">
-            Import Creator Profile (YouTube, Instagram, or TikTok)
+            Import Creator Profile
           </h2>
+        </div>
+
+        {/* Platform Switcher Tabs */}
+        <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl border border-gray-200/80 self-start sm:self-auto">
+          {[
+            { id: "auto", label: "Auto Detect" },
+            { id: "instagram", label: "Instagram" },
+            { id: "youtube", label: "YouTube" },
+            { id: "tiktok", label: "TikTok" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setSelectedPlatform(tab.id as PlatformTab)}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                selectedPlatform === tab.id
+                  ? "bg-white text-black shadow-xs font-black"
+                  : "text-gray-600 hover:text-black hover:bg-gray-200/60"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -116,7 +147,15 @@ export function ProfileImportHeader({
           type="text"
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
-          placeholder="Paste URL or handle (e.g. @mkbhd, instagram.com/mkbhd, tiktok.com/@mrbeast)"
+          placeholder={
+            selectedPlatform === "instagram"
+              ? "Enter Instagram handle or URL (e.g. @irfanjunejo or instagram.com/irfanjunejo)"
+              : selectedPlatform === "youtube"
+              ? "Enter YouTube channel URL or handle (e.g. @mkbhd or youtube.com/@mkbhd)"
+              : selectedPlatform === "tiktok"
+              ? "Enter TikTok handle or URL (e.g. @mrbeast or tiktok.com/@mrbeast)"
+              : "Paste URL or handle (e.g. @irfanjunejo, instagram.com/mkbhd, tiktok.com/@mrbeast)"
+          }
           className="flex-1 px-2 py-2 text-xs sm:text-sm bg-transparent outline-none text-gray-900 placeholder:text-gray-400 font-medium"
           disabled={loading}
         />
@@ -141,17 +180,22 @@ export function ProfileImportHeader({
       {/* Quick Test Handles */}
       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-500">
         <span className="text-gray-400">Quick Test:</span>
-        {["@mkbhd", "@mrbeast", "@zachking", "@bellapoarch"].map((handle) => (
+        {[
+          { label: "@irfanjunejo (IG)", handle: "https://www.instagram.com/irfanjunejo/", platform: "instagram" as PlatformTab },
+          { label: "@mkbhd (YT)", handle: "https://www.youtube.com/@mkbhd", platform: "youtube" as PlatformTab },
+          { label: "@mrbeast (TT)", handle: "https://www.tiktok.com/@mrbeast", platform: "tiktok" as PlatformTab },
+        ].map((item) => (
           <button
-            key={handle}
+            key={item.label}
             type="button"
             onClick={() => {
-              setUrlInput(handle);
-              handleImport(handle);
+              setUrlInput(item.handle);
+              setSelectedPlatform(item.platform);
+              handleImport(item.handle, item.platform);
             }}
             className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-black transition-all border border-gray-200/60"
           >
-            {handle}
+            {item.label}
           </button>
         ))}
       </div>

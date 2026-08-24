@@ -253,11 +253,19 @@ export async function scrapeInstagram(input: string): Promise<InstagramScraperDa
   if (postUrlsToEnrich.length > 0) {
     try {
       console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} unpinned posts via dataset ${DATASET_POSTS}...`);
-      const enrichedList = await fetchBrightDataWithPolling(
+      
+      // Fast 15-second timeout race so we never trigger 504 gateway timeouts
+      const fetchPromise = fetchBrightDataWithPolling(
         DATASET_POSTS,
         postUrlsToEnrich,
         apiKey
       );
+      
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Process 2 timeout')), 15000)
+      );
+
+      const enrichedList = await Promise.race([fetchPromise, timeoutPromise]);
 
       if (Array.isArray(enrichedList)) {
         const metricsMap = new Map<string, Record<string, unknown>>();
