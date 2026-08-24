@@ -77,7 +77,117 @@ async function getGoogleCloudAccessToken(): Promise<string> {
 }
 
 /**
+ * Retrieves the most recent historical AI classification from the database for this creator
+ * (Used only if both Tier 1 and Tier 2 live AI models are temporarily unreachable)
+ */
+async function getHistoricalAIEnrichmentFromDB(
+  platform: 'youtube' | 'instagram' | 'tiktok',
+  username: string
+): Promise<CreatorAIClassification | null> {
+  const cleanUsername = username.trim().replace(/^@/, '');
+  if (!cleanUsername) return null;
+
+  try {
+    const { prisma } = await import('@/lib/prisma');
+
+    if (platform === 'youtube') {
+      const record = await prisma.youTubeScrape.findFirst({
+        where: {
+          OR: [
+            { handle: `@${cleanUsername}` },
+            { handle: cleanUsername },
+            { customUrl: `@${cleanUsername}` },
+            { youtubeChannelId: cleanUsername },
+            { title: { equals: cleanUsername, mode: 'insensitive' } },
+          ],
+          primaryNicheId: { not: null },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (record?.primaryNicheId) {
+        const primaryDef = PRIMARY_NICHES.find((p) => p.id === record.primaryNicheId) || PRIMARY_NICHES[7];
+        const secondaryList: Array<{ id: number; name: string; multiplier: number }> = Array.isArray(record.secondaryNiches)
+          ? (record.secondaryNiches as Array<{ id: number; name: string; multiplier: number }>)
+          : [];
+
+        return {
+          primaryNiche: {
+            id: primaryDef.id,
+            name: record.primaryNicheName || primaryDef.name,
+            multiplier: primaryDef.multiplier,
+            confidence: 0.95,
+          },
+          secondaryNiches: secondaryList,
+          detectedCountry: record.detectedCountry || 'US',
+          creatorSummary: record.aiCreatorSummary || `${primaryDef.name} creator sharing high-engagement content on YouTube.`,
+        };
+      }
+    } else if (platform === 'instagram') {
+      const record = await prisma.instagramScrape.findFirst({
+        where: {
+          instagramUsername: { equals: cleanUsername, mode: 'insensitive' },
+          primaryNicheId: { not: null },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (record?.primaryNicheId) {
+        const primaryDef = PRIMARY_NICHES.find((p) => p.id === record.primaryNicheId) || PRIMARY_NICHES[7];
+        const secondaryList: Array<{ id: number; name: string; multiplier: number }> = Array.isArray(record.secondaryNiches)
+          ? (record.secondaryNiches as Array<{ id: number; name: string; multiplier: number }>)
+          : [];
+
+        return {
+          primaryNiche: {
+            id: primaryDef.id,
+            name: record.primaryNicheName || primaryDef.name,
+            multiplier: primaryDef.multiplier,
+            confidence: 0.95,
+          },
+          secondaryNiches: secondaryList,
+          detectedCountry: record.detectedCountry || 'US',
+          creatorSummary: record.aiCreatorSummary || `${primaryDef.name} creator sharing high-engagement content on Instagram.`,
+        };
+      }
+    } else if (platform === 'tiktok') {
+      const record = await prisma.tikTokScrape.findFirst({
+        where: {
+          tiktokUsername: { equals: cleanUsername, mode: 'insensitive' },
+          primaryNicheId: { not: null },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (record?.primaryNicheId) {
+        const primaryDef = PRIMARY_NICHES.find((p) => p.id === record.primaryNicheId) || PRIMARY_NICHES[7];
+        const secondaryList: Array<{ id: number; name: string; multiplier: number }> = Array.isArray(record.secondaryNiches)
+          ? (record.secondaryNiches as Array<{ id: number; name: string; multiplier: number }>)
+          : [];
+
+        return {
+          primaryNiche: {
+            id: primaryDef.id,
+            name: record.primaryNicheName || primaryDef.name,
+            multiplier: primaryDef.multiplier,
+            confidence: 0.95,
+          },
+          secondaryNiches: secondaryList,
+          detectedCountry: record.detectedCountry || 'US',
+          creatorSummary: record.aiCreatorSummary || `${primaryDef.name} creator sharing high-engagement content on TikTok.`,
+        };
+      }
+    }
+  } catch (dbErr) {
+    console.warn('[DB Historical AI Fetch Error]:', dbErr);
+  }
+
+  return null;
+}
+
+/**
  * Enriches creator profile using Google Cloud Vertex AI (Primary: gemini-3.7-flash, Secondary: gemini-3.6-flash)
+ * If both live models fail, gracefully fetches the most recent historical AI classification from the database.
  */
 export async function enrichCreatorWithAI(
   input: CreatorContextInput
@@ -87,7 +197,12 @@ export async function enrichCreatorWithAI(
     throw new Error('[Gemini Vertex AI] GOOGLE_CLOUD_PROJECT_ID is not configured in environment variables.');
   }
 
-  const vertexToken = await getGoogleCloudAccessToken();
+  let vertexToken: string | null = null;
+  try {
+    vertexToken = await getGoogleCloudAccessToken();
+  } catch (tokenErr) {
+    console.warn('[Gemini Vertex AI] Token error, will check historical DB fallback:', tokenErr);
+  }
 
   const nicheOptions = PRIMARY_NICHES.map(
     (n) => `ID ${n.id}: "${n.name}" (Multiplier: ${n.multiplier}x) - ${n.description}`
@@ -139,88 +254,103 @@ Analyze this creator and return the exact structured JSON with primaryNiche, sec
 
   const modelErrors: string[] = [];
 
-  // Try Primary Model (gemini-3.7-flash), then fallback to Tier 2 (gemini-3.6-flash)
-  for (const model of PRIMARY_MODELS) {
-    try {
-      const vertexUrl = `https://aiplatform.googleapis.com/v1/projects/${projectId}/locations/global/publishers/google/models/${model}:generateContent`;
+  // Try Primary Model (gemini-3.7-flash), then Tier 2 (gemini-3.6-flash)
+  if (vertexToken) {
+    for (const model of PRIMARY_MODELS) {
+      try {
+        const vertexUrl = `https://aiplatform.googleapis.com/v1/projects/${projectId}/locations/global/publishers/google/models/${model}:generateContent`;
 
-      const res = await fetch(vertexUrl, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${vertexToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestPayload),
-      });
+        const res = await fetch(vertexUrl, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${vertexToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestPayload),
+        });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        const msg = `[${model}] HTTP ${res.status}: ${errText}`;
-        console.warn(`[Gemini Vertex AI] ${msg}`);
-        modelErrors.push(msg);
-        continue;
-      }
+        if (!res.ok) {
+          const errText = await res.text();
+          const msg = `[${model}] HTTP ${res.status}: ${errText}`;
+          console.warn(`[Gemini Vertex AI] ${msg}`);
+          modelErrors.push(msg);
+          continue;
+        }
 
-      const data = await res.json();
-      const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const data = await res.json();
+        const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-      if (!candidateText) {
-        const msg = `[${model}] No candidate text returned`;
-        console.warn(`[Gemini Vertex AI] ${msg}`);
-        modelErrors.push(msg);
-        continue;
-      }
+        if (!candidateText) {
+          const msg = `[${model}] No candidate text returned`;
+          console.warn(`[Gemini Vertex AI] ${msg}`);
+          modelErrors.push(msg);
+          continue;
+        }
 
-      const parsed = JSON.parse(candidateText);
+        const parsed = JSON.parse(candidateText);
 
-      // Validate and resolve niches
-      const primaryDef = PRIMARY_NICHES.find((p) => p.id === parsed.primaryNiche?.id) || PRIMARY_NICHES[7];
-      const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
+        // Validate and resolve niches
+        const primaryDef = PRIMARY_NICHES.find((p) => p.id === parsed.primaryNiche?.id) || PRIMARY_NICHES[7];
+        const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
 
-      if (Array.isArray(parsed.secondaryNiches)) {
-        for (const s of parsed.secondaryNiches) {
-          const match = PRIMARY_NICHES.find((p) => p.id === s.id);
-          if (match && match.id !== primaryDef.id && secondaryList.length < 2) {
-            secondaryList.push({
-              id: match.id,
-              name: match.name,
-              multiplier: match.multiplier,
-            });
+        if (Array.isArray(parsed.secondaryNiches)) {
+          for (const s of parsed.secondaryNiches) {
+            const match = PRIMARY_NICHES.find((p) => p.id === s.id);
+            if (match && match.id !== primaryDef.id && secondaryList.length < 2) {
+              secondaryList.push({
+                id: match.id,
+                name: match.name,
+                multiplier: match.multiplier,
+              });
+            }
           }
         }
-      }
 
-      if (secondaryList.length < 2) {
-        for (const p of PRIMARY_NICHES) {
-          if (p.id !== primaryDef.id && !secondaryList.some((s) => s.id === p.id)) {
-            secondaryList.push({ id: p.id, name: p.name, multiplier: p.multiplier });
-            if (secondaryList.length === 2) break;
+        if (secondaryList.length < 2) {
+          for (const p of PRIMARY_NICHES) {
+            if (p.id !== primaryDef.id && !secondaryList.some((s) => s.id === p.id)) {
+              secondaryList.push({ id: p.id, name: p.name, multiplier: p.multiplier });
+              if (secondaryList.length === 2) break;
+            }
           }
         }
-      }
 
-      return {
-        primaryNiche: {
-          id: primaryDef.id,
-          name: primaryDef.name,
-          multiplier: primaryDef.multiplier,
-          confidence: typeof parsed.primaryNiche?.confidence === 'number' ? parsed.primaryNiche.confidence : 0.95,
-        },
-        secondaryNiches: secondaryList,
-        detectedCountry: String(parsed.detectedCountry || input.reportedCountry || 'US').toUpperCase().slice(0, 2),
-        creatorSummary: String(
-          parsed.creatorSummary || `${primaryDef.name} creator sharing high-engagement content on ${input.platform}.`
-        ),
-      };
-    } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : String(err);
-      console.warn(`[Gemini Vertex AI] Network issue on ${model}:`, errMsg);
-      modelErrors.push(`[${model}] Exception: ${errMsg}`);
+        return {
+          primaryNiche: {
+            id: primaryDef.id,
+            name: primaryDef.name,
+            multiplier: primaryDef.multiplier,
+            confidence: typeof parsed.primaryNiche?.confidence === 'number' ? parsed.primaryNiche.confidence : 0.95,
+          },
+          secondaryNiches: secondaryList,
+          detectedCountry: String(parsed.detectedCountry || input.reportedCountry || 'US').toUpperCase().slice(0, 2),
+          creatorSummary: String(
+            parsed.creatorSummary || `${primaryDef.name} creator sharing high-engagement content on ${input.platform}.`
+          ),
+        };
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        console.warn(`[Gemini Vertex AI] Network issue on ${model}:`, errMsg);
+        modelErrors.push(`[${model}] Exception: ${errMsg}`);
+      }
     }
   }
 
-  // If both Primary and Secondary models fail, throw an explicit error
+  // 3. Fallback: Check if we have previous verified LLM classification data stored in our database for this creator
+  console.warn(
+    `[Gemini Vertex AI] Live AI models unavailable. Attempting to retrieve previous historical LLM classification from database for @${input.username}...`
+  );
+
+  const historicalData = await getHistoricalAIEnrichmentFromDB(input.platform, input.username);
+  if (historicalData) {
+    console.log(
+      `[Gemini Vertex AI] Successfully recovered previous LLM classification from database for @${input.username} (${historicalData.primaryNiche.name}).`
+    );
+    return historicalData;
+  }
+
+  // If live models failed AND creator has never been analyzed before in DB, throw explicit error
   throw new Error(
-    `[Gemini Vertex AI Failure] All AI models (${PRIMARY_MODELS.join(', ')}) failed to respond. Details:\n${modelErrors.join('\n')}`
+    `[Gemini Vertex AI Failure] All AI models (${PRIMARY_MODELS.join(', ')}) failed, and no previous historical AI data exists in database for @${input.username}. Details:\n${modelErrors.join('\n')}`
   );
 }
