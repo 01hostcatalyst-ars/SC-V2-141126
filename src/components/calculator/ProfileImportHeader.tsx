@@ -54,9 +54,21 @@ export function ProfileImportHeader({
         body: JSON.stringify({ input: target }),
       });
 
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to import creator data.");
+      const text = await res.text();
+      let json: { success?: boolean; error?: string; creator?: ImportedCreatorData; aiEnrichment?: CreatorAIClassification };
+
+      try {
+        json = JSON.parse(text);
+      } catch {
+        throw new Error(
+          res.ok
+            ? "Server returned invalid response. Please try again."
+            : `Server error (${res.status}): Please verify the creator handle or URL.`
+        );
+      }
+
+      if (!res.ok || !json.success || !json.creator || !json.aiEnrichment) {
+        throw new Error(json.error || "Failed to import creator profile.");
       }
 
       onImportSuccess({
