@@ -30,7 +30,10 @@ export interface CreatorContextInput {
   reportedCountry?: string;
 }
 
-const MODEL_NAME = 'gemini-3.7-flash';
+const PRIMARY_MODELS = [
+  'gemini-3.7-flash', // Tier 1: Primary Model
+  'gemini-3.6-flash', // Tier 2: Secondary Model
+];
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
@@ -44,7 +47,7 @@ async function getGoogleCloudAccessToken(): Promise<string> {
 
   if (!clientEmail || !privateKeyRaw || !projectId) {
     throw new Error(
-      '[Gemini 3.7 Flash] Missing required Google Cloud environment variables: GOOGLE_CLOUD_PROJECT_ID, GOOGLE_CLOUD_CLIENT_EMAIL, or GOOGLE_CLOUD_PRIVATE_KEY.'
+      '[Gemini Vertex AI] Missing required Google Cloud environment variables: GOOGLE_CLOUD_PROJECT_ID, GOOGLE_CLOUD_CLIENT_EMAIL, or GOOGLE_CLOUD_PRIVATE_KEY.'
     );
   }
 
@@ -62,7 +65,7 @@ async function getGoogleCloudAccessToken(): Promise<string> {
 
   const tokenRes = await auth.getAccessToken();
   if (!tokenRes?.token) {
-    throw new Error('[Gemini 3.7 Flash] Failed to acquire Google Cloud OAuth access token from Service Account.');
+    throw new Error('[Gemini Vertex AI] Failed to acquire Google Cloud OAuth access token from Service Account.');
   }
 
   cachedToken = {
@@ -74,14 +77,14 @@ async function getGoogleCloudAccessToken(): Promise<string> {
 }
 
 /**
- * Enriches creator profile strictly using Google Cloud Vertex AI with Gemini 3.7 Flash
+ * Enriches creator profile using Google Cloud Vertex AI (Primary: gemini-3.7-flash, Secondary: gemini-3.6-flash)
  */
 export async function enrichCreatorWithAI(
   input: CreatorContextInput
 ): Promise<CreatorAIClassification> {
   const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID?.trim();
   if (!projectId) {
-    throw new Error('[Gemini 3.7 Flash] GOOGLE_CLOUD_PROJECT_ID is not configured in environment variables.');
+    throw new Error('[Gemini Vertex AI] GOOGLE_CLOUD_PROJECT_ID is not configured in environment variables.');
   }
 
   const vertexToken = await getGoogleCloudAccessToken();
@@ -134,68 +137,90 @@ Analyze this creator and return the exact structured JSON with primaryNiche, sec
     },
   };
 
-  const vertexUrl = `https://aiplatform.googleapis.com/v1/projects/${projectId}/locations/global/publishers/google/models/${MODEL_NAME}:generateContent`;
+  const modelErrors: string[] = [];
 
-  const res = await fetch(vertexUrl, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${vertexToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestPayload),
-  });
+  // Try Primary Model (gemini-3.7-flash), then fallback to Tier 2 (gemini-3.6-flash)
+  for (const model of PRIMARY_MODELS) {
+    try {
+      const vertexUrl = `https://aiplatform.googleapis.com/v1/projects/${projectId}/locations/global/publishers/google/models/${model}:generateContent`;
 
-  if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error(`[Gemini 3.7 Flash API Error] Status ${res.status}: ${errBody}`);
-  }
+      const res = await fetch(vertexUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${vertexToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestPayload),
+      });
 
-  const data = await res.json();
-  const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!candidateText) {
-    throw new Error(`[Gemini 3.7 Flash] No candidate text returned in response: ${JSON.stringify(data)}`);
-  }
-
-  const parsed = JSON.parse(candidateText);
-
-  // Validate and resolve niches
-  const primaryDef = PRIMARY_NICHES.find((p) => p.id === parsed.primaryNiche?.id) || PRIMARY_NICHES[7];
-  const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
-
-  if (Array.isArray(parsed.secondaryNiches)) {
-    for (const s of parsed.secondaryNiches) {
-      const match = PRIMARY_NICHES.find((p) => p.id === s.id);
-      if (match && match.id !== primaryDef.id && secondaryList.length < 2) {
-        secondaryList.push({
-          id: match.id,
-          name: match.name,
-          multiplier: match.multiplier,
-        });
+      if (!res.ok) {
+        const errText = await res.text();
+        const msg = `[${model}] HTTP ${res.status}: ${errText}`;
+        console.warn(`[Gemini Vertex AI] ${msg}`);
+        modelErrors.push(msg);
+        continue;
       }
+
+      const data = await res.json();
+      const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!candidateText) {
+        const msg = `[${model}] No candidate text returned`;
+        console.warn(`[Gemini Vertex AI] ${msg}`);
+        modelErrors.push(msg);
+        continue;
+      }
+
+      const parsed = JSON.parse(candidateText);
+
+      // Validate and resolve niches
+      const primaryDef = PRIMARY_NICHES.find((p) => p.id === parsed.primaryNiche?.id) || PRIMARY_NICHES[7];
+      const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
+
+      if (Array.isArray(parsed.secondaryNiches)) {
+        for (const s of parsed.secondaryNiches) {
+          const match = PRIMARY_NICHES.find((p) => p.id === s.id);
+          if (match && match.id !== primaryDef.id && secondaryList.length < 2) {
+            secondaryList.push({
+              id: match.id,
+              name: match.name,
+              multiplier: match.multiplier,
+            });
+          }
+        }
+      }
+
+      if (secondaryList.length < 2) {
+        for (const p of PRIMARY_NICHES) {
+          if (p.id !== primaryDef.id && !secondaryList.some((s) => s.id === p.id)) {
+            secondaryList.push({ id: p.id, name: p.name, multiplier: p.multiplier });
+            if (secondaryList.length === 2) break;
+          }
+        }
+      }
+
+      return {
+        primaryNiche: {
+          id: primaryDef.id,
+          name: primaryDef.name,
+          multiplier: primaryDef.multiplier,
+          confidence: typeof parsed.primaryNiche?.confidence === 'number' ? parsed.primaryNiche.confidence : 0.95,
+        },
+        secondaryNiches: secondaryList,
+        detectedCountry: String(parsed.detectedCountry || input.reportedCountry || 'US').toUpperCase().slice(0, 2),
+        creatorSummary: String(
+          parsed.creatorSummary || `${primaryDef.name} creator sharing high-engagement content on ${input.platform}.`
+        ),
+      };
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.warn(`[Gemini Vertex AI] Network issue on ${model}:`, errMsg);
+      modelErrors.push(`[${model}] Exception: ${errMsg}`);
     }
   }
 
-  if (secondaryList.length < 2) {
-    for (const p of PRIMARY_NICHES) {
-      if (p.id !== primaryDef.id && !secondaryList.some((s) => s.id === p.id)) {
-        secondaryList.push({ id: p.id, name: p.name, multiplier: p.multiplier });
-        if (secondaryList.length === 2) break;
-      }
-    }
-  }
-
-  return {
-    primaryNiche: {
-      id: primaryDef.id,
-      name: primaryDef.name,
-      multiplier: primaryDef.multiplier,
-      confidence: typeof parsed.primaryNiche?.confidence === 'number' ? parsed.primaryNiche.confidence : 0.95,
-    },
-    secondaryNiches: secondaryList,
-    detectedCountry: String(parsed.detectedCountry || input.reportedCountry || 'US').toUpperCase().slice(0, 2),
-    creatorSummary: String(
-      parsed.creatorSummary || `${primaryDef.name} creator sharing high-engagement content on ${input.platform}.`
-    ),
-  };
+  // If both Primary and Secondary models fail, throw an explicit error
+  throw new Error(
+    `[Gemini Vertex AI Failure] All AI models (${PRIMARY_MODELS.join(', ')}) failed to respond. Details:\n${modelErrors.join('\n')}`
+  );
 }
