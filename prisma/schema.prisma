@@ -501,6 +501,13 @@ model YouTubeScrape {
   topicCategories       String[]  @default([]) @map("topic_categories")
   uploadsPlaylistId     String?   @map("uploads_playlist_id")
   
+  // AI Multi-Niche & Brand Summary Enrichment
+  primaryNicheId        Int?      @map("primary_niche_id")
+  primaryNicheName      String?   @map("primary_niche_name")
+  secondaryNiches       Json?     @map("secondary_niches")
+  aiCreatorSummary      String?   @db.Text @map("ai_creator_summary")
+  detectedCountry       String?   @map("detected_country")
+  
   // Complete Raw Metadata Backup
   rawMetadata           Json?     @map("raw_metadata")
   
@@ -510,6 +517,7 @@ model YouTubeScrape {
 
   @@index([handle])
   @@index([youtubeChannelId])
+  @@index([primaryNicheId])
   @@index([youtubeChannelId, createdAt(sort: Desc)])
   @@map("youtube_scrapes")
 }
@@ -542,6 +550,13 @@ model InstagramScrape {
   posts                 Json      @default("[]") @map("posts") // 10-12 recent posts with likes, comments, captions
   stats                 Json?     @map("stats")                 // Average likes, average comments, engagement rate
   
+  // AI Multi-Niche & Brand Summary Enrichment
+  primaryNicheId        Int?      @map("primary_niche_id")
+  primaryNicheName      String?   @map("primary_niche_name")
+  secondaryNiches       Json?     @map("secondary_niches")
+  aiCreatorSummary      String?   @db.Text @map("ai_creator_summary")
+  detectedCountry       String?   @map("detected_country")
+  
   // Raw Data Backup
   rawMetadata           Json?     @map("raw_metadata")
   
@@ -550,6 +565,7 @@ model InstagramScrape {
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
   @@index([instagramUsername])
+  @@index([primaryNicheId])
   @@index([instagramUsername, createdAt(sort: Desc)])
   @@map("instagram_scrapes")
 }
@@ -579,6 +595,13 @@ model TikTokScrape {
   videos                Json      @default("[]") @map("videos") // 12-23 recent videos with views, likes, comments, shares
   stats                 Json?     @map("stats")                 // Average views, likes, shares, engagement rate
   
+  // AI Multi-Niche & Brand Summary Enrichment
+  primaryNicheId        Int?      @map("primary_niche_id")
+  primaryNicheName      String?   @map("primary_niche_name")
+  secondaryNiches       Json?     @map("secondary_niches")
+  aiCreatorSummary      String?   @db.Text @map("ai_creator_summary")
+  detectedCountry       String?   @map("detected_country")
+  
   // Raw Data Backup
   rawMetadata           Json?     @map("raw_metadata")
   
@@ -587,6 +610,7 @@ model TikTokScrape {
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
   @@index([tiktokUsername])
+  @@index([primaryNicheId])
   @@index([tiktokUsername, createdAt(sort: Desc)])
   @@map("tiktok_scrapes")
 }

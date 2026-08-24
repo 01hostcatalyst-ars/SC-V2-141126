@@ -134,7 +134,48 @@ export async function POST(req: NextRequest) {
     const secondaryNicheIds = aiEnrichment.secondaryNiches.map((s) => s.id);
     const finalCountry: RegionCode = (regionCode as RegionCode) || (aiEnrichment.detectedCountry as RegionCode) || 'US';
 
-    // 3. Select Default Deliverables based on Platform
+    // 3. Persist AI Enrichment to Database Tables
+    try {
+      const { prisma } = await import('@/lib/prisma');
+      if (platform === 'youtube') {
+        await prisma.youTubeScrape.updateMany({
+          where: { handle: username },
+          data: {
+            primaryNicheId,
+            primaryNicheName: aiEnrichment.primaryNiche.name,
+            secondaryNiches: aiEnrichment.secondaryNiches,
+            aiCreatorSummary: aiEnrichment.creatorSummary,
+            detectedCountry: finalCountry,
+          },
+        });
+      } else if (platform === 'instagram') {
+        await prisma.instagramScrape.updateMany({
+          where: { instagramUsername: username },
+          data: {
+            primaryNicheId,
+            primaryNicheName: aiEnrichment.primaryNiche.name,
+            secondaryNiches: aiEnrichment.secondaryNiches,
+            aiCreatorSummary: aiEnrichment.creatorSummary,
+            detectedCountry: finalCountry,
+          },
+        });
+      } else if (platform === 'tiktok') {
+        await prisma.tikTokScrape.updateMany({
+          where: { tiktokUsername: username },
+          data: {
+            primaryNicheId,
+            primaryNicheName: aiEnrichment.primaryNiche.name,
+            secondaryNiches: aiEnrichment.secondaryNiches,
+            aiCreatorSummary: aiEnrichment.creatorSummary,
+            detectedCountry: finalCountry,
+          },
+        });
+      }
+    } catch (dbErr) {
+      console.warn('[DB AI Enrichment Save] Non-critical save warning:', dbErr);
+    }
+
+    // 4. Select Default Deliverables based on Platform
     const defaultDeliverables: Array<{ id: string; platform: Platform; format: DeliverableFormat; quantity: number }> = [];
     if (platform === 'youtube') {
       defaultDeliverables.push({ id: '1', platform: 'youtube', format: 'yt_integrated', quantity: 1 });
