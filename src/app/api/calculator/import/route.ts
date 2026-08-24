@@ -4,8 +4,6 @@ import { enrichCreatorWithAI } from '@/lib/ai/gemini';
 import { calculateInfluencerRate } from '@/lib/calculator/engine';
 import { PricingInput, DeliverableFormat, Platform, RegionCode } from '@/lib/calculator/types';
 
-export const maxDuration = 60;
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
