@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { scrapeTikTok, getRecentTikTokSnapshot, insertNewTikTokSnapshot } from '@/lib/scrapers/tiktok';
 import { ScraperResponse, TikTokScraperData } from '@/lib/scrapers/types';
 
-export const maxDuration = 60; // Allow up to 60s execution
 
 export async function POST(req: NextRequest) {
   try {
