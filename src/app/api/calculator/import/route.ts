@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     let bioLink = '';
     let recentTitles: string[] = [];
     let externalLinks: Array<{ platform: string; url: string }> = [];
-    let detectedCountry: RegionCode = (regionCode as RegionCode) || 'US';
+    let detectedCountry: string | undefined = regionCode;
 
     // 1. Resolve Data from Scrapers (Cache-First)
     if (platform === 'youtube') {

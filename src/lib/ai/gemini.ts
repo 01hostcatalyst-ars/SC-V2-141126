@@ -1,4 +1,5 @@
 import { PRIMARY_NICHES } from '../calculator/constants';
+import { JWT } from 'google-auth-library';
 
 export interface CreatorAIClassification {
   primaryNiche: {
@@ -29,27 +30,61 @@ export interface CreatorContextInput {
   reportedCountry?: string;
 }
 
-const PRIMARY_MODELS = [
-  process.env.GEMINI_MODEL || 'gemini-3.7-flash',
-  'gemini-3.6-flash',
-  'gemini-flash-latest',
-];
+const MODEL_NAME = 'gemini-3.7-flash';
+
+let cachedToken: { token: string; expiresAt: number } | null = null;
 
 /**
- * Enriches creator profile using Gemini AI with structured 3-niche classification
+ * Generates and caches an OAuth2 Bearer token using Google Cloud Service Account credentials
+ */
+async function getGoogleCloudAccessToken(): Promise<string> {
+  const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL?.trim();
+  const privateKeyRaw = process.env.GOOGLE_CLOUD_PRIVATE_KEY?.trim();
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID?.trim();
+
+  if (!clientEmail || !privateKeyRaw || !projectId) {
+    throw new Error(
+      '[Gemini 3.7 Flash] Missing required Google Cloud environment variables: GOOGLE_CLOUD_PROJECT_ID, GOOGLE_CLOUD_CLIENT_EMAIL, or GOOGLE_CLOUD_PRIVATE_KEY.'
+    );
+  }
+
+  // Use cached token if still valid for at least 5 minutes
+  if (cachedToken && cachedToken.expiresAt > Date.now() + 5 * 60 * 1000) {
+    return cachedToken.token;
+  }
+
+  const privateKey = privateKeyRaw.replace(/\\n/g, '\n');
+  const auth = new JWT({
+    email: clientEmail,
+    key: privateKey,
+    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+  });
+
+  const tokenRes = await auth.getAccessToken();
+  if (!tokenRes?.token) {
+    throw new Error('[Gemini 3.7 Flash] Failed to acquire Google Cloud OAuth access token from Service Account.');
+  }
+
+  cachedToken = {
+    token: tokenRes.token,
+    expiresAt: Date.now() + 55 * 60 * 1000,
+  };
+
+  return tokenRes.token;
+}
+
+/**
+ * Enriches creator profile strictly using Google Cloud Vertex AI with Gemini 3.7 Flash
  */
 export async function enrichCreatorWithAI(
   input: CreatorContextInput
 ): Promise<CreatorAIClassification> {
-  const apiKey =
-    process.env.GEMINI_API_KEY?.trim() ||
-    process.env.YOUTUBE_API_KEY?.trim();
-
-  // If no API key available, fallback to deterministic heuristic classifier
-  if (!apiKey) {
-    console.warn('[AI Enrichment] No GEMINI_API_KEY found, using heuristic fallback.');
-    return fallbackHeuristicClassifier(input);
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID?.trim();
+  if (!projectId) {
+    throw new Error('[Gemini 3.7 Flash] GOOGLE_CLOUD_PROJECT_ID is not configured in environment variables.');
   }
+
+  const vertexToken = await getGoogleCloudAccessToken();
 
   const nicheOptions = PRIMARY_NICHES.map(
     (n) => `ID ${n.id}: "${n.name}" (Multiplier: ${n.multiplier}x) - ${n.description}`
@@ -86,139 +121,81 @@ Recent 15 Video Titles / Captions:
 
 Analyze this creator and return the exact structured JSON with primaryNiche, secondaryNiches, detectedCountry, and creatorSummary.`;
 
-  for (const model of PRIMARY_MODELS) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: `${systemInstruction}\n\n${userPrompt}` }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            responseMimeType: 'application/json',
-          },
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (candidateText) {
-          const parsed = JSON.parse(candidateText);
-
-          // Validate and resolve niches
-          const primaryDef = PRIMARY_NICHES.find((p) => p.id === parsed.primaryNiche?.id) || PRIMARY_NICHES[7];
-          const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
-
-          if (Array.isArray(parsed.secondaryNiches)) {
-            for (const s of parsed.secondaryNiches) {
-              const match = PRIMARY_NICHES.find((p) => p.id === s.id);
-              if (match && match.id !== primaryDef.id && secondaryList.length < 2) {
-                secondaryList.push({
-                  id: match.id,
-                  name: match.name,
-                  multiplier: match.multiplier,
-                });
-              }
-            }
-          }
-
-          if (secondaryList.length < 2) {
-            for (const p of PRIMARY_NICHES) {
-              if (p.id !== primaryDef.id && !secondaryList.some((s) => s.id === p.id)) {
-                secondaryList.push({ id: p.id, name: p.name, multiplier: p.multiplier });
-                if (secondaryList.length === 2) break;
-              }
-            }
-          }
-
-          return {
-            primaryNiche: {
-              id: primaryDef.id,
-              name: primaryDef.name,
-              multiplier: primaryDef.multiplier,
-              confidence: typeof parsed.primaryNiche?.confidence === 'number' ? parsed.primaryNiche.confidence : 0.95,
-            },
-            secondaryNiches: secondaryList,
-            detectedCountry: String(parsed.detectedCountry || input.reportedCountry || 'US').toUpperCase().slice(0, 2),
-            creatorSummary: String(parsed.creatorSummary || `${primaryDef.name} creator sharing high-engagement content on ${input.platform}.`),
-          };
-        }
-      } else {
-        console.warn(`[Gemini AI] ${model} returned ${res.status}, trying next model in cascade...`);
-      }
-    } catch (err: unknown) {
-      console.warn(`[Gemini AI] Network issue on ${model}:`, err);
-    }
-  }
-
-  console.warn('[Gemini AI] All models unavailable, using heuristic fallback.');
-  return fallbackHeuristicClassifier(input);
-}
-
-/**
- * Deterministic Heuristic Fallback Classifier (Zero external dependencies)
- */
-export function fallbackHeuristicClassifier(input: CreatorContextInput): CreatorAIClassification {
-  const combinedText = `
-    ${input.username} ${input.name || ''} ${input.biography || ''} 
-    ${(input.recentVideoTitles || []).join(' ')} 
-    ${(input.hashtags || []).join(' ')}
-  `.toLowerCase();
-
-  const scores: Record<number, number> = {};
-  PRIMARY_NICHES.forEach((n) => (scores[n.id] = 0));
-
-  const keywordMap: Record<number, string[]> = {
-    1: ['decor', 'interior', 'furniture', 'architecture', 'room', 'renovation', 'home', 'makeover'],
-    2: ['dog', 'cat', 'puppy', 'pet', 'animal', 'vet', 'aquarium', 'kitten'],
-    3: ['finance', 'money', 'crypto', 'invest', 'business', 'stocks', 'saas', 'startup', 'wealth', 'founder'],
-    4: ['diy', 'woodworking', 'tools', 'craft', 'build', 'repair', 'mechanic'],
-    5: ['career', 'learn', 'education', 'study', 'course', 'coaching', 'skills', 'leadership', 'english'],
-    6: ['tech', 'gadget', 'apple', 'smartphone', 'pc', 'code', 'software', 'ai', 'hardware', 'laptop', 'review'],
-    7: ['travel', 'hotel', 'flight', 'resort', 'explore', 'vacation', 'trip', 'outdoors', 'hiking'],
-    8: ['vlog', 'daily', 'routine', 'lifestyle', 'life', 'grwm', 'story'],
-    9: ['food', 'recipe', 'cooking', 'chef', 'bake', 'restaurant', 'eat', 'dish', 'culinary'],
-    10: ['family', 'mom', 'dad', 'parenting', 'kids', 'baby', 'toddler', 'motherhood'],
-    11: ['gym', 'fitness', 'workout', 'wellness', 'health', 'lifting', 'muscle', 'yoga', 'protein'],
-    12: ['fashion', 'outfit', 'style', 'clothes', 'dresses', 'wear', 'shoes', 'haul'],
-    13: ['makeup', 'beauty', 'skincare', 'cosmetics', 'lipstick', 'glam', 'serum', 'hair'],
+  const requestPayload = {
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: `${systemInstruction}\n\n${userPrompt}` }],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.1,
+      responseMimeType: 'application/json',
+    },
   };
 
-  for (const [idStr, words] of Object.entries(keywordMap)) {
-    const id = Number(idStr);
-    for (const w of words) {
-      if (combinedText.includes(w)) {
-        scores[id] = (scores[id] || 0) + 1;
+  const vertexUrl = `https://aiplatform.googleapis.com/v1/projects/${projectId}/locations/global/publishers/google/models/${MODEL_NAME}:generateContent`;
+
+  const res = await fetch(vertexUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${vertexToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestPayload),
+  });
+
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`[Gemini 3.7 Flash API Error] Status ${res.status}: ${errBody}`);
+  }
+
+  const data = await res.json();
+  const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!candidateText) {
+    throw new Error(`[Gemini 3.7 Flash] No candidate text returned in response: ${JSON.stringify(data)}`);
+  }
+
+  const parsed = JSON.parse(candidateText);
+
+  // Validate and resolve niches
+  const primaryDef = PRIMARY_NICHES.find((p) => p.id === parsed.primaryNiche?.id) || PRIMARY_NICHES[7];
+  const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
+
+  if (Array.isArray(parsed.secondaryNiches)) {
+    for (const s of parsed.secondaryNiches) {
+      const match = PRIMARY_NICHES.find((p) => p.id === s.id);
+      if (match && match.id !== primaryDef.id && secondaryList.length < 2) {
+        secondaryList.push({
+          id: match.id,
+          name: match.name,
+          multiplier: match.multiplier,
+        });
       }
     }
   }
 
-  const sortedNiches = [...PRIMARY_NICHES].sort((a, b) => (scores[b.id] || 0) - (scores[a.id] || 0));
-  const primary = sortedNiches[0] || PRIMARY_NICHES[7]; // Lifestyle fallback
-  const secondary = [sortedNiches[1] || PRIMARY_NICHES[5], sortedNiches[2] || PRIMARY_NICHES[2]].map((n) => ({
-    id: n.id,
-    name: n.name,
-    multiplier: n.multiplier,
-  }));
-
-  const country = input.reportedCountry || (input.detectedLanguage === 'ur' ? 'PK' : input.detectedLanguage === 'hi' ? 'IN' : 'US');
+  if (secondaryList.length < 2) {
+    for (const p of PRIMARY_NICHES) {
+      if (p.id !== primaryDef.id && !secondaryList.some((s) => s.id === p.id)) {
+        secondaryList.push({ id: p.id, name: p.name, multiplier: p.multiplier });
+        if (secondaryList.length === 2) break;
+      }
+    }
+  }
 
   return {
     primaryNiche: {
-      id: primary.id,
-      name: primary.name,
-      multiplier: primary.multiplier,
-      confidence: 0.85,
+      id: primaryDef.id,
+      name: primaryDef.name,
+      multiplier: primaryDef.multiplier,
+      confidence: typeof parsed.primaryNiche?.confidence === 'number' ? parsed.primaryNiche.confidence : 0.95,
     },
-    secondaryNiches: secondary,
-    detectedCountry: country,
-    creatorSummary: `${primary.name} creator publishing popular content on ${input.platform} with an active, dedicated following.`,
+    secondaryNiches: secondaryList,
+    detectedCountry: String(parsed.detectedCountry || input.reportedCountry || 'US').toUpperCase().slice(0, 2),
+    creatorSummary: String(
+      parsed.creatorSummary || `${primaryDef.name} creator sharing high-engagement content on ${input.platform}.`
+    ),
   };
 }
