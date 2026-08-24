@@ -206,9 +206,9 @@ export async function scrapeInstagram(
   };
 
   // ==========================================
-  // PROCESS 2: 12 Posts Enrichment
+  // PROCESS 2: 12 Unpinned Recent Posts Enrichment
   // ==========================================
-  const rawPosts = Array.isArray(rawItem.posts) ? (rawItem.posts as Array<Record<string, unknown>>).slice(0, 12) : [];
+  const rawPosts = Array.isArray(rawItem.posts) ? (rawItem.posts as Array<Record<string, unknown>>) : [];
 
   // 3. Detect and exclude pinned posts so only chronological recent uploads are extracted & enriched
   const allPosts: InstagramPostItem[] = rawPosts.map((p, idx) => {
@@ -246,7 +246,7 @@ export async function scrapeInstagram(
     }
   }
 
-  // Filter out any pinned post so we only process and return 12 unpinned recent uploads
+  // Filter out any pinned post so we strictly extract and return 12 unpinned recent uploads
   const unpinnedPosts = allPosts.filter((p) => !p.isPinned).slice(0, 12);
 
   if (options?.fastMode) {
