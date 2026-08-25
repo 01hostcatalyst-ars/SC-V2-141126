@@ -198,7 +198,7 @@ export async function POST(req: NextRequest) {
       defaultDeliverables.push({ id: '1', platform: 'tiktok', format: 'tiktok_video', quantity: 1 });
     }
 
-    // 4. Run 9-Step 16-Knot Calculation Engine
+    // 5. Run 9-Step 16-Knot Calculation Engine for primary calculation
     const pricingInput: PricingInput = {
       creator: {
         followerCount,
@@ -219,6 +219,43 @@ export async function POST(req: NextRequest) {
 
     const calculationResult = calculateInfluencerRate(pricingInput);
 
+    // 6. Compute itemized rate card for all native platform formats dynamically
+    const platformFormats: Record<Platform, DeliverableFormat[]> = {
+      instagram: ['ig_reel', 'ig_carousel', 'ig_static', 'ig_story'],
+      youtube: ['yt_dedicated', 'yt_integrated', 'yt_short'],
+      tiktok: ['tiktok_video'],
+    };
+
+    const formatsToCompute = platformFormats[platform] || ['ig_reel'];
+    const rateCardItems = formatsToCompute.map((fmt, idx) => {
+      const singleInput: PricingInput = {
+        creator: {
+          followerCount,
+          last3PostsAvgLikes: avgLikes,
+          last3PostsAvgComments: avgComments,
+          last3PostsAvgViews: avgViews,
+          last3PostsAvgShares: avgShares,
+          primaryPlatform: platform,
+          primaryNicheId,
+          secondaryNicheIds,
+          regionCode: finalCountry,
+        },
+        deliverables: [{ id: String(idx + 1), platform, format: fmt, quantity: 1 }],
+        commercialTerms: { usageRights: { scope: 'organic_repost', duration: '30_days' } },
+      };
+      const res = calculateInfluencerRate(singleInput);
+      return {
+        format: fmt,
+        amount: res.valuationRange.typicalMedian,
+        formattedAmount: res.valuationRange.formatted.typical,
+        lowAmount: res.valuationRange.lowP25,
+        formattedLow: res.valuationRange.formatted.low,
+        highAmount: res.valuationRange.highP75,
+        formattedHigh: res.valuationRange.formatted.high,
+        currency: res.metrics.currency,
+      };
+    });
+
     return NextResponse.json({
       success: true,
       creator: {
@@ -238,6 +275,7 @@ export async function POST(req: NextRequest) {
       aiEnrichment,
       pricingInput,
       calculationResult,
+      rateCardItems,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Failed to import creator and calculate rate.';

@@ -20,6 +20,9 @@ import { CommercialTermsForm } from "./CommercialTermsForm";
 import { ProductionAddonsForm } from "./ProductionAddonsForm";
 import { ValuationSummaryCard } from "./ValuationSummaryCard";
 
+import { MultiPlatformCalculatorGrid } from "./MultiPlatformCalculatorGrid";
+import { RateCardDeliverableItem } from "./PlatformRateCard";
+
 interface ImportedCreatorData {
   username: string;
   displayName: string;
@@ -38,6 +41,7 @@ export function CalculatorContainer() {
   // Imported state from Scraper + AI
   const [importedCreator, setImportedCreator] = useState<ImportedCreatorData | null>(null);
   const [aiEnrichment, setAiEnrichment] = useState<CreatorAIClassification | null>(null);
+  const [rateCardItems, setRateCardItems] = useState<RateCardDeliverableItem[] | undefined>(undefined);
 
   // 1. Creator Profile State
   const [metrics, setMetrics] = useState<CreatorMetrics>({
@@ -89,9 +93,13 @@ export function CalculatorContainer() {
   const handleImportSuccess = (data: {
     creator: ImportedCreatorData;
     aiEnrichment: CreatorAIClassification;
+    rateCardItems?: unknown[];
   }) => {
     setImportedCreator(data.creator);
     setAiEnrichment(data.aiEnrichment);
+    if (Array.isArray(data.rateCardItems)) {
+      setRateCardItems(data.rateCardItems as RateCardDeliverableItem[]);
+    }
 
     // Update Creator Metrics
     setMetrics({
@@ -157,37 +165,57 @@ export function CalculatorContainer() {
         aiEnrichment={aiEnrichment}
       />
 
-      {/* 2. Master Calculator Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column (Forms & Parameters) */}
-        <div className="lg:col-span-7 xl:col-span-8 space-y-6">
-          <CreatorProfileForm
-            metrics={metrics}
-            onChange={(updated) => setMetrics((prev) => ({ ...prev, ...updated }))}
-          />
+      {/* 2. Omnichannel 4-Card Progressive Matrix */}
+      <MultiPlatformCalculatorGrid
+        initialPlatform={metrics.primaryPlatform}
+        initialCreator={importedCreator || undefined}
+        initialRateCardItems={rateCardItems}
+        primaryNicheId={metrics.primaryNicheId}
+        regionCode={metrics.regionCode}
+      />
 
-          <DeliverablesBuilder
-            deliverables={deliverables}
-            onChange={(items) => setDeliverables(items)}
-          />
-
-          <CommercialTermsForm
-            terms={commercialTerms}
-            onChange={(updated) => setCommercialTerms(updated)}
-          />
-
-          <ProductionAddonsForm
-            addons={productionAddons}
-            onChange={(updated) => setProductionAddons(updated)}
-          />
+      {/* 3. Deep Campaign Customizer & Negotiation Bounds */}
+      <div className="pt-4 border-t border-gray-200/80">
+        <div className="mb-6">
+          <h2 className="text-base font-black text-gray-950 uppercase tracking-tight">
+            Custom Campaign &amp; Commercial Terms
+          </h2>
+          <p className="text-xs text-gray-500 font-medium">
+            Fine-tune deliverable quantities, paid advertising rights, exclusivity lockouts, and rush addons
+          </p>
         </div>
 
-        {/* Right Column (Live Valuation Card & Negotiation Bounds) */}
-        <div className="lg:col-span-5 xl:col-span-4 sticky top-6">
-          <ValuationSummaryCard
-            result={calculationResult}
-            input={pricingInput}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column (Forms & Parameters) */}
+          <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+            <CreatorProfileForm
+              metrics={metrics}
+              onChange={(updated) => setMetrics((prev) => ({ ...prev, ...updated }))}
+            />
+
+            <DeliverablesBuilder
+              deliverables={deliverables}
+              onChange={(items) => setDeliverables(items)}
+            />
+
+            <CommercialTermsForm
+              terms={commercialTerms}
+              onChange={(updated) => setCommercialTerms(updated)}
+            />
+
+            <ProductionAddonsForm
+              addons={productionAddons}
+              onChange={(updated) => setProductionAddons(updated)}
+            />
+          </div>
+
+          {/* Right Column (Live Valuation Card & Negotiation Bounds) */}
+          <div className="lg:col-span-5 xl:col-span-4 sticky top-6">
+            <ValuationSummaryCard
+              result={calculationResult}
+              input={pricingInput}
+            />
+          </div>
         </div>
       </div>
     </div>

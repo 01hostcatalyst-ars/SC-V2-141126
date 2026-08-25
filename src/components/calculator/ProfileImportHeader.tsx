@@ -22,6 +22,7 @@ interface ProfileImportHeaderProps {
   onImportSuccess: (data: {
     creator: ImportedCreatorData;
     aiEnrichment: CreatorAIClassification;
+    rateCardItems?: unknown[];
   }) => void;
   onSelectSecondaryNiche: (nicheId: number) => void;
   activeNicheId: number;
@@ -82,6 +83,7 @@ export function ProfileImportHeader({
       onImportSuccess({
         creator: json.creator,
         aiEnrichment: json.aiEnrichment,
+        rateCardItems: (json as Record<string, unknown>).rateCardItems as unknown[],
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to import profile.";
