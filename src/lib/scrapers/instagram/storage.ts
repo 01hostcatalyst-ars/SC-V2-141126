@@ -35,10 +35,17 @@ export async function getRecentInstagramSnapshot(
   const ageInHours = (now - recordTime) / (1000 * 60 * 60);
 
   if (ageInHours < maxAgeHours) {
-    const formatted = formatDbRecordToInstagramData(latestRecord);
-    formatted.isCached = true;
-    formatted.cacheAgeHours = Math.round(ageInHours * 10) / 10;
-    return formatted;
+    const statsObj = latestRecord.stats as Record<string, unknown> | null;
+    const postsArray = (Array.isArray(latestRecord.posts) ? latestRecord.posts : []) as Array<Record<string, unknown>>;
+    const hasRealPostLikes = (Number(statsObj?.avgLikesPerPost) > 0) || (postsArray.length > 0 && Number(postsArray[0]?.likes) > 0);
+
+    // Only return cache if it contains true Process 2 metrics, or if the account genuinely has 0 posts
+    if (hasRealPostLikes || latestRecord.postsCount === 0) {
+      const formatted = formatDbRecordToInstagramData(latestRecord);
+      formatted.isCached = true;
+      formatted.cacheAgeHours = Math.round(ageInHours * 10) / 10;
+      return formatted;
+    }
   }
 
   return null;
