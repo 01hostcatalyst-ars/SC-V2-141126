@@ -207,6 +207,27 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
   }
 
   const externalLinks = extractOfficialProfileLinks(rawPageHtml);
+
+  // Also parse channel description for any direct Instagram or TikTok URLs
+  if (description) {
+    const igMatch = description.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)/i);
+    if (igMatch && !externalLinks.some(l => l.domain?.includes('instagram.com') || l.url?.includes('instagram.com'))) {
+      externalLinks.push({
+        title: 'Instagram',
+        url: `https://www.instagram.com/${igMatch[1].replace(/\/$/, '')}`,
+        domain: 'instagram.com',
+      });
+    }
+    const ttMatch = description.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?([a-zA-Z0-9._]+)/i);
+    if (ttMatch && !externalLinks.some(l => l.domain?.includes('tiktok.com') || l.url?.includes('tiktok.com'))) {
+      externalLinks.push({
+        title: 'TikTok',
+        url: `https://www.tiktok.com/@${ttMatch[1].replace(/\/$/, '')}`,
+        domain: 'tiktok.com',
+      });
+    }
+  }
+
   const uploadsPlaylistId = rawChannel.contentDetails?.relatedPlaylists?.uploads || '';
 
   const channelProfile: YouTubeChannelProfile = {

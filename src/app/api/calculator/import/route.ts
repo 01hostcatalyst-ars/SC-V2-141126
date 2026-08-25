@@ -69,6 +69,29 @@ export async function POST(req: NextRequest) {
         avgComments = 0;
       }
 
+      // Check external links from YouTube for cross-platform triggers
+      if (Array.isArray(ytData.channel.externalLinks)) {
+        for (const u of ytData.channel.externalLinks) {
+          if (u.url?.includes('instagram.com')) {
+            externalLinks.push({ platform: 'instagram', url: u.url });
+          }
+          if (u.url?.includes('tiktok.com')) {
+            externalLinks.push({ platform: 'tiktok', url: u.url });
+          }
+        }
+      }
+
+      if (biography) {
+        const igMatch = biography.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)/i);
+        if (igMatch && !externalLinks.some((l) => l.platform === 'instagram')) {
+          externalLinks.push({ platform: 'instagram', url: `https://www.instagram.com/${igMatch[1].replace(/\/$/, '')}` });
+        }
+        const ttMatch = biography.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?([a-zA-Z0-9._]+)/i);
+        if (ttMatch && !externalLinks.some((l) => l.platform === 'tiktok')) {
+          externalLinks.push({ platform: 'tiktok', url: `https://www.tiktok.com/@${ttMatch[1].replace(/\/$/, '')}` });
+        }
+      }
+
     } else if (platform === 'instagram') {
       let igData = await InstagramScraper.getRecentInstagramSnapshot(input);
       if (!igData) {
@@ -103,6 +126,17 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      if (biography) {
+        const ytMatch = biography.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:@|c\/|user\/)?|youtu\.be\/)([a-zA-Z0-9._-]+)/i);
+        if (ytMatch && !externalLinks.some((l) => l.platform === 'youtube')) {
+          externalLinks.push({ platform: 'youtube', url: `https://www.youtube.com/@${ytMatch[1]}` });
+        }
+        const ttMatch = biography.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?([a-zA-Z0-9._]+)/i);
+        if (ttMatch && !externalLinks.some((l) => l.platform === 'tiktok')) {
+          externalLinks.push({ platform: 'tiktok', url: `https://www.tiktok.com/@${ttMatch[1]}` });
+        }
+      }
+
     } else if (platform === 'tiktok') {
       let ttData = await TikTokScraper.getRecentTikTokSnapshot(input);
       if (!ttData) {
@@ -128,6 +162,18 @@ export async function POST(req: NextRequest) {
 
       if (bioLink.includes('youtube.com') || bioLink.includes('youtu.be')) {
         externalLinks.push({ platform: 'youtube', url: bioLink });
+      }
+
+      if (biography || bioLink) {
+        const combined = `${biography} ${bioLink}`;
+        const ytMatch = combined.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:@|c\/|user\/)?|youtu\.be\/)([a-zA-Z0-9._-]+)/i);
+        if (ytMatch && !externalLinks.some((l) => l.platform === 'youtube')) {
+          externalLinks.push({ platform: 'youtube', url: `https://www.youtube.com/@${ytMatch[1]}` });
+        }
+        const igMatch = combined.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)/i);
+        if (igMatch && !externalLinks.some((l) => l.platform === 'instagram')) {
+          externalLinks.push({ platform: 'instagram', url: `https://www.instagram.com/${igMatch[1]}` });
+        }
       }
     }
 
