@@ -260,7 +260,7 @@ export async function scrapeInstagram(
         try {
           console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} unpinned posts via dataset ${DATASET_POSTS}...`);
           
-          // Fast 15-second timeout race so we never trigger 504 gateway timeouts
+          // 30-second timeout race to ensure high reliability without gateway timeout
           const fetchPromise = fetchBrightDataWithPolling(
             DATASET_POSTS,
             postUrlsToEnrich,
@@ -268,7 +268,7 @@ export async function scrapeInstagram(
           );
           
           const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('Process 2 timeout')), 15000)
+            setTimeout(() => reject(new Error('Process 2 timeout')), 30000)
           );
 
           const enrichedList = await Promise.race([fetchPromise, timeoutPromise]);
