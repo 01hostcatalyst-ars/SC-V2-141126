@@ -46,15 +46,28 @@ export async function POST(req: NextRequest) {
       }
 
       followerCount = ytData.channel.subscriberCount;
-      avgViews = ytData.stats.avgLongVideoViews || ytData.channel.avgViewsPerVideo || 1000;
-      avgLikes = Math.round(avgViews * 0.04);
-      avgComments = Math.round(avgViews * 0.005);
       username = ytData.channel.handle || ytData.channel.title;
       displayName = ytData.channel.title;
       biography = ytData.channel.description;
       avatarUrl = ytData.channel.avatarUrl;
       recentTitles = [...ytData.longVideos, ...ytData.shortVideos].map((v) => v.title);
       detectedCountry = (ytData.channel.country as RegionCode) || 'US';
+
+      // Compute exact real averages from scraped YouTube video arrays
+      const allYtVideos = [...ytData.longVideos, ...ytData.shortVideos];
+      if (allYtVideos.length > 0) {
+        const totalViews = allYtVideos.reduce((sum, v) => sum + (v.viewCount || 0), 0);
+        const totalLikes = allYtVideos.reduce((sum, v) => sum + (v.likeCount || 0), 0);
+        const totalComments = allYtVideos.reduce((sum, v) => sum + (v.commentCount || 0), 0);
+
+        avgViews = Math.round(totalViews / allYtVideos.length);
+        avgLikes = Math.round(totalLikes / allYtVideos.length);
+        avgComments = Math.round(totalComments / allYtVideos.length);
+      } else {
+        avgViews = ytData.channel.avgViewsPerVideo || 0;
+        avgLikes = 0;
+        avgComments = 0;
+      }
 
     } else if (platform === 'instagram') {
       let igData = await InstagramScraper.getRecentInstagramSnapshot(input);
@@ -68,8 +81,9 @@ export async function POST(req: NextRequest) {
       }
 
       followerCount = igData.profile.followerCount;
-      avgLikes = igData.stats.avgLikesPerPost || 100;
-      avgComments = igData.stats.avgCommentsPerPost || 10;
+      avgLikes = igData.stats.avgLikesPerPost || 0;
+      avgComments = igData.stats.avgCommentsPerPost || 0;
+      avgViews = 0;
       username = igData.profile.username;
       displayName = igData.profile.fullName || igData.profile.username;
       biography = igData.profile.biography;
@@ -101,10 +115,10 @@ export async function POST(req: NextRequest) {
       }
 
       followerCount = ttData.profile.followerCount;
-      avgLikes = ttData.stats.avgLikesPerVideo || 1000;
-      avgComments = ttData.stats.avgCommentsPerVideo || 50;
-      avgViews = ttData.stats.avgViewsPerVideo || 10000;
-      avgShares = ttData.stats.avgSharesPerVideo || 20;
+      avgLikes = ttData.stats.avgLikesPerVideo || 0;
+      avgComments = ttData.stats.avgCommentsPerVideo || 0;
+      avgViews = ttData.stats.avgViewsPerVideo || 0;
+      avgShares = ttData.stats.avgSharesPerVideo || 0;
       username = ttData.profile.username;
       displayName = ttData.profile.nickname || ttData.profile.username;
       biography = ttData.profile.biography;
