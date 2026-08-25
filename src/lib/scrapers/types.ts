@@ -175,6 +175,7 @@ export interface TikTokVideoItem {
   favoritesCountFormatted: string;
   createDate?: string;
   postType?: string;
+  isPinned?: boolean;
 }
 
 export interface TikTokProfile {

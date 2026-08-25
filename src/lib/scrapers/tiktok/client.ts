@@ -190,7 +190,7 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
     }
   }
 
-  const videos: TikTokVideoItem[] = topVideos.slice(0, 15).map((v, idx) => {
+  const allVideos: TikTokVideoItem[] = topVideos.map((v, idx) => {
     const videoId = String(v.video_id || v.id || idx);
     const videoUrl = (v.video_url as string) || `https://www.tiktok.com/@${profile.username}/video/${videoId}`;
     const playCount = Number(v.playcount || v.views || 0);
@@ -200,6 +200,7 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
     const favoritesCount = Number(v.favorites_count || v.saves || 0);
 
     const description = postDescMap.get(videoId) || (v.description as string) || '';
+    const isExplicitlyPinned = Boolean(v.is_pinned || v.pinned || v.is_top || v.is_pinned_item);
 
     return {
       id: videoId,
@@ -218,15 +219,28 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
       favoritesCountFormatted: formatCompactNumber(favoritesCount),
       createDate: (v.create_date as string) || undefined,
       postType: 'video',
+      isPinned: isExplicitlyPinned,
     };
   });
 
+  // Detect chronological inversion in top items (TikTok places older pinned videos at the top of the feed)
+  for (let i = 0; i < Math.min(3, allVideos.length - 1); i++) {
+    const currentVideoTime = allVideos[i].createDate ? new Date(allVideos[i].createDate!).getTime() : 0;
+    const nextVideoTime = allVideos[i + 1].createDate ? new Date(allVideos[i + 1].createDate!).getTime() : 0;
+    if (currentVideoTime > 0 && nextVideoTime > 0 && (nextVideoTime - currentVideoTime) > (5 * 24 * 60 * 60 * 1000)) {
+      allVideos[i].isPinned = true;
+    }
+  }
+
+  // Filter out any pinned videos so we strictly process and return unpinned recent uploads
+  const unpinnedVideos = allVideos.filter((v) => !v.isPinned).slice(0, 15);
+
   const reportedRate = typeof rawItem.awg_engagement_rate === 'number' ? rawItem.awg_engagement_rate : undefined;
-  const stats = calculateTikTokStats(videos, followerCount, reportedRate);
+  const stats = calculateTikTokStats(unpinnedVideos, followerCount, reportedRate);
 
   return {
     profile,
-    videos,
+    videos: unpinnedVideos,
     stats,
     scrapedAt: new Date().toISOString(),
     isCached: false,
