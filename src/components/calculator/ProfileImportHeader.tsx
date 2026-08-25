@@ -52,43 +52,74 @@ export function ProfileImportHeader({
     setError(null);
 
     const platformToSend = overridePlatform || selectedPlatform;
+    const isInstagram = platformToSend === "instagram" || (platformToSend === "auto" && target.toLowerCase().includes("instagram.com"));
 
     try {
-      const res = await fetch("/api/calculator/import", {
+      // 1. Stage 1: If Instagram, run Fast Mode (Process 1) first to immediately get bio links and unblock YouTube/TikTok!
+      const initialRes = await fetch("/api/calculator/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           input: target,
           requestedPlatform: platformToSend !== "auto" ? platformToSend : undefined,
+          fastMode: isInstagram,
         }),
       });
 
-      const text = await res.text();
-      let json: { success?: boolean; error?: string; creator?: ImportedCreatorData; aiEnrichment?: CreatorAIClassification };
+      const initialText = await initialRes.text();
+      let initialJson: { success?: boolean; error?: string; creator?: ImportedCreatorData; aiEnrichment?: CreatorAIClassification };
 
       try {
-        json = JSON.parse(text);
+        initialJson = JSON.parse(initialText);
       } catch {
         throw new Error(
-          res.ok
+          initialRes.ok
             ? "Server returned invalid response. Please try again."
-            : `Server error (${res.status}): Please verify the creator handle or URL.`
+            : `Server error (${initialRes.status}): Please verify the creator handle or URL.`
         );
       }
 
-      if (!res.ok || !json.success || !json.creator || !json.aiEnrichment) {
-        throw new Error(json.error || "Failed to import creator profile.");
+      if (!initialRes.ok || !initialJson.success || !initialJson.creator || !initialJson.aiEnrichment) {
+        throw new Error(initialJson.error || "Failed to import creator profile.");
       }
 
+      // Immediately propagate Process 1 results so secondary platforms start scraping NOW
       onImportSuccess({
-        creator: json.creator,
-        aiEnrichment: json.aiEnrichment,
-        rateCardItems: (json as Record<string, unknown>).rateCardItems as unknown[],
+        creator: initialJson.creator,
+        aiEnrichment: initialJson.aiEnrichment,
+        rateCardItems: (initialJson as Record<string, unknown>).rateCardItems as unknown[],
       });
+
+      setLoading(false);
+
+      // 2. Stage 2: If Instagram, continue with full Process 2 post enrichment in the background
+      if (isInstagram) {
+        fetch("/api/calculator/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            input: target,
+            requestedPlatform: "instagram",
+            fastMode: false,
+          }),
+        })
+          .then((res) => res.json())
+          .then((fullJson) => {
+            if (fullJson.success && fullJson.creator && fullJson.aiEnrichment) {
+              onImportSuccess({
+                creator: fullJson.creator,
+                aiEnrichment: fullJson.aiEnrichment,
+                rateCardItems: fullJson.rateCardItems,
+              });
+            }
+          })
+          .catch((e) => {
+            console.warn("Background Process 2 enrichment error:", e);
+          });
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to import profile.";
       setError(msg);
-    } finally {
       setLoading(false);
     }
   };

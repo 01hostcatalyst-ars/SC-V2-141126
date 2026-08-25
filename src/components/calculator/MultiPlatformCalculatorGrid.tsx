@@ -77,6 +77,9 @@ export function MultiPlatformCalculatorGrid({
     }));
 
     try {
+      const isInstagram = targetPlatform === "instagram";
+
+      // 1. Stage 1 Fetch (fastMode for Instagram to return Process 1 in ~2s)
       const res = await fetch("/api/calculator/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -84,6 +87,7 @@ export function MultiPlatformCalculatorGrid({
           input: targetInput,
           requestedPlatform: targetPlatform,
           regionCode,
+          fastMode: isInstagram,
         }),
       });
 
@@ -112,7 +116,7 @@ export function MultiPlatformCalculatorGrid({
         },
       }));
 
-      // Cascade discovery: check if this newly resolved platform reveals other linked platforms!
+      // Cascade discovery immediately: check if this newly resolved platform reveals other linked platforms!
       if (Array.isArray(creator.externalLinks)) {
         for (const link of creator.externalLinks) {
           const discoveredPlatform = link.platform as Platform;
@@ -137,6 +141,45 @@ export function MultiPlatformCalculatorGrid({
             });
           }
         }
+      }
+
+      // 2. Stage 2 Background Enrichment: If Instagram, fetch full Process 2 post details now
+      if (isInstagram) {
+        fetch("/api/calculator/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            input: targetInput,
+            requestedPlatform: "instagram",
+            regionCode,
+            fastMode: false,
+          }),
+        })
+          .then((r) => r.json())
+          .then((fullData) => {
+            if (fullData.success && fullData.creator) {
+              const fullCreator = fullData.creator;
+              const fullRateCards = fullData.rateCardItems || [];
+              const fullEr = fullData.calculationResult?.metrics?.observedER;
+
+              setPlatformStates((prev) => ({
+                ...prev,
+                instagram: {
+                  ...prev.instagram,
+                  status: "ready",
+                  followerCount: fullCreator.followerCount,
+                  avgLikes: fullCreator.avgLikes,
+                  avgComments: fullCreator.avgComments,
+                  avgViews: fullCreator.avgViews,
+                  engagementRate: fullEr,
+                  rateCardItems: fullRateCards,
+                },
+              }));
+            }
+          })
+          .catch((e) => {
+            console.warn("Background Instagram Process 2 enrichment failed:", e);
+          });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error fetching platform.";

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { detectPlatform, YouTubeScraper, InstagramScraper, TikTokScraper } from '@/lib/scrapers';
+import { InstagramScraperData } from '@/lib/scrapers/types';
 import { enrichCreatorWithAI } from '@/lib/ai/gemini';
 import { calculateInfluencerRate } from '@/lib/calculator/engine';
 import { PricingInput, DeliverableFormat, Platform, RegionCode } from '@/lib/calculator/types';
@@ -7,7 +8,7 @@ import { PricingInput, DeliverableFormat, Platform, RegionCode } from '@/lib/cal
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { input, requestedPlatform, regionCode } = body;
+    const { input, requestedPlatform, regionCode, fastMode } = body;
 
     if (!input || typeof input !== 'string') {
       return NextResponse.json({ success: false, error: 'Missing creator URL or username.' }, { status: 400 });
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
       ? requestedPlatform
       : (detectPlatform(input) !== 'unknown' ? detectPlatform(input) as Platform : 'instagram');
 
-    console.log(`[Calculator Import API] Importing creator "${input}" on platform "${platform}"...`);
+    console.log(`[Calculator Import API] Importing creator "${input}" on platform "${platform}" (fastMode: ${Boolean(fastMode)})...`);
 
     let followerCount = 0;
     let avgLikes = 0;
@@ -93,13 +94,21 @@ export async function POST(req: NextRequest) {
       }
 
     } else if (platform === 'instagram') {
-      let igData = await InstagramScraper.getRecentInstagramSnapshot(input);
+      let igData: InstagramScraperData | null = null;
+      
+      // If full mode requested, check if we already have a complete DB snapshot
+      if (!fastMode) {
+        igData = await InstagramScraper.getRecentInstagramSnapshot(input);
+      }
+
       if (!igData) {
-        igData = await InstagramScraper.scrapeInstagram(input);
-        try {
-          await InstagramScraper.insertNewInstagramSnapshot(igData);
-        } catch (e) {
-          console.warn('DB save error for IG:', e);
+        igData = await InstagramScraper.scrapeInstagram(input, { fastMode: Boolean(fastMode) });
+        if (!fastMode) {
+          try {
+            await InstagramScraper.insertNewInstagramSnapshot(igData);
+          } catch (e) {
+            console.warn('DB save error for IG:', e);
+          }
         }
       }
 
