@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { Platform, DeliverableFormat, PricingInput } from "@/lib/calculator/types";
 import { calculateInfluencerRate } from "@/lib/calculator/engine";
 import { FORMAT_LABELS } from "@/lib/calculator/constants";
+import { InstagramPostItem, YouTubeVideoItem, TikTokVideoItem } from "@/lib/scrapers/types";
 
 interface DiscoveredPlatformData {
   status: "idle" | "loading" | "ready" | "error";
@@ -15,6 +16,8 @@ interface DiscoveredPlatformData {
   avgComments?: number;
   avgViews?: number;
   engagementRate?: number;
+  posts?: InstagramPostItem[];
+  videos?: Array<Record<string, unknown>>;
   rateCardItems?: Array<{
     format: DeliverableFormat;
     amount: number;
@@ -339,6 +342,13 @@ export function InfluencerRadarDashboard() {
             avgComments,
             avgViews,
             engagementRate,
+            posts: targetPlatform === "instagram" ? data.posts : undefined,
+            videos:
+              targetPlatform === "youtube"
+                ? [...(data.longVideos || []), ...(data.shortVideos || [])]
+                : targetPlatform === "tiktok"
+                ? data.videos
+                : undefined,
             rateCardItems,
             sourceNote,
           },
@@ -855,6 +865,11 @@ export function InfluencerRadarDashboard() {
               </div>
             </div>
           )}
+
+          {/* ========================================================= */}
+          {/* SECTION 6: RECENT MEDIA & EMPIRICAL POST AUDITS          */}
+          {/* ========================================================= */}
+          <RecentMediaAuditFeed platforms={platforms} />
         </div>
       )}
     </div>
@@ -990,6 +1005,392 @@ function PlatformRateCardItem({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------
+// Sub-Component: Recent Media & Empirical Post Audits Feed
+// ----------------------------------------------------------------------
+function RecentMediaAuditFeed({
+  platforms,
+}: {
+  platforms: Record<Platform, DiscoveredPlatformData>;
+}) {
+  const availableTabs = useMemo(() => {
+    const list: Array<{ platform: Platform; label: string; count: number }> = [];
+    if (platforms.instagram.status === "ready" && (platforms.instagram.posts?.length || 0) > 0) {
+      list.push({ platform: "instagram", label: "Instagram", count: platforms.instagram.posts!.length });
+    }
+    if (platforms.youtube.status === "ready" && (platforms.youtube.videos?.length || 0) > 0) {
+      list.push({ platform: "youtube", label: "YouTube", count: platforms.youtube.videos!.length });
+    }
+    if (platforms.tiktok.status === "ready" && (platforms.tiktok.videos?.length || 0) > 0) {
+      list.push({ platform: "tiktok", label: "TikTok", count: platforms.tiktok.videos!.length });
+    }
+    return list;
+  }, [platforms]);
+
+  const [activeTab, setActiveTab] = useState<Platform>("instagram");
+
+  // Keep active tab synced with available platforms
+  useEffect(() => {
+    if (availableTabs.length > 0 && !availableTabs.some((t) => t.platform === activeTab)) {
+      setActiveTab(availableTabs[0].platform);
+    }
+  }, [availableTabs, activeTab]);
+
+  if (availableTabs.length === 0) return null;
+
+  return (
+    <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/90 shadow-sm space-y-4 animate-fadeIn">
+      {/* Header & Filter Tabs */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-gray-950" />
+            <h3 className="text-xs sm:text-sm font-bold tracking-tight text-gray-950">
+              Recent Media & Empirical Content Audits
+            </h3>
+          </div>
+          <p className="text-[11px] text-gray-500 mt-0.5">
+            Audit feed of recent uploads analyzed for median interaction baselines, unpinned engagement, and pricing defense.
+          </p>
+        </div>
+
+        {availableTabs.length > 1 && (
+          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200 shrink-0">
+            {availableTabs.map((tab) => (
+              <button
+                key={tab.platform}
+                type="button"
+                onClick={() => setActiveTab(tab.platform)}
+                className={`px-3 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
+                  activeTab === tab.platform
+                    ? "bg-white text-gray-950 shadow-2xs"
+                    : "text-gray-600 hover:text-gray-950"
+                }`}
+              >
+                {tab.label} ({tab.count})
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 1. Instagram Posts Grid */}
+      {activeTab === "instagram" && platforms.instagram.posts && (
+        <InstagramPostsGrid
+          posts={platforms.instagram.posts}
+          username={platforms.instagram.username || ""}
+        />
+      )}
+
+      {/* 2. YouTube Videos Grid */}
+      {activeTab === "youtube" && platforms.youtube.videos && (
+        <YouTubeVideosGrid
+          videos={platforms.youtube.videos as unknown as YouTubeVideoItem[]}
+        />
+      )}
+
+      {/* 3. TikTok Videos Grid */}
+      {activeTab === "tiktok" && platforms.tiktok.videos && (
+        <TikTokVideosGrid
+          videos={platforms.tiktok.videos as unknown as TikTokVideoItem[]}
+          username={platforms.tiktok.username || ""}
+        />
+      )}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------
+// Sub-Component: Instagram 12 Recent Posts + 6 Enriched Unpinned Grid
+// ----------------------------------------------------------------------
+function InstagramPostsGrid({
+  posts,
+  username,
+}: {
+  posts: InstagramPostItem[];
+  username: string;
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      {posts.map((post, idx) => {
+        const isEnrichedUnpinned = !post.isPinned && idx < 6 && (post.likes > 0 || post.commentsCount > 0);
+
+        return (
+          <div
+            key={post.id || post.url || idx}
+            className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
+          >
+            {/* Top Media & Badges */}
+            <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
+              {post.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={post.imageUrl}
+                  alt={post.altText || post.caption || "Instagram post"}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
+                  No Thumbnail
+                </div>
+              )}
+
+              {/* Floating Badges Overlay */}
+              <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                <div className="flex flex-wrap gap-1">
+                  {post.isPinned ? (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
+                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      Pinned Post
+                    </span>
+                  ) : isEnrichedUnpinned ? (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      ER Sample #{idx + 1}
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
+                      Recent #{idx + 1}
+                    </span>
+                  )}
+                </div>
+
+                <span className="px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-mono uppercase backdrop-blur-xs">
+                  {post.contentType || "Post"}
+                </span>
+              </div>
+            </div>
+
+            {/* Metrics Row (Likes & Comments) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
+                <div className="flex items-center gap-1.5 text-gray-900 font-bold">
+                  <svg className="w-3.5 h-3.5 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                  <span>{post.likes > 0 ? post.likesFormatted || post.likes.toLocaleString() : "—"}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-gray-900 font-bold">
+                  <svg className="w-3.5 h-3.5 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z" />
+                  </svg>
+                  <span>{post.commentsCount > 0 ? post.commentsCountFormatted || post.commentsCount.toLocaleString() : "—"}</span>
+                </div>
+              </div>
+
+              {/* Location Tag */}
+              {post.location && (
+                <div className="flex items-center gap-1 text-[11px] text-gray-600 font-medium truncate">
+                  <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="truncate">{post.location}</span>
+                </div>
+              )}
+
+              {/* Caption or Accessibility Alt Text */}
+              <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
+                {post.caption || post.altText || "No caption available."}
+              </p>
+
+              {/* Hashtags Pills */}
+              {post.postHashtags && post.postHashtags.length > 0 && (
+                <div className="flex flex-wrap gap-1 pt-0.5">
+                  {post.postHashtags.slice(0, 3).map((tag, tIdx) => (
+                    <span key={tIdx} className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-mono">
+                      {tag.startsWith("#") ? tag : `#${tag}`}
+                    </span>
+                  ))}
+                  {post.postHashtags.length > 3 && (
+                    <span className="text-[10px] text-gray-400 font-mono self-center">
+                      +{post.postHashtags.length - 3}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Direct Link Footer */}
+            <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
+              <span className="text-gray-400 font-mono">
+                {post.datetime ? new Date(post.datetime).toLocaleDateString() : ""}
+              </span>
+              <a
+                href={post.url || `https://www.instagram.com/${username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
+              >
+                <span>View Post</span>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------
+// Sub-Component: YouTube Videos Grid
+// ----------------------------------------------------------------------
+function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      {videos.map((vid, idx) => (
+        <div
+          key={vid.id || idx}
+          className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
+        >
+          {/* Video Thumbnail */}
+          <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
+            {vid.thumbnailUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={vid.thumbnailUrl}
+                alt={vid.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
+                No Thumbnail
+              </div>
+            )}
+
+            {/* Duration Badge */}
+            {vid.durationFormatted && (
+              <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-semibold backdrop-blur-xs">
+                {vid.durationFormatted}
+              </span>
+            )}
+          </div>
+
+          {/* Title & Metrics */}
+          <div className="space-y-1.5">
+            <h4 className="text-xs font-bold text-gray-950 line-clamp-2 leading-snug group-hover:text-black">
+              {vid.title}
+            </h4>
+
+            <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
+              <div className="text-gray-900 font-bold">
+                {vid.viewCount ? `${vid.viewCount.toLocaleString()} views` : "—"}
+              </div>
+              <div className="text-gray-600">
+                {vid.likeCount ? `${vid.likeCount.toLocaleString()} likes` : ""}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
+            <span className="text-gray-400 font-mono">
+              {vid.publishedAt ? new Date(vid.publishedAt).toLocaleDateString() : ""}
+            </span>
+            <a
+              href={vid.url || `https://www.youtube.com/watch?v=${vid.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
+            >
+              <span>Watch</span>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------
+// Sub-Component: TikTok Videos Grid
+// ----------------------------------------------------------------------
+function TikTokVideosGrid({
+  videos,
+  username,
+}: {
+  videos: TikTokVideoItem[];
+  username: string;
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      {videos.map((vid, idx) => (
+        <div
+          key={vid.id || idx}
+          className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
+        >
+          {/* Cover Image */}
+          <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
+            {vid.coverImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={vid.coverImage}
+                alt={vid.description || "TikTok video"}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
+                No Cover
+              </div>
+            )}
+
+            {/* Plays Badge */}
+            <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-semibold backdrop-blur-xs flex items-center gap-1">
+              <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              {vid.playCount ? vid.playCount.toLocaleString() : "0"}
+            </span>
+          </div>
+
+          {/* Description & Performance */}
+          <div className="space-y-1.5">
+            <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
+              {vid.description || "No caption provided."}
+            </p>
+
+            <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
+              <div className="text-gray-900 font-bold">
+                {vid.diggCount ? `${vid.diggCount.toLocaleString()} likes` : "0 likes"}
+              </div>
+              <div className="text-gray-600">
+                {vid.commentCount ? `${vid.commentCount.toLocaleString()} comments` : "0 comments"}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
+            <span className="text-gray-400 font-mono">TikTok Video</span>
+            <a
+              href={vid.url || `https://www.tiktok.com/@${username}/video/${vid.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
+            >
+              <span>View Video</span>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
