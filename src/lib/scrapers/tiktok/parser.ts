@@ -16,10 +16,12 @@ export function extractTikTokUsername(input: string): string {
   // Strip query params and hashes
   clean = clean.split('?')[0].split('#')[0];
 
-  // Match URL patterns: tiktok.com/@username
-  const urlMatch = clean.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@([a-zA-Z0-9_.-]+)/i);
+  // Match URL patterns: tiktok.com/@username or tiktok.com/username
+  const urlMatch = clean.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?([a-zA-Z0-9_.-]+)/i);
   if (urlMatch && urlMatch[1]) {
-    return urlMatch[1].toLowerCase().replace(/^@/, '');
+    if (urlMatch[1] !== 'tag' && urlMatch[1] !== 'music' && urlMatch[1] !== 'discover') {
+      return urlMatch[1].toLowerCase().replace(/^@/, '');
+    }
   }
 
   // Handle direct handles or @handles
