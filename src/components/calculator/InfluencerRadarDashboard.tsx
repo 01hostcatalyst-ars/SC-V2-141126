@@ -89,14 +89,16 @@ export function InfluencerRadarDashboard() {
     setActivityFeed((prev) => [newEvent, ...prev.slice(0, 9)]);
   }, []);
 
-  // Compute platform-native rate card items using 16-knot formula engine
+  // Compute platform-native rate card items using 16-knot formula engine from CALCULATOR_FORMULAS_AND_SCENARIOS.md
   const computePlatformRateCards = useCallback(
     (
       platform: Platform,
       followers: number,
       avgLikes: number,
       avgComments: number,
-      avgViews: number
+      avgViews: number,
+      avgShares: number = 0,
+      primaryNicheId: number = 8
     ) => {
       const platformFormats: Record<Platform, DeliverableFormat[]> = {
         instagram: ["ig_reel", "ig_carousel", "ig_static", "ig_story"],
@@ -109,12 +111,13 @@ export function InfluencerRadarDashboard() {
       return formats.map((fmt, idx) => {
         const pricingInput: PricingInput = {
           creator: {
-            followerCount: followers,
+            followerCount: Math.max(followers, 1000),
             last3PostsAvgLikes: avgLikes,
             last3PostsAvgComments: avgComments,
             last3PostsAvgViews: avgViews,
+            last3PostsAvgShares: avgShares,
             primaryPlatform: platform,
-            primaryNicheId: 8, // Lifestyle Baseline (1.00x)
+            primaryNicheId,
             regionCode: "US",
           },
           deliverables: [{ id: String(idx + 1), platform, format: fmt, quantity: 1 }],
@@ -261,6 +264,7 @@ export function InfluencerRadarDashboard() {
           avgLikes = stats.avgLikesPerVideo || 0;
           avgComments = stats.avgCommentsPerVideo || 0;
           engagementRate = stats.engagementRate || 0;
+          const avgShares = stats.avgSharesPerVideo || 0;
           username = profile.username || targetInput.replace(/^@/, "");
           displayName = profile.nickname || profile.username || username;
           avatarUrl = profile.avatarUrl || "";
@@ -292,7 +296,8 @@ export function InfluencerRadarDashboard() {
           followerCount,
           avgLikes,
           avgComments,
-          avgViews
+          avgViews,
+          targetPlatform === "tiktok" ? (data.stats?.avgSharesPerVideo || 0) : 0
         );
 
         setPlatforms((prev) => ({
