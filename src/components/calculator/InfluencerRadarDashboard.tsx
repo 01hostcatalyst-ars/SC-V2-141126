@@ -196,7 +196,24 @@ export function InfluencerRadarDashboard() {
           followerCount = profile.followerCount || 0;
           avgLikes = stats.avgLikesPerPost || 0;
           avgComments = stats.avgCommentsPerPost || 0;
-          engagementRate = stats.engagementRate || 0;
+          engagementRate = stats.avgEngagementRate ?? stats.engagementRate ?? 0;
+
+          // If posts array has metrics, aggregate from unpinned uploads
+          if (Array.isArray(data.posts) && data.posts.length > 0) {
+            const unpinned = data.posts.filter((p: { isPinned?: boolean }) => !p.isPinned);
+            const targetPosts = unpinned.length > 0 ? unpinned : data.posts;
+            const totalLikes = targetPosts.reduce((acc: number, p: { likes?: number }) => acc + (p.likes || 0), 0);
+            const totalComments = targetPosts.reduce((acc: number, p: { commentsCount?: number }) => acc + (p.commentsCount || 0), 0);
+            if (totalLikes > 0 || totalComments > 0) {
+              avgLikes = Math.round(totalLikes / targetPosts.length);
+              avgComments = Math.round(totalComments / targetPosts.length);
+            }
+          }
+
+          if (followerCount > 0 && (avgLikes > 0 || avgComments > 0)) {
+            engagementRate = Number((((avgLikes + avgComments) / followerCount) * 100).toFixed(2));
+          }
+
           username = profile.username || targetInput.replace(/^@/, "");
           displayName = profile.fullName || profile.username || username;
           avatarUrl = profile.avatarUrl || "";
@@ -227,10 +244,15 @@ export function InfluencerRadarDashboard() {
           const channel = data.channel || {};
           const stats = data.stats || {};
           followerCount = channel.subscriberCount || 0;
-          avgViews = stats.avgViewsPerVideo || 0;
+          avgViews = stats.avgViewsPerVideo || stats.avgLongVideoViews || 0;
           avgLikes = stats.avgLikesPerVideo || 0;
           avgComments = stats.avgCommentsPerVideo || 0;
-          engagementRate = stats.engagementRate || 0;
+          engagementRate = stats.avgLongEngagementRate ?? stats.avgEngagementRate ?? stats.engagementRate ?? 0;
+
+          if (engagementRate === 0 && avgViews > 0 && (avgLikes > 0 || avgComments > 0)) {
+            engagementRate = Number((((avgLikes + avgComments) / avgViews) * 100).toFixed(2));
+          }
+
           username = channel.handle || channel.title || targetInput;
           displayName = channel.title || username;
           avatarUrl = channel.avatarUrl || "";
@@ -263,8 +285,13 @@ export function InfluencerRadarDashboard() {
           avgViews = stats.avgViewsPerVideo || 0;
           avgLikes = stats.avgLikesPerVideo || 0;
           avgComments = stats.avgCommentsPerVideo || 0;
-          engagementRate = stats.engagementRate || 0;
           const avgShares = stats.avgSharesPerVideo || 0;
+          engagementRate = stats.avgEngagementRate ?? stats.engagementRate ?? 0;
+
+          if (engagementRate === 0 && avgViews > 0 && (avgLikes > 0 || avgComments > 0 || avgShares > 0)) {
+            engagementRate = Number((((avgLikes + avgComments + avgShares) / avgViews) * 100).toFixed(2));
+          }
+
           username = profile.username || targetInput.replace(/^@/, "");
           displayName = profile.nickname || profile.username || username;
           avatarUrl = profile.avatarUrl || "";

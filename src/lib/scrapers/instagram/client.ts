@@ -277,24 +277,49 @@ export async function scrapeInstagram(
             const metricsMap = new Map<string, Record<string, unknown>>();
 
             for (const item of enrichedList) {
-              if (item && item.url) {
-                const cleanUrl = (item.url as string).replace(/\/$/, '').toLowerCase();
-                metricsMap.set(cleanUrl, item);
+              if (item) {
+                if (item.url) {
+                  const cleanUrl = String(item.url).replace(/\/$/, '').toLowerCase();
+                  metricsMap.set(cleanUrl, item);
+                  // Also index without www.
+                  metricsMap.set(cleanUrl.replace('://www.', '://'), item);
+                }
+                if (item.shortcode) {
+                  metricsMap.set(String(item.shortcode).toLowerCase(), item);
+                }
+                if (item.id) {
+                  metricsMap.set(String(item.id).toLowerCase(), item);
+                }
               }
             }
 
             // Merge complete rich metadata into unpinnedPosts
             for (const post of unpinnedPosts) {
-              const cleanPostUrl = post.url.replace(/\/$/, '').toLowerCase();
-              const item = metricsMap.get(cleanPostUrl);
-              if (item) {
-                post.likes = Number(item.likes || 0);
-                post.likesFormatted = formatCompactNumber(post.likes);
-                post.commentsCount = Number(item.num_comments || item.comments || 0);
-                post.commentsCountFormatted = formatCompactNumber(post.commentsCount);
+              const cleanPostUrl = post.url ? post.url.replace(/\/$/, '').toLowerCase() : '';
+              const cleanNoWww = cleanPostUrl.replace('://www.', '://');
+              const postShortcode = post.shortcode ? post.shortcode.toLowerCase() : '';
+              const postId = post.id ? String(post.id).toLowerCase() : '';
 
-                if (item.description) {
-                  post.caption = item.description as string;
+              const item = metricsMap.get(cleanPostUrl) || 
+                           metricsMap.get(cleanNoWww) ||
+                           (postShortcode ? metricsMap.get(postShortcode) : undefined) ||
+                           (postId ? metricsMap.get(postId) : undefined);
+
+              if (item) {
+                const likes = Number(
+                  item.likes ?? item.num_likes ?? item.like_count ?? item.likes_count ?? item.likesCount ?? 0
+                );
+                const comments = Number(
+                  item.comments ?? item.num_comments ?? item.comment_count ?? item.comments_count ?? item.commentsCount ?? 0
+                );
+
+                post.likes = likes;
+                post.likesFormatted = formatCompactNumber(likes);
+                post.commentsCount = comments;
+                post.commentsCountFormatted = formatCompactNumber(comments);
+
+                if (item.description || item.caption) {
+                  post.caption = (item.description || item.caption) as string;
                 }
                 if (item.shortcode) {
                   post.shortcode = item.shortcode as string;
@@ -302,8 +327,8 @@ export async function scrapeInstagram(
                 if (item.alt_text) {
                   post.altText = item.alt_text as string;
                 }
-                if (item.date_posted) {
-                  post.datetime = item.date_posted as string;
+                if (item.date_posted || item.datetime) {
+                  post.datetime = (item.date_posted || item.datetime) as string;
                 }
                 if (item.location) {
                   post.location = typeof item.location === 'string' ? item.location : ((item.location as { name?: string })?.name || String(item.location));
