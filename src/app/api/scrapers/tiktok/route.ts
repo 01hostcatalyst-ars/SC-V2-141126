@@ -6,9 +6,10 @@ import { ScraperResponse, TikTokScraperData } from '@/lib/scrapers/types';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { input, forceRefresh } = body;
+    const input = body?.input || body?.url;
+    const forceRefresh = Boolean(body?.forceRefresh);
 
-    if (!input || typeof input !== 'string') {
+    if (!input || typeof input !== 'string' || !input.trim()) {
       return NextResponse.json<ScraperResponse>(
         {
           success: false,
