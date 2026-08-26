@@ -161,6 +161,10 @@ export function formatDbRecordToInstagramData(record: {
     externalUrls,
     bioHashtags: rawProfile?.bioHashtags || [],
     extractedEmail: record.extractedEmail || undefined,
+    businessPhone: rawProfile?.businessPhone || undefined,
+    businessAddress: rawProfile?.businessAddress || undefined,
+    city: rawProfile?.city || undefined,
+    pronouns: rawProfile?.pronouns || undefined,
     categoryName: record.categoryName || undefined,
   };
 
