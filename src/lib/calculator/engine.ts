@@ -11,13 +11,34 @@ import {
   TIKTOK_16_KNOTS,
   YOUTUBE_16_KNOTS,
   PlatformKnot,
-  getKnotsForFormat,
   PRIMARY_NICHES,
   SUB_NICHES,
   USAGE_RATES,
   EXCLUSIVITY_RATES,
   REGIONAL_CONFIG,
+  NicheDefinition,
+  SubNicheDefinition,
 } from './constants';
+
+export interface DynamicCalculationOverrides {
+  instagramKnots?: PlatformKnot[];
+  tiktokKnots?: PlatformKnot[];
+  youtubeKnots?: PlatformKnot[];
+  primaryNiches?: NicheDefinition[];
+  subNiches?: SubNicheDefinition[];
+  usageRates?: Record<string, Record<string, number>>;
+  exclusivityRates?: Record<string, Record<string, number>>;
+  regionalConfigs?: Record<
+    string,
+    {
+      name: string;
+      pppIndex: number;
+      currency: string;
+      fxRateToUSD: number;
+      symbol: string;
+    }
+  >;
+}
 
 /**
  * Continuous 16-Knot Piecewise Linear Interpolator
@@ -29,6 +50,10 @@ export function interpolateKnot(
 ): { baseRate: number; targetBenchmarkEr: number; expectedViews: number } {
   const safeFollowers = Math.max(followers, 1000);
 
+  if (!knots || knots.length === 0) {
+    return { baseRate: 100, targetBenchmarkEr: 2.0, expectedViews: Math.round(safeFollowers * 0.1) };
+  }
+
   if (safeFollowers <= knots[0].followers) {
     return {
       baseRate: knots[0].rates[deliverableKey] || 100,
@@ -39,8 +64,8 @@ export function interpolateKnot(
 
   if (safeFollowers >= knots[knots.length - 1].followers) {
     const last = knots[knots.length - 1];
-    const prev = knots[knots.length - 2];
-    const slopeRate = (last.rates[deliverableKey] - prev.rates[deliverableKey]) / (last.followers - prev.followers);
+    const prev = knots[knots.length - 2] || last;
+    const slopeRate = (last.rates[deliverableKey] - prev.rates[deliverableKey]) / Math.max(1, last.followers - prev.followers);
     const extrapolatedRate = last.rates[deliverableKey] + slopeRate * (safeFollowers - last.followers);
 
     return {
@@ -79,16 +104,30 @@ export function interpolateKnot(
 
 /**
  * Universal 9-Step Deterministic Valuation Engine for SignCollab
+ * Sourced directly from PostgreSQL Database Knots, Niches & Constants
  */
-export function calculateInfluencerRate(input: PricingInput): CalculationResult {
+export function calculateInfluencerRate(
+  input: PricingInput,
+  overrides?: DynamicCalculationOverrides
+): CalculationResult {
   const { creator, deliverables, commercialTerms, productionAddons } = input;
   const followers = Math.max(creator.followerCount || 1000, 1000);
 
-  // 1. Resolve Primary & Secondary Niche Multipliers
-  const subNicheObj = creator.subNicheId ? SUB_NICHES.find((s) => s.id === creator.subNicheId) : undefined;
-  const primaryNicheObj = PRIMARY_NICHES.find((p) => p.id === creator.primaryNicheId) || PRIMARY_NICHES[7]; // Default Lifestyle (1.00x)
+  // Active Constants (Dynamic from Database or Verified Defaults)
+  const activeIgKnots = overrides?.instagramKnots || INSTAGRAM_16_KNOTS;
+  const activeTtKnots = overrides?.tiktokKnots || TIKTOK_16_KNOTS;
+  const activeYtKnots = overrides?.youtubeKnots || YOUTUBE_16_KNOTS;
+  const activePrimaryNiches = overrides?.primaryNiches || PRIMARY_NICHES;
+  const activeSubNiches = overrides?.subNiches || SUB_NICHES;
+  const activeUsageRates = overrides?.usageRates || (USAGE_RATES as Record<string, Record<string, number>>);
+  const activeExclusivityRates = overrides?.exclusivityRates || (EXCLUSIVITY_RATES as Record<string, Record<string, number>>);
+  const activeRegionalConfigs = overrides?.regionalConfigs || (REGIONAL_CONFIG as Record<string, { name: string; pppIndex: number; currency: string; fxRateToUSD: number; symbol: string }>);
 
-  let nicheMultiplier = subNicheObj ? subNicheObj.multiplier : primaryNicheObj.multiplier;
+  // 1. Resolve Primary & Secondary Niche Multipliers
+  const subNicheObj = creator.subNicheId ? activeSubNiches.find((s) => s.id === creator.subNicheId) : undefined;
+  const primaryNicheObj = activePrimaryNiches.find((p) => p.id === creator.primaryNicheId) || activePrimaryNiches[7]; // Default Lifestyle (1.00x)
+
+  let nicheMultiplier = subNicheObj ? subNicheObj.multiplier : (primaryNicheObj?.multiplier ?? 1.0);
   if (creator.isLuxuryOrHighEnd) {
     nicheMultiplier *= 1.25;
   }
@@ -96,7 +135,7 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
   const secondaryNiches: NicheInfo[] = [];
   if (creator.secondaryNicheIds) {
     for (const id of creator.secondaryNicheIds) {
-      const p = PRIMARY_NICHES.find((item) => item.id === id);
+      const p = activePrimaryNiches.find((item) => item.id === id);
       if (p) {
         secondaryNiches.push({
           id: p.id,
@@ -113,7 +152,6 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
   let benchmarkER = 1.0;
   let clampedPerfMultiplier = 1.0;
 
-  // Interactions
   const likes = Math.max(0, creator.last3PostsAvgLikes || 0);
   const comments = Math.max(0, creator.last3PostsAvgComments || 0);
   const shares = Math.max(0, creator.last3PostsAvgShares || 0);
@@ -122,22 +160,22 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
   const platform = creator.primaryPlatform || (deliverables[0]?.platform || 'instagram');
 
   if (platform === 'instagram') {
-    // Track 1: Follower-Based Interaction Rate (Instagram deprecated public views)
+    // Follower-Based Interaction Rate (Instagram deprecated public view counts)
     observedER = ((likes + comments) / followers) * 100;
-    const knotInfo = interpolateKnot(followers, 'ig_reel', INSTAGRAM_16_KNOTS);
+    const knotInfo = interpolateKnot(followers, 'ig_reel', activeIgKnots);
     benchmarkER = knotInfo.targetBenchmarkEr;
 
-    const ratio = observedER === 0 ? 0.05 : Math.max(observedER / benchmarkER, 0.05);
+    const ratio = observedER === 0 ? 0.05 : Math.max(observedER / Math.max(0.01, benchmarkER), 0.05);
     const erLogFactor = 0.15 * Math.log2(ratio);
     clampedPerfMultiplier = Math.min(Math.max(1.0 + erLogFactor, 0.70), 1.40);
 
   } else if (platform === 'tiktok') {
-    // Track 2: View-Based Interaction Rate including Shares
+    // View-Based Interaction Rate including Shares
     observedER = ((likes + comments + shares) / views) * 100;
-    const knotInfo = interpolateKnot(followers, 'tiktok_video', TIKTOK_16_KNOTS);
+    const knotInfo = interpolateKnot(followers, 'tiktok_video', activeTtKnots);
     benchmarkER = knotInfo.targetBenchmarkEr;
 
-    const erRatio = observedER === 0 ? 0.05 : Math.max(observedER / benchmarkER, 0.05);
+    const erRatio = observedER === 0 ? 0.05 : Math.max(observedER / Math.max(0.01, benchmarkER), 0.05);
     const erLogFactor = 0.15 * Math.log2(erRatio);
 
     const expectedViews = knotInfo.expectedViews || Math.max(1, followers * 0.1);
@@ -147,12 +185,12 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
     clampedPerfMultiplier = Math.min(Math.max(1.0 + erLogFactor + viewLogFactor, 0.70), 1.40);
 
   } else if (platform === 'youtube') {
-    const isShorts = deliverables.some(d => d.format === 'yt_short');
-    if (isShorts && !deliverables.some(d => d.format !== 'yt_short')) {
+    const isShorts = deliverables.some((d) => d.format === 'yt_short');
+    if (isShorts && !deliverables.some((d) => d.format !== 'yt_short')) {
       // Track B: YouTube Shorts
       observedER = ((likes + comments) / views) * 100;
       benchmarkER = 4.50; // Shorts baseline
-      const knotInfo = interpolateKnot(followers, 'yt_short', YOUTUBE_16_KNOTS);
+      const knotInfo = interpolateKnot(followers, 'yt_short', activeYtKnots);
 
       const erRatio = observedER === 0 ? 0.05 : Math.max(observedER / benchmarkER, 0.05);
       const erLogFactor = 0.15 * Math.log2(erRatio);
@@ -165,10 +203,10 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
     } else {
       // Track A: YouTube Long-Form (Dedicated & 60s Integration)
       observedER = ((likes + comments) / views) * 100;
-      const knotInfo = interpolateKnot(followers, 'yt_integrated', YOUTUBE_16_KNOTS);
+      const knotInfo = interpolateKnot(followers, 'yt_integrated', activeYtKnots);
       benchmarkER = knotInfo.targetBenchmarkEr;
 
-      const erRatio = observedER === 0 ? 0.05 : Math.max(observedER / benchmarkER, 0.05);
+      const erRatio = observedER === 0 ? 0.05 : Math.max(observedER / Math.max(0.01, benchmarkER), 0.05);
       const erLogFactor = 0.15 * Math.log2(erRatio);
 
       const expectedViews = knotInfo.expectedViews || Math.max(1, followers * 0.1);
@@ -184,8 +222,12 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
   let totalAssetCount = 0;
 
   const itemizedBreakdown = deliverables.map((item) => {
-    const knots = getKnotsForFormat(item.format);
-    const { baseRate } = interpolateKnot(followers, item.format, knots);
+    let knotArray = activeIgKnots;
+    if (item.format.startsWith('ig_')) knotArray = activeIgKnots;
+    else if (item.format === 'tiktok_video') knotArray = activeTtKnots;
+    else if (item.format.startsWith('yt_')) knotArray = activeYtKnots;
+
+    const { baseRate } = interpolateKnot(followers, item.format, knotArray);
 
     let quantityAdjusted = baseRate * item.quantity;
     if (item.isCrossPost) {
@@ -221,13 +263,13 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
   let usagePercent = 0.0;
   if (commercialTerms?.usageRights) {
     const { scope, duration } = commercialTerms.usageRights;
-    usagePercent = USAGE_RATES[scope]?.[duration] || 0.0;
+    usagePercent = activeUsageRates[scope]?.[duration] || 0.0;
   }
 
   let exclusivityPercent = 0.0;
   if (commercialTerms?.exclusivity) {
     const { scope, duration } = commercialTerms.exclusivity;
-    exclusivityPercent = EXCLUSIVITY_RATES[scope]?.[duration] || 0.0;
+    exclusivityPercent = activeExclusivityRates[scope]?.[duration] || 0.0;
   }
 
   let whitelistingPercent = commercialTerms?.whitelisting ? 0.30 : 0.0;
@@ -263,7 +305,13 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
 
   // 7. Global GDP PPP & FX Calibration (20 Countries)
   const regionCode: RegionCode = creator.regionCode || 'US';
-  const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG['US'];
+  const regConfig = activeRegionalConfigs[regionCode] || activeRegionalConfigs['US'] || {
+    name: 'United States',
+    currency: 'USD',
+    pppIndex: 1.00,
+    fxRateToUSD: 1.00,
+    symbol: '$',
+  };
   const totalUSDMedian = netDeliverableFeeUSD + commercialRightsFeeUSD + productionAddonsUSD;
 
   // Localized Target Median = Total Global USD × PPP Index × FX Rate
@@ -280,7 +328,7 @@ export function calculateInfluencerRate(input: PricingInput): CalculationResult 
       benchmarkER: Number(benchmarkER.toFixed(2)),
       performanceMultiplier: Number(clampedPerfMultiplier.toFixed(2)),
       nicheMultiplier: Number(nicheMultiplier.toFixed(2)),
-      primaryNicheName: primaryNicheObj.name,
+      primaryNicheName: primaryNicheObj?.name || 'Lifestyle',
       secondaryNiches,
       regionApplied: regionCode,
       currency: regConfig.currency,

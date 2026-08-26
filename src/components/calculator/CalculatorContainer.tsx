@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   PricingInput,
   CreatorMetrics,
@@ -8,10 +8,10 @@ import {
   CommercialTerms,
   ProductionAddons,
   Platform,
-  DeliverableFormat,
   RegionCode,
 } from "@/lib/calculator/types";
 import { calculateInfluencerRate } from "@/lib/calculator/engine";
+import { DatabaseCalculatorConstants } from "@/lib/calculator/db-service";
 import { CreatorAIClassification } from "@/lib/ai/gemini";
 import { ProfileImportHeader } from "./ProfileImportHeader";
 import { CreatorProfileForm } from "./CreatorProfileForm";
@@ -19,7 +19,6 @@ import { DeliverablesBuilder } from "./DeliverablesBuilder";
 import { CommercialTermsForm } from "./CommercialTermsForm";
 import { ProductionAddonsForm } from "./ProductionAddonsForm";
 import { ValuationSummaryCard } from "./ValuationSummaryCard";
-
 import { MultiPlatformCalculatorGrid } from "./MultiPlatformCalculatorGrid";
 import { RateCardDeliverableItem } from "./PlatformRateCard";
 
@@ -37,7 +36,31 @@ interface ImportedCreatorData {
   externalLinks?: Array<{ platform: string; url: string }>;
 }
 
-export function CalculatorContainer() {
+interface CalculatorContainerProps {
+  initialDbConstants?: DatabaseCalculatorConstants;
+}
+
+export function CalculatorContainer({ initialDbConstants }: CalculatorContainerProps) {
+  const [dbConstants, setDbConstants] = useState<DatabaseCalculatorConstants | undefined>(
+    initialDbConstants
+  );
+
+  // Fetch live database constants if not passed via Server Component
+  useEffect(() => {
+    if (!initialDbConstants) {
+      fetch("/api/calculator/constants")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.constants) {
+            setDbConstants(data.constants);
+          }
+        })
+        .catch((err) => {
+          console.warn("Error loading database constants in container:", err);
+        });
+    }
+  }, [initialDbConstants]);
+
   // Imported state from Scraper + AI
   const [importedCreator, setImportedCreator] = useState<ImportedCreatorData | null>(null);
   const [aiEnrichment, setAiEnrichment] = useState<CreatorAIClassification | null>(null);
@@ -149,13 +172,13 @@ export function CalculatorContainer() {
     };
   }, [metrics, deliverables, commercialTerms, productionAddons]);
 
-  // Execute 9-Step 16-Knot Calculation Engine in Real-Time
+  // Execute 9-Step 16-Knot Calculation Engine in Real-Time against database constants
   const calculationResult = useMemo(() => {
-    return calculateInfluencerRate(pricingInput);
-  }, [pricingInput]);
+    return calculateInfluencerRate(pricingInput, dbConstants);
+  }, [pricingInput, dbConstants]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* 1. Scraper Profile Import & AI Niche Bar */}
       <ProfileImportHeader
         onImportSuccess={handleImportSuccess}
@@ -175,22 +198,25 @@ export function CalculatorContainer() {
       />
 
       {/* 3. Deep Campaign Customizer & Negotiation Bounds */}
-      <div className="pt-4 border-t border-gray-200/80">
-        <div className="mb-6">
-          <h2 className="text-base font-black text-gray-950 uppercase tracking-tight">
-            Custom Campaign &amp; Commercial Terms
+      <div className="pt-6 border-t border-gray-200/90">
+        <div className="mb-7">
+          <h2 className="text-lg sm:text-xl font-black text-gray-950 uppercase tracking-tight font-display">
+            Custom Campaign &amp; Commercial Scope
           </h2>
-          <p className="text-xs text-gray-500 font-medium">
-            Fine-tune deliverable quantities, paid advertising rights, exclusivity lockouts, and rush addons
+          <p className="text-xs sm:text-sm text-gray-500 font-medium">
+            Fine-tune deliverable quantities, paid advertising duration, exclusivity lockouts, and rush addons
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column (Forms & Parameters) */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+          {/* Left Column (Forms & Sliders) */}
+          <div className="lg:col-span-7 xl:col-span-8 space-y-7">
             <CreatorProfileForm
               metrics={metrics}
               onChange={(updated) => setMetrics((prev) => ({ ...prev, ...updated }))}
+              availableNiches={dbConstants?.primaryNiches}
+              availableSubNiches={dbConstants?.subNiches}
+              regionalConfigs={dbConstants?.regionalConfigs}
             />
 
             <DeliverablesBuilder
@@ -201,6 +227,8 @@ export function CalculatorContainer() {
             <CommercialTermsForm
               terms={commercialTerms}
               onChange={(updated) => setCommercialTerms(updated)}
+              usageRates={dbConstants?.usageRates as unknown as Record<string, Record<string, number>>}
+              exclusivityRates={dbConstants?.exclusivityRates as unknown as Record<string, Record<string, number>>}
             />
 
             <ProductionAddonsForm

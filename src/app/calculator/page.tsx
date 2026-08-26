@@ -1,13 +1,21 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
+import { Metadata } from "next";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 import { CalculatorHero } from "@/components/calculator/CalculatorHero";
 import { CalculatorContainer } from "@/components/calculator/CalculatorContainer";
+import { getCalculatorDatabaseConstants } from "@/lib/calculator/db-service";
 
-export default function CalculatorPage() {
+export const metadata: Metadata = {
+  title: "SignCollab Influencer Rate & Pricing Calculator | Verified 2025–2026 Engine",
+  description:
+    "Calculate defensible market pricing for creator campaigns across Instagram, TikTok, and YouTube with engagement scaling and commercial rights licensing.",
+};
+
+export default async function CalculatorPage() {
+  const dbConstants = await getCalculatorDatabaseConstants();
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
@@ -46,15 +54,15 @@ export default function CalculatorPage() {
         <CalculatorHero />
 
         {/* Master Interactive Calculator Container */}
-        <CalculatorContainer />
+        <CalculatorContainer initialDbConstants={dbConstants} />
 
         {/* Methodology & Educational Trust Section */}
-        <section className="mt-16 sm:mt-20 pt-12 border-t border-gray-200">
+        <section className="mt-16 sm:mt-24 pt-12 border-t border-gray-200">
           <div className="text-center max-w-2xl mx-auto mb-10">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+            <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">
               Transparent Methodology
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-gray-950 mt-1 uppercase tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-gray-950 mt-1 uppercase tracking-tight font-display">
               How SignCollab Calculates Fair Market Rates
             </h2>
             <p className="text-xs sm:text-sm text-gray-600 font-medium mt-2">
@@ -83,7 +91,7 @@ export default function CalculatorPage() {
               </div>
               <h3 className="text-sm font-bold text-gray-950 uppercase tracking-tight">2. True Engagement &amp; Velocity</h3>
               <p className="text-xs text-gray-600 leading-relaxed font-medium">
-                We assess recent likes, comments, and video views against HypeAuditor and Aspire tier medians, rewarding high-converting creators while discounting inactive follower counts.
+                We assess recent likes, comments, and video views against platform baselines, rewarding high-converting creators while discounting inactive follower counts.
               </p>
             </div>
 
