@@ -1105,7 +1105,7 @@ function RecentMediaAuditFeed({
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: Instagram 12 Recent Posts + 6 Enriched Unpinned Grid
+// Sub-Component: Instagram 12 Recent Posts + 4 Enriched Unpinned Grid
 // ----------------------------------------------------------------------
 function InstagramPostsGrid({
   posts,
@@ -1117,7 +1117,7 @@ function InstagramPostsGrid({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
       {posts.map((post, idx) => {
-        const isEnrichedUnpinned = !post.isPinned && idx < 6 && (post.likes > 0 || post.commentsCount > 0);
+        const isEnrichedUnpinned = !post.isPinned && idx < 4 && (post.likes > 0 || post.commentsCount > 0);
 
         return (
           <div

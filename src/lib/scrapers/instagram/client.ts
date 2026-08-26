@@ -263,9 +263,9 @@ export async function scrapeInstagram(
   if (options?.fastMode) {
     console.log(`[Instagram Scraper] Fast mode enabled: returning Process 1 summary for @${username} in sub-6s.`);
   } else {
-    // Enrich minimum 6 unpinned recent posts
+    // Enrich top 4 unpinned recent posts for exact engagement baseline
     const postUrlsToEnrich = unpinnedPosts
-      .slice(0, 6)
+      .slice(0, 4)
       .filter((p) => Boolean(p.url))
       .map((p) => ({ url: p.url }));
 
