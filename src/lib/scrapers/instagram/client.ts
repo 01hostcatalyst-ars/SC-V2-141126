@@ -26,7 +26,7 @@ async function fetchBrightDataWithPolling(
 ): Promise<Array<Record<string, unknown>>> {
   console.log(`[BrightData Engine] Triggering scrape on dataset ${datasetId} for ${inputItems.length} input(s)...`);
 
-  const initialRes = await fetch(`${BRIGHTDATA_BASE_URL}/scrape?dataset_id=${datasetId}&include_errors=true&format=json`, {
+  const initialRes = await fetch(`${BRIGHTDATA_BASE_URL}/trigger?dataset_id=${datasetId}&include_errors=true&format=json`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -253,6 +253,7 @@ export async function scrapeInstagram(
     console.log(`[Instagram Scraper] Fast mode enabled: returning Process 1 summary for @${username} in sub-6s.`);
   } else {
     const postUrlsToEnrich = unpinnedPosts
+      .slice(0, 4)
       .filter((p) => Boolean(p.url))
       .map((p) => ({ url: p.url }));
 
@@ -260,7 +261,7 @@ export async function scrapeInstagram(
         try {
           console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} unpinned posts via dataset ${DATASET_POSTS}...`);
           
-          // 30-second timeout race to ensure high reliability without gateway timeout
+          // 120-second timeout race to ensure reliable Bright Data delivery
           const fetchPromise = fetchBrightDataWithPolling(
             DATASET_POSTS,
             postUrlsToEnrich,
@@ -268,7 +269,7 @@ export async function scrapeInstagram(
           );
           
           const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('Process 2 timeout')), 30000)
+            setTimeout(() => reject(new Error('Process 2 timeout')), 120000)
           );
 
           const enrichedList = await Promise.race([fetchPromise, timeoutPromise]);
@@ -281,14 +282,22 @@ export async function scrapeInstagram(
                 if (item.url) {
                   const cleanUrl = String(item.url).replace(/\/$/, '').toLowerCase();
                   metricsMap.set(cleanUrl, item);
-                  // Also index without www.
                   metricsMap.set(cleanUrl.replace('://www.', '://'), item);
+                }
+                const inputObj = item.input as { url?: string } | undefined;
+                if (inputObj?.url) {
+                  const cleanInput = String(inputObj.url).replace(/\/$/, '').toLowerCase();
+                  metricsMap.set(cleanInput, item);
+                  metricsMap.set(cleanInput.replace('://www.', '://'), item);
                 }
                 if (item.shortcode) {
                   metricsMap.set(String(item.shortcode).toLowerCase(), item);
                 }
-                if (item.id) {
-                  metricsMap.set(String(item.id).toLowerCase(), item);
+                if (item.content_id) {
+                  metricsMap.set(String(item.content_id).toLowerCase(), item);
+                }
+                if (item.id || item.post_id || item.pk) {
+                  metricsMap.set(String(item.id || item.post_id || item.pk).toLowerCase(), item);
                 }
               }
             }
@@ -307,11 +316,11 @@ export async function scrapeInstagram(
 
               if (item) {
                 const likes = Number(
-                  item.likes ?? item.num_likes ?? item.like_count ?? item.likes_count ?? item.likesCount ?? 0
+                  item.likes ?? item.likes_count ?? item.like_count ?? item.num_likes ?? item.likesCount ?? 0
                 );
-                const comments = Number(
-                  item.comments ?? item.num_comments ?? item.comment_count ?? item.comments_count ?? item.commentsCount ?? 0
-                );
+                const comments = Array.isArray(item.comments)
+                  ? item.comments.length
+                  : Number(item.num_comments ?? item.comments_count ?? item.comment_count ?? item.comments ?? 0);
 
                 post.likes = likes;
                 post.likesFormatted = formatCompactNumber(likes);
