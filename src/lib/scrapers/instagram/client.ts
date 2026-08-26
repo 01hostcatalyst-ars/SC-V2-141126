@@ -241,12 +241,19 @@ export async function scrapeInstagram(
     };
   });
 
-  // Detect chronological inversion in top items (Instagram places older pinned posts before newer uploads)
-  for (let i = 0; i < Math.min(3, allPosts.length - 1); i++) {
-    const currentPostTime = allPosts[i].datetime ? new Date(allPosts[i].datetime!).getTime() : 0;
-    const nextPostTime = allPosts[i + 1].datetime ? new Date(allPosts[i + 1].datetime!).getTime() : 0;
-    if (currentPostTime > 0 && nextPostTime > 0 && (nextPostTime - currentPostTime) > (5 * 24 * 60 * 60 * 1000)) {
-      allPosts[i].isPinned = true;
+  // Detect chronological inversion in top 3 items:
+  // On Instagram, pinned posts are placed at indices 0, 1, or 2, but have older upload dates than subsequent uploads.
+  for (let i = 0; i < Math.min(3, allPosts.length); i++) {
+    const postTime = allPosts[i].datetime ? new Date(allPosts[i].datetime!).getTime() : 0;
+    if (postTime > 0) {
+      // Check if any subsequent post has a newer timestamp than this post (indicating this post is pinned)
+      for (let j = i + 1; j < Math.min(6, allPosts.length); j++) {
+        const laterPostTime = allPosts[j].datetime ? new Date(allPosts[j].datetime!).getTime() : 0;
+        if (laterPostTime > 0 && (laterPostTime - postTime) > (24 * 60 * 60 * 1000)) {
+          allPosts[i].isPinned = true;
+          break;
+        }
+      }
     }
   }
 
