@@ -202,11 +202,15 @@ export async function scrapeInstagram(
     externalUrls,
     bioHashtags,
     extractedEmail: (rawItem.email_address as string) || extractEmailFromBio(bio),
+    businessPhone: (rawItem.contact_phone_number as string) || (rawItem.public_phone_number as string) || (rawItem.business_phone_number as string) || undefined,
+    businessAddress: (rawItem.business_address as string) || (rawItem.address_street as string) || undefined,
+    city: (rawItem.city_name as string) || (rawItem.city as string) || undefined,
+    pronouns: Array.isArray(rawItem.pronouns) ? (rawItem.pronouns as string[]) : (typeof rawItem.pronouns === 'string' ? [rawItem.pronouns] : undefined),
     categoryName: (rawItem.category_name as string) || (rawItem.business_category_name as string) || undefined,
   };
 
   // ==========================================
-  // PROCESS 2: 12 Unpinned Recent Posts Enrichment
+  // PROCESS 2: 6 Unpinned Recent Posts Enrichment
   // ==========================================
   const rawPosts = Array.isArray(rawItem.posts) ? (rawItem.posts as Array<Record<string, unknown>>) : [];
 
@@ -246,14 +250,15 @@ export async function scrapeInstagram(
     }
   }
 
-  // Filter out any pinned post so we strictly extract and return 12 unpinned recent uploads
+  // Filter out any pinned post so we strictly extract and return unpinned recent uploads
   const unpinnedPosts = allPosts.filter((p) => !p.isPinned).slice(0, 12);
 
   if (options?.fastMode) {
     console.log(`[Instagram Scraper] Fast mode enabled: returning Process 1 summary for @${username} in sub-6s.`);
   } else {
+    // Enrich minimum 6 unpinned recent posts
     const postUrlsToEnrich = unpinnedPosts
-      .slice(0, 4)
+      .slice(0, 6)
       .filter((p) => Boolean(p.url))
       .map((p) => ({ url: p.url }));
 
@@ -303,7 +308,8 @@ export async function scrapeInstagram(
             }
 
             // Merge complete rich metadata into unpinnedPosts
-            for (const post of unpinnedPosts) {
+            for (let pIdx = 0; pIdx < unpinnedPosts.length; pIdx++) {
+              const post = unpinnedPosts[pIdx];
               const cleanPostUrl = post.url ? post.url.replace(/\/$/, '').toLowerCase() : '';
               const cleanNoWww = cleanPostUrl.replace('://www.', '://');
               const postShortcode = post.shortcode ? post.shortcode.toLowerCase() : '';
@@ -346,33 +352,19 @@ export async function scrapeInstagram(
                   post.postHashtags = item.hashtags as string[];
                 }
 
-                // Tagged users
-                if (Array.isArray(item.tagged_users)) {
-                  post.taggedUsers = (item.tagged_users as Array<Record<string, unknown>>).map((u) => ({
-                    id: u.id ? String(u.id) : undefined,
-                    username: (u.username as string) || (u.full_name as string),
-                    fullName: (u.full_name as string) || undefined,
-                    isVerified: Boolean(u.is_verified),
-                    profilePicUrl: (u.profile_pic_url as string) || undefined,
-                  }));
-                }
-
-                // Co-authors
-                if (Array.isArray(item.coauthor_producers)) {
-                  post.coauthors = item.coauthor_producers as string[];
-                }
-
-                // High-res carousel photos
-                if (Array.isArray(item.photos)) {
-                  post.photos = item.photos as string[];
-                }
-
-                // Video streams
-                if (Array.isArray(item.videos)) {
-                  post.videos = item.videos as string[];
-                  if (!post.videoUrl && post.videos.length > 0) {
-                    post.videoUrl = post.videos[0];
-                  }
+                // Extract top 5 comments for the 3 most recent unpinned posts (at zero extra Bright Data credit cost)
+                if (pIdx < 3 && Array.isArray(item.comments)) {
+                  post.comments = (item.comments as Array<Record<string, unknown>>)
+                    .slice(0, 5)
+                    .map((c, cIdx) => ({
+                      id: String(c.comment_id || c.id || cIdx),
+                      authorUsername: (c.user as { username?: string })?.username || (c.owner as { username?: string })?.username || (c.author as string) || undefined,
+                      authorProfilePic: (c.profile_picture as string) || (c.author_profile_pic as string) || undefined,
+                      text: (c.comments as string) || (c.text as string) || '',
+                      date: (c.date_of_comment as string) || (c.created_at as string) || undefined,
+                      likes: Number(c.likes || 0),
+                    }))
+                    .filter((c) => Boolean(c.text));
                 }
               }
             }

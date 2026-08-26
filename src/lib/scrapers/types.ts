@@ -92,6 +92,15 @@ export interface InstagramExternalUrl {
   url: string;
 }
 
+export interface InstagramCommentItem {
+  id?: string;
+  authorUsername?: string;
+  authorProfilePic?: string;
+  text: string;
+  date?: string;
+  likes?: number;
+}
+
 export interface InstagramPostItem {
   id: string;
   shortcode?: string;
@@ -113,6 +122,7 @@ export interface InstagramPostItem {
   videos?: string[];
   altText?: string;
   location?: string;
+  comments?: InstagramCommentItem[];
 }
 
 export interface InstagramProfile {
@@ -135,6 +145,10 @@ export interface InstagramProfile {
   externalUrls: InstagramExternalUrl[];
   bioHashtags?: string[];
   extractedEmail?: string;
+  businessPhone?: string;
+  businessAddress?: string;
+  city?: string;
+  pronouns?: string[];
   categoryName?: string;
 }
 
