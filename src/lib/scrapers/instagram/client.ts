@@ -365,9 +365,6 @@ export async function scrapeInstagram(
                 if (item.shortcode) {
                   post.shortcode = item.shortcode as string;
                 }
-                if (item.alt_text) {
-                  post.altText = item.alt_text as string;
-                }
                 if (item.date_posted || item.datetime) {
                   post.datetime = (item.date_posted || item.datetime) as string;
                 }
@@ -385,7 +382,6 @@ export async function scrapeInstagram(
                     .map((c, cIdx) => ({
                       id: String(c.comment_id || c.id || cIdx),
                       authorUsername: (c.user as { username?: string })?.username || (c.owner as { username?: string })?.username || (c.author as string) || undefined,
-                      authorProfilePic: (c.profile_picture as string) || (c.author_profile_pic as string) || undefined,
                       text: (c.comments as string) || (c.text as string) || '',
                       date: (c.date_of_comment as string) || (c.created_at as string) || undefined,
                       likes: Number(c.likes || 0),

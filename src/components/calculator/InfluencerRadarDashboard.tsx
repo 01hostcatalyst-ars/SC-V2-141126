@@ -1130,7 +1130,7 @@ function InstagramPostsGrid({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={post.imageUrl}
-                  alt={post.altText || post.caption || "Instagram post"}
+                  alt={post.caption || "Instagram post"}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
@@ -1196,9 +1196,9 @@ function InstagramPostsGrid({
                 </div>
               )}
 
-              {/* Caption or Accessibility Alt Text */}
+              {/* Caption */}
               <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
-                {post.caption || post.altText || "No caption available."}
+                {post.caption || "No caption available."}
               </p>
 
               {/* Hashtags Pills */}

@@ -95,7 +95,6 @@ export interface InstagramExternalUrl {
 export interface InstagramCommentItem {
   id?: string;
   authorUsername?: string;
-  authorProfilePic?: string;
   text: string;
   date?: string;
   likes?: number;
@@ -120,7 +119,6 @@ export interface InstagramPostItem {
   coauthors?: string[];
   photos?: string[];
   videos?: string[];
-  altText?: string;
   location?: string;
   comments?: InstagramCommentItem[];
 }
