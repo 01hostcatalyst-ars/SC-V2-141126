@@ -161,9 +161,6 @@ export interface InstagramScraperData {
     avgCommentsPerPost: number;
     avgCommentsFormatted: string;
     avgEngagementRate: number;
-    hiddenMetricsCount?: number;
-    hasHiddenMetricsPenalty?: boolean;
-    hiddenMetricsWarning?: string;
   };
   scrapedAt: string;
   isCached?: boolean;

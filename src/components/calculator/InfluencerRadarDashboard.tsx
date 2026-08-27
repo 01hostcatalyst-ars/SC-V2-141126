@@ -16,8 +16,6 @@ interface DiscoveredPlatformData {
   avgComments?: number;
   avgViews?: number;
   engagementRate?: number;
-  hasHiddenMetricsPenalty?: boolean;
-  hiddenMetricsWarning?: string;
   posts?: InstagramPostItem[];
   videos?: Array<Record<string, unknown>>;
   rateCardItems?: Array<{
@@ -183,8 +181,7 @@ export function InfluencerRadarDashboard() {
       avgComments: number,
       avgViews: number,
       avgShares: number = 0,
-      primaryNicheId: number = 8,
-      applyHiddenPenalty: boolean = false
+      primaryNicheId: number = 8
     ) => {
       const platformFormats: Record<Platform, DeliverableFormat[]> = {
         instagram: ["ig_reel", "ig_carousel", "ig_static", "ig_story"],
@@ -211,16 +208,9 @@ export function InfluencerRadarDashboard() {
         };
 
         const res = calculateInfluencerRate(pricingInput);
-        let median = res.valuationRange.typicalMedian;
-        let low = res.valuationRange.lowP25;
-        let high = res.valuationRange.highP75;
-
-        // Apply 50% discount penalty if 2+ posts had hidden likes/disabled comments
-        if (applyHiddenPenalty) {
-          median = Math.round(median * 0.5);
-          low = Math.round(low * 0.5);
-          high = Math.round(high * 0.5);
-        }
+        const median = res.valuationRange.typicalMedian;
+        const low = res.valuationRange.lowP25;
+        const high = res.valuationRange.highP75;
 
         return {
           format: fmt,
@@ -403,10 +393,7 @@ export function InfluencerRadarDashboard() {
           }
         }
 
-        const hasHiddenMetricsPenalty = Boolean(data.stats?.hasHiddenMetricsPenalty);
-        const hiddenMetricsWarning = data.stats?.hiddenMetricsWarning;
-
-        // Compute rate sheet dynamically (with 50% penalty if hidden metrics detected)
+        // Compute rate sheet dynamically
         const rateCardItems = computePlatformRateCards(
           targetPlatform,
           followerCount,
@@ -414,8 +401,7 @@ export function InfluencerRadarDashboard() {
           avgComments,
           avgViews,
           targetPlatform === "tiktok" ? (data.stats?.avgSharesPerVideo || 0) : 0,
-          8,
-          hasHiddenMetricsPenalty
+          8
         );
 
         // Render this platform's card IMMEDIATELY
@@ -431,8 +417,6 @@ export function InfluencerRadarDashboard() {
             avgComments,
             avgViews,
             engagementRate,
-            hasHiddenMetricsPenalty,
-            hiddenMetricsWarning,
             posts: targetPlatform === "instagram" ? data.posts : undefined,
             videos:
               targetPlatform === "youtube"
@@ -1094,21 +1078,6 @@ function PlatformRateCardItem({
             </div>
           </div>
 
-          {/* Suspicious Profile Alert Notice if 2+ posts hid likes/comments */}
-          {data.hasHiddenMetricsPenalty && (
-            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 space-y-1 text-left animate-fadeIn">
-              <div className="flex items-center gap-1.5 font-bold text-[11px] text-amber-800">
-                <svg className="w-3.5 h-3.5 shrink-0 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span>Suspicious Engagement Signal</span>
-              </div>
-              <p className="text-[10px] text-amber-800 leading-tight">
-                {data.hiddenMetricsWarning || "2 or more recent posts have hidden likes or disabled comments. A 50% valuation discount has been applied."}
-              </p>
-            </div>
-          )}
-
           {/* Itemized Deliverables Rate Card */}
           <div className="space-y-1.5 pt-1">
             <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
@@ -1245,10 +1214,19 @@ function InstagramPostsGrid({
   posts: InstagramPostItem[];
   username: string;
 }) {
+  // Sort so that the 4 ER sample posts appear in the first row / at the very top!
+  const sortedPosts = useMemo(() => {
+    const erSamplePosts = posts.filter(
+      (p) => p.isEnrichedSample || (!p.isPinned && ((p.likes || 0) > 0 || (p.commentsCount || 0) > 0))
+    );
+    const otherPosts = posts.filter((p) => !erSamplePosts.includes(p));
+    return [...erSamplePosts, ...otherPosts];
+  }, [posts]);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      {posts.map((post, idx) => {
-        const isEnrichedUnpinned = !post.isPinned && (post.likes > 0 || post.commentsCount > 0);
+      {sortedPosts.map((post, idx) => {
+        const isEnrichedUnpinned = !post.isPinned && (post.isEnrichedSample || post.likes > 0 || post.commentsCount > 0);
 
         return (
           <div
