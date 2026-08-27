@@ -27,6 +27,7 @@ export interface YouTubeVideoItem {
   tags?: string[];
   url: string;
   isShort?: boolean;
+  isErSample?: boolean;
   engagementRate?: number;
   comments: YouTubeCommentItem[];
 }

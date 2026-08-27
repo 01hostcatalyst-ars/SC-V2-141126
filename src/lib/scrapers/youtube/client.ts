@@ -262,14 +262,14 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     uploadsPlaylistId,
   };
 
-  // 2. Fetch Uploaded Videos with Pagination to ALWAYS collect 10 Long & 10 Shorts
+  // 2. Fetch Uploaded Videos with Pagination to collect up to 10 Long (> 3min) & 10 Shorts (15s - 2min)
   const longVideos: YouTubeVideoItem[] = [];
   const shortVideos: YouTubeVideoItem[] = [];
 
   if (uploadsPlaylistId) {
     let pageToken = '';
     let pagesFetched = 0;
-    const maxPages = 4; // Fetch up to 200 items maximum to find 10 long & 10 shorts
+    const maxPages = 8; // Fetch up to 400 items maximum to find 10 long (>3min) & 10 shorts (15s-2min)
 
     while ((longVideos.length < 10 || shortVideos.length < 10) && pagesFetched < maxPages) {
       pagesFetched++;
@@ -304,7 +304,12 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
             thumbs?.default?.url ||
             '';
 
-          const isShort = dur.seconds > 0 && dur.seconds <= 60;
+          // Criteria:
+          // Short Video: 15s to 2min (15 <= seconds <= 120)
+          // Long Video: more than 3min (seconds > 180), with fallback to > 120s if < 10 available
+          const isShort = dur.seconds >= 15 && dur.seconds <= 120;
+          const isLong = dur.seconds > 180;
+
           const rawEr =
             item.statistics?.viewCount && parseInt(item.statistics.viewCount, 10) > 0
               ? ((parseInt(item.statistics?.likeCount || '0', 10) + parseInt(item.statistics?.commentCount || '0', 10)) /
@@ -327,6 +332,7 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
             tags: item.snippet?.tags,
             url: `https://www.youtube.com/watch?v=${item.id}`,
             isShort,
+            isErSample: true,
             engagementRate: parseFloat(rawEr.toFixed(2)),
             comments: [],
           };
@@ -334,7 +340,10 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
           // Categorize into strictly up to 10 Long-Form and 10 Shorts
           if (isShort && shortVideos.length < 10) {
             shortVideos.push(videoObj);
-          } else if (!isShort && longVideos.length < 10) {
+          } else if (isLong && longVideos.length < 10) {
+            longVideos.push(videoObj);
+          } else if (!isShort && dur.seconds > 120 && longVideos.length < 10) {
+            // Backfill 2min-3min videos if strictly >3min not yet filled
             longVideos.push(videoObj);
           }
 

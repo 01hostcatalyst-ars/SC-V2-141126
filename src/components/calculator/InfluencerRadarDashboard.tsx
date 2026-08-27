@@ -1358,18 +1358,17 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
   const [formatFilter, setFormatFilter] = useState<"all" | "long" | "shorts">("all");
 
   const longVideos = useMemo(
-    () => videos.filter((v) => !v.isShort && (v.durationSeconds === undefined || v.durationSeconds > 60)),
+    () => videos.filter((v) => !v.isShort && (v.durationSeconds === undefined || v.durationSeconds > 120)),
     [videos]
   );
   const shortVideos = useMemo(
-    () => videos.filter((v) => v.isShort || (v.durationSeconds !== undefined && v.durationSeconds > 0 && v.durationSeconds <= 60)),
+    () => videos.filter((v) => v.isShort || (v.durationSeconds !== undefined && v.durationSeconds > 0 && v.durationSeconds <= 120)),
     [videos]
   );
 
   const displayedVideos = useMemo(() => {
     if (formatFilter === "long") return longVideos;
     if (formatFilter === "shorts") return shortVideos;
-    // For 'all', show long-form first, then shorts
     return [...longVideos, ...shortVideos];
   }, [formatFilter, longVideos, shortVideos]);
 
@@ -1396,7 +1395,7 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
             <button
               type="button"
               onClick={() => setFormatFilter("long")}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                 formatFilter === "long"
                   ? "bg-white text-gray-950 shadow-2xs border border-gray-200"
                   : "text-gray-600 hover:text-gray-950"
@@ -1410,7 +1409,7 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
             <button
               type="button"
               onClick={() => setFormatFilter("shorts")}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                 formatFilter === "shorts"
                   ? "bg-white text-gray-950 shadow-2xs border border-gray-200"
                   : "text-gray-600 hover:text-gray-950"
@@ -1428,13 +1427,7 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
       {/* Videos Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {displayedVideos.map((vid, idx) => {
-          const isShortVideo = vid.isShort || (vid.durationSeconds !== undefined && vid.durationSeconds > 0 && vid.durationSeconds <= 60);
-          const videoEr =
-            vid.engagementRate !== undefined
-              ? vid.engagementRate
-              : vid.viewCount > 0
-              ? parseFloat((((vid.likeCount + vid.commentCount) / vid.viewCount) * 100).toFixed(2))
-              : 0;
+          const isShortVideo = vid.isShort || (vid.durationSeconds !== undefined && vid.durationSeconds > 0 && vid.durationSeconds <= 120);
 
           return (
             <div
@@ -1467,13 +1460,21 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
                         : "bg-gray-900/90 text-white"
                     }`}
                   >
-                    {isShortVideo ? "⚡ Short" : "🎥 Long-Form"}
+                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
+                      {isShortVideo ? (
+                        <path d="M17.77 10.32l-1.2-.5a3.1 3.1 0 00-4.04-1.68l-3.3 1.4a3.1 3.1 0 00-1.68 4.04l.5 1.2a3.1 3.1 0 004.04 1.68l3.3-1.4a3.1 3.1 0 001.68-4.04z" />
+                      ) : (
+                        <path d="M8 5v14l11-7z" />
+                      )}
+                    </svg>
+                    <span>{isShortVideo ? "Short" : "Long-Form"}</span>
                   </span>
 
-                  {/* ER Identifier Badge */}
-                  {videoEr > 0 && (
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-mono text-[10px] font-bold shadow-2xs backdrop-blur-xs">
-                      ⚡ {videoEr}% ER
+                  {/* ER Sample Badge (Identical to Instagram styling with pulsing dot) */}
+                  {vid.isErSample !== false && (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      ER Sample
                     </span>
                   )}
                 </div>
@@ -1494,7 +1495,7 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
 
                 <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
                   <div className="text-gray-900 font-bold">
-                    {vid.viewCount ? `${vid.viewCount.toLocaleString()} views` : "—"}
+                    {vid.viewCount ? `${vid.viewCount.toLocaleString()} views` : "0 views"}
                   </div>
                   <div className="text-gray-600">
                     {vid.likeCount ? `${vid.likeCount.toLocaleString()} likes` : "0 likes"}
