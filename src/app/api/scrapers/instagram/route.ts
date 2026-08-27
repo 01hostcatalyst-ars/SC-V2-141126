@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const url = body?.url;
     const forceRefresh = Boolean(body?.forceRefresh);
+    const fastMode = Boolean(body?.fastMode);
 
     if (!url || typeof url !== 'string' || !url.trim()) {
       return NextResponse.json<ScraperResponse>(
@@ -37,7 +38,16 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Fetch fresh live data via Bright Data
-    console.log(`[Instagram API Route] 📡 Cache expired or not found. Fetching live Instagram data for "${trimmedUrl}"...`);
+    if (fastMode) {
+      console.log(`[Instagram API Route] 📡 Fetching Stage 1 (Profile & Posts fastMode) for "${trimmedUrl}"...`);
+      const stage1Data = await scrapeInstagram(trimmedUrl, { fastMode: true });
+      return NextResponse.json<ScraperResponse<InstagramScraperData>>({
+        success: true,
+        data: stage1Data,
+      });
+    }
+
+    console.log(`[Instagram API Route] 📡 Cache expired or not found. Fetching full live Instagram data for "${trimmedUrl}"...`);
     const liveData = await scrapeInstagram(trimmedUrl);
 
     // 3. Store Brand New Snapshot Row into PostgreSQL Table (Preserving historical rows)

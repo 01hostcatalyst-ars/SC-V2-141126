@@ -184,10 +184,16 @@ export function InfluencerRadarDashboard() {
 
       try {
         let endpoint = `/api/scrapers/${targetPlatform}`;
+        const isInstagram = targetPlatform === "instagram";
+
+        // Step 1: For Instagram, fetch Stage 1 (fastMode) to get immediate Profile + 12 Posts + Bio Links
         const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: targetInput.trim() }),
+          body: JSON.stringify({
+            url: targetInput.trim(),
+            fastMode: isInstagram,
+          }),
         });
 
         const json = await res.json();
@@ -337,7 +343,7 @@ export function InfluencerRadarDashboard() {
         const hasHiddenMetricsPenalty = Boolean(data.stats?.hasHiddenMetricsPenalty);
         const hiddenMetricsWarning = data.stats?.hiddenMetricsWarning;
 
-        // Compute 16-knot rate sheet dynamically (with 50% penalty if hidden metrics detected)
+        // Compute rate sheet dynamically (with 50% penalty if hidden metrics detected)
         const rateCardItems = computePlatformRateCards(
           targetPlatform,
           followerCount,
@@ -349,6 +355,7 @@ export function InfluencerRadarDashboard() {
           hasHiddenMetricsPenalty
         );
 
+        // Render this platform's card IMMEDIATELY without waiting for any other platform!
         setPlatforms((prev) => ({
           ...prev,
           [targetPlatform]: {
@@ -376,11 +383,11 @@ export function InfluencerRadarDashboard() {
         }));
 
         addActivity(
-          `Verified ${targetPlatform.toUpperCase()}: @${username} · ${followerCount.toLocaleString()} ${targetPlatform === "youtube" ? "Subscribers" : "Followers"} (${engagementRate}% ER) ${data.isCached ? "(⚡ 24h DB Cache)" : "(📡 Fresh Scan)"}`,
+          `Verified ${targetPlatform.toUpperCase()}: @${username} · ${followerCount.toLocaleString()} ${targetPlatform === "youtube" ? "Subscribers" : "Followers"} (${engagementRate}% ER) ${data.isCached ? "(⚡ 24h DB Cache)" : "(📡 Live Scan)"}`,
           "success"
         );
 
-        // Update creator general profile if primary
+        // Update creator general identity profile if primary
         setCreatorMeta((prev) => {
           if (!prev) {
             return {
@@ -393,25 +400,106 @@ export function InfluencerRadarDashboard() {
           return prev;
         });
 
-        // Trigger autonomous parallel scans for discovered links
-        for (const link of externalLinks) {
-          if (link.platform !== targetPlatform) {
-            setPlatforms((current) => {
-              if (current[link.platform].status === "idle") {
-                addActivity(
-                  `Discovered ${link.platform.toUpperCase()} profile in @${username}'s bio link (${link.url}). Initiating autonomous sync...`,
-                  "discovery"
+        // =========================================================================
+        // STAGGERED PARALLEL LAUNCH:
+        // For fresh Instagram scans, wait 3 seconds, then start scraping discovered
+        // channels (YouTube/TikTok) AND Instagram Process 2 in parallel.
+        // =========================================================================
+        if (targetPlatform === "instagram" && !data.isCached) {
+          setTimeout(async () => {
+            // 1. Scrape discovered linked platforms in parallel (e.g. YouTube, TikTok)
+            for (const link of externalLinks) {
+              setPlatforms((current) => {
+                if (current[link.platform].status === "idle") {
+                  addActivity(
+                    `Discovered ${link.platform.toUpperCase()} profile in @${username}'s bio link (${link.url}). Initiating autonomous sync...`,
+                    "discovery"
+                  );
+                  scrapePlatform(
+                    link.url,
+                    link.platform,
+                    `Discovered via @${username}'s Instagram bio link`
+                  );
+                }
+                return current;
+              });
+            }
+
+            // 2. In parallel, run Instagram Process 2 (Deep Post & Reel Enrichment)
+            addActivity(
+              `Initiating Instagram Process 2: Deep 4-post unpinned Reel & Engagement enrichment for @${username}...`,
+              "info"
+            );
+
+            try {
+              const p2Res = await fetch("/api/scrapers/instagram", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: targetInput.trim(), fastMode: false }),
+              });
+              const p2Json = await p2Res.json();
+              if (p2Json.success && p2Json.data) {
+                const p2Data = p2Json.data;
+                const p2Stats = p2Data.stats || {};
+                const p2AvgLikes = p2Stats.avgLikesPerPost || 0;
+                const p2AvgComments = p2Stats.avgCommentsPerPost || 0;
+                const p2Er = p2Stats.avgEngagementRate ?? p2Stats.engagementRate ?? 0;
+                const p2HiddenPenalty = Boolean(p2Stats.hasHiddenMetricsPenalty);
+                const p2HiddenWarning = p2Stats.hiddenMetricsWarning;
+
+                const p2RateCards = computePlatformRateCards(
+                  "instagram",
+                  followerCount,
+                  p2AvgLikes,
+                  p2AvgComments,
+                  0,
+                  0,
+                  8,
+                  p2HiddenPenalty
                 );
-                setTimeout(() => {
+
+                setPlatforms((prev) => ({
+                  ...prev,
+                  instagram: {
+                    ...prev.instagram,
+                    avgLikes: p2AvgLikes,
+                    avgComments: p2AvgComments,
+                    engagementRate: p2Er,
+                    hasHiddenMetricsPenalty: p2HiddenPenalty,
+                    hiddenMetricsWarning: p2HiddenWarning,
+                    posts: p2Data.posts,
+                    rateCardItems: p2RateCards,
+                  },
+                }));
+
+                addActivity(
+                  `Instagram Process 2 Complete: Verified ${p2Er}% Observed ER across pure unpinned sample posts (⚡ Stored to 24h DB Cache)`,
+                  "success"
+                );
+              }
+            } catch (p2Err) {
+              console.warn("[Instagram Process 2 Error]:", p2Err);
+            }
+          }, 3000);
+        } else {
+          // If cached or other platform, trigger external links immediately without waiting
+          for (const link of externalLinks) {
+            if (link.platform !== targetPlatform) {
+              setPlatforms((current) => {
+                if (current[link.platform].status === "idle") {
+                  addActivity(
+                    `Discovered ${link.platform.toUpperCase()} profile in @${username}'s bio link (${link.url}). Initiating autonomous sync...`,
+                    "discovery"
+                  );
                   scrapePlatform(
                     link.url,
                     link.platform,
                     `Discovered via @${username}'s ${targetPlatform} bio link`
                   );
-                }, 150);
-              }
-              return current;
-            });
+                }
+                return current;
+              });
+            }
           }
         }
       } catch (err: unknown) {
