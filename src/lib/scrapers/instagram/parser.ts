@@ -88,31 +88,45 @@ export function calculateInstagramStats(
     };
   }
 
-  // Target the enriched sample posts (or unpinned posts with metrics)
-  const samplePosts = posts.filter((p) => p.isEnrichedSample && !p.isPinned);
-  const targetSample = samplePosts.length > 0
-    ? samplePosts
-    : posts.filter((p) => !p.isPinned && ((p.likes || 0) > 0 || (p.commentsCount || 0) > 0));
+  // Reset all ER sample flags — parser owns tagging
+  posts.forEach((p) => { p.isEnrichedSample = false; });
 
-  const validPosts = targetSample.filter((p) => (p.likes || 0) > 0 || (p.commentsCount || 0) > 0);
+  // Collect unpinned posts with valid metrics for trimmed mean selection
+  const unpinnedWithMetrics = posts.filter(
+    (p) => !p.isPinned && ((p.likes || 0) > 0 || (p.commentsCount || 0) > 0)
+  );
 
-  let avgLikes = 0;
-  let avgComments = 0;
-  let avgEngagementRate = 0;
+  // Sort by total engagement (likes + comments) ascending to identify the middle 4 (trimmed mean approach)
+  const sortedByEngagement = [...unpinnedWithMetrics].sort(
+    (a, b) => ((a.likes || 0) + (a.commentsCount || 0)) - ((b.likes || 0) + (b.commentsCount || 0))
+  );
 
-  if (validPosts.length > 0) {
-    const totalLikes = validPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
-    const totalComments = validPosts.reduce((sum, p) => sum + (p.commentsCount || 0), 0);
-    avgLikes = Math.round(totalLikes / validPosts.length);
-    avgComments = Math.round(totalComments / validPosts.length);
-
-    if (followerCount > 0) {
-      avgEngagementRate = ((avgLikes + avgComments) / followerCount) * 100;
-      avgEngagementRate = Math.round(avgEngagementRate * 100) / 100;
-    }
+  // Select middle 4 posts: discard top viral spikes & bottom low performers for a stable ER signal
+  let samplePosts: InstagramPostItem[];
+  if (sortedByEngagement.length >= 4) {
+    const skipCount = Math.floor((sortedByEngagement.length - 4) / 2);
+    samplePosts = sortedByEngagement.slice(skipCount, skipCount + 4);
   } else {
-    // If likes and comments are completely hidden or 0, ER is 0%
-    avgEngagementRate = 0;
+    // Fewer than 4 valid posts — use whatever unpinned posts are available
+    samplePosts = sortedByEngagement.length > 0 ? sortedByEngagement : posts.filter((p) => !p.isPinned);
+  }
+
+  // Tag the selected trimmed-mean sample posts for frontend badge display
+  samplePosts.forEach((p) => { p.isEnrichedSample = true; });
+
+  const sampleCount = samplePosts.length > 0 ? samplePosts.length : posts.length;
+  const targetPosts = samplePosts.length > 0 ? samplePosts : posts;
+
+  const totalLikes = targetPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
+  const totalComments = targetPosts.reduce((sum, p) => sum + (p.commentsCount || 0), 0);
+  const avgLikes = Math.round(totalLikes / sampleCount);
+  const avgComments = Math.round(totalComments / sampleCount);
+
+  let avgEngagementRate = 0;
+  if (followerCount > 0 && (avgLikes > 0 || avgComments > 0)) {
+    // Trimmed Mean Instagram ER: (Avg Likes + Avg Comments of middle 4 posts) / Follower Count * 100
+    avgEngagementRate = ((avgLikes + avgComments) / followerCount) * 100;
+    avgEngagementRate = Math.round(avgEngagementRate * 100) / 100;
   }
 
   return {

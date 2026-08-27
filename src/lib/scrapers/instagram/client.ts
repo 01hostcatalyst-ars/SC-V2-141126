@@ -280,11 +280,6 @@ export async function scrapeInstagram(
     ...unpinnedOther.slice(0, Math.max(0, 4 - unpinnedReels.length)),
   ].slice(0, 4);
 
-  // Explicitly tag the selected candidate sample posts
-  for (const cp of candidatePosts) {
-    cp.isEnrichedSample = true;
-  }
-
   if (options?.fastMode) {
     console.log(`[Instagram Scraper] Fast mode enabled: returning Process 1 summary for @${username} in sub-6s.`);
   } else {
@@ -363,7 +358,6 @@ export async function scrapeInstagram(
                 post.likesFormatted = formatCompactNumber(likes);
                 post.commentsCount = comments;
                 post.commentsCountFormatted = formatCompactNumber(comments);
-                post.isEnrichedSample = true;
 
                 if (item.description || item.caption) {
                   post.caption = (item.description || item.caption) as string;

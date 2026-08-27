@@ -1310,20 +1310,17 @@ function InstagramPostsGrid({
   posts: InstagramPostItem[];
   username: string;
 }) {
-  // Sort so that the 4 ER sample posts appear in the first row / at the very top!
+  // Show up to 12 posts, with the 4 trimmed-mean ER sample posts appearing first
   const sortedPosts = useMemo(() => {
-    const erSamplePosts = posts.filter(
-      (p) => p.isEnrichedSample || (!p.isPinned && ((p.likes || 0) > 0 || (p.commentsCount || 0) > 0))
-    );
-    const otherPosts = posts.filter((p) => !erSamplePosts.includes(p));
-    return [...erSamplePosts, ...otherPosts];
+    const validPosts = posts.slice(0, 12);
+    const erSamples = validPosts.filter((p) => p.isEnrichedSample);
+    const otherPosts = validPosts.filter((p) => !p.isEnrichedSample);
+    return [...erSamples, ...otherPosts];
   }, [posts]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
       {sortedPosts.map((post, idx) => {
-        const isEnrichedUnpinned = !post.isPinned && (post.isEnrichedSample || post.likes > 0 || post.commentsCount > 0);
-
         return (
           <div
             key={post.id || post.url || idx}
@@ -1355,7 +1352,7 @@ function InstagramPostsGrid({
                       </svg>
                       Pinned Post
                     </span>
-                  ) : isEnrichedUnpinned ? (
+                  ) : post.isEnrichedSample ? (
                     <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       ER Sample

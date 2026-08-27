@@ -138,9 +138,12 @@ export function formatDbRecordToInstagramData(record: {
         avgEngagementRate: record.avgEngagementRate || 0,
       }) as unknown as InstagramScraperData['stats'];
 
-  // Dynamically recompute stats on posts if available to ensure 100% mathematical accuracy
-  if (posts.length > 0) {
-    const recalculatedStats = calculateInstagramStats(posts, followerCount);
+  const unpinnedPosts = posts.filter((p) => !p.isPinned);
+  const targetPosts = unpinnedPosts.length > 0 ? unpinnedPosts.slice(0, 12) : posts.slice(0, 12);
+
+  // Dynamically recompute stats using trimmed mean (middle 4 posts by engagement) — also tags isEnrichedSample
+  if (targetPosts.length > 0) {
+    const recalculatedStats = calculateInstagramStats(targetPosts, followerCount);
     if (recalculatedStats.avgLikesPerPost > 0 || recalculatedStats.avgCommentsPerPost > 0) {
       stats = recalculatedStats;
     }
@@ -176,11 +179,9 @@ export function formatDbRecordToInstagramData(record: {
     categoryName: record.categoryName || undefined,
   };
 
-  const unpinnedPosts = posts.filter((p) => !p.isPinned);
-
   return {
     profile,
-    posts: unpinnedPosts.length > 0 ? unpinnedPosts : posts,
+    posts: targetPosts,
     stats,
     scrapedAt: record.createdAt.toISOString(),
   };
