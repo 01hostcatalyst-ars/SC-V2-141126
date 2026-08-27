@@ -16,6 +16,8 @@ interface DiscoveredPlatformData {
   avgComments?: number;
   avgViews?: number;
   engagementRate?: number;
+  hasHiddenMetricsPenalty?: boolean;
+  hiddenMetricsWarning?: string;
   posts?: InstagramPostItem[];
   videos?: Array<Record<string, unknown>>;
   rateCardItems?: Array<{
@@ -101,7 +103,8 @@ export function InfluencerRadarDashboard() {
       avgComments: number,
       avgViews: number,
       avgShares: number = 0,
-      primaryNicheId: number = 8
+      primaryNicheId: number = 8,
+      applyHiddenPenalty: boolean = false
     ) => {
       const platformFormats: Record<Platform, DeliverableFormat[]> = {
         instagram: ["ig_reel", "ig_carousel", "ig_static", "ig_story"],
@@ -128,14 +131,25 @@ export function InfluencerRadarDashboard() {
         };
 
         const res = calculateInfluencerRate(pricingInput);
+        let median = res.valuationRange.typicalMedian;
+        let low = res.valuationRange.lowP25;
+        let high = res.valuationRange.highP75;
+
+        // Apply 50% discount penalty if 2+ posts had hidden likes/disabled comments
+        if (applyHiddenPenalty) {
+          median = Math.round(median * 0.5);
+          low = Math.round(low * 0.5);
+          high = Math.round(high * 0.5);
+        }
+
         return {
           format: fmt,
-          amount: res.valuationRange.typicalMedian,
-          formattedAmount: res.valuationRange.formatted.typical,
-          lowAmount: res.valuationRange.lowP25,
-          formattedLow: res.valuationRange.formatted.low,
-          highAmount: res.valuationRange.highP75,
-          formattedHigh: res.valuationRange.formatted.high,
+          amount: median,
+          formattedAmount: `$${median.toLocaleString()} USD`,
+          lowAmount: low,
+          formattedLow: `$${low.toLocaleString()} USD`,
+          highAmount: high,
+          formattedHigh: `$${high.toLocaleString()} USD`,
           currency: res.metrics.currency,
         };
       });
@@ -320,14 +334,19 @@ export function InfluencerRadarDashboard() {
           }
         }
 
-        // Compute 16-knot rate sheet dynamically
+        const hasHiddenMetricsPenalty = Boolean(data.stats?.hasHiddenMetricsPenalty);
+        const hiddenMetricsWarning = data.stats?.hiddenMetricsWarning;
+
+        // Compute 16-knot rate sheet dynamically (with 50% penalty if hidden metrics detected)
         const rateCardItems = computePlatformRateCards(
           targetPlatform,
           followerCount,
           avgLikes,
           avgComments,
           avgViews,
-          targetPlatform === "tiktok" ? (data.stats?.avgSharesPerVideo || 0) : 0
+          targetPlatform === "tiktok" ? (data.stats?.avgSharesPerVideo || 0) : 0,
+          8,
+          hasHiddenMetricsPenalty
         );
 
         setPlatforms((prev) => ({
@@ -342,6 +361,8 @@ export function InfluencerRadarDashboard() {
             avgComments,
             avgViews,
             engagementRate,
+            hasHiddenMetricsPenalty,
+            hiddenMetricsWarning,
             posts: targetPlatform === "instagram" ? data.posts : undefined,
             videos:
               targetPlatform === "youtube"
@@ -977,6 +998,21 @@ function PlatformRateCardItem({
               </div>
             </div>
           </div>
+
+          {/* Suspicious Profile Alert Notice if 2+ posts hid likes/comments */}
+          {data.hasHiddenMetricsPenalty && (
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 space-y-1 text-left animate-fadeIn">
+              <div className="flex items-center gap-1.5 font-bold text-[11px] text-amber-800">
+                <svg className="w-3.5 h-3.5 shrink-0 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>Suspicious Engagement Signal</span>
+              </div>
+              <p className="text-[10px] text-amber-800 leading-tight">
+                {data.hiddenMetricsWarning || "2 or more recent posts have hidden likes or disabled comments. A 50% valuation discount has been applied."}
+              </p>
+            </div>
+          )}
 
           {/* Itemized Deliverables Rate Card */}
           <div className="space-y-1.5 pt-1">

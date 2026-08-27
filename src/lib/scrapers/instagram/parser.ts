@@ -88,23 +88,51 @@ export function calculateInstagramStats(
     };
   }
 
-  // Calculate engagement baseline specifically on the enriched unpinned sample posts
-  const enrichedUnpinned = posts.filter((p) => !p.isPinned && (p.likes > 0 || p.commentsCount > 0));
-  const samplePosts = enrichedUnpinned.length > 0
-    ? enrichedUnpinned
-    : posts.filter((p) => !p.isPinned).slice(0, 4);
+  // Identify unpinned posts and separate valid posts (with visible likes or comments) from hidden posts
+  const unpinnedPosts = posts.filter((p) => !p.isPinned);
+  const samplePosts = unpinnedPosts.slice(0, 4);
 
-  const totalLikes = samplePosts.reduce((sum, p) => sum + (p.likes || 0), 0);
-  const totalComments = samplePosts.reduce((sum, p) => sum + (p.commentsCount || 0), 0);
+  // A post is considered valid if it has positive likes or comments, or is genuine unpinned upload
+  const validPosts = samplePosts.filter((p) => (p.likes || 0) > 0 || (p.commentsCount || 0) > 0);
+  const hiddenMetricsCount = Math.max(0, samplePosts.length - validPosts.length);
 
-  const avgLikes = samplePosts.length > 0 ? Math.round(totalLikes / samplePosts.length) : 0;
-  const avgComments = samplePosts.length > 0 ? Math.round(totalComments / samplePosts.length) : 0;
-
-  // Engagement Rate = ((Average Likes + Average Comments) / Followers) * 100
+  let avgLikes = 0;
+  let avgComments = 0;
   let avgEngagementRate = 0;
-  if (followerCount > 0) {
-    avgEngagementRate = ((avgLikes + avgComments) / followerCount) * 100;
-    avgEngagementRate = Math.round(avgEngagementRate * 100) / 100; // Round to 2 decimals
+  let hasHiddenMetricsPenalty = false;
+  let hiddenMetricsWarning: string | undefined = undefined;
+
+  if (validPosts.length >= 3) {
+    // TIER 1: 3 or 4 valid posts (0 or 1 hidden) -> Compute purely on the 3+ valid posts, NO penalty
+    const totalLikes = validPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
+    const totalComments = validPosts.reduce((sum, p) => sum + (p.commentsCount || 0), 0);
+    avgLikes = Math.round(totalLikes / validPosts.length);
+    avgComments = Math.round(totalComments / validPosts.length);
+
+    if (followerCount > 0) {
+      avgEngagementRate = ((avgLikes + avgComments) / followerCount) * 100;
+      avgEngagementRate = Math.round(avgEngagementRate * 100) / 100;
+    }
+  } else {
+    // TIER 2: 2 or more posts have hidden metrics (>= 50% hidden) -> Suspicious profile, apply 50% penalty
+    hasHiddenMetricsPenalty = true;
+    hiddenMetricsWarning =
+      'Suspicious profile engagement signal: 2 or more recent posts have hidden likes or disabled comments. A 50% valuation discount has been applied due to unverified audience signals.';
+
+    if (validPosts.length > 0) {
+      const totalLikes = validPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
+      const totalComments = validPosts.reduce((sum, p) => sum + (p.commentsCount || 0), 0);
+      avgLikes = Math.round(totalLikes / validPosts.length);
+      avgComments = Math.round(totalComments / validPosts.length);
+
+      if (followerCount > 0) {
+        avgEngagementRate = ((avgLikes + avgComments) / followerCount) * 100;
+        avgEngagementRate = Math.round(avgEngagementRate * 100) / 100;
+      }
+    } else {
+      // If 100% of sample posts have hidden likes, anchor to baseline 1.45% tier benchmark
+      avgEngagementRate = 1.45;
+    }
   }
 
   return {
@@ -114,5 +142,8 @@ export function calculateInstagramStats(
     avgCommentsPerPost: avgComments,
     avgCommentsFormatted: formatCompactNumber(avgComments),
     avgEngagementRate,
+    hiddenMetricsCount,
+    hasHiddenMetricsPenalty,
+    hiddenMetricsWarning,
   };
 }
