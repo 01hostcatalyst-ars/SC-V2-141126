@@ -1117,7 +1117,7 @@ function InstagramPostsGrid({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
       {posts.map((post, idx) => {
-        const isEnrichedUnpinned = !post.isPinned && idx < 4 && (post.likes > 0 || post.commentsCount > 0);
+        const isEnrichedUnpinned = !post.isPinned && (post.likes > 0 || post.commentsCount > 0);
 
         return (
           <div
@@ -1153,7 +1153,7 @@ function InstagramPostsGrid({
                   ) : isEnrichedUnpinned ? (
                     <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      ER Sample #{idx + 1}
+                      ER Sample
                     </span>
                   ) : (
                     <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">

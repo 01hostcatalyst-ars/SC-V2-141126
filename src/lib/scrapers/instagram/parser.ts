@@ -88,11 +88,17 @@ export function calculateInstagramStats(
     };
   }
 
-  const totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);
-  const totalComments = posts.reduce((sum, p) => sum + (p.commentsCount || 0), 0);
+  // Calculate engagement baseline specifically on the enriched unpinned sample posts
+  const enrichedUnpinned = posts.filter((p) => !p.isPinned && (p.likes > 0 || p.commentsCount > 0));
+  const samplePosts = enrichedUnpinned.length > 0
+    ? enrichedUnpinned
+    : posts.filter((p) => !p.isPinned).slice(0, 4);
 
-  const avgLikes = Math.round(totalLikes / posts.length);
-  const avgComments = Math.round(totalComments / posts.length);
+  const totalLikes = samplePosts.reduce((sum, p) => sum + (p.likes || 0), 0);
+  const totalComments = samplePosts.reduce((sum, p) => sum + (p.commentsCount || 0), 0);
+
+  const avgLikes = samplePosts.length > 0 ? Math.round(totalLikes / samplePosts.length) : 0;
+  const avgComments = samplePosts.length > 0 ? Math.round(totalComments / samplePosts.length) : 0;
 
   // Engagement Rate = ((Average Likes + Average Comments) / Followers) * 100
   let avgEngagementRate = 0;

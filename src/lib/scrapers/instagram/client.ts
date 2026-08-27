@@ -260,18 +260,37 @@ export async function scrapeInstagram(
   // Filter out any pinned post so we strictly extract and return unpinned recent uploads
   const unpinnedPosts = allPosts.filter((p) => !p.isPinned).slice(0, 12);
 
+  // Partition unpinned posts by format: prioritize Reels/Videos, then backfill with Carousels/Images
+  const unpinnedReels = unpinnedPosts.filter(
+    (p) =>
+      p.contentType?.toLowerCase() === 'reel' ||
+      p.contentType?.toLowerCase() === 'video' ||
+      Boolean(p.videoUrl)
+  );
+  const unpinnedOther = unpinnedPosts.filter(
+    (p) =>
+      p.contentType?.toLowerCase() !== 'reel' &&
+      p.contentType?.toLowerCase() !== 'video' &&
+      !p.videoUrl
+  );
+
+  // Target 4 candidates: first choice is Reels, backfilled with Carousels/Images if < 4 Reels exist
+  const candidatePosts: InstagramPostItem[] = [
+    ...unpinnedReels.slice(0, 4),
+    ...unpinnedOther.slice(0, Math.max(0, 4 - unpinnedReels.length)),
+  ].slice(0, 4);
+
   if (options?.fastMode) {
     console.log(`[Instagram Scraper] Fast mode enabled: returning Process 1 summary for @${username} in sub-6s.`);
   } else {
-    // Enrich top 4 unpinned recent posts for exact engagement baseline
-    const postUrlsToEnrich = unpinnedPosts
-      .slice(0, 4)
+    // Enrich the 4 selected candidate posts (Reels prioritized) for exact engagement baseline
+    const postUrlsToEnrich = candidatePosts
       .filter((p) => Boolean(p.url))
       .map((p) => ({ url: p.url }));
 
       if (postUrlsToEnrich.length > 0) {
         try {
-          console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} unpinned posts via dataset ${DATASET_POSTS}...`);
+          console.log(`[Instagram Scraper] 2. Enriching all metadata for ${postUrlsToEnrich.length} unpinned posts (${unpinnedReels.length} Reels available) via dataset ${DATASET_POSTS}...`);
           
           // 120-second timeout race to ensure reliable Bright Data delivery
           const fetchPromise = fetchBrightDataWithPolling(
