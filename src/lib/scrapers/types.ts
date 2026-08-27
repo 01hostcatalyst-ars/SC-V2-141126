@@ -114,6 +114,7 @@ export interface InstagramPostItem {
   commentsCount: number;
   commentsCountFormatted: string;
   isPinned: boolean;
+  isEnrichedSample?: boolean;
   postHashtags?: string[];
   taggedUsers?: InstagramTaggedUser[];
   coauthors?: string[];

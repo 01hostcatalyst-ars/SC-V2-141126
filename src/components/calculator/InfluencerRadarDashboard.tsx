@@ -264,16 +264,11 @@ export function InfluencerRadarDashboard() {
 
       try {
         let endpoint = `/api/scrapers/${targetPlatform}`;
-        const isInstagram = targetPlatform === "instagram";
 
-        // Step 1: For Instagram, fetch Stage 1 (fastMode) to get immediate Profile + 12 Posts + Bio Links
         const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            url: targetInput.trim(),
-            fastMode: isInstagram,
-          }),
+          body: JSON.stringify({ url: targetInput.trim() }),
         });
 
         const json = await res.json();
@@ -301,19 +296,7 @@ export function InfluencerRadarDashboard() {
           avgComments = stats.avgCommentsPerPost || 0;
           engagementRate = stats.avgEngagementRate ?? stats.engagementRate ?? 0;
 
-          // If posts array has metrics, aggregate from unpinned uploads
-          if (Array.isArray(data.posts) && data.posts.length > 0) {
-            const unpinned = data.posts.filter((p: { isPinned?: boolean }) => !p.isPinned);
-            const targetPosts = unpinned.length > 0 ? unpinned : data.posts;
-            const totalLikes = targetPosts.reduce((acc: number, p: { likes?: number }) => acc + (p.likes || 0), 0);
-            const totalComments = targetPosts.reduce((acc: number, p: { commentsCount?: number }) => acc + (p.commentsCount || 0), 0);
-            if (totalLikes > 0 || totalComments > 0) {
-              avgLikes = Math.round(totalLikes / targetPosts.length);
-              avgComments = Math.round(totalComments / targetPosts.length);
-            }
-          }
-
-          if (followerCount > 0 && (avgLikes > 0 || avgComments > 0)) {
+          if (engagementRate === 0 && followerCount > 0 && (avgLikes > 0 || avgComments > 0)) {
             engagementRate = Number((((avgLikes + avgComments) / followerCount) * 100).toFixed(2));
           }
 
@@ -378,7 +361,7 @@ export function InfluencerRadarDashboard() {
             }
             const ttMatch = biography.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?([a-zA-Z0-9._]+)/i);
             if (ttMatch && !externalLinks.some((l) => l.platform === "tiktok")) {
-              externalLinks.push({ platform: "tiktok", url: `https://www.tiktok.com/@${ttMatch[1].replace(/\/$/, '')}` });
+              externalLinks.push({ platform: "tiktok", url: `https://www.tiktok.com/@${ttMatch[1]}` });
             }
           }
         } else if (targetPlatform === "tiktok") {
@@ -435,7 +418,7 @@ export function InfluencerRadarDashboard() {
           hasHiddenMetricsPenalty
         );
 
-        // Render this platform's card IMMEDIATELY without waiting for any other platform!
+        // Render this platform's card IMMEDIATELY
         setPlatforms((prev) => ({
           ...prev,
           [targetPlatform]: {
@@ -480,106 +463,23 @@ export function InfluencerRadarDashboard() {
           return prev;
         });
 
-        // =========================================================================
-        // STAGGERED PARALLEL LAUNCH:
-        // For fresh Instagram scans, wait 3 seconds, then start scraping discovered
-        // channels (YouTube/TikTok) AND Instagram Process 2 in parallel.
-        // =========================================================================
-        if (targetPlatform === "instagram" && !data.isCached) {
-          setTimeout(async () => {
-            // 1. Scrape discovered linked platforms in parallel (e.g. YouTube, TikTok)
-            for (const link of externalLinks) {
-              setPlatforms((current) => {
-                if (current[link.platform].status === "idle") {
-                  addActivity(
-                    `Discovered ${link.platform.toUpperCase()} profile in @${username}'s bio link (${link.url}). Initiating autonomous sync...`,
-                    "discovery"
-                  );
-                  scrapePlatform(
-                    link.url,
-                    link.platform,
-                    `Discovered via @${username}'s Instagram bio link`
-                  );
-                }
-                return current;
-              });
-            }
-
-            // 2. In parallel, run Instagram Process 2 (Deep Post & Reel Enrichment)
-            addActivity(
-              `Initiating Instagram Process 2: Deep 4-post unpinned Reel & Engagement enrichment for @${username}...`,
-              "info"
-            );
-
-            try {
-              const p2Res = await fetch("/api/scrapers/instagram", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url: targetInput.trim(), fastMode: false }),
-              });
-              const p2Json = await p2Res.json();
-              if (p2Json.success && p2Json.data) {
-                const p2Data = p2Json.data;
-                const p2Stats = p2Data.stats || {};
-                const p2AvgLikes = p2Stats.avgLikesPerPost || 0;
-                const p2AvgComments = p2Stats.avgCommentsPerPost || 0;
-                const p2Er = p2Stats.avgEngagementRate ?? p2Stats.engagementRate ?? 0;
-                const p2HiddenPenalty = Boolean(p2Stats.hasHiddenMetricsPenalty);
-                const p2HiddenWarning = p2Stats.hiddenMetricsWarning;
-
-                const p2RateCards = computePlatformRateCards(
-                  "instagram",
-                  followerCount,
-                  p2AvgLikes,
-                  p2AvgComments,
-                  0,
-                  0,
-                  8,
-                  p2HiddenPenalty
-                );
-
-                setPlatforms((prev) => ({
-                  ...prev,
-                  instagram: {
-                    ...prev.instagram,
-                    avgLikes: p2AvgLikes,
-                    avgComments: p2AvgComments,
-                    engagementRate: p2Er,
-                    hasHiddenMetricsPenalty: p2HiddenPenalty,
-                    hiddenMetricsWarning: p2HiddenWarning,
-                    posts: p2Data.posts,
-                    rateCardItems: p2RateCards,
-                  },
-                }));
-
+        // Trigger autonomous parallel scans for discovered links
+        for (const link of externalLinks) {
+          if (link.platform !== targetPlatform) {
+            setPlatforms((current) => {
+              if (current[link.platform].status === "idle") {
                 addActivity(
-                  `Instagram Process 2 Complete: Verified ${p2Er}% Observed ER across pure unpinned sample posts (⚡ Stored to 24h DB Cache)`,
-                  "success"
+                  `Discovered ${link.platform.toUpperCase()} profile in @${username}'s bio link (${link.url}). Initiating autonomous sync...`,
+                  "discovery"
+                );
+                scrapePlatform(
+                  link.url,
+                  link.platform,
+                  `Discovered via @${username}'s ${targetPlatform} bio link`
                 );
               }
-            } catch (p2Err) {
-              console.warn("[Instagram Process 2 Error]:", p2Err);
-            }
-          }, 3000);
-        } else {
-          // If cached or other platform, trigger external links immediately without waiting
-          for (const link of externalLinks) {
-            if (link.platform !== targetPlatform) {
-              setPlatforms((current) => {
-                if (current[link.platform].status === "idle") {
-                  addActivity(
-                    `Discovered ${link.platform.toUpperCase()} profile in @${username}'s bio link (${link.url}). Initiating autonomous sync...`,
-                    "discovery"
-                  );
-                  scrapePlatform(
-                    link.url,
-                    link.platform,
-                    `Discovered via @${username}'s ${targetPlatform} bio link`
-                  );
-                }
-                return current;
-              });
-            }
+              return current;
+            });
           }
         }
       } catch (err: unknown) {

@@ -280,6 +280,11 @@ export async function scrapeInstagram(
     ...unpinnedOther.slice(0, Math.max(0, 4 - unpinnedReels.length)),
   ].slice(0, 4);
 
+  // Explicitly tag the selected candidate sample posts
+  for (const cp of candidatePosts) {
+    cp.isEnrichedSample = true;
+  }
+
   if (options?.fastMode) {
     console.log(`[Instagram Scraper] Fast mode enabled: returning Process 1 summary for @${username} in sub-6s.`);
   } else {
@@ -333,9 +338,9 @@ export async function scrapeInstagram(
               }
             }
 
-            // Merge complete rich metadata into unpinnedPosts
-            for (let pIdx = 0; pIdx < unpinnedPosts.length; pIdx++) {
-              const post = unpinnedPosts[pIdx];
+            // Merge complete rich metadata into allPosts
+            for (let pIdx = 0; pIdx < allPosts.length; pIdx++) {
+              const post = allPosts[pIdx];
               const cleanPostUrl = post.url ? post.url.replace(/\/$/, '').toLowerCase() : '';
               const cleanNoWww = cleanPostUrl.replace('://www.', '://');
               const postShortcode = post.shortcode ? post.shortcode.toLowerCase() : '';
@@ -358,6 +363,7 @@ export async function scrapeInstagram(
                 post.likesFormatted = formatCompactNumber(likes);
                 post.commentsCount = comments;
                 post.commentsCountFormatted = formatCompactNumber(comments);
+                post.isEnrichedSample = true;
 
                 if (item.description || item.caption) {
                   post.caption = (item.description || item.caption) as string;
@@ -375,8 +381,8 @@ export async function scrapeInstagram(
                   post.postHashtags = item.hashtags as string[];
                 }
 
-                // Extract top 5 comments for the 3 most recent unpinned posts (at zero extra Bright Data credit cost)
-                if (pIdx < 3 && Array.isArray(item.comments)) {
+                // Extract top 5 comments for the sample posts (at zero extra Bright Data credit cost)
+                if (Array.isArray(item.comments)) {
                   post.comments = (item.comments as Array<Record<string, unknown>>)
                     .slice(0, 5)
                     .map((c, cIdx) => ({
@@ -398,11 +404,11 @@ export async function scrapeInstagram(
     }
 
   // Compute Aggregated Stats & Engagement Rate on unpinned posts
-  const stats = calculateInstagramStats(unpinnedPosts, followerCount);
+  const stats = calculateInstagramStats(allPosts, followerCount);
 
   return {
     profile,
-    posts: unpinnedPosts,
+    posts: allPosts,
     stats,
     scrapedAt: new Date().toISOString(),
     isCached: false,
