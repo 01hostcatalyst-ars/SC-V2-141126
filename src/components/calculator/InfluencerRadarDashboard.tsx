@@ -1634,21 +1634,17 @@ function TikTokVideosGrid({
   videos: TikTokVideoItem[];
   username: string;
 }) {
-  // Take up to 12 videos, ensuring the 4 ER sample posts appear first (excluding pinned)
+  // Show up to 12 videos, with the 4 trimmed-mean ER sample posts appearing first
   const sortedVideos = useMemo(() => {
     const validVideos = videos.slice(0, 12);
-    const erSamples = validVideos.filter(
-      (v) => v.isEnrichedSample || (!v.isPinned && ((v.diggCount || 0) > 0 || (v.playCount || 0) > 0))
-    );
-    const otherPosts = validVideos.filter((v) => !erSamples.includes(v));
+    const erSamples = validVideos.filter((v) => v.isEnrichedSample);
+    const otherPosts = validVideos.filter((v) => !v.isEnrichedSample);
     return [...erSamples, ...otherPosts];
   }, [videos]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
       {sortedVideos.map((vid, idx) => {
-        const isEnrichedUnpinned = !vid.isPinned && (vid.isEnrichedSample || vid.diggCount > 0 || vid.playCount > 0);
-
         return (
           <div
             key={vid.id || idx}
@@ -1680,7 +1676,7 @@ function TikTokVideosGrid({
                       </svg>
                       Pinned Video
                     </span>
-                  ) : isEnrichedUnpinned ? (
+                  ) : vid.isEnrichedSample ? (
                     <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       ER Sample

@@ -116,11 +116,7 @@ export function formatDbRecordToTikTokData(record: {
   const unpinnedVideos = videos.filter((v) => !v.isPinned);
   videos = unpinnedVideos.length > 0 ? unpinnedVideos.slice(0, 12) : videos.slice(0, 12);
 
-  videos.forEach((vid, idx) => {
-    vid.isEnrichedSample = idx < 4;
-  });
-
-  // Dynamically compute stats from videos array (strictly evaluating 4 sample posts)
+  // Compute stats using trimmed mean (middle 4 videos by views) — also tags isEnrichedSample
   const stats = calculateTikTokStats(videos, followerCount);
 
   const profile: TikTokProfile = {

@@ -243,11 +243,6 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
   const unpinnedVideos = allVideos.filter((v) => !v.isPinned);
   const displayedVideos = unpinnedVideos.length > 0 ? unpinnedVideos.slice(0, 12) : allVideos.slice(0, 12);
 
-  // The first 4 unpinned videos are strictly the ER Sample posts
-  displayedVideos.forEach((vid, index) => {
-    vid.isEnrichedSample = index < 4;
-  });
-
   const reportedRate = typeof rawItem.awg_engagement_rate === 'number' ? rawItem.awg_engagement_rate : undefined;
   const stats = calculateTikTokStats(displayedVideos, followerCount, reportedRate);
 

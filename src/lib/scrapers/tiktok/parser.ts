@@ -76,14 +76,30 @@ export function calculateTikTokStats(
     };
   }
 
-  // Pure unpinned sample videos for ER calculation (exclude all pinned videos)
-  const enrichedVideos = videos.filter((v) => v.isEnrichedSample && !v.isPinned);
-  const candidateVideos =
-    enrichedVideos.length > 0
-      ? enrichedVideos
-      : videos.filter((v) => !v.isPinned && ((v.playCount || 0) > 0 || (v.diggCount || 0) > 0)).slice(0, 4);
+  // Reset all ER sample flags — parser owns tagging
+  videos.forEach((v) => { v.isEnrichedSample = false; });
 
-  const sampleVideos = candidateVideos.length > 0 ? candidateVideos : videos.filter((v) => !v.isPinned);
+  // Collect unpinned videos with valid metrics for trimmed mean selection
+  const unpinnedWithMetrics = videos.filter(
+    (v) => !v.isPinned && ((v.playCount || 0) > 0 || (v.diggCount || 0) > 0)
+  );
+
+  // Sort by views (ascending) to identify the middle 4 (trimmed mean approach)
+  const sortedByViews = [...unpinnedWithMetrics].sort((a, b) => (a.playCount || 0) - (b.playCount || 0));
+
+  // Select middle 4 videos: discard top & bottom outliers for a stable ER signal
+  let sampleVideos: TikTokVideoItem[];
+  if (sortedByViews.length >= 4) {
+    const skipCount = Math.floor((sortedByViews.length - 4) / 2);
+    sampleVideos = sortedByViews.slice(skipCount, skipCount + 4);
+  } else {
+    // Fewer than 4 valid videos — use whatever we have
+    sampleVideos = sortedByViews.length > 0 ? sortedByViews : videos.filter((v) => !v.isPinned);
+  }
+
+  // Tag the selected trimmed-mean sample videos for frontend badge display
+  sampleVideos.forEach((v) => { v.isEnrichedSample = true; });
+
   const sampleCount = sampleVideos.length > 0 ? sampleVideos.length : count;
   const targetVideos = sampleVideos.length > 0 ? sampleVideos : videos;
 
@@ -99,7 +115,7 @@ export function calculateTikTokStats(
 
   let calculatedRate = 0;
   if (avgViews > 0) {
-    // Standard industry engagement rate for TikTok: (Avg Likes + Avg Comments + Avg Shares) / Avg Views
+    // Trimmed Mean TikTok ER: (Avg Likes + Avg Comments + Avg Shares) / Avg Views of middle 4 videos
     calculatedRate = ((avgLikes + avgComments + avgShares) / avgViews) * 100;
   } else if (followerCount > 0) {
     calculatedRate = ((avgLikes + avgComments) / followerCount) * 100;
