@@ -26,6 +26,8 @@ export interface YouTubeVideoItem {
   commentCount: number;
   tags?: string[];
   url: string;
+  isShort?: boolean;
+  engagementRate?: number;
   comments: YouTubeCommentItem[];
 }
 

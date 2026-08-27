@@ -1352,75 +1352,177 @@ function InstagramPostsGrid({
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: YouTube Videos Grid
+// Sub-Component: YouTube Videos Grid (Long-Form & Shorts with ER Badges)
 // ----------------------------------------------------------------------
 function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
+  const [formatFilter, setFormatFilter] = useState<"all" | "long" | "shorts">("all");
+
+  const longVideos = useMemo(
+    () => videos.filter((v) => !v.isShort && (v.durationSeconds === undefined || v.durationSeconds > 60)),
+    [videos]
+  );
+  const shortVideos = useMemo(
+    () => videos.filter((v) => v.isShort || (v.durationSeconds !== undefined && v.durationSeconds > 0 && v.durationSeconds <= 60)),
+    [videos]
+  );
+
+  const displayedVideos = useMemo(() => {
+    if (formatFilter === "long") return longVideos;
+    if (formatFilter === "shorts") return shortVideos;
+    // For 'all', show long-form first, then shorts
+    return [...longVideos, ...shortVideos];
+  }, [formatFilter, longVideos, shortVideos]);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      {videos.map((vid, idx) => (
-        <div
-          key={vid.id || idx}
-          className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
-        >
-          {/* Video Thumbnail */}
-          <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
-            {vid.thumbnailUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={vid.thumbnailUrl}
-                alt={vid.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                loading="lazy"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
-                No Thumbnail
-              </div>
-            )}
-
-            {/* Duration Badge */}
-            {vid.durationFormatted && (
-              <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-semibold backdrop-blur-xs">
-                {vid.durationFormatted}
-              </span>
-            )}
+    <div className="space-y-3.5">
+      {/* Sub-Filter Controls for Long-Form vs Shorts */}
+      {(longVideos.length > 0 && shortVideos.length > 0) && (
+        <div className="flex items-center justify-between gap-2 bg-gray-50/80 p-1.5 rounded-xl border border-gray-200/80">
+          <div className="text-[11px] font-semibold text-gray-500 pl-1">
+            Filter Content Format:
           </div>
-
-          {/* Title & Metrics */}
-          <div className="space-y-1.5">
-            <h4 className="text-xs font-bold text-gray-950 line-clamp-2 leading-snug group-hover:text-black">
-              {vid.title}
-            </h4>
-
-            <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
-              <div className="text-gray-900 font-bold">
-                {vid.viewCount ? `${vid.viewCount.toLocaleString()} views` : "—"}
-              </div>
-              <div className="text-gray-600">
-                {vid.likeCount ? `${vid.likeCount.toLocaleString()} likes` : ""}
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
-            <span className="text-gray-400 font-mono">
-              {vid.publishedAt ? new Date(vid.publishedAt).toLocaleDateString() : ""}
-            </span>
-            <a
-              href={vid.url || `https://www.youtube.com/watch?v=${vid.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setFormatFilter("all")}
+              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
+                formatFilter === "all"
+                  ? "bg-white text-gray-950 shadow-2xs border border-gray-200"
+                  : "text-gray-600 hover:text-gray-950"
+              }`}
             >
-              <span>Watch</span>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              All Uploads ({videos.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormatFilter("long")}
+              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                formatFilter === "long"
+                  ? "bg-white text-gray-950 shadow-2xs border border-gray-200"
+                  : "text-gray-600 hover:text-gray-950"
+              }`}
+            >
+              <svg className="w-3 h-3 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
               </svg>
-            </a>
+              <span>Long-Form ({longVideos.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormatFilter("shorts")}
+              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                formatFilter === "shorts"
+                  ? "bg-white text-gray-950 shadow-2xs border border-gray-200"
+                  : "text-gray-600 hover:text-gray-950"
+              }`}
+            >
+              <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.77 10.32l-1.2-.5a3.1 3.1 0 00-4.04-1.68l-3.3 1.4a3.1 3.1 0 00-1.68 4.04l.5 1.2a3.1 3.1 0 004.04 1.68l3.3-1.4a3.1 3.1 0 001.68-4.04z" />
+              </svg>
+              <span>Shorts ({shortVideos.length})</span>
+            </button>
           </div>
         </div>
-      ))}
+      )}
+
+      {/* Videos Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        {displayedVideos.map((vid, idx) => {
+          const isShortVideo = vid.isShort || (vid.durationSeconds !== undefined && vid.durationSeconds > 0 && vid.durationSeconds <= 60);
+          const videoEr =
+            vid.engagementRate !== undefined
+              ? vid.engagementRate
+              : vid.viewCount > 0
+              ? parseFloat((((vid.likeCount + vid.commentCount) / vid.viewCount) * 100).toFixed(2))
+              : 0;
+
+          return (
+            <div
+              key={vid.id || idx}
+              className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
+            >
+              {/* Video Thumbnail & Overlays */}
+              <div className={`relative w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60 ${isShortVideo ? "aspect-[9/16] max-h-[280px]" : "aspect-video"}`}>
+                {vid.thumbnailUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={vid.thumbnailUrl}
+                    alt={vid.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
+                    No Thumbnail
+                  </div>
+                )}
+
+                {/* Floating Top Badges */}
+                <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                  {/* Format Badge */}
+                  <span
+                    className={`px-2 py-0.5 rounded-md font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1 ${
+                      isShortVideo
+                        ? "bg-red-600/90 text-white"
+                        : "bg-gray-900/90 text-white"
+                    }`}
+                  >
+                    {isShortVideo ? "⚡ Short" : "🎥 Long-Form"}
+                  </span>
+
+                  {/* ER Identifier Badge */}
+                  {videoEr > 0 && (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-mono text-[10px] font-bold shadow-2xs backdrop-blur-xs">
+                      ⚡ {videoEr}% ER
+                    </span>
+                  )}
+                </div>
+
+                {/* Duration Badge */}
+                {vid.durationFormatted && (
+                  <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-semibold backdrop-blur-xs">
+                    {vid.durationFormatted}
+                  </span>
+                )}
+              </div>
+
+              {/* Title & Metrics */}
+              <div className="space-y-1.5">
+                <h4 className="text-xs font-bold text-gray-950 line-clamp-2 leading-snug group-hover:text-black">
+                  {vid.title}
+                </h4>
+
+                <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
+                  <div className="text-gray-900 font-bold">
+                    {vid.viewCount ? `${vid.viewCount.toLocaleString()} views` : "—"}
+                  </div>
+                  <div className="text-gray-600">
+                    {vid.likeCount ? `${vid.likeCount.toLocaleString()} likes` : "0 likes"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
+                <span className="text-gray-400 font-mono">
+                  {vid.publishedAt ? new Date(vid.publishedAt).toLocaleDateString() : ""}
+                </span>
+                <a
+                  href={vid.url || `https://www.youtube.com/watch?v=${vid.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
+                >
+                  <span>{isShortVideo ? "Watch Short" : "Watch Video"}</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -304,6 +304,14 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
             thumbs?.default?.url ||
             '';
 
+          const isShort = dur.seconds > 0 && dur.seconds <= 60;
+          const rawEr =
+            item.statistics?.viewCount && parseInt(item.statistics.viewCount, 10) > 0
+              ? ((parseInt(item.statistics?.likeCount || '0', 10) + parseInt(item.statistics?.commentCount || '0', 10)) /
+                  parseInt(item.statistics.viewCount, 10)) *
+                100
+              : 0;
+
           const videoObj: YouTubeVideoItem = {
             id: item.id,
             title: item.snippet?.title || 'Untitled',
@@ -318,13 +326,15 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
             commentCount: parseInt(item.statistics?.commentCount || '0', 10),
             tags: item.snippet?.tags,
             url: `https://www.youtube.com/watch?v=${item.id}`,
+            isShort,
+            engagementRate: parseFloat(rawEr.toFixed(2)),
             comments: [],
           };
 
-          // Shorts: duration <= 60 seconds
-          if (dur.seconds <= 60 && shortVideos.length < 10) {
+          // Categorize into strictly up to 10 Long-Form and 10 Shorts
+          if (isShort && shortVideos.length < 10) {
             shortVideos.push(videoObj);
-          } else if (dur.seconds > 60 && longVideos.length < 10) {
+          } else if (!isShort && longVideos.length < 10) {
             longVideos.push(videoObj);
           }
 
