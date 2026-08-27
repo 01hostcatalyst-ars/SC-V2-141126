@@ -5,7 +5,7 @@ import {
   InstagramPostItem,
   InstagramExternalUrl,
 } from '../types';
-import { extractInstagramUsername, formatCompactNumber } from './parser';
+import { extractInstagramUsername, formatCompactNumber, calculateInstagramStats } from './parser';
 
 const CACHE_WINDOW_HOURS = 24;
 
@@ -127,8 +127,8 @@ export function formatDbRecordToInstagramData(record: {
     ? record.posts
     : []) as InstagramPostItem[];
 
-  const stats = (record.stats && typeof record.stats === 'object'
-    ? record.stats
+  let stats = (record.stats && typeof record.stats === 'object'
+    ? { ...(record.stats as Record<string, unknown>) }
     : {
         totalPostsFetched: posts.length,
         avgLikesPerPost: 0,
@@ -136,7 +136,15 @@ export function formatDbRecordToInstagramData(record: {
         avgCommentsPerPost: 0,
         avgCommentsFormatted: '0',
         avgEngagementRate: record.avgEngagementRate || 0,
-      }) as InstagramScraperData['stats'];
+      }) as unknown as InstagramScraperData['stats'];
+
+  // Dynamically recompute stats on posts if available to ensure 100% mathematical accuracy
+  if (posts.length > 0) {
+    const recalculatedStats = calculateInstagramStats(posts, followerCount);
+    if (recalculatedStats.avgLikesPerPost > 0 || recalculatedStats.avgCommentsPerPost > 0) {
+      stats = recalculatedStats;
+    }
+  }
 
   const rawData = record as unknown as { rawMetadata?: { profile?: Partial<InstagramProfile> } };
   const rawProfile = rawData.rawMetadata?.profile;
