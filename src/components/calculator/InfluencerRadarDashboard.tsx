@@ -913,6 +913,7 @@ export function InfluencerRadarDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
             {/* 1. Instagram Card */}
             <PlatformRateCardItem
+              platform="instagram"
               platformName="Instagram"
               icon={
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -926,6 +927,7 @@ export function InfluencerRadarDashboard() {
 
             {/* 2. YouTube Card */}
             <PlatformRateCardItem
+              platform="youtube"
               platformName="YouTube"
               icon={
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -939,6 +941,7 @@ export function InfluencerRadarDashboard() {
 
             {/* 3. TikTok Card */}
             <PlatformRateCardItem
+              platform="tiktok"
               platformName="TikTok"
               icon={
                 <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -1028,12 +1031,14 @@ export function InfluencerRadarDashboard() {
 // Sub-Component: Platform Rate Card Item
 // ----------------------------------------------------------------------
 function PlatformRateCardItem({
+  platform,
   platformName,
   icon,
   data,
   metricLabel,
   onManualSearch,
 }: {
+  platform: Platform;
   platformName: string;
   icon: React.ReactNode;
   data: DiscoveredPlatformData;
