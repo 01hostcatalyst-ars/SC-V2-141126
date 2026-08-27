@@ -1634,10 +1634,12 @@ function TikTokVideosGrid({
   videos: TikTokVideoItem[];
   username: string;
 }) {
-  // Take up to 12 videos, ensuring the 4 ER sample posts appear first
+  // Take up to 12 videos, ensuring the 4 ER sample posts appear first (excluding pinned)
   const sortedVideos = useMemo(() => {
     const validVideos = videos.slice(0, 12);
-    const erSamples = validVideos.filter((v, idx) => v.isEnrichedSample || idx < 4);
+    const erSamples = validVideos.filter(
+      (v) => v.isEnrichedSample || (!v.isPinned && ((v.diggCount || 0) > 0 || (v.playCount || 0) > 0))
+    );
     const otherPosts = validVideos.filter((v) => !erSamples.includes(v));
     return [...erSamples, ...otherPosts];
   }, [videos]);
@@ -1645,7 +1647,7 @@ function TikTokVideosGrid({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
       {sortedVideos.map((vid, idx) => {
-        const isErSample = vid.isEnrichedSample || idx < 4;
+        const isEnrichedUnpinned = !vid.isPinned && (vid.isEnrichedSample || vid.diggCount > 0 || vid.playCount > 0);
 
         return (
           <div
@@ -1671,7 +1673,14 @@ function TikTokVideosGrid({
               {/* Floating Badges Overlay */}
               <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
                 <div className="flex flex-wrap gap-1">
-                  {isErSample ? (
+                  {vid.isPinned ? (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
+                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      Pinned Video
+                    </span>
+                  ) : isEnrichedUnpinned ? (
                     <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       ER Sample

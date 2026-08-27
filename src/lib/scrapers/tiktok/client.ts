@@ -223,11 +223,27 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
     };
   });
 
-  // Completely exclude the first 3 posts (potential pinned / evergreen posts)
-  // and keep the remaining 12 recent posts for display and calculation
-  const displayedVideos = allVideos.length > 3 ? allVideos.slice(3, 15) : allVideos;
+  // Detect chronological inversion in top 3 items:
+  // On TikTok, pinned videos are placed at the top but have older upload dates than subsequent videos.
+  for (let i = 0; i < Math.min(3, allVideos.length); i++) {
+    const videoTime = allVideos[i].createDate ? new Date(allVideos[i].createDate!).getTime() : 0;
+    if (videoTime > 0) {
+      // Check if any subsequent video has a newer timestamp (indicating this video is pinned)
+      for (let j = i + 1; j < Math.min(6, allVideos.length); j++) {
+        const laterVideoTime = allVideos[j].createDate ? new Date(allVideos[j].createDate!).getTime() : 0;
+        if (laterVideoTime > 0 && (laterVideoTime - videoTime) > (24 * 60 * 60 * 1000)) {
+          allVideos[i].isPinned = true;
+          break;
+        }
+      }
+    }
+  }
 
-  // The first 4 posts of the remaining 12 are strictly the ER Sample posts
+  // Filter out pinned videos and keep up to 12 recent chronological uploads
+  const unpinnedVideos = allVideos.filter((v) => !v.isPinned);
+  const displayedVideos = unpinnedVideos.length > 0 ? unpinnedVideos.slice(0, 12) : allVideos.slice(0, 12);
+
+  // The first 4 unpinned videos are strictly the ER Sample posts
   displayedVideos.forEach((vid, index) => {
     vid.isEnrichedSample = index < 4;
   });

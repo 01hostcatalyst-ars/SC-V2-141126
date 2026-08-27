@@ -4,7 +4,7 @@ import {
   TikTokProfile,
   TikTokVideoItem,
 } from '../types';
-import { extractTikTokUsername, formatCompactNumber } from './parser';
+import { extractTikTokUsername, formatCompactNumber, calculateTikTokStats } from './parser';
 
 const CACHE_WINDOW_HOURS = 24;
 
@@ -112,9 +112,9 @@ export function formatDbRecordToTikTokData(record: {
     ? record.videos
     : []) as TikTokVideoItem[];
 
-  if (videos.length > 12) {
-    videos = videos.slice(3, 15);
-  }
+  // Filter out pinned videos so only chronological recent uploads are returned
+  const unpinnedVideos = videos.filter((v) => !v.isPinned);
+  videos = unpinnedVideos.length > 0 ? unpinnedVideos.slice(0, 12) : videos.slice(0, 12);
 
   videos.forEach((vid, idx) => {
     vid.isEnrichedSample = idx < 4;

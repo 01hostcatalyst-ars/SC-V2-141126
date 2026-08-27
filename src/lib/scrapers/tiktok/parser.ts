@@ -77,7 +77,7 @@ export function calculateTikTokStats(
   }
 
   // Pure unpinned sample videos for ER calculation (exclude all pinned videos)
-  const enrichedVideos = videos.filter((v) => v.isEnrichedSample);
+  const enrichedVideos = videos.filter((v) => v.isEnrichedSample && !v.isPinned);
   const candidateVideos =
     enrichedVideos.length > 0
       ? enrichedVideos
