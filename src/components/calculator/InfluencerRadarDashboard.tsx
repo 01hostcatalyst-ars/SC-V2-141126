@@ -79,6 +79,21 @@ const TIKTOK_TICKER_STEPS: PlatformTickerStep[] = [
   { step: 6, percent: 100, text: "TikTok Telemetry Active: Defended video deliverable rate verified" },
 ];
 
+function formatShortNumber(num: number | undefined | null): string {
+  if (num === undefined || num === null || isNaN(num)) return "0";
+  if (num < 1000) return num.toString();
+  if (num < 1_000_000) {
+    const k = num / 1000;
+    return k % 1 === 0 ? `${k}K` : `${parseFloat(k.toFixed(1))}K`;
+  }
+  if (num < 1_000_000_000) {
+    const m = num / 1_000_000;
+    return m % 1 === 0 ? `${m}M` : `${parseFloat(m.toFixed(2))}M`;
+  }
+  const b = num / 1_000_000_000;
+  return b % 1 === 0 ? `${b}B` : `${parseFloat(b.toFixed(2))}B`;
+}
+
 export function InfluencerRadarDashboard() {
   const [inputQuery, setInputQuery] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("instagram");
@@ -893,7 +908,7 @@ export function InfluencerRadarDashboard() {
                 <div>
                   <div className="text-[10px] text-gray-400 font-medium uppercase">Combined Reach</div>
                   <div className="text-sm font-bold font-mono text-gray-950">
-                    {totalAudienceCount.toLocaleString()}
+                    {formatShortNumber(totalAudienceCount)}
                   </div>
                 </div>
                 <div className="w-px h-6 bg-gray-200" />
@@ -958,21 +973,21 @@ export function InfluencerRadarDashboard() {
           {/* SECTION 5: OMNICHANNEL BUNDLE OPTIMIZER                   */}
           {/* ========================================================= */}
           {bundleOffers && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-gray-950 text-white border border-gray-800 shadow-md space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+            <div className="p-4 sm:p-5 rounded-2xl bg-gray-950 text-white shadow-xl space-y-4 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <h3 className="text-xs sm:text-sm font-bold tracking-tight text-white">
-                    Omnichannel Multi-Asset Bundle Optimizer
+                    Automated Omnichannel Package Discounts
                   </h3>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-emerald-400 font-semibold">
-                  10% – 15% Volume Discount Applied
-                </span>
+                <div className="text-[11px] font-mono text-gray-400">
+                  Target: {creatorMeta?.displayName || "Creator"}
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {/* Starter Combo */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* 2-Platform Starter Pack */}
                 <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
                   <div className="flex justify-between items-start">
                     <div>
@@ -1121,11 +1136,11 @@ function PlatformRateCardItem({
               <div className="text-left">
                 <div className="text-[10px] text-gray-400 uppercase font-medium">Subscribers</div>
                 <div className="font-bold font-mono text-gray-950 truncate">
-                  {(data.followerCount || 0).toLocaleString()}
+                  {formatShortNumber(data.followerCount)}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] text-gray-400 uppercase font-medium">Long-Form ER</div>
+                <div className="text-[10px] text-gray-400 uppercase font-medium">LF ER</div>
                 <div className="font-bold font-mono text-gray-950">
                   {data.longEngagementRate !== undefined
                     ? `${data.longEngagementRate}%`
@@ -1135,7 +1150,7 @@ function PlatformRateCardItem({
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] text-gray-400 uppercase font-medium">Shorts ER</div>
+                <div className="text-[10px] text-gray-400 uppercase font-medium">SF ER</div>
                 <div className="font-bold font-mono text-gray-950">
                   {data.shortEngagementRate !== undefined ? `${data.shortEngagementRate}%` : "—"}
                 </div>
@@ -1146,7 +1161,7 @@ function PlatformRateCardItem({
               <div>
                 <div className="text-[10px] text-gray-400 uppercase font-medium">{metricLabel}</div>
                 <div className="font-bold font-mono text-gray-950">
-                  {(data.followerCount || 0).toLocaleString()}
+                  {formatShortNumber(data.followerCount)}
                 </div>
               </div>
               <div className="text-right">
@@ -1165,8 +1180,6 @@ function PlatformRateCardItem({
             </div>
             {data.rateCardItems?.map((item) => {
               const label = FORMAT_LABELS[item.format]?.label || item.format;
-              const isYtLong = platform === "youtube" && (item.format === "yt_dedicated" || item.format === "yt_integrated");
-              const isYtShort = platform === "youtube" && item.format === "yt_short";
 
               return (
                 <div
@@ -1174,19 +1187,7 @@ function PlatformRateCardItem({
                   className="flex items-center justify-between p-2 rounded-lg border border-gray-100 hover:border-gray-300 bg-white transition-all text-xs"
                 >
                   <div className="truncate pr-2">
-                    <div className="flex items-center gap-1.5 font-semibold text-gray-900 truncate">
-                      <span>{label}</span>
-                      {isYtLong && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-mono font-normal shrink-0">
-                          Long-Form ER
-                        </span>
-                      )}
-                      {isYtShort && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 font-mono font-normal shrink-0">
-                          Shorts ER
-                        </span>
-                      )}
-                    </div>
+                    <div className="font-semibold text-gray-900 truncate">{label}</div>
                     <div className="text-[10px] text-gray-400 font-mono">
                       {item.formattedLow} – {item.formattedHigh}
                     </div>
@@ -1379,13 +1380,13 @@ function InstagramPostsGrid({
                   <svg className="w-3.5 h-3.5 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                   </svg>
-                  <span>{post.likes > 0 ? post.likesFormatted || post.likes.toLocaleString() : "—"}</span>
+                  <span>{post.likes > 0 ? formatShortNumber(post.likes) : "—"}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-gray-900 font-bold">
                   <svg className="w-3.5 h-3.5 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z" />
                   </svg>
-                  <span>{post.commentsCount > 0 ? post.commentsCountFormatted || post.commentsCount.toLocaleString() : "—"}</span>
+                  <span>{post.commentsCount > 0 ? formatShortNumber(post.commentsCount) : "—"}</span>
                 </div>
               </div>
 
@@ -1590,10 +1591,10 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
 
                 <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
                   <div className="text-gray-900 font-bold">
-                    {vid.viewCount ? `${vid.viewCount.toLocaleString()} views` : "0 views"}
+                    {vid.viewCount ? `${formatShortNumber(vid.viewCount)} views` : "0 views"}
                   </div>
                   <div className="text-gray-600">
-                    {vid.likeCount ? `${vid.likeCount.toLocaleString()} likes` : "0 likes"}
+                    {vid.likeCount ? `${formatShortNumber(vid.likeCount)} likes` : "0 likes"}
                   </div>
                 </div>
               </div>
@@ -1661,7 +1662,7 @@ function TikTokVideosGrid({
               <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
-              {vid.playCount ? vid.playCount.toLocaleString() : "0"}
+              {vid.playCount ? formatShortNumber(vid.playCount) : "0"}
             </span>
           </div>
 
@@ -1673,10 +1674,10 @@ function TikTokVideosGrid({
 
             <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
               <div className="text-gray-900 font-bold">
-                {vid.diggCount ? `${vid.diggCount.toLocaleString()} likes` : "0 likes"}
+                {vid.diggCount ? `${formatShortNumber(vid.diggCount)} likes` : "0 likes"}
               </div>
               <div className="text-gray-600">
-                {vid.commentCount ? `${vid.commentCount.toLocaleString()} comments` : "0 comments"}
+                {vid.commentCount ? `${formatShortNumber(vid.commentCount)} comments` : "0 comments"}
               </div>
             </div>
           </div>
