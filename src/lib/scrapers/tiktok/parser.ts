@@ -76,27 +76,36 @@ export function calculateTikTokStats(
     };
   }
 
-  const totalViews = videos.reduce((acc, v) => acc + (v.playCount || 0), 0);
-  const totalLikes = videos.reduce((acc, v) => acc + (v.diggCount || 0), 0);
-  const totalComments = videos.reduce((acc, v) => acc + (v.commentCount || 0), 0);
-  const totalShares = videos.reduce((acc, v) => acc + (v.shareCount || 0), 0);
+  // Pure unpinned sample videos for ER calculation (exclude all pinned videos)
+  const enrichedVideos = videos.filter((v) => v.isEnrichedSample);
+  const candidateVideos =
+    enrichedVideos.length > 0
+      ? enrichedVideos
+      : videos.filter((v) => !v.isPinned && ((v.playCount || 0) > 0 || (v.diggCount || 0) > 0)).slice(0, 4);
 
-  const avgViews = Math.round(totalViews / count);
-  const avgLikes = Math.round(totalLikes / count);
-  const avgComments = Math.round(totalComments / count);
-  const avgShares = Math.round(totalShares / count);
+  const sampleVideos = candidateVideos.length > 0 ? candidateVideos : videos.filter((v) => !v.isPinned);
+  const sampleCount = sampleVideos.length > 0 ? sampleVideos.length : count;
+  const targetVideos = sampleVideos.length > 0 ? sampleVideos : videos;
+
+  const totalViews = targetVideos.reduce((acc, v) => acc + (v.playCount || 0), 0);
+  const totalLikes = targetVideos.reduce((acc, v) => acc + (v.diggCount || 0), 0);
+  const totalComments = targetVideos.reduce((acc, v) => acc + (v.commentCount || 0), 0);
+  const totalShares = targetVideos.reduce((acc, v) => acc + (v.shareCount || 0), 0);
+
+  const avgViews = Math.round(totalViews / sampleCount);
+  const avgLikes = Math.round(totalLikes / sampleCount);
+  const avgComments = Math.round(totalComments / sampleCount);
+  const avgShares = Math.round(totalShares / sampleCount);
 
   let calculatedRate = 0;
-  if (followerCount > 0 && avgViews > 0) {
+  if (avgViews > 0) {
     // Standard industry engagement rate for TikTok: (Avg Likes + Avg Comments + Avg Shares) / Avg Views
     calculatedRate = ((avgLikes + avgComments + avgShares) / avgViews) * 100;
   } else if (followerCount > 0) {
     calculatedRate = ((avgLikes + avgComments) / followerCount) * 100;
   }
 
-  const finalRate = reportedRate && reportedRate > 0
-    ? Math.round(reportedRate * 10000) / 100
-    : Math.round(calculatedRate * 100) / 100;
+  const finalRate = parseFloat(calculatedRate.toFixed(2));
 
   return {
     totalVideosFetched: count,

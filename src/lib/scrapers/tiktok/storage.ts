@@ -112,20 +112,8 @@ export function formatDbRecordToTikTokData(record: {
     ? record.videos
     : []) as TikTokVideoItem[];
 
-  const stats = (record.stats && typeof record.stats === 'object'
-    ? record.stats
-    : {
-        totalVideosFetched: videos.length,
-        avgViewsPerVideo: 0,
-        avgViewsFormatted: '0',
-        avgLikesPerVideo: 0,
-        avgLikesFormatted: '0',
-        avgCommentsPerVideo: 0,
-        avgCommentsFormatted: '0',
-        avgSharesPerVideo: 0,
-        avgSharesFormatted: '0',
-        avgEngagementRate: record.avgEngagementRate || 0,
-      }) as TikTokScraperData['stats'];
+  // Dynamically compute stats from videos array (strictly evaluating unpinned sample posts)
+  const stats = calculateTikTokStats(videos, followerCount);
 
   const profile: TikTokProfile = {
     username: record.tiktokUsername,

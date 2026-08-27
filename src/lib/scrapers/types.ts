@@ -192,6 +192,7 @@ export interface TikTokVideoItem {
   createDate?: string;
   postType?: string;
   isPinned?: boolean;
+  isEnrichedSample?: boolean;
 }
 
 export interface TikTokProfile {

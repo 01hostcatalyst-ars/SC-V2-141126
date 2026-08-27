@@ -1625,7 +1625,7 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: TikTok Videos Grid
+// Sub-Component: TikTok Videos Grid (15 Uploads with Pinned & ER Sample Badges)
 // ----------------------------------------------------------------------
 function TikTokVideosGrid({
   videos,
@@ -1634,14 +1634,22 @@ function TikTokVideosGrid({
   videos: TikTokVideoItem[];
   username: string;
 }) {
+  // Sort so that the 4 ER sample posts appear in the first row / at the very top!
+  const sortedVideos = useMemo(() => {
+    const erSamples = videos.filter((v) => v.isEnrichedSample);
+    const otherUnpinned = videos.filter((v) => !v.isPinned && !v.isEnrichedSample);
+    const pinned = videos.filter((v) => v.isPinned);
+    return [...erSamples, ...otherUnpinned, ...pinned];
+  }, [videos]);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      {videos.map((vid, idx) => (
+      {sortedVideos.map((vid, idx) => (
         <div
           key={vid.id || idx}
           className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
         >
-          {/* Cover Image */}
+          {/* Cover Image & Badges */}
           <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
             {vid.coverImage ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -1656,6 +1664,33 @@ function TikTokVideosGrid({
                 No Cover
               </div>
             )}
+
+            {/* Floating Badges Overlay */}
+            <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+              <div className="flex flex-wrap gap-1">
+                {vid.isPinned ? (
+                  <span className="px-2 py-0.5 rounded-md bg-amber-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
+                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    Pinned Video
+                  </span>
+                ) : vid.isEnrichedSample ? (
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    ER Sample
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
+                    Recent #{idx + 1}
+                  </span>
+                )}
+              </div>
+
+              <span className="px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-mono uppercase backdrop-blur-xs">
+                TikTok
+              </span>
+            </div>
 
             {/* Plays Badge */}
             <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-semibold backdrop-blur-xs flex items-center gap-1">
@@ -1684,7 +1719,9 @@ function TikTokVideosGrid({
 
           {/* Footer */}
           <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
-            <span className="text-gray-400 font-mono">TikTok Video</span>
+            <span className="text-gray-400 font-mono">
+              {vid.createDate ? new Date(vid.createDate).toLocaleDateString() : "TikTok Video"}
+            </span>
             <a
               href={vid.url || `https://www.tiktok.com/@${username}/video/${vid.id}`}
               target="_blank"

@@ -232,15 +232,23 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
     }
   }
 
-  // Filter out any pinned videos so we strictly process and return unpinned recent uploads
-  const unpinnedVideos = allVideos.filter((v) => !v.isPinned).slice(0, 15);
+  // Identify up to 4 pure unpinned videos to serve as the ER calculation sample
+  let unpinnedCount = 0;
+  for (const vid of allVideos) {
+    if (!vid.isPinned && unpinnedCount < 4) {
+      vid.isEnrichedSample = true;
+      unpinnedCount++;
+    } else {
+      vid.isEnrichedSample = false;
+    }
+  }
 
   const reportedRate = typeof rawItem.awg_engagement_rate === 'number' ? rawItem.awg_engagement_rate : undefined;
-  const stats = calculateTikTokStats(unpinnedVideos, followerCount, reportedRate);
+  const stats = calculateTikTokStats(allVideos, followerCount, reportedRate);
 
   return {
     profile,
-    videos: unpinnedVideos,
+    videos: allVideos,
     stats,
     scrapedAt: new Date().toISOString(),
     isCached: false,
