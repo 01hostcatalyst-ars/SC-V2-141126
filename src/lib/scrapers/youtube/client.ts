@@ -358,8 +358,8 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     }
   }
 
-  // 3. Fetch Top 5 Comments for the 3 Most Recent Long-Form Videos
-  for (let i = 0; i < Math.min(3, longVideos.length); i++) {
+  // 3. Fetch Top 5 Comments for the 5 Most Recent Long-Form Videos
+  for (let i = 0; i < Math.min(5, longVideos.length); i++) {
     const vid = longVideos[i];
     try {
       const cUrl = `${BASE_URL}/commentThreads?part=snippet&videoId=${vid.id}&maxResults=5&order=time&key=${apiKey}`;
@@ -385,8 +385,8 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     }
   }
 
-  // 4. Fetch Top 5 Comments for the 3 Most Recent Shorts
-  for (let i = 0; i < Math.min(3, shortVideos.length); i++) {
+  // 4. Fetch Top 5 Comments for the 5 Most Recent Shorts
+  for (let i = 0; i < Math.min(5, shortVideos.length); i++) {
     const vid = shortVideos[i];
     try {
       const cUrl = `${BASE_URL}/commentThreads?part=snippet&videoId=${vid.id}&maxResults=5&order=time&key=${apiKey}`;
