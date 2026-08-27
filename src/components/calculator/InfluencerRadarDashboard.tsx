@@ -16,6 +16,10 @@ interface DiscoveredPlatformData {
   avgComments?: number;
   avgViews?: number;
   engagementRate?: number;
+  longEngagementRate?: number;
+  shortEngagementRate?: number;
+  avgLongViews?: number;
+  avgShortViews?: number;
   posts?: InstagramPostItem[];
   videos?: Array<Record<string, unknown>>;
   rateCardItems?: Array<{
@@ -181,7 +185,12 @@ export function InfluencerRadarDashboard() {
       avgComments: number,
       avgViews: number,
       avgShares: number = 0,
-      primaryNicheId: number = 8
+      primaryNicheId: number = 8,
+      extraMetrics?: {
+        avgShortLikes?: number;
+        avgShortComments?: number;
+        avgShortViews?: number;
+      }
     ) => {
       const platformFormats: Record<Platform, DeliverableFormat[]> = {
         instagram: ["ig_reel", "ig_carousel", "ig_static", "ig_story"],
@@ -192,12 +201,17 @@ export function InfluencerRadarDashboard() {
       const formats = platformFormats[platform] || ["ig_reel"];
 
       return formats.map((fmt, idx) => {
+        const isYtShort = platform === "youtube" && fmt === "yt_short";
+        const itemLikes = isYtShort && extraMetrics?.avgShortLikes !== undefined ? extraMetrics.avgShortLikes : avgLikes;
+        const itemComments = isYtShort && extraMetrics?.avgShortComments !== undefined ? extraMetrics.avgShortComments : avgComments;
+        const itemViews = isYtShort && extraMetrics?.avgShortViews !== undefined ? extraMetrics.avgShortViews : avgViews;
+
         const pricingInput: PricingInput = {
           creator: {
             followerCount: Math.max(followers, 1000),
-            last3PostsAvgLikes: avgLikes,
-            last3PostsAvgComments: avgComments,
-            last3PostsAvgViews: avgViews,
+            last3PostsAvgLikes: itemLikes,
+            last3PostsAvgComments: itemComments,
+            last3PostsAvgViews: itemViews,
             last3PostsAvgShares: avgShares,
             primaryPlatform: platform,
             primaryNicheId,
@@ -278,6 +292,13 @@ export function InfluencerRadarDashboard() {
         let engagementRate = 0;
         const externalLinks: Array<{ platform: Platform; url: string }> = [];
 
+        let avgLongViews = 0;
+        let avgShortViews = 0;
+        let avgLongEngagementRate = 0;
+        let avgShortEngagementRate = 0;
+        let avgShortLikes = 0;
+        let avgShortComments = 0;
+
         if (targetPlatform === "instagram") {
           const profile = data.profile || {};
           const stats = data.stats || {};
@@ -320,10 +341,26 @@ export function InfluencerRadarDashboard() {
           const channel = data.channel || {};
           const stats = data.stats || {};
           followerCount = channel.subscriberCount || 0;
-          avgViews = stats.avgViewsPerVideo || stats.avgLongVideoViews || 0;
-          avgLikes = stats.avgLikesPerVideo || 0;
-          avgComments = stats.avgCommentsPerVideo || 0;
-          engagementRate = stats.avgLongEngagementRate ?? stats.avgEngagementRate ?? stats.engagementRate ?? 0;
+          avgLongViews = stats.avgLongVideoViews || 0;
+          avgShortViews = stats.avgShortVideoViews || 0;
+          avgLongEngagementRate = stats.avgLongEngagementRate || 0;
+          avgShortEngagementRate = stats.avgShortEngagementRate || 0;
+
+          const longVids = Array.isArray(data.longVideos) ? data.longVideos : [];
+          const shortVids = Array.isArray(data.shortVideos) ? data.shortVideos : [];
+
+          if (longVids.length > 0) {
+            avgLikes = Math.round(longVids.reduce((s: number, v: { likeCount?: number }) => s + (v.likeCount || 0), 0) / longVids.length);
+            avgComments = Math.round(longVids.reduce((s: number, v: { commentCount?: number }) => s + (v.commentCount || 0), 0) / longVids.length);
+            avgViews = avgLongViews;
+          }
+
+          if (shortVids.length > 0) {
+            avgShortLikes = Math.round(shortVids.reduce((s: number, v: { likeCount?: number }) => s + (v.likeCount || 0), 0) / shortVids.length);
+            avgShortComments = Math.round(shortVids.reduce((s: number, v: { commentCount?: number }) => s + (v.commentCount || 0), 0) / shortVids.length);
+          }
+
+          engagementRate = avgLongEngagementRate;
 
           if (engagementRate === 0 && avgViews > 0 && (avgLikes > 0 || avgComments > 0)) {
             engagementRate = Number((((avgLikes + avgComments) / avgViews) * 100).toFixed(2));
@@ -401,7 +438,14 @@ export function InfluencerRadarDashboard() {
           avgComments,
           avgViews,
           targetPlatform === "tiktok" ? (data.stats?.avgSharesPerVideo || 0) : 0,
-          8
+          8,
+          targetPlatform === "youtube"
+            ? {
+                avgShortLikes,
+                avgShortComments,
+                avgShortViews,
+              }
+            : undefined
         );
 
         // Render this platform's card IMMEDIATELY
@@ -417,6 +461,10 @@ export function InfluencerRadarDashboard() {
             avgComments,
             avgViews,
             engagementRate,
+            longEngagementRate: targetPlatform === "youtube" ? avgLongEngagementRate : undefined,
+            shortEngagementRate: targetPlatform === "youtube" ? avgShortEngagementRate : undefined,
+            avgLongViews: targetPlatform === "youtube" ? avgLongViews : undefined,
+            avgShortViews: targetPlatform === "youtube" ? avgShortViews : undefined,
             posts: targetPlatform === "instagram" ? data.posts : undefined,
             videos:
               targetPlatform === "youtube"
@@ -1063,20 +1111,47 @@ function PlatformRateCardItem({
       {data.status === "ready" && (
         <div className="space-y-3">
           {/* Profile Metric Snippet */}
-          <div className="flex items-center justify-between text-xs bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-            <div>
-              <div className="text-[10px] text-gray-400 uppercase font-medium">{metricLabel}</div>
-              <div className="font-bold font-mono text-gray-950">
-                {(data.followerCount || 0).toLocaleString()}
+          {platform === "youtube" ? (
+            <div className="grid grid-cols-3 gap-2 text-xs bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-center">
+              <div className="text-left">
+                <div className="text-[10px] text-gray-400 uppercase font-medium">Subscribers</div>
+                <div className="font-bold font-mono text-gray-950 truncate">
+                  {(data.followerCount || 0).toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] text-gray-400 uppercase font-medium">Long-Form ER</div>
+                <div className="font-bold font-mono text-gray-950">
+                  {data.longEngagementRate !== undefined
+                    ? `${data.longEngagementRate}%`
+                    : data.engagementRate !== undefined
+                    ? `${data.engagementRate}%`
+                    : "—"}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-gray-400 uppercase font-medium">Shorts ER</div>
+                <div className="font-bold font-mono text-gray-950">
+                  {data.shortEngagementRate !== undefined ? `${data.shortEngagementRate}%` : "—"}
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-[10px] text-gray-400 uppercase font-medium">Observed ER</div>
-              <div className="font-bold font-mono text-gray-950">
-                {data.engagementRate !== undefined ? `${data.engagementRate}%` : "—"}
+          ) : (
+            <div className="flex items-center justify-between text-xs bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+              <div>
+                <div className="text-[10px] text-gray-400 uppercase font-medium">{metricLabel}</div>
+                <div className="font-bold font-mono text-gray-950">
+                  {(data.followerCount || 0).toLocaleString()}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-gray-400 uppercase font-medium">Observed ER</div>
+                <div className="font-bold font-mono text-gray-950">
+                  {data.engagementRate !== undefined ? `${data.engagementRate}%` : "—"}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Itemized Deliverables Rate Card */}
           <div className="space-y-1.5 pt-1">
