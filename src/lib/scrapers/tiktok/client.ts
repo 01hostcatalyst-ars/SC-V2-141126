@@ -223,32 +223,21 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
     };
   });
 
-  // Detect chronological inversion in top items (TikTok places older pinned videos at the top of the feed)
-  for (let i = 0; i < Math.min(3, allVideos.length - 1); i++) {
-    const currentVideoTime = allVideos[i].createDate ? new Date(allVideos[i].createDate!).getTime() : 0;
-    const nextVideoTime = allVideos[i + 1].createDate ? new Date(allVideos[i + 1].createDate!).getTime() : 0;
-    if (currentVideoTime > 0 && nextVideoTime > 0 && (nextVideoTime - currentVideoTime) > (5 * 24 * 60 * 60 * 1000)) {
-      allVideos[i].isPinned = true;
-    }
-  }
+  // Completely exclude the first 3 posts (potential pinned / evergreen posts)
+  // and keep the remaining 12 recent posts for display and calculation
+  const displayedVideos = allVideos.length > 3 ? allVideos.slice(3, 15) : allVideos;
 
-  // Identify up to 4 pure unpinned videos to serve as the ER calculation sample
-  let unpinnedCount = 0;
-  for (const vid of allVideos) {
-    if (!vid.isPinned && unpinnedCount < 4) {
-      vid.isEnrichedSample = true;
-      unpinnedCount++;
-    } else {
-      vid.isEnrichedSample = false;
-    }
-  }
+  // The first 4 posts of the remaining 12 are strictly the ER Sample posts
+  displayedVideos.forEach((vid, index) => {
+    vid.isEnrichedSample = index < 4;
+  });
 
   const reportedRate = typeof rawItem.awg_engagement_rate === 'number' ? rawItem.awg_engagement_rate : undefined;
-  const stats = calculateTikTokStats(allVideos, followerCount, reportedRate);
+  const stats = calculateTikTokStats(displayedVideos, followerCount, reportedRate);
 
   return {
     profile,
-    videos: allVideos,
+    videos: displayedVideos,
     stats,
     scrapedAt: new Date().toISOString(),
     isCached: false,

@@ -1625,7 +1625,7 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: TikTok Videos Grid (15 Uploads with Pinned & ER Sample Badges)
+// Sub-Component: TikTok Videos Grid (12 Recent Posts + 4 ER Samples)
 // ----------------------------------------------------------------------
 function TikTokVideosGrid({
   videos,
@@ -1634,108 +1634,105 @@ function TikTokVideosGrid({
   videos: TikTokVideoItem[];
   username: string;
 }) {
-  // Sort so that the 4 ER sample posts appear in the first row / at the very top!
+  // Take up to 12 videos, ensuring the 4 ER sample posts appear first
   const sortedVideos = useMemo(() => {
-    const erSamples = videos.filter((v) => v.isEnrichedSample);
-    const otherUnpinned = videos.filter((v) => !v.isPinned && !v.isEnrichedSample);
-    const pinned = videos.filter((v) => v.isPinned);
-    return [...erSamples, ...otherUnpinned, ...pinned];
+    const validVideos = videos.slice(0, 12);
+    const erSamples = validVideos.filter((v, idx) => v.isEnrichedSample || idx < 4);
+    const otherPosts = validVideos.filter((v) => !erSamples.includes(v));
+    return [...erSamples, ...otherPosts];
   }, [videos]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      {sortedVideos.map((vid, idx) => (
-        <div
-          key={vid.id || idx}
-          className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
-        >
-          {/* Cover Image & Badges */}
-          <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
-            {vid.coverImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={vid.coverImage}
-                alt={vid.description || "TikTok video"}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                loading="lazy"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
-                No Cover
-              </div>
-            )}
+      {sortedVideos.map((vid, idx) => {
+        const isErSample = vid.isEnrichedSample || idx < 4;
 
-            {/* Floating Badges Overlay */}
-            <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
-              <div className="flex flex-wrap gap-1">
-                {vid.isPinned ? (
-                  <span className="px-2 py-0.5 rounded-md bg-amber-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
-                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                    </svg>
-                    Pinned Video
-                  </span>
-                ) : vid.isEnrichedSample ? (
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                    ER Sample
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
-                    Recent #{idx + 1}
-                  </span>
-                )}
+        return (
+          <div
+            key={vid.id || idx}
+            className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
+          >
+            {/* Cover Image & Badges */}
+            <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
+              {vid.coverImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={vid.coverImage}
+                  alt={vid.description || "TikTok video"}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
+                  No Cover
+                </div>
+              )}
+
+              {/* Floating Badges Overlay */}
+              <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                <div className="flex flex-wrap gap-1">
+                  {isErSample ? (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      ER Sample
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
+                      Recent #{idx + 1}
+                    </span>
+                  )}
+                </div>
+
+                <span className="px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-mono uppercase backdrop-blur-xs">
+                  TikTok
+                </span>
               </div>
 
-              <span className="px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-mono uppercase backdrop-blur-xs">
-                TikTok
+              {/* Plays Badge */}
+              <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-semibold backdrop-blur-xs flex items-center gap-1">
+                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                {vid.playCount ? formatShortNumber(vid.playCount) : "0"}
               </span>
             </div>
 
-            {/* Plays Badge */}
-            <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-semibold backdrop-blur-xs flex items-center gap-1">
-              <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              {vid.playCount ? formatShortNumber(vid.playCount) : "0"}
-            </span>
-          </div>
+            {/* Description & Performance */}
+            <div className="space-y-1.5">
+              <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
+                {vid.description || "No caption provided."}
+              </p>
 
-          {/* Description & Performance */}
-          <div className="space-y-1.5">
-            <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
-              {vid.description || "No caption provided."}
-            </p>
-
-            <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
-              <div className="text-gray-900 font-bold">
-                {vid.diggCount ? `${formatShortNumber(vid.diggCount)} likes` : "0 likes"}
-              </div>
-              <div className="text-gray-600">
-                {vid.commentCount ? `${formatShortNumber(vid.commentCount)} comments` : "0 comments"}
+              <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
+                <div className="text-gray-900 font-bold">
+                  {vid.diggCount ? `${formatShortNumber(vid.diggCount)} likes` : "0 likes"}
+                </div>
+                <div className="text-gray-600">
+                  {vid.commentCount ? `${formatShortNumber(vid.commentCount)} comments` : "0 comments"}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Footer */}
-          <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
-            <span className="text-gray-400 font-mono">
-              {vid.createDate ? new Date(vid.createDate).toLocaleDateString() : "TikTok Video"}
-            </span>
-            <a
-              href={vid.url || `https://www.tiktok.com/@${username}/video/${vid.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
-            >
-              <span>View Video</span>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
+            {/* Footer */}
+            <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
+              <span className="text-gray-400 font-mono">
+                {vid.createDate ? new Date(vid.createDate).toLocaleDateString() : "TikTok Video"}
+              </span>
+              <a
+                href={vid.url || `https://www.tiktok.com/@${username}/video/${vid.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
+              >
+                <span>View Video</span>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -108,11 +108,19 @@ export function formatDbRecordToTikTokData(record: {
   const followerCount = Number(record.followerCount);
   const heartCount = Number(record.heartCount);
 
-  const videos = (Array.isArray(record.videos)
+  let videos = (Array.isArray(record.videos)
     ? record.videos
     : []) as TikTokVideoItem[];
 
-  // Dynamically compute stats from videos array (strictly evaluating unpinned sample posts)
+  if (videos.length > 12) {
+    videos = videos.slice(3, 15);
+  }
+
+  videos.forEach((vid, idx) => {
+    vid.isEnrichedSample = idx < 4;
+  });
+
+  // Dynamically compute stats from videos array (strictly evaluating 4 sample posts)
   const stats = calculateTikTokStats(videos, followerCount);
 
   const profile: TikTokProfile = {
