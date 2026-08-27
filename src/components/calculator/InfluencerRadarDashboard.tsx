@@ -1160,13 +1160,28 @@ function PlatformRateCardItem({
             </div>
             {data.rateCardItems?.map((item) => {
               const label = FORMAT_LABELS[item.format]?.label || item.format;
+              const isYtLong = platform === "youtube" && (item.format === "yt_dedicated" || item.format === "yt_integrated");
+              const isYtShort = platform === "youtube" && item.format === "yt_short";
+
               return (
                 <div
                   key={item.format}
                   className="flex items-center justify-between p-2 rounded-lg border border-gray-100 hover:border-gray-300 bg-white transition-all text-xs"
                 >
                   <div className="truncate pr-2">
-                    <div className="font-semibold text-gray-900 truncate">{label}</div>
+                    <div className="flex items-center gap-1.5 font-semibold text-gray-900 truncate">
+                      <span>{label}</span>
+                      {isYtLong && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-mono font-normal shrink-0">
+                          Long-Form ER
+                        </span>
+                      )}
+                      {isYtShort && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 font-mono font-normal shrink-0">
+                          Shorts ER
+                        </span>
+                      )}
+                    </div>
                     <div className="text-[10px] text-gray-400 font-mono">
                       {item.formattedLow} – {item.formattedHigh}
                     </div>

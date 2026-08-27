@@ -138,16 +138,31 @@ export function formatDbRecordToScraperData(record: {
     ? record.shortVideos
     : []) as YouTubeVideoItem[];
 
-  const stats = (record.stats && typeof record.stats === 'object'
-    ? record.stats
-    : {
-        totalLongVideosFetched: longVideos.length,
-        totalShortVideosFetched: shortVideos.length,
-        avgLongVideoViews: 0,
-        avgShortVideoViews: 0,
-        avgLongEngagementRate: 0,
-        avgShortEngagementRate: 0,
-      }) as YouTubeScraperData['stats'];
+  // Dynamically calculate pure long-form and short-form metrics from stored uploads
+  const totalLongViews = longVideos.reduce((sum, v) => sum + (v.viewCount || 0), 0);
+  const avgLongVideoViews = longVideos.length > 0 ? Math.round(totalLongViews / longVideos.length) : 0;
+
+  const totalShortViews = shortVideos.reduce((sum, v) => sum + (v.viewCount || 0), 0);
+  const avgShortVideoViews = shortVideos.length > 0 ? Math.round(totalShortViews / shortVideos.length) : 0;
+
+  const avgLongEngagementRate =
+    totalLongViews > 0
+      ? parseFloat(((longVideos.reduce((sum, v) => sum + (v.likeCount || 0) + (v.commentCount || 0), 0) / totalLongViews) * 100).toFixed(2))
+      : 0;
+
+  const avgShortEngagementRate =
+    totalShortViews > 0
+      ? parseFloat(((shortVideos.reduce((sum, v) => sum + (v.likeCount || 0) + (v.commentCount || 0), 0) / totalShortViews) * 100).toFixed(2))
+      : 0;
+
+  const stats = {
+    totalLongVideosFetched: longVideos.length,
+    totalShortVideosFetched: shortVideos.length,
+    avgLongVideoViews,
+    avgShortVideoViews,
+    avgLongEngagementRate,
+    avgShortEngagementRate,
+  };
 
   return {
     channel: {
