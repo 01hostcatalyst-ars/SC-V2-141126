@@ -22,7 +22,7 @@ export function PublicHeader({ authButton }: PublicHeaderProps) {
         {/* Right Action Buttons */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
-            href="/calculator"
+            href="/influencer-rate-calculator"
             className="px-3 py-2 text-xs font-bold rounded-lg border border-gray-300 text-gray-700 hover:text-black hover:border-black hover:bg-gray-50 transition-all shadow-2xs whitespace-nowrap hidden sm:inline-flex items-center gap-1.5"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

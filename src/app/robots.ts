@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/calculator", "/knowledge", "/survey", "/verify", "/contact"],
+        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/influencer-rate-calculator", "/calculator", "/knowledge", "/survey", "/verify", "/contact"],
         disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers"],
       },
       {
@@ -23,7 +23,7 @@ export default function robots(): MetadataRoute.Robots {
           "Googlebot",
           "bingbot",
         ],
-        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/calculator", "/knowledge", "/survey", "/verify", "/contact"],
+        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/influencer-rate-calculator", "/calculator", "/knowledge", "/survey", "/verify", "/contact"],
         disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers"],
       },
     ],

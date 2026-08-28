@@ -7,7 +7,7 @@ export function PublicFooter() {
 
   const footerLinks = [
     { label: "Home", href: "/" },
-    { label: "Rate Calculator", href: "/calculator" },
+    { label: "Rate Calculator", href: "/influencer-rate-calculator" },
     { label: "About Us", href: "/about" },
     { label: "Vision & Mission", href: "/vision" },
     { label: "Knowledge Base", href: "/knowledge" },

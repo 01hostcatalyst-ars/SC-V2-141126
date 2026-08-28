@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/calculator`,
+      url: `${baseUrl}/influencer-rate-calculator`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.95,

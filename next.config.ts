@@ -36,6 +36,16 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/calculator",
+        destination: "/influencer-rate-calculator",
+        permanent: true,
+      },
+      {
+        source: "/influancer-rate-calculator",
+        destination: "/influencer-rate-calculator",
+        permanent: true,
+      },
+      {
         source: "/login",
         destination: "/",
         permanent: true,
