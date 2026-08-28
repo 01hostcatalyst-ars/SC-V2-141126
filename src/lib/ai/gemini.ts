@@ -17,6 +17,44 @@ export interface CreatorAIClassification {
   creatorSummary: string;
 }
 
+export interface MultiPlatformCreatorInput {
+  creatorName?: string;
+  primaryPlatform?: 'youtube' | 'instagram' | 'tiktok';
+  reportedCountry?: string;
+  youtube?: {
+    handle?: string;
+    title?: string;
+    description?: string;
+    country?: string;
+    topicCategories?: string[];
+    keywords?: string[];
+    recentTitles?: string[];
+    subscriberCount?: number;
+    avgViews?: number;
+  };
+  instagram?: {
+    username: string;
+    fullName?: string;
+    biography?: string;
+    categoryName?: string;
+    city?: string;
+    businessAddress?: string;
+    recentCaptions?: string[];
+    hashtags?: string[];
+    followerCount?: number;
+    avgLikes?: number;
+  };
+  tiktok?: {
+    username: string;
+    nickname?: string;
+    biography?: string;
+    isCommerceUser?: boolean;
+    recentDescriptions?: string[];
+    followerCount?: number;
+    avgViews?: number;
+  };
+}
+
 export interface CreatorContextInput {
   platform: 'youtube' | 'instagram' | 'tiktok';
   username: string;
@@ -77,8 +115,7 @@ async function getGoogleCloudAccessToken(): Promise<string> {
 }
 
 /**
- * Retrieves the most recent historical AI classification from the database for this creator
- * (Used only if both Tier 1 and Tier 2 live AI models are temporarily unreachable)
+ * Retrieves historical AI classification from the database as a safe fallback
  */
 async function getHistoricalAIEnrichmentFromDB(
   platform: 'youtube' | 'instagram' | 'tiktok',
@@ -186,11 +223,11 @@ async function getHistoricalAIEnrichmentFromDB(
 }
 
 /**
- * Enriches creator profile using Google Cloud Vertex AI (Primary: gemini-3.7-flash, Secondary: gemini-3.6-flash)
- * If both live models fail, gracefully fetches the most recent historical AI classification from the database.
+ * Unified Multi-Platform AI Enrichment via Google Cloud Vertex AI (Gemini 3.7 Flash)
+ * Analyzes YouTube, Instagram, and TikTok together in a single holistic prompt.
  */
-export async function enrichCreatorWithAI(
-  input: CreatorContextInput
+export async function enrichMultiPlatformCreatorWithAI(
+  input: MultiPlatformCreatorInput
 ): Promise<CreatorAIClassification> {
   const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID?.trim();
   if (!projectId) {
@@ -208,36 +245,67 @@ export async function enrichCreatorWithAI(
     (n) => `ID ${n.id}: "${n.name}" (Multiplier: ${n.multiplier}x) - ${n.description}`
   ).join('\n');
 
-  const titles = (input.recentVideoTitles || input.recentCaptions || []).slice(0, 15).join('\n- ');
-  const tags = (input.hashtags || []).slice(0, 15).join(', ');
+  // Build structured cross-platform dossier
+  const platformDossiers: string[] = [];
 
-  const systemInstruction = `You are an elite influencer marketing economist and brand partnership analyst for SignCollab.
-Your job is to analyze creator social data and output a strict structured JSON classification.
+  if (input.youtube) {
+    const yt = input.youtube;
+    const topics = yt.topicCategories?.length ? `YouTube Official Topics: ${yt.topicCategories.join(', ')}` : '';
+    const keywords = yt.keywords?.length ? `Channel Keywords: ${yt.keywords.slice(0, 10).join(', ')}` : '';
+    const titles = yt.recentTitles?.length ? `Recent Video Titles:\n    - ${yt.recentTitles.slice(0, 10).join('\n    - ')}` : '';
+    platformDossiers.push(`  [YOUTUBE CHANNEL]
+  - Channel Name: ${yt.title || 'Unknown'} (Handle: ${yt.handle || 'None'})
+  - Description: ${yt.description || 'None'}
+  - Official Country Code: ${yt.country || 'Unknown'}
+  - Scale: ${(yt.subscriberCount || 0).toLocaleString()} subscribers | ${(yt.avgViews || 0).toLocaleString()} avg views
+  ${topics ? `- ${topics}\n  ` : ''}${keywords ? `- ${keywords}\n  ` : ''}${titles ? `- ${titles}` : ''}`);
+  }
 
-Available Niches (You MUST select only from these IDs):
+  if (input.instagram) {
+    const ig = input.instagram;
+    const location = [ig.city, ig.businessAddress].filter(Boolean).join(', ');
+    const tags = ig.hashtags?.length ? `Top Hashtags: #${ig.hashtags.slice(0, 10).join(', #')}` : '';
+    const captions = ig.recentCaptions?.length ? `Recent Post Captions:\n    - ${ig.recentCaptions.slice(0, 8).join('\n    - ')}` : '';
+    platformDossiers.push(`  [INSTAGRAM PROFILE]
+  - Account: @${ig.username} (${ig.fullName || ig.username})
+  - Native Business Category: ${ig.categoryName || 'Not specified'}
+  - Bio: ${ig.biography || 'None'}
+  - Verified Location: ${location || 'None'}
+  - Scale: ${(ig.followerCount || 0).toLocaleString()} followers | ${(ig.avgLikes || 0).toLocaleString()} avg likes
+  ${tags ? `- ${tags}\n  ` : ''}${captions ? `- ${captions}` : ''}`);
+  }
+
+  if (input.tiktok) {
+    const tt = input.tiktok;
+    const desc = tt.recentDescriptions?.length ? `Recent Video Descriptions:\n    - ${tt.recentDescriptions.slice(0, 8).join('\n    - ')}` : '';
+    platformDossiers.push(`  [TIKTOK PROFILE]
+  - Account: @${tt.username} (${tt.nickname || tt.username})
+  - Bio: ${tt.biography || 'None'}
+  - TikTok Shop / Commerce Account: ${tt.isCommerceUser ? 'Yes' : 'No'}
+  - Scale: ${(tt.followerCount || 0).toLocaleString()} followers | ${(tt.avgViews || 0).toLocaleString()} avg views
+  ${desc ? `- ${desc}` : ''}`);
+  }
+
+  const systemInstruction = `You are an elite influencer marketing economist and cross-platform brand partnership analyst for SignCollab.
+Your job is to analyze this creator's complete multi-platform social footprint and output a strict structured JSON classification.
+
+Available Niches (You MUST select only from these exact IDs):
 ${nicheOptions}
 
 Rules:
-1. Select 1 Primary Niche (the main topic they monetize).
+1. Select 1 Primary Niche (the main vertical they monetize across all platforms).
 2. Select 2 Secondary Niches (adjacent categories they create content for).
-3. Detect the Creator's Country Code in 2-letter ISO (e.g. US, PK, IN, GB, CA, AU, AE, etc.). If unknown, infer from language/currency/locations or default to "US".
-4. Write a punchy 2-sentence Brand Executive Summary highlighting their content focus, production style, and brand collaboration value.
+3. Detect the Creator's Country Code in 2-letter ISO (e.g. US, GB, IN, CA, AU, AE, PK, BR, etc.). Combine official YouTube country, Instagram city/address, and linguistic/currency clues. If completely unknown, default to "US".
+4. Write a punchy 2-sentence Brand Executive Summary highlighting their content focus, cross-channel reach, production quality, and sponsor appeal.
 5. Return ONLY clean raw JSON matching the required schema.`;
 
-  const userPrompt = `Creator Profile Analysis:
-Platform: ${input.platform}
-Handle: @${input.username}
-Display Name: ${input.name || input.username}
-Biography: ${input.biography || 'None'}
-Website/Bio Link: ${input.bioLink || 'None'}
-Language: ${input.detectedLanguage || 'Unknown'}
-Location Hint: ${input.reportedCountry || 'Unknown'}
-Hashtags: ${tags || 'None'}
+  const userPrompt = `Creator Omnichannel Profile Analysis:
+Creator Name: ${input.creatorName || 'Unknown Creator'}
+Active Platforms Evaluated: ${[input.youtube ? 'YouTube' : '', input.instagram ? 'Instagram' : '', input.tiktok ? 'TikTok' : ''].filter(Boolean).join(', ')}
 
-Recent 15 Video Titles / Captions:
-- ${titles || 'No recent titles available'}
+${platformDossiers.join('\n\n')}
 
-Analyze this creator and return the exact structured JSON with primaryNiche, secondaryNiches, detectedCountry, and creatorSummary.`;
+Analyze this creator across all connected platforms and return the exact structured JSON with primaryNiche, secondaryNiches, detectedCountry, and creatorSummary.`;
 
   const requestPayload = {
     contents: [
@@ -254,7 +322,6 @@ Analyze this creator and return the exact structured JSON with primaryNiche, sec
 
   const modelErrors: string[] = [];
 
-  // Try Primary Model (gemini-3.7-flash), then Tier 2 (gemini-3.6-flash)
   if (vertexToken) {
     for (const model of PRIMARY_MODELS) {
       try {
@@ -289,7 +356,6 @@ Analyze this creator and return the exact structured JSON with primaryNiche, sec
 
         const parsed = JSON.parse(candidateText);
 
-        // Validate and resolve niches
         const primaryDef = PRIMARY_NICHES.find((p) => p.id === parsed.primaryNiche?.id) || PRIMARY_NICHES[7];
         const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
 
@@ -323,9 +389,9 @@ Analyze this creator and return the exact structured JSON with primaryNiche, sec
             confidence: typeof parsed.primaryNiche?.confidence === 'number' ? parsed.primaryNiche.confidence : 0.95,
           },
           secondaryNiches: secondaryList,
-          detectedCountry: String(parsed.detectedCountry || input.reportedCountry || 'US').toUpperCase().slice(0, 2),
+          detectedCountry: String(parsed.detectedCountry || input.reportedCountry || input.youtube?.country || 'US').toUpperCase().slice(0, 2),
           creatorSummary: String(
-            parsed.creatorSummary || `${primaryDef.name} creator sharing high-engagement content on ${input.platform}.`
+            parsed.creatorSummary || `${primaryDef.name} creator creating engaging cross-platform content.`
           ),
         };
       } catch (err: unknown) {
@@ -336,21 +402,59 @@ Analyze this creator and return the exact structured JSON with primaryNiche, sec
     }
   }
 
-  // 3. Fallback: Check if we have previous verified LLM classification data stored in our database for this creator
-  console.warn(
-    `[Gemini Vertex AI] Live AI models unavailable. Attempting to retrieve previous historical LLM classification from database for @${input.username}...`
-  );
+  // Fallback to database
+  const fallbackHandle = input.youtube?.handle || input.instagram?.username || input.tiktok?.username || '';
+  const fallbackPlatform = input.primaryPlatform || (input.youtube ? 'youtube' : input.instagram ? 'instagram' : 'tiktok');
 
-  const historicalData = await getHistoricalAIEnrichmentFromDB(input.platform, input.username);
-  if (historicalData) {
-    console.log(
-      `[Gemini Vertex AI] Successfully recovered previous LLM classification from database for @${input.username} (${historicalData.primaryNiche.name}).`
-    );
-    return historicalData;
+  if (fallbackHandle) {
+    const historicalData = await getHistoricalAIEnrichmentFromDB(fallbackPlatform, fallbackHandle);
+    if (historicalData) {
+      return historicalData;
+    }
   }
 
-  // If live models failed AND creator has never been analyzed before in DB, throw explicit error
   throw new Error(
-    `[Gemini Vertex AI Failure] All AI models (${PRIMARY_MODELS.join(', ')}) failed, and no previous historical AI data exists in database for @${input.username}. Details:\n${modelErrors.join('\n')}`
+    `[Gemini Vertex AI Failure] All AI models (${PRIMARY_MODELS.join(', ')}) failed. Details:\n${modelErrors.join('\n')}`
   );
+}
+
+/**
+ * Backward-compatible single-platform wrapper for individual scraper pages
+ */
+export async function enrichCreatorWithAI(
+  input: CreatorContextInput
+): Promise<CreatorAIClassification> {
+  const multiInput: MultiPlatformCreatorInput = {
+    creatorName: input.name || input.username,
+    primaryPlatform: input.platform,
+    reportedCountry: input.reportedCountry,
+  };
+
+  if (input.platform === 'youtube') {
+    multiInput.youtube = {
+      handle: input.username,
+      title: input.name || input.username,
+      description: input.biography,
+      country: input.reportedCountry,
+      recentTitles: input.recentVideoTitles || input.recentCaptions,
+      keywords: input.hashtags,
+    };
+  } else if (input.platform === 'instagram') {
+    multiInput.instagram = {
+      username: input.username,
+      fullName: input.name,
+      biography: input.biography,
+      recentCaptions: input.recentCaptions || input.recentVideoTitles,
+      hashtags: input.hashtags,
+    };
+  } else if (input.platform === 'tiktok') {
+    multiInput.tiktok = {
+      username: input.username,
+      nickname: input.name,
+      biography: input.biography,
+      recentDescriptions: input.recentCaptions || input.recentVideoTitles,
+    };
+  }
+
+  return enrichMultiPlatformCreatorWithAI(multiInput);
 }

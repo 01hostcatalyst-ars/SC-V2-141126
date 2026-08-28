@@ -186,16 +186,44 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. AI Multi-Niche & Brand Summary Enrichment
-    const aiEnrichment = await enrichCreatorWithAI({
-      platform,
-      username,
-      name: displayName,
-      biography,
-      recentVideoTitles: recentTitles,
-      bioLink,
+    // 2. AI Multi-Niche & Brand Summary Enrichment with Full Platform Telemetry
+    const multiInput: import('@/lib/ai/gemini').MultiPlatformCreatorInput = {
+      creatorName: displayName || username,
+      primaryPlatform: platform,
       reportedCountry: detectedCountry,
-    });
+    };
+
+    if (platform === 'youtube') {
+      multiInput.youtube = {
+        handle: username,
+        title: displayName,
+        description: biography,
+        country: detectedCountry,
+        recentTitles: recentTitles,
+        subscriberCount: followerCount,
+        avgViews: avgViews,
+      };
+    } else if (platform === 'instagram') {
+      multiInput.instagram = {
+        username,
+        fullName: displayName,
+        biography,
+        recentCaptions: recentTitles,
+        followerCount,
+        avgLikes,
+      };
+    } else if (platform === 'tiktok') {
+      multiInput.tiktok = {
+        username,
+        nickname: displayName,
+        biography,
+        recentDescriptions: recentTitles,
+        followerCount,
+        avgViews,
+      };
+    }
+
+    const aiEnrichment = await (await import('@/lib/ai/gemini')).enrichMultiPlatformCreatorWithAI(multiInput);
 
     const primaryNicheId = aiEnrichment.primaryNiche.id;
     const secondaryNicheIds = aiEnrichment.secondaryNiches.map((s) => s.id);
