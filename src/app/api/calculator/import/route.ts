@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
     let avatarUrl = '';
     let bioLink = '';
     let recentTitles: string[] = [];
+    let platformComments: string[] = [];
     let externalLinks: Array<{ platform: string; url: string }> = [];
     let detectedCountry: string | undefined = regionCode;
 
@@ -169,6 +170,17 @@ export async function POST(req: NextRequest) {
       bioLink = ttData.profile.bioLink || '';
       recentTitles = ttData.videos.map((v) => v.description || '');
 
+      if (Array.isArray(ttData.videos)) {
+        const unpinned = ttData.videos.filter((v) => !v.isPinned).slice(0, 5);
+        for (const v of unpinned) {
+          if (Array.isArray(v.comments)) {
+            for (const c of v.comments.slice(0, 5)) {
+              if (c.text) platformComments.push(c.text);
+            }
+          }
+        }
+      }
+
       if (bioLink.includes('youtube.com') || bioLink.includes('youtu.be')) {
         externalLinks.push({ platform: 'youtube', url: bioLink });
       }
@@ -218,6 +230,7 @@ export async function POST(req: NextRequest) {
         nickname: displayName,
         biography,
         recentDescriptions: recentTitles,
+        topComments: platformComments,
         followerCount,
         avgViews,
       };

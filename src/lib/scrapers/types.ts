@@ -174,6 +174,14 @@ export interface InstagramScraperData {
 // TIKTOK TYPES
 // ==========================================
 
+export interface TikTokCommentItem {
+  id?: string;
+  authorUsername?: string;
+  text: string;
+  date?: string;
+  likes?: number;
+}
+
 export interface TikTokVideoItem {
   id: string;
   url: string;
@@ -193,6 +201,7 @@ export interface TikTokVideoItem {
   postType?: string;
   isPinned?: boolean;
   isEnrichedSample?: boolean;
+  comments?: TikTokCommentItem[];
 }
 
 export interface TikTokProfile {

@@ -50,6 +50,7 @@ export interface MultiPlatformCreatorInput {
     biography?: string;
     isCommerceUser?: boolean;
     recentDescriptions?: string[];
+    topComments?: string[];
     followerCount?: number;
     avgViews?: number;
   };
@@ -278,12 +279,13 @@ export async function enrichMultiPlatformCreatorWithAI(
   if (input.tiktok) {
     const tt = input.tiktok;
     const desc = tt.recentDescriptions?.length ? `Recent Video Descriptions:\n    - ${tt.recentDescriptions.slice(0, 8).join('\n    - ')}` : '';
+    const comments = tt.topComments?.length ? `Audience Sample Comments (Top Unpinned Videos):\n    - "${tt.topComments.slice(0, 15).join('"\n    - "')}"` : '';
     platformDossiers.push(`  [TIKTOK PROFILE]
   - Account: @${tt.username} (${tt.nickname || tt.username})
   - Bio: ${tt.biography || 'None'}
   - TikTok Shop / Commerce Account: ${tt.isCommerceUser ? 'Yes' : 'No'}
   - Scale: ${(tt.followerCount || 0).toLocaleString()} followers | ${(tt.avgViews || 0).toLocaleString()} avg views
-  ${desc ? `- ${desc}` : ''}`);
+  ${desc ? `- ${desc}\n  ` : ''}${comments ? `- ${comments}` : ''}`);
   }
 
   const systemInstruction = `You are an elite influencer marketing economist and cross-platform brand partnership analyst for SignCollab.

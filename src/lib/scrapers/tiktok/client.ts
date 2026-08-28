@@ -198,9 +198,30 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
     const commentCount = Number(v.commentcount || v.comments || 0);
     const shareCount = Number(v.share_count || v.shares || 0);
     const favoritesCount = Number(v.favorites_count || v.saves || 0);
-
     const description = postDescMap.get(videoId) || (v.description as string) || '';
     const isExplicitlyPinned = Boolean(v.is_pinned || v.pinned || v.is_top || v.is_pinned_item);
+
+    const rawComments = Array.isArray(v.comments)
+      ? (v.comments as Array<Record<string, unknown>>)
+      : Array.isArray(v.top_comments)
+      ? (v.top_comments as Array<Record<string, unknown>>)
+      : [];
+
+    const extractedComments = rawComments
+      .slice(0, 5)
+      .map((c, cIdx) => ({
+        id: String(c.id || c.comment_id || cIdx),
+        authorUsername:
+          (c.user as { unique_id?: string; nickname?: string })?.unique_id ||
+          (typeof c.user === 'string' ? c.user : undefined) ||
+          (c.username as string) ||
+          (c.author as string) ||
+          undefined,
+        text: (c.text as string) || (c.comment as string) || (c.content as string) || '',
+        date: (c.create_time as string) || undefined,
+        likes: Number(c.digg_count || c.likes || 0),
+      }))
+      .filter((c) => Boolean(c.text));
 
     return {
       id: videoId,
@@ -220,6 +241,7 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
       createDate: (v.create_date as string) || undefined,
       postType: 'video',
       isPinned: isExplicitlyPinned,
+      comments: extractedComments,
     };
   });
 
