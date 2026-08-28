@@ -132,7 +132,7 @@ export function ProfileImportHeader({
             <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
               Live Scraper &amp; AI Integration
             </span>
-            <span className="text-xs font-semibold text-gray-400">Gemini 3.7 Flash Powered</span>
+            <span className="text-xs font-semibold text-gray-400">SignCollab LLM Engine Powered</span>
           </div>
           <h2 className="text-lg font-black text-black tracking-tight mt-1">
             Import Creator Profile

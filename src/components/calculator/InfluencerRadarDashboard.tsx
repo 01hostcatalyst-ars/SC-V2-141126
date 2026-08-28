@@ -1202,8 +1202,12 @@ export function InfluencerRadarDashboard() {
           {verifiedChannelsCount > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-gray-50 border border-gray-200 text-xs animate-fadeIn">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1">
-                  <span>🌐</span> Country Calibration:
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                    <path strokeWidth="2" d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  </svg>
+                  Country Calibration:
                 </span>
                 <select
                   value={selectedRegion}
@@ -1214,23 +1218,23 @@ export function InfluencerRadarDashboard() {
                   }}
                   className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs"
                 >
-                  <option value="PK">🇵🇰 Pakistan (PKR · 0.18x PPP)</option>
-                  <option value="US">🇺🇸 United States (USD · 1.00x)</option>
-                  <option value="GB">🇬🇧 United Kingdom (GBP · 0.85x PPP)</option>
-                  <option value="IN">🇮🇳 India (INR · 0.24x PPP)</option>
-                  <option value="CA">🇨🇦 Canada (CAD · 0.90x PPP)</option>
-                  <option value="AU">🇦🇺 Australia (AUD · 0.88x PPP)</option>
-                  <option value="AE">🇦🇪 United Arab Emirates (AED · 0.68x PPP)</option>
-                  <option value="SA">🇸🇦 Saudi Arabia (SAR · 0.62x PPP)</option>
-                  <option value="DE">🇩🇪 Germany (EUR · 0.85x PPP)</option>
-                  <option value="FR">🇫🇷 France (EUR · 0.84x PPP)</option>
-                  <option value="SG">🇸🇬 Singapore (SGD · 0.82x PPP)</option>
-                  <option value="BR">🇧🇷 Brazil (BRL · 0.36x PPP)</option>
-                  <option value="BD">🇧🇩 Bangladesh (BDT · 0.20x PPP)</option>
-                  <option value="NG">🇳🇬 Nigeria (NGN · 0.16x PPP)</option>
-                  <option value="EG">🇪🇬 Egypt (EGP · 0.17x PPP)</option>
-                  <option value="TR">🇹🇷 Turkey (TRY · 0.32x PPP)</option>
-                  <option value="ZA">🇿🇦 South Africa (ZAR · 0.38x PPP)</option>
+                  <option value="PK">Pakistan (PKR · 0.18x PPP)</option>
+                  <option value="US">United States (USD · 1.00x)</option>
+                  <option value="GB">United Kingdom (GBP · 0.85x PPP)</option>
+                  <option value="IN">India (INR · 0.24x PPP)</option>
+                  <option value="CA">Canada (CAD · 0.90x PPP)</option>
+                  <option value="AU">Australia (AUD · 0.88x PPP)</option>
+                  <option value="AE">United Arab Emirates (AED · 0.68x PPP)</option>
+                  <option value="SA">Saudi Arabia (SAR · 0.62x PPP)</option>
+                  <option value="DE">Germany (EUR · 0.85x PPP)</option>
+                  <option value="FR">France (EUR · 0.84x PPP)</option>
+                  <option value="SG">Singapore (SGD · 0.82x PPP)</option>
+                  <option value="BR">Brazil (BRL · 0.36x PPP)</option>
+                  <option value="BD">Bangladesh (BDT · 0.20x PPP)</option>
+                  <option value="NG">Nigeria (NGN · 0.16x PPP)</option>
+                  <option value="EG">Egypt (EGP · 0.17x PPP)</option>
+                  <option value="TR">Turkey (TRY · 0.32x PPP)</option>
+                  <option value="ZA">South Africa (ZAR · 0.38x PPP)</option>
                 </select>
               </div>
 
@@ -1244,43 +1248,44 @@ export function InfluencerRadarDashboard() {
           {/* SECTION 3.5: COMPLETE 19-POINT CREATOR INTELLIGENCE DOSSIER */}
           {/* ========================================================= */}
           {completeIntelligence ? (
-            <div className="p-5 sm:p-6 rounded-2xl bg-white border border-gray-200/90 shadow-sm space-y-4 animate-fadeIn">
+            <div className="p-5 sm:p-6 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-4 animate-fadeIn">
               {/* Header with Positioning & Refresh */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded-lg">
+                  <span className="text-xs font-black uppercase tracking-wider bg-gray-950 text-white px-3 py-1 rounded-lg">
                     {completeIntelligence.profile?.creatorType || "Creator"}
                   </span>
                   {completeIntelligence.profile?.primaryNiche && (
-                    <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2.5 py-0.5 rounded-lg border border-gray-200">
+                    <span className="text-xs font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded-lg border border-gray-200">
                       {completeIntelligence.profile.primaryNiche.name} ({completeIntelligence.profile.primaryNiche.multiplier}x)
                     </span>
                   )}
                   {completeIntelligence.geography?.countryCode && (
-                    <span className="text-xs font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-md">
-                      📍 {completeIntelligence.geography.countryName || completeIntelligence.geography.countryCode} {completeIntelligence.geography.city ? `(${completeIntelligence.geography.city})` : ""}
+                    <span className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                      <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span>{completeIntelligence.geography.countryName || completeIntelligence.geography.countryCode} {completeIntelligence.geography.city ? `(${completeIntelligence.geography.city})` : ""}</span>
                     </span>
                   )}
                   {completeIntelligence.brandSafety?.overallRisk && (
-                    <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
-                      completeIntelligence.brandSafety.overallRisk === "Low"
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                        : "bg-amber-50 border-amber-200 text-amber-700"
-                    }`}>
-                      Safety: {completeIntelligence.brandSafety.overallRisk} Risk
+                    <span className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${completeIntelligence.brandSafety.overallRisk === "Low" ? "bg-emerald-500" : "bg-amber-500"}`} />
+                      <span>Safety: {completeIntelligence.brandSafety.overallRisk} Risk</span>
                     </span>
                   )}
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1">
+                  <span className="text-[11px] text-gray-500 font-medium flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 24h Verified Cache
                   </span>
                   <button
                     type="button"
                     onClick={() => triggerOmnichannelSynthesis(true)}
                     disabled={isSynthesizing}
-                    className="px-2.5 py-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-all border border-gray-200 cursor-pointer"
+                    className="px-3 py-1 text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg transition-all border border-gray-200 cursor-pointer"
                   >
                     {isSynthesizing ? "Analyzing..." : "↻ Refresh AI"}
                   </button>
@@ -1289,7 +1294,7 @@ export function InfluencerRadarDashboard() {
 
               {/* Brand Summary */}
               {(completeIntelligence.summary?.brandSummary || completeIntelligence.summary?.oneLine) && (
-                <p className="text-xs sm:text-sm text-gray-800 leading-relaxed font-medium">
+                <p className="text-xs sm:text-sm text-gray-800 leading-relaxed font-normal bg-gray-50/50 p-3.5 rounded-xl border border-gray-100">
                   &ldquo;{completeIntelligence.summary.brandSummary || completeIntelligence.summary.oneLine}&rdquo;
                 </p>
               )}
@@ -1297,81 +1302,139 @@ export function InfluencerRadarDashboard() {
               {/* Micro-Niches Tags */}
               {(completeIntelligence.profile?.microNiches?.length ?? 0) > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                  <span className="text-[11px] text-gray-400 font-semibold">Micro-Niches:</span>
+                  <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Micro-Niches:</span>
                   {completeIntelligence.profile.microNiches.map((mn, i) => (
-                    <span key={i} className="text-[10px] font-semibold bg-gray-50 text-gray-700 px-2 py-0.5 rounded-md border border-gray-200">
+                    <span key={i} className="text-xs font-medium bg-gray-50 text-gray-800 px-2.5 py-1 rounded-lg border border-gray-200">
                       {mn}
                     </span>
                   ))}
                 </div>
               )}
 
-              {/* 4-Pillar Intelligence Sub-Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
-                {/* Pillar 1: Inferred Audience */}
-                <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-1.5">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-rose-700 flex items-center gap-1">
-                    <span>👥</span> Inferred Audience
+              {/* 2x2 High-End Intelligence Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
+                {/* Card 1: Inferred Audience */}
+                <div className="p-4 rounded-xl bg-gray-50/70 border border-gray-200 space-y-2.5">
+                  <div className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-1.5 pb-1 border-b border-gray-200/60">
+                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span>Inferred Audience</span>
                   </div>
-                  <div className="space-y-1 text-[11px]">
-                    <div className="flex justify-between"><span className="text-gray-500">Demographic:</span> <span className="font-semibold text-gray-950">{completeIntelligence.audience?.genderSkew || "Balanced"}, {completeIntelligence.audience?.likelyAgeRange || "18-34"}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Buyer Intent:</span> <span className="font-bold text-emerald-700">{completeIntelligence.audience?.purchaseIntent || "Moderate"}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Top Market:</span> <span className="font-semibold text-gray-950">{completeIntelligence.audience?.primaryMarket || "Global"}</span></div>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
+                      <span className="text-gray-500">Demographic Profile</span>
+                      <span className="font-semibold text-gray-950">{completeIntelligence.audience?.genderSkew || "Balanced"}, {completeIntelligence.audience?.likelyAgeRange || "18-34"}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
+                      <span className="text-gray-500">Commercial Buyer Intent</span>
+                      <span className="font-bold text-gray-900 bg-gray-200/70 px-2 py-0.5 rounded-md text-[11px]">{completeIntelligence.audience?.purchaseIntent || "Moderate"} Intent</span>
+                    </div>
+                    <div className="flex justify-between items-center py-0.5">
+                      <span className="text-gray-500">Primary Regional Market</span>
+                      <span className="font-semibold text-gray-950">{completeIntelligence.audience?.primaryMarket || "Global"}</span>
+                    </div>
                   </div>
                   {(completeIntelligence.audience?.interests?.length ?? 0) > 0 && (
-                    <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
-                      Interests: {completeIntelligence.audience.interests.slice(0, 3).join(", ")}
+                    <div className="pt-2 border-t border-gray-200/60 space-y-1">
+                      <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Audience Interests</div>
+                      <div className="flex flex-wrap gap-1">
+                        {completeIntelligence.audience.interests.map((interest, idx) => (
+                          <span key={idx} className="text-[11px] bg-white text-gray-800 px-2 py-0.5 rounded-md border border-gray-200">
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Pillar 2: Content DNA */}
-                <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-1.5">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-amber-700 flex items-center gap-1">
-                    <span>🎬</span> Content DNA
+                {/* Card 2: Content DNA */}
+                <div className="p-4 rounded-xl bg-gray-50/70 border border-gray-200 space-y-2.5">
+                  <div className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-1.5 pb-1 border-b border-gray-200/60">
+                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span>Content DNA &amp; Format</span>
                   </div>
-                  <div className="space-y-1 text-[11px]">
-                    <div className="flex justify-between"><span className="text-gray-500">Format:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content?.dominantFormat || "Video"}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Production:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content?.productionLevel || "High"}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Consistency:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content?.contentConsistency || "High"}</span></div>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
+                      <span className="text-gray-500">Dominant Format</span>
+                      <span className="font-semibold text-gray-950">{completeIntelligence.content?.dominantFormat || "Video"}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
+                      <span className="text-gray-500">Production Standard</span>
+                      <span className="font-semibold text-gray-950">{completeIntelligence.content?.productionLevel || "High"}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-0.5">
+                      <span className="text-gray-500">Publishing Consistency</span>
+                      <span className="font-semibold text-gray-950">{completeIntelligence.content?.contentConsistency || "High"}</span>
+                    </div>
                   </div>
                   {(completeIntelligence.contentThemes?.length ?? 0) > 0 && (
-                    <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
-                      Themes: {completeIntelligence.contentThemes.slice(0, 3).map((t) => t.theme).join(", ")}
+                    <div className="pt-2 border-t border-gray-200/60 space-y-1">
+                      <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Top Content Themes</div>
+                      <div className="flex flex-wrap gap-1">
+                        {completeIntelligence.contentThemes.map((t, idx) => (
+                          <span key={idx} className="text-[11px] bg-white text-gray-800 px-2 py-0.5 rounded-md border border-gray-200">
+                            {t.theme} {t.strength ? `(${Math.round(t.strength * 100)}%)` : ""}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Pillar 3: Brand Fit */}
-                <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-1.5">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-cyan-800 flex items-center gap-1">
-                    <span>🤝</span> Brand Fit
+                {/* Card 3: Brand Fit & Commercial Profile */}
+                <div className="p-4 rounded-xl bg-gray-50/70 border border-gray-200 space-y-2.5">
+                  <div className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-1.5 pb-1 border-b border-gray-200/60">
+                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Brand Fit &amp; Sponsorships</span>
                   </div>
-                  <div className="space-y-1 text-[11px]">
-                    <div className="flex justify-between"><span className="text-gray-500">Commercial:</span> <span className="font-semibold text-gray-950">{completeIntelligence.commercialIntelligence?.commercialIntent || "High"}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Suitability:</span> <span className="font-bold text-emerald-700">{completeIntelligence.brandFit?.brandSuitability || "High"}</span></div>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
+                      <span className="text-gray-500">Commercial Intent</span>
+                      <span className="font-semibold text-gray-950">{completeIntelligence.commercialIntelligence?.commercialIntent || "High"}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-0.5">
+                      <span className="text-gray-500">Brand Suitability</span>
+                      <span className="font-bold text-gray-900 bg-gray-200/70 px-2 py-0.5 rounded-md text-[11px]">{completeIntelligence.brandFit?.brandSuitability || "High"}</span>
+                    </div>
                   </div>
                   {(completeIntelligence.brandFit?.bestFitCategories?.length ?? 0) > 0 && (
-                    <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
-                      Categories: {completeIntelligence.brandFit.bestFitCategories.slice(0, 3).join(", ")}
+                    <div className="pt-2 border-t border-gray-200/60 space-y-1">
+                      <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Best Fit Categories</div>
+                      <div className="flex flex-wrap gap-1">
+                        {completeIntelligence.brandFit.bestFitCategories.map((cat, idx) => (
+                          <span key={idx} className="text-[11px] bg-white text-gray-800 px-2 py-0.5 rounded-md border border-gray-200">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Pillar 4: Top Strengths */}
-                <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-1.5">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1">
-                    <span>⭐</span> Key Strengths
+                {/* Card 4: Key Strategic Strengths */}
+                <div className="p-4 rounded-xl bg-gray-50/70 border border-gray-200 space-y-2.5">
+                  <div className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-1.5 pb-1 border-b border-gray-200/60">
+                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Key Strategic Strengths</span>
                   </div>
-                  <div className="space-y-1 text-[10px]">
+                  <div className="space-y-2 text-xs">
                     {(completeIntelligence.strengths?.length ?? 0) > 0 ? (
-                      completeIntelligence.strengths.slice(0, 2).map((s, i) => (
-                        <div key={i} className="line-clamp-1">
-                          <span className="font-bold text-gray-950">• {s.area}:</span> <span className="text-gray-500">{s.description}</span>
+                      completeIntelligence.strengths.map((s, i) => (
+                        <div key={i} className="space-y-0.5">
+                          <div className="font-bold text-gray-950">• {s.area}</div>
+                          <div className="text-gray-600 text-[11px] leading-relaxed pl-3">{s.description}</div>
                         </div>
                       ))
                     ) : (
-                      <div className="text-gray-400">High-signal engagement</div>
+                      <div className="text-gray-500 text-xs">High organic retention and consistent performance.</div>
                     )}
                   </div>
                 </div>
@@ -1380,7 +1443,7 @@ export function InfluencerRadarDashboard() {
           ) : isSynthesizing ? (
             <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 animate-pulse flex items-center justify-center gap-2 text-xs font-semibold text-gray-600">
               <div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-black rounded-full animate-spin" />
-              <span>Gemini 3.7 Flash: Synthesizing 19-point Creator Intelligence Dossier...</span>
+              <span>SignCollab LLM Engine: Synthesizing 19-point Creator Intelligence Dossier...</span>
             </div>
           ) : null}
 
@@ -1517,8 +1580,11 @@ export function InfluencerRadarDashboard() {
 
             {/* Modal Header */}
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold">
-                <span>⚡</span> Omnichannel Radar Link
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gray-900 text-white text-[11px] font-bold">
+                <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Omnichannel Radar Link</span>
               </div>
               <h3 className="text-base sm:text-lg font-bold text-gray-950">
                 Complete 3-Platform Report for @{creatorMeta?.displayName || "Creator"}
@@ -1535,18 +1601,27 @@ export function InfluencerRadarDashboard() {
                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Verified Platforms</div>
                 <div className="flex flex-wrap gap-2">
                   {platforms.youtube.status === "ready" && (
-                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1">
-                      ✓ YouTube (@{platforms.youtube.username})
+                    <span className="px-2.5 py-1 rounded-lg bg-gray-100 border border-gray-200 text-gray-900 text-xs font-semibold flex items-center gap-1.5">
+                      <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      YouTube (@{platforms.youtube.username})
                     </span>
                   )}
                   {platforms.instagram.status === "ready" && (
-                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1">
-                      ✓ Instagram (@{platforms.instagram.username})
+                    <span className="px-2.5 py-1 rounded-lg bg-gray-100 border border-gray-200 text-gray-900 text-xs font-semibold flex items-center gap-1.5">
+                      <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Instagram (@{platforms.instagram.username})
                     </span>
                   )}
                   {platforms.tiktok.status === "ready" && (
-                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1">
-                      ✓ TikTok (@{platforms.tiktok.username})
+                    <span className="px-2.5 py-1 rounded-lg bg-gray-100 border border-gray-200 text-gray-900 text-xs font-semibold flex items-center gap-1.5">
+                      <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      TikTok (@{platforms.tiktok.username})
                     </span>
                   )}
                 </div>
@@ -1559,7 +1634,7 @@ export function InfluencerRadarDashboard() {
                 {platforms.youtube.status !== "ready" && (
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                      <span>🎥</span> YouTube Channel URL or Handle:
+                      <span className="w-2 h-2 rounded-full bg-red-600" /> YouTube Channel URL or Handle:
                     </label>
                     <input
                       type="text"
@@ -1574,7 +1649,7 @@ export function InfluencerRadarDashboard() {
                 {platforms.instagram.status !== "ready" && (
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                      <span>📸</span> Instagram Profile URL or Handle:
+                      <span className="w-2 h-2 rounded-full bg-pink-600" /> Instagram Profile URL or Handle:
                     </label>
                     <input
                       type="text"
@@ -1589,7 +1664,7 @@ export function InfluencerRadarDashboard() {
                 {platforms.tiktok.status !== "ready" && (
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                      <span>🎵</span> TikTok Profile URL or Handle:
+                      <span className="w-2 h-2 rounded-full bg-black" /> TikTok Profile URL or Handle:
                     </label>
                     <input
                       type="text"
@@ -1619,7 +1694,9 @@ export function InfluencerRadarDashboard() {
                 className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-white bg-gray-950 hover:bg-black rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <span>Sync &amp; Complete 360° Report</span>
-                <span>→</span>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
               </button>
             </div>
           </div>
@@ -1967,11 +2044,15 @@ function InstagramPostsGrid({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
                 <div className="flex items-center gap-1.5 text-gray-700">
-                  <span>❤️</span>
+                  <svg className="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
                   <span className="font-bold">{formatShortNumber(post.likes)}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-gray-700">
-                  <span>💬</span>
+                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
                   <span className="font-bold">{formatShortNumber(post.commentsCount)}</span>
                 </div>
               </div>
@@ -2057,15 +2138,22 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
               </h4>
               <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono text-gray-700">
                 <div className="flex items-center gap-1">
-                  <span>👁️</span>
+                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
                   <span className="font-bold">{formatShortNumber(vid.viewCount)}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span>❤️</span>
+                  <svg className="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
                   <span className="font-bold">{formatShortNumber(vid.likeCount)}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span>💬</span>
+                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
                   <span className="font-bold">{formatShortNumber(vid.commentCount)}</span>
                 </div>
               </div>
@@ -2126,11 +2214,14 @@ function TikTokVideosGrid({
 
               <div className="absolute top-2 left-2 flex gap-1">
                 {vid.isPinned ? (
-                  <span className="px-2 py-0.5 rounded-md bg-amber-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
-                    📌 Pinned
+                  <span className="px-2 py-0.5 rounded-md bg-gray-950 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
+                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    Pinned
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-md bg-cyan-600/90 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
+                  <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
                     Video #{idx + 1}
                   </span>
                 )}
@@ -2145,15 +2236,22 @@ function TikTokVideosGrid({
               )}
               <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono text-gray-700">
                 <div className="flex items-center gap-1">
-                  <span>👁️</span>
+                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
                   <span className="font-bold">{formatShortNumber(vid.playCount)}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span>❤️</span>
+                  <svg className="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
                   <span className="font-bold">{formatShortNumber(vid.diggCount)}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span>💬</span>
+                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
                   <span className="font-bold">{formatShortNumber(vid.commentCount)}</span>
                 </div>
               </div>
