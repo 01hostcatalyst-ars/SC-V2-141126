@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { CompleteCreatorIntelligence } from './types';
+import { normalizeCompleteIntelligence } from './gemini';
 
 export interface CreatorIntelligenceDbRecord {
   id: string;
@@ -47,13 +48,13 @@ export async function getRecentCreatorIntelligence(
 
     // Return cached if within the 24h window
     if (ageHours <= maxAgeHours) {
-      const raw = latest.rawLlmResponse as unknown as CompleteCreatorIntelligence;
+      const normalized = normalizeCompleteIntelligence(latest.rawLlmResponse);
       return {
         id: latest.id,
         creatorHandle: latest.creatorHandle,
         creatorName: latest.creatorName,
         primaryPlatform: latest.primaryPlatform,
-        intelligence: raw,
+        intelligence: normalized,
         createdAt: latest.createdAt,
         isCached: true,
         cacheAgeHours: Math.round(ageHours * 10) / 10,

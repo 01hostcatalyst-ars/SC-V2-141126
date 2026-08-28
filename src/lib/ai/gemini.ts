@@ -340,42 +340,8 @@ Generate the Complete 19-Point Creator Intelligence Dossier JSON.`;
         continue;
       }
 
-      const parsed = JSON.parse(candidateText) as CompleteCreatorIntelligence;
-
-      // Validate Primary Niche against approved constants
-      const primaryDef =
-        PRIMARY_NICHES.find((p) => p.id === parsed.profile?.primaryNiche?.id) ||
-        PRIMARY_NICHES.find((p) => p.name.toLowerCase() === (parsed.profile?.primaryNiche?.name || '').toLowerCase()) ||
-        PRIMARY_NICHES[7];
-
-      parsed.profile.primaryNiche = {
-        id: primaryDef.id,
-        name: primaryDef.name,
-        multiplier: primaryDef.multiplier,
-      };
-
-      // Validate Secondary Niches
-      const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
-      if (Array.isArray(parsed.profile?.secondaryNiches)) {
-        for (const s of parsed.profile.secondaryNiches) {
-          const match =
-            PRIMARY_NICHES.find((p) => p.id === s.id) ||
-            PRIMARY_NICHES.find((p) => p.name.toLowerCase() === (s.name || '').toLowerCase());
-          if (match && match.id !== primaryDef.id && secondaryList.length < 3) {
-            secondaryList.push({ id: match.id, name: match.name, multiplier: match.multiplier });
-          }
-        }
-      }
-
-      if (secondaryList.length < 2) {
-        for (const p of PRIMARY_NICHES) {
-          if (p.id !== primaryDef.id && !secondaryList.some((s) => s.id === p.id)) {
-            secondaryList.push({ id: p.id, name: p.name, multiplier: p.multiplier });
-            if (secondaryList.length === 2) break;
-          }
-        }
-      }
-      parsed.profile.secondaryNiches = secondaryList;
+      const rawJson = JSON.parse(candidateText);
+      const normalized = normalizeCompleteIntelligence(rawJson);
 
       // Persist to PostgreSQL with 24-hour cache timestamp
       try {
@@ -383,7 +349,7 @@ Generate the Complete 19-Point Creator Intelligence Dossier JSON.`;
           creatorHandle: rootHandle,
           creatorName: input.creatorName || rootHandle,
           primaryPlatform: input.primaryPlatform || 'instagram',
-          intelligence: parsed,
+          intelligence: normalized,
           youtubeScrapeId: input.youtubeScrapeId,
           instagramScrapeId: input.instagramScrapeId,
           tiktokScrapeId: input.tiktokScrapeId,
@@ -393,7 +359,7 @@ Generate the Complete 19-Point Creator Intelligence Dossier JSON.`;
         console.warn('[CreatorIntelligence Database Save Warning]:', saveErr);
       }
 
-      return parsed;
+      return normalized;
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       console.warn(`[Gemini Vertex AI] Error on ${model}:`, errMsg);
@@ -402,6 +368,165 @@ Generate the Complete 19-Point Creator Intelligence Dossier JSON.`;
   }
 
   throw new Error(`[Gemini Vertex AI Failure] All models failed. Details:\n${modelErrors.join('\n')}`);
+}
+
+/**
+ * Robust Normalizer that maps both snake_case, camelCase, and grouped Gemini JSON structures
+ * into the strict CompleteCreatorIntelligence interface.
+ */
+export function normalizeCompleteIntelligence(raw: unknown): CompleteCreatorIntelligence {
+  const r = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, any>;
+  const profile = (r.profile && typeof r.profile === 'object' ? r.profile : {}) as Record<string, any>;
+  const geography = (r.geography && typeof r.geography === 'object' ? r.geography : {}) as Record<string, any>;
+  const audience = (r.audience || r.audiencePersona || {}) as Record<string, any>;
+  const contentAndFormat = (r.contentAndFormat || {}) as Record<string, any>;
+  const content = (r.content || contentAndFormat || {}) as Record<string, any>;
+  const commercialAndBrandFit = (r.commercialAndBrandFit || {}) as Record<string, any>;
+  const commercialIntelligence = (r.commercialIntelligence || commercialAndBrandFit || {}) as Record<string, any>;
+  const brandFit = (r.brandFit || commercialAndBrandFit.brandFit || {}) as Record<string, any>;
+  const brandSafety = (r.brandSafety || commercialAndBrandFit.brandSafety || {}) as Record<string, any>;
+  const strategyAndRecommendations = (r.strategyAndRecommendations || {}) as Record<string, any>;
+  const strengths = (Array.isArray(r.strengths) ? r.strengths : Array.isArray(strategyAndRecommendations.strengths) ? strategyAndRecommendations.strengths : []) as Array<{ area: string; description: string }>;
+  const considerations = (Array.isArray(r.considerations) ? r.considerations : Array.isArray(strategyAndRecommendations.considerations) ? strategyAndRecommendations.considerations : []) as Array<{ area: string; description: string }>;
+  const partnershipRecommendations = (Array.isArray(r.partnershipRecommendations) ? r.partnershipRecommendations : Array.isArray(strategyAndRecommendations.partnershipRecommendations) ? strategyAndRecommendations.partnershipRecommendations : []) as Array<{ campaign: string; fit: string; reason: string }>;
+  const summaries = (r.summaries || r.summary || {}) as Record<string, any>;
+  const performanceAndEngagement = (r.performanceAndEngagement || {}) as Record<string, any>;
+  const performanceIntelligence = (r.performanceIntelligence || performanceAndEngagement || {}) as Record<string, any>;
+  const engagementIntelligence = (r.engagementIntelligence || performanceAndEngagement.engagementIntelligence || {}) as Record<string, any>;
+  const metaAndEvidence = (r.metaAndEvidence || {}) as Record<string, any>;
+  const confidence = (r.confidence || metaAndEvidence.confidence || {}) as Record<string, any>;
+  const evidence = (r.evidence || metaAndEvidence.evidence || {}) as Record<string, any>;
+  const uncertainties = (Array.isArray(r.uncertainties) ? r.uncertainties : Array.isArray(metaAndEvidence.uncertainties) ? metaAndEvidence.uncertainties : []) as string[];
+
+  // Primary niche resolution
+  const primaryNicheRaw = profile.primaryNiche || {};
+  const primaryDef =
+    PRIMARY_NICHES.find((p) => p.id === primaryNicheRaw.id) ||
+    PRIMARY_NICHES.find((p) => p.name?.toLowerCase() === primaryNicheRaw.name?.toLowerCase()) ||
+    PRIMARY_NICHES[7];
+
+  // Secondary niches resolution
+  const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
+  if (Array.isArray(profile.secondaryNiches)) {
+    for (const s of profile.secondaryNiches) {
+      const match =
+        PRIMARY_NICHES.find((p) => p.id === s.id) ||
+        PRIMARY_NICHES.find((p) => p.name?.toLowerCase() === s.name?.toLowerCase());
+      if (match && match.id !== primaryDef.id && secondaryList.length < 3) {
+        secondaryList.push({ id: match.id, name: match.name, multiplier: match.multiplier });
+      }
+    }
+  }
+  if (secondaryList.length < 2) {
+    for (const p of PRIMARY_NICHES) {
+      if (p.id !== primaryDef.id && !secondaryList.some((s) => s.id === p.id)) {
+        secondaryList.push({ id: p.id, name: p.name, multiplier: p.multiplier });
+        if (secondaryList.length === 2) break;
+      }
+    }
+  }
+
+  return {
+    profile: {
+      creatorType: profile.creatorType || 'Content Creator',
+      profilePositioning: profile.profilePositioning || '',
+      primaryNiche: {
+        id: primaryDef.id,
+        name: primaryDef.name,
+        multiplier: primaryDef.multiplier,
+      },
+      secondaryNiches: secondaryList,
+      microNiches: Array.isArray(profile.microNiches) ? profile.microNiches : [],
+      creatorDescription: profile.creatorDescription || '',
+      confidence: typeof profile.confidence === 'number' ? profile.confidence : 0.95,
+    },
+    geography: {
+      countryCode: geography.countryCode || null,
+      countryName: geography.countryName || null,
+      city: geography.city || null,
+      region: geography.region || null,
+      confidence: typeof geography.confidence === 'number' ? geography.confidence : 0.8,
+      evidence: Array.isArray(geography.evidence) ? geography.evidence : [],
+    },
+    audience: {
+      likelyAgeRange: audience.likelyAgeRange || '18-34',
+      genderSkew: audience.genderSkew || 'Balanced',
+      primaryMarket: audience.primaryMarket || 'Global',
+      interests: Array.isArray(audience.interests) ? audience.interests : [],
+      purchaseIntent: audience.purchaseIntent || 'Moderate',
+      audienceIntent: Array.isArray(audience.audienceIntent) ? audience.audienceIntent : [],
+      profile: audience.profileDescription || audience.profile || '',
+      confidence: typeof audience.confidence === 'number' ? audience.confidence : 0.85,
+    },
+    content: {
+      themes: Array.isArray(content.themes) ? content.themes : Array.isArray(contentAndFormat.themes) ? contentAndFormat.themes : [],
+      dominantFormat: content.dominantFormat || contentAndFormat.dominantFormat || 'Video',
+      formats: Array.isArray(content.formats) ? content.formats : Array.isArray(contentAndFormat.formats) ? contentAndFormat.formats : [],
+      style: Array.isArray(content.style) ? content.style : Array.isArray(contentAndFormat.style) ? contentAndFormat.style : [],
+      tone: Array.isArray(content.tone) ? content.tone : Array.isArray(contentAndFormat.tone) ? contentAndFormat.tone : [],
+      productionLevel: content.productionLevel || contentAndFormat.productionLevel || 'High',
+      contentConsistency: content.contentConsistency || contentAndFormat.contentConsistency || 'High',
+      promotionalContentLevel: content.promotionalContentLevel || contentAndFormat.promotionalContentLevel || 'Moderate',
+    },
+    contentThemes: Array.isArray(r.contentThemes) ? r.contentThemes : Array.isArray(contentAndFormat.contentThemes) ? contentAndFormat.contentThemes : [],
+    contentFormatIntelligence: r.contentFormatIntelligence || contentAndFormat.contentFormatIntelligence || {
+      primaryFormat: 'Video',
+      strongestFormatForCreator: 'Video',
+      formatDescription: '',
+    },
+    performanceIntelligence: {
+      reachLevel: performanceIntelligence.reachLevel || 'Strong',
+      engagementQuality: performanceIntelligence.engagementQuality || 'High',
+      audienceResponse: performanceIntelligence.audienceResponse || '',
+      performancePattern: performanceIntelligence.performancePattern || '',
+      summary: performanceIntelligence.summary || '',
+    },
+    engagementIntelligence: {
+      conversationLevel: engagementIntelligence.conversationLevel || 'High',
+      sharingPotential: engagementIntelligence.sharingPotential || 'High',
+      purchaseIntentSignals: engagementIntelligence.purchaseIntentSignals || '',
+      audienceBehavior: Array.isArray(engagementIntelligence.audienceBehavior) ? engagementIntelligence.audienceBehavior : [],
+    },
+    commercialIntelligence: {
+      commercialIntent: commercialIntelligence.commercialIntent || 'High',
+      brandCollaborationLikelihood: commercialIntelligence.brandCollaborationLikelihood || 'High',
+      affiliateSignals: Boolean(commercialIntelligence.affiliateSignals),
+      productPromotionLevel: commercialIntelligence.productPromotionLevel || 'Moderate',
+      sponsorshipSignals: Array.isArray(commercialIntelligence.sponsorshipSignals) ? commercialIntelligence.sponsorshipSignals : [],
+    },
+    brandFit: {
+      bestFitCategories: Array.isArray(brandFit.bestFitCategories) ? brandFit.bestFitCategories : [],
+      campaignTypes: Array.isArray(brandFit.campaignTypes) ? brandFit.campaignTypes : [],
+      strongestPartnershipAngle: brandFit.strongestPartnershipAngle || '',
+      brandSuitability: brandFit.brandSuitability || 'High',
+    },
+    brandSafety: {
+      overallRisk: brandSafety.overallRisk || 'Low',
+      observedRiskSignals: Array.isArray(brandSafety.observedRiskSignals) ? brandSafety.observedRiskSignals : [],
+      reviewRecommended: Boolean(brandSafety.reviewRecommended),
+    },
+    strengths,
+    considerations,
+    partnershipRecommendations,
+    summary: {
+      oneLine: summaries.oneLine || '',
+      brandSummary: summaries.brandSummary || '',
+      detailedSummary: summaries.detailedSummary || '',
+    },
+    confidence: {
+      niche: typeof confidence.niche === 'number' ? confidence.niche : 0.95,
+      country: typeof confidence.country === 'number' ? confidence.country : 0.8,
+      audience: typeof confidence.audience === 'number' ? confidence.audience : 0.85,
+      brandFit: typeof confidence.brandFit === 'number' ? confidence.brandFit : 0.9,
+    },
+    evidence: {
+      classification: Array.isArray(evidence.classification) ? evidence.classification : [],
+      geography: Array.isArray(evidence.geography) ? evidence.geography : [],
+      audience: Array.isArray(evidence.audience) ? evidence.audience : [],
+      commercial: Array.isArray(evidence.commercial) ? evidence.commercial : [],
+    },
+    uncertainties,
+  };
 }
 
 /**

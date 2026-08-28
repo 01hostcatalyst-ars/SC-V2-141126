@@ -1249,11 +1249,13 @@ export function InfluencerRadarDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3.5">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded-lg">
-                    {completeIntelligence.profile.creatorType || "Creator"}
+                    {completeIntelligence.profile?.creatorType || "Creator"}
                   </span>
-                  <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2.5 py-0.5 rounded-lg border border-gray-200">
-                    {completeIntelligence.profile.primaryNiche.name} ({completeIntelligence.profile.primaryNiche.multiplier}x)
-                  </span>
+                  {completeIntelligence.profile?.primaryNiche && (
+                    <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2.5 py-0.5 rounded-lg border border-gray-200">
+                      {completeIntelligence.profile.primaryNiche.name} ({completeIntelligence.profile.primaryNiche.multiplier}x)
+                    </span>
+                  )}
                   {completeIntelligence.geography?.countryCode && (
                     <span className="text-xs font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-md">
                       📍 {completeIntelligence.geography.countryName || completeIntelligence.geography.countryCode} {completeIntelligence.geography.city ? `(${completeIntelligence.geography.city})` : ""}
@@ -1286,12 +1288,14 @@ export function InfluencerRadarDashboard() {
               </div>
 
               {/* Brand Summary */}
-              <p className="text-xs sm:text-sm text-gray-800 leading-relaxed font-medium">
-                &ldquo;{completeIntelligence.summary.brandSummary || completeIntelligence.summary.oneLine}&rdquo;
-              </p>
+              {(completeIntelligence.summary?.brandSummary || completeIntelligence.summary?.oneLine) && (
+                <p className="text-xs sm:text-sm text-gray-800 leading-relaxed font-medium">
+                  &ldquo;{completeIntelligence.summary.brandSummary || completeIntelligence.summary.oneLine}&rdquo;
+                </p>
+              )}
 
               {/* Micro-Niches Tags */}
-              {completeIntelligence.profile.microNiches?.length > 0 && (
+              {(completeIntelligence.profile?.microNiches?.length ?? 0) > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                   <span className="text-[11px] text-gray-400 font-semibold">Micro-Niches:</span>
                   {completeIntelligence.profile.microNiches.map((mn, i) => (
@@ -1310,11 +1314,11 @@ export function InfluencerRadarDashboard() {
                     <span>👥</span> Inferred Audience
                   </div>
                   <div className="space-y-1 text-[11px]">
-                    <div className="flex justify-between"><span className="text-gray-500">Demographic:</span> <span className="font-semibold text-gray-950">{completeIntelligence.audience.genderSkew || "Balanced"}, {completeIntelligence.audience.likelyAgeRange}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Buyer Intent:</span> <span className="font-bold text-emerald-700">{completeIntelligence.audience.purchaseIntent || "Moderate"}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Top Market:</span> <span className="font-semibold text-gray-950">{completeIntelligence.audience.primaryMarket || "Global"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Demographic:</span> <span className="font-semibold text-gray-950">{completeIntelligence.audience?.genderSkew || "Balanced"}, {completeIntelligence.audience?.likelyAgeRange || "18-34"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Buyer Intent:</span> <span className="font-bold text-emerald-700">{completeIntelligence.audience?.purchaseIntent || "Moderate"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Top Market:</span> <span className="font-semibold text-gray-950">{completeIntelligence.audience?.primaryMarket || "Global"}</span></div>
                   </div>
-                  {completeIntelligence.audience.interests?.length > 0 && (
+                  {(completeIntelligence.audience?.interests?.length ?? 0) > 0 && (
                     <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
                       Interests: {completeIntelligence.audience.interests.slice(0, 3).join(", ")}
                     </div>
@@ -1327,11 +1331,11 @@ export function InfluencerRadarDashboard() {
                     <span>🎬</span> Content DNA
                   </div>
                   <div className="space-y-1 text-[11px]">
-                    <div className="flex justify-between"><span className="text-gray-500">Format:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content.dominantFormat || "Video"}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Production:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content.productionLevel || "High"}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Consistency:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content.contentConsistency || "High"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Format:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content?.dominantFormat || "Video"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Production:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content?.productionLevel || "High"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Consistency:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content?.contentConsistency || "High"}</span></div>
                   </div>
-                  {completeIntelligence.contentThemes?.length > 0 && (
+                  {(completeIntelligence.contentThemes?.length ?? 0) > 0 && (
                     <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
                       Themes: {completeIntelligence.contentThemes.slice(0, 3).map((t) => t.theme).join(", ")}
                     </div>
@@ -1344,10 +1348,10 @@ export function InfluencerRadarDashboard() {
                     <span>🤝</span> Brand Fit
                   </div>
                   <div className="space-y-1 text-[11px]">
-                    <div className="flex justify-between"><span className="text-gray-500">Commercial:</span> <span className="font-semibold text-gray-950">{completeIntelligence.commercialIntelligence.commercialIntent || "High"}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Suitability:</span> <span className="font-bold text-emerald-700">{completeIntelligence.brandFit.brandSuitability || "High"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Commercial:</span> <span className="font-semibold text-gray-950">{completeIntelligence.commercialIntelligence?.commercialIntent || "High"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Suitability:</span> <span className="font-bold text-emerald-700">{completeIntelligence.brandFit?.brandSuitability || "High"}</span></div>
                   </div>
-                  {completeIntelligence.brandFit.bestFitCategories?.length > 0 && (
+                  {(completeIntelligence.brandFit?.bestFitCategories?.length ?? 0) > 0 && (
                     <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
                       Categories: {completeIntelligence.brandFit.bestFitCategories.slice(0, 3).join(", ")}
                     </div>
@@ -1360,11 +1364,15 @@ export function InfluencerRadarDashboard() {
                     <span>⭐</span> Key Strengths
                   </div>
                   <div className="space-y-1 text-[10px]">
-                    {completeIntelligence.strengths?.slice(0, 2).map((s, i) => (
-                      <div key={i} className="line-clamp-1">
-                        <span className="font-bold text-gray-950">• {s.area}:</span> <span className="text-gray-500">{s.description}</span>
-                      </div>
-                    ))}
+                    {(completeIntelligence.strengths?.length ?? 0) > 0 ? (
+                      completeIntelligence.strengths.slice(0, 2).map((s, i) => (
+                        <div key={i} className="line-clamp-1">
+                          <span className="font-bold text-gray-950">• {s.area}:</span> <span className="text-gray-500">{s.description}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-gray-400">High-signal engagement</div>
+                    )}
                   </div>
                 </div>
               </div>
