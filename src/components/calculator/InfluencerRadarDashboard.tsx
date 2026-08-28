@@ -5,6 +5,7 @@ import { Platform, DeliverableFormat, PricingInput } from "@/lib/calculator/type
 import { calculateInfluencerRate } from "@/lib/calculator/engine";
 import { FORMAT_LABELS } from "@/lib/calculator/constants";
 import { InstagramPostItem, YouTubeVideoItem, TikTokVideoItem } from "@/lib/scrapers/types";
+import { CompleteCreatorIntelligence } from "@/lib/ai/types";
 
 interface DiscoveredPlatformData {
   status: "idle" | "loading" | "ready" | "error";
@@ -114,6 +115,11 @@ export function InfluencerRadarDashboard() {
     youtube: { status: "idle" },
     tiktok: { status: "idle" },
   });
+
+  // 19-Point Creator Intelligence State
+  const [completeIntelligence, setCompleteIntelligence] = useState<CompleteCreatorIntelligence | null>(null);
+  const [isSynthesizing, setIsSynthesizing] = useState(false);
+  const synthesizedHash = useRef<string>("");
 
   // Instagram Ticker Step Progression
   useEffect(() => {
@@ -598,6 +604,139 @@ export function InfluencerRadarDashboard() {
     return count;
   }, [platforms]);
 
+  // Unified 19-Point Omnichannel AI Synthesis Function
+  const triggerOmnichannelSynthesis = useCallback(async (bypassCache = false) => {
+    const readyList: Platform[] = [];
+    if (platforms.youtube.status === "ready") readyList.push("youtube");
+    if (platforms.instagram.status === "ready") readyList.push("instagram");
+    if (platforms.tiktok.status === "ready") readyList.push("tiktok");
+
+    if (readyList.length === 0) return;
+
+    const currentHash = readyList.map((p) => `${p}:${platforms[p].username || ""}`).sort().join("|");
+    if (currentHash === synthesizedHash.current && !bypassCache) return;
+
+    setIsSynthesizing(true);
+    addActivity(`Gemini 3.7 Flash: Synthesizing 19-point Creator Intelligence across ${readyList.length} platform(s)...`, "info");
+
+    try {
+      const multiInput: import("@/lib/ai/gemini").MultiPlatformCreatorInput = {
+        creatorName:
+          creatorMeta?.displayName ||
+          platforms.youtube.displayName ||
+          platforms.instagram.displayName ||
+          platforms.tiktok.displayName ||
+          platforms.youtube.username ||
+          platforms.instagram.username ||
+          platforms.tiktok.username ||
+          "Creator",
+        primaryPlatform: readyList[0],
+        reportedCountry: "US",
+      };
+
+      if (platforms.youtube.status === "ready") {
+        const ytVideos = (platforms.youtube.videos as unknown as YouTubeVideoItem[]) || [];
+        const topComments: string[] = [];
+        for (const v of ytVideos.slice(0, 5)) {
+          if (Array.isArray(v.comments)) {
+            for (const c of v.comments.slice(0, 5)) {
+              if (c.textDisplay) topComments.push(c.textDisplay);
+            }
+          }
+        }
+
+        multiInput.youtube = {
+          handle: platforms.youtube.username,
+          title: platforms.youtube.displayName,
+          subscriberCount: platforms.youtube.followerCount,
+          avgViews: platforms.youtube.avgViews,
+          recentTitles: ytVideos.map((v) => v.title).filter((t): t is string => Boolean(t)).slice(0, 15),
+          topComments,
+          observedEr: platforms.youtube.engagementRate,
+        };
+      }
+
+      if (platforms.instagram.status === "ready") {
+        const igPosts = platforms.instagram.posts || [];
+        const topComments: string[] = [];
+        for (const p of igPosts.slice(0, 4)) {
+          if (Array.isArray(p.comments)) {
+            for (const c of p.comments.slice(0, 5)) {
+              if (c.text) topComments.push(c.text);
+            }
+          }
+        }
+
+        multiInput.instagram = {
+          username: platforms.instagram.username || "",
+          fullName: platforms.instagram.displayName,
+          followerCount: platforms.instagram.followerCount,
+          avgLikes: platforms.instagram.avgLikes,
+          recentCaptions: igPosts.map((p) => p.caption).filter((c): c is string => Boolean(c)).slice(0, 12),
+          topComments,
+          observedEr: platforms.instagram.engagementRate,
+        };
+      }
+
+      if (platforms.tiktok.status === "ready") {
+        const ttVideos = (platforms.tiktok.videos as unknown as TikTokVideoItem[]) || [];
+        const topComments: string[] = [];
+        for (const v of ttVideos.slice(0, 5)) {
+          if (Array.isArray(v.comments)) {
+            for (const c of v.comments.slice(0, 5)) {
+              if (c.text) topComments.push(c.text);
+            }
+          }
+        }
+
+        multiInput.tiktok = {
+          username: platforms.tiktok.username || "",
+          nickname: platforms.tiktok.displayName,
+          followerCount: platforms.tiktok.followerCount,
+          avgViews: platforms.tiktok.avgViews,
+          recentDescriptions: ttVideos.map((v) => v.description).filter((d): d is string => Boolean(d)).slice(0, 12),
+          topComments,
+          observedEr: platforms.tiktok.engagementRate,
+        };
+      }
+
+      const res = await fetch("/api/calculator/synthesize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ multiInput, regionCode: "US", bypassCache }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.intelligence) {
+        setCompleteIntelligence(json.intelligence);
+        synthesizedHash.current = currentHash;
+        addActivity(
+          `Intelligence Verified (24h Cache): ${json.intelligence.profile.creatorType} · ${json.intelligence.profile.primaryNiche.name} (${json.intelligence.profile.primaryNiche.multiplier}x)`,
+          "success"
+        );
+      }
+    } catch (e) {
+      console.warn("[InfluencerRadar AI Synthesis Warning]:", e);
+    } finally {
+      setIsSynthesizing(false);
+    }
+  }, [platforms, creatorMeta, addActivity]);
+
+  // Auto-trigger synthesis once all active in-flight scrapes settle
+  useEffect(() => {
+    const isAnyInFlight =
+      platforms.instagram.status === "loading" ||
+      platforms.youtube.status === "loading" ||
+      platforms.tiktok.status === "loading";
+
+    if (!isAnyInFlight && verifiedChannelsCount > 0) {
+      const timer = setTimeout(() => {
+        triggerOmnichannelSynthesis();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [platforms, verifiedChannelsCount, triggerOmnichannelSynthesis]);
+
   // Compute Omnichannel Bundles (Starter & Full Pack)
   const bundleOffers = useMemo(() => {
     if (verifiedChannelsCount < 2) return null;
@@ -921,6 +1060,142 @@ export function InfluencerRadarDashboard() {
               </div>
             </div>
           )}
+
+          {/* ========================================================= */}
+          {/* SECTION 3.5: COMPLETE 19-POINT CREATOR INTELLIGENCE DOSSIER */}
+          {/* ========================================================= */}
+          {completeIntelligence ? (
+            <div className="p-5 sm:p-6 rounded-2xl bg-white border border-gray-200/90 shadow-sm space-y-4 animate-fadeIn">
+              {/* Header with Positioning & Refresh */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded-lg">
+                    {completeIntelligence.profile.creatorType || "Creator"}
+                  </span>
+                  <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2.5 py-0.5 rounded-lg border border-gray-200">
+                    {completeIntelligence.profile.primaryNiche.name} ({completeIntelligence.profile.primaryNiche.multiplier}x)
+                  </span>
+                  {completeIntelligence.geography?.countryCode && (
+                    <span className="text-xs font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-md">
+                      📍 {completeIntelligence.geography.countryName || completeIntelligence.geography.countryCode} {completeIntelligence.geography.city ? `(${completeIntelligence.geography.city})` : ""}
+                    </span>
+                  )}
+                  {completeIntelligence.brandSafety?.overallRisk && (
+                    <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                      completeIntelligence.brandSafety.overallRisk === "Low"
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                        : "bg-amber-50 border-amber-200 text-amber-700"
+                    }`}>
+                      Safety: {completeIntelligence.brandSafety.overallRisk} Risk
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 24h Verified Cache
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => triggerOmnichannelSynthesis(true)}
+                    disabled={isSynthesizing}
+                    className="px-2.5 py-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-all border border-gray-200 cursor-pointer"
+                  >
+                    {isSynthesizing ? "Analyzing..." : "↻ Refresh AI"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Brand Summary */}
+              <p className="text-xs sm:text-sm text-gray-800 leading-relaxed font-medium">
+                &ldquo;{completeIntelligence.summary.brandSummary || completeIntelligence.summary.oneLine}&rdquo;
+              </p>
+
+              {/* Micro-Niches Tags */}
+              {completeIntelligence.profile.microNiches?.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  <span className="text-[11px] text-gray-400 font-semibold">Micro-Niches:</span>
+                  {completeIntelligence.profile.microNiches.map((mn, i) => (
+                    <span key={i} className="text-[10px] font-semibold bg-gray-50 text-gray-700 px-2 py-0.5 rounded-md border border-gray-200">
+                      {mn}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* 4-Pillar Intelligence Sub-Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
+                {/* Pillar 1: Inferred Audience */}
+                <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-1.5">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-rose-700 flex items-center gap-1">
+                    <span>👥</span> Inferred Audience
+                  </div>
+                  <div className="space-y-1 text-[11px]">
+                    <div className="flex justify-between"><span className="text-gray-500">Demographic:</span> <span className="font-semibold text-gray-950">{completeIntelligence.audience.genderSkew || "Balanced"}, {completeIntelligence.audience.likelyAgeRange}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Buyer Intent:</span> <span className="font-bold text-emerald-700">{completeIntelligence.audience.purchaseIntent || "Moderate"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Top Market:</span> <span className="font-semibold text-gray-950">{completeIntelligence.audience.primaryMarket || "Global"}</span></div>
+                  </div>
+                  {completeIntelligence.audience.interests?.length > 0 && (
+                    <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
+                      Interests: {completeIntelligence.audience.interests.slice(0, 3).join(", ")}
+                    </div>
+                  )}
+                </div>
+
+                {/* Pillar 2: Content DNA */}
+                <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-1.5">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-amber-700 flex items-center gap-1">
+                    <span>🎬</span> Content DNA
+                  </div>
+                  <div className="space-y-1 text-[11px]">
+                    <div className="flex justify-between"><span className="text-gray-500">Format:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content.dominantFormat || "Video"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Production:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content.productionLevel || "High"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Consistency:</span> <span className="font-semibold text-gray-950">{completeIntelligence.content.contentConsistency || "High"}</span></div>
+                  </div>
+                  {completeIntelligence.contentThemes?.length > 0 && (
+                    <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
+                      Themes: {completeIntelligence.contentThemes.slice(0, 3).map((t) => t.theme).join(", ")}
+                    </div>
+                  )}
+                </div>
+
+                {/* Pillar 3: Brand Fit */}
+                <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-1.5">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-cyan-800 flex items-center gap-1">
+                    <span>🤝</span> Brand Fit
+                  </div>
+                  <div className="space-y-1 text-[11px]">
+                    <div className="flex justify-between"><span className="text-gray-500">Commercial:</span> <span className="font-semibold text-gray-950">{completeIntelligence.commercialIntelligence.commercialIntent || "High"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Suitability:</span> <span className="font-bold text-emerald-700">{completeIntelligence.brandFit.brandSuitability || "High"}</span></div>
+                  </div>
+                  {completeIntelligence.brandFit.bestFitCategories?.length > 0 && (
+                    <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
+                      Categories: {completeIntelligence.brandFit.bestFitCategories.slice(0, 3).join(", ")}
+                    </div>
+                  )}
+                </div>
+
+                {/* Pillar 4: Top Strengths */}
+                <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-1.5">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1">
+                    <span>⭐</span> Key Strengths
+                  </div>
+                  <div className="space-y-1 text-[10px]">
+                    {completeIntelligence.strengths?.slice(0, 2).map((s, i) => (
+                      <div key={i} className="line-clamp-1">
+                        <span className="font-bold text-gray-950">• {s.area}:</span> <span className="text-gray-500">{s.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : isSynthesizing ? (
+            <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 animate-pulse flex items-center justify-center gap-2 text-xs font-semibold text-gray-600">
+              <div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-black rounded-full animate-spin" />
+              <span>Gemini 3.7 Flash: Synthesizing 19-point Creator Intelligence Dossier...</span>
+            </div>
+          ) : null}
 
           {/* ========================================================= */}
           {/* SECTION 4: THE 3-PLATFORM EMPIRICAL RATE SHEETS           */}
