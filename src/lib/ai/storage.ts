@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { CompleteCreatorIntelligence } from './types';
 
 export interface CreatorIntelligenceDbRecord {
@@ -142,8 +143,7 @@ export async function saveCreatorIntelligence(params: {
         evidence: intel.evidence || {},
         uncertainties: intel.uncertainties || [],
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        rawLlmResponse: intel as any,
+        rawLlmResponse: intel as unknown as Prisma.InputJsonValue,
         llmModelUsed: params.modelUsed || 'gemini-3.7-flash',
       },
     });

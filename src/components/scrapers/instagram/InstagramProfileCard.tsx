@@ -100,7 +100,6 @@ export function InstagramProfileCard({
         {/* Avatar & Creator Info */}
         <div className="flex items-start sm:items-center gap-4 sm:gap-6">
           <div className="relative shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={profile.avatarUrl}
               alt={profile.fullName || profile.username}

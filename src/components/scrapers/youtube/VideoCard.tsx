@@ -31,7 +31,6 @@ export function VideoCard({ video, rank, isShort = false }: VideoCardProps) {
         {/* Thumbnail Container */}
         <div className="relative aspect-video w-full bg-gray-900 overflow-hidden">
           {video.thumbnailUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={video.thumbnailUrl}
               alt={video.title}
@@ -130,7 +129,6 @@ export function VideoCard({ video, rank, isShort = false }: VideoCardProps) {
                   <div className="flex items-center justify-between text-gray-500 text-[10px]">
                     <div className="flex items-center gap-1 font-bold text-gray-900 truncate">
                       {comment.authorProfileImageUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={comment.authorProfileImageUrl}
                           alt={comment.authorDisplayName}

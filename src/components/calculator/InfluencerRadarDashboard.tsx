@@ -1156,7 +1156,6 @@ export function InfluencerRadarDashboard() {
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeIn">
               <div className="flex items-center gap-3.5">
                 {creatorMeta.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={creatorMeta.avatarUrl}
                     alt={creatorMeta.displayName}
@@ -1916,7 +1915,6 @@ function InstagramPostsGrid({
             {/* Top Media & Badges */}
             <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
               {post.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={post.imageUrl}
                   alt={post.caption || "Instagram post"}
@@ -2014,7 +2012,6 @@ function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
           >
             <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
               {vid.thumbnailUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={vid.thumbnailUrl}
                   alt={vid.title}
@@ -2107,7 +2104,6 @@ function TikTokVideosGrid({
           >
             <div className="relative aspect-[9/12] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
               {vid.coverImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={vid.coverImage}
                   alt={vid.description || "TikTok Video"}

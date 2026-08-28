@@ -214,7 +214,6 @@ export function PlatformRateCard({
             <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 {data.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={data.avatarUrl}
                     alt={data.displayName || data.username}

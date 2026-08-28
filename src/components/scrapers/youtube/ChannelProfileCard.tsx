@@ -115,7 +115,6 @@ export function ChannelProfileCard({
         {/* Avatar & Channel Details */}
         <div className="flex items-start sm:items-center gap-4 sm:gap-6">
           <div className="relative shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={channel.avatarUrl}
               alt={channel.title}

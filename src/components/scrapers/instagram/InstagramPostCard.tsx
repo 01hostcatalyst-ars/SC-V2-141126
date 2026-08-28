@@ -22,7 +22,6 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
       {/* Media Thumbnail Container */}
       <div className="relative aspect-square w-full bg-gray-100 overflow-hidden">
         {post.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={post.imageUrl}
             alt={post.caption || "Instagram Post"}

@@ -22,7 +22,6 @@ export function TikTokVideoCard({ video }: TikTokVideoCardProps) {
       {/* Media Thumbnail Container (TikTok 3:4 Vertical Aspect Ratio) */}
       <div className="relative aspect-[3/4] w-full bg-gray-900 overflow-hidden">
         {video.coverImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={video.coverImage}
             alt={video.description || "TikTok Video"}
