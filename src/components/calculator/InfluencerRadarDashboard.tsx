@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
-import { Platform, DeliverableFormat, PricingInput } from "@/lib/calculator/types";
+import { Platform, DeliverableFormat, PricingInput, RegionCode } from "@/lib/calculator/types";
 import { calculateInfluencerRate } from "@/lib/calculator/engine";
-import { FORMAT_LABELS } from "@/lib/calculator/constants";
+import { FORMAT_LABELS, REGIONAL_CONFIG, PRIMARY_NICHES } from "@/lib/calculator/constants";
 import { InstagramPostItem, YouTubeVideoItem, TikTokVideoItem } from "@/lib/scrapers/types";
 import { CompleteCreatorIntelligence } from "@/lib/ai/types";
+import { MultiPlatformCreatorInput } from "@/lib/ai/gemini";
 
 interface DiscoveredPlatformData {
   status: "idle" | "loading" | "ready" | "error";
@@ -32,6 +33,7 @@ interface DiscoveredPlatformData {
     highAmount: number;
     formattedHigh: string;
     currency: string;
+    usdEquivalentFormatted?: string;
   }>;
   error?: string;
   sourceNote?: string;
@@ -100,6 +102,19 @@ export function InfluencerRadarDashboard() {
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("instagram");
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Calibration State (Country & Niche)
+  const [selectedRegion, setSelectedRegion] = useState<RegionCode>("US");
+  const [activeNicheId, setActiveNicheId] = useState<number>(8);
+
+  // Missing Platforms Modal State
+  const [isMissingModalOpen, setIsMissingModalOpen] = useState(false);
+  const [missingInputs, setMissingInputs] = useState<{ youtube: string; instagram: string; tiktok: string }>({
+    youtube: "",
+    instagram: "",
+    tiktok: "",
+  });
+  const hasPromptedMissingModal = useRef(false);
 
   // Platform Ticker Step State (6-8 steps each)
   const [igStepIdx, setIgStepIdx] = useState(0);
@@ -207,6 +222,7 @@ export function InfluencerRadarDashboard() {
       avgViews: number,
       avgShares: number = 0,
       primaryNicheId: number = 8,
+      regionCode: RegionCode = "US",
       extraMetrics?: {
         avgShortLikes?: number;
         avgShortComments?: number;
@@ -236,7 +252,7 @@ export function InfluencerRadarDashboard() {
             last3PostsAvgShares: avgShares,
             primaryPlatform: platform,
             primaryNicheId,
-            regionCode: "US",
+            regionCode,
           },
           deliverables: [{ id: String(idx + 1), platform, format: fmt, quantity: 1 }],
           commercialTerms: { usageRights: { scope: "organic_repost", duration: "30_days" } },
@@ -247,19 +263,90 @@ export function InfluencerRadarDashboard() {
         const low = res.valuationRange.lowP25;
         const high = res.valuationRange.highP75;
 
+        // USD Equivalent if in foreign currency (e.g. PKR, INR, AED, GBP)
+        const isForeign = regionCode !== "US";
+        const usdMedian = res.lineItems.totalUSD;
+        const usdEquivalent = isForeign ? `~$${usdMedian.toLocaleString()} USD` : undefined;
+
         return {
           format: fmt,
           amount: median,
-          formattedAmount: `$${median.toLocaleString()} USD`,
+          formattedAmount: res.valuationRange.formatted.typical,
           lowAmount: low,
-          formattedLow: `$${low.toLocaleString()} USD`,
+          formattedLow: res.valuationRange.formatted.low,
           highAmount: high,
-          formattedHigh: `$${high.toLocaleString()} USD`,
+          formattedHigh: res.valuationRange.formatted.high,
           currency: res.metrics.currency,
+          usdEquivalentFormatted: usdEquivalent,
         };
       });
     },
     []
+  );
+
+  // Recalculates all active platform cards when Country or Niche changes
+  const recomputeAllPlatformRates = useCallback(
+    (targetRegion: RegionCode, targetNicheId: number) => {
+      setPlatforms((prev) => {
+        const updated = { ...prev };
+
+        if (updated.instagram.status === "ready") {
+          updated.instagram = {
+            ...updated.instagram,
+            rateCardItems: computePlatformRateCards(
+              "instagram",
+              updated.instagram.followerCount || 0,
+              updated.instagram.avgLikes || 0,
+              updated.instagram.avgComments || 0,
+              updated.instagram.avgViews || 0,
+              0,
+              targetNicheId,
+              targetRegion
+            ),
+          };
+        }
+
+        if (updated.youtube.status === "ready") {
+          updated.youtube = {
+            ...updated.youtube,
+            rateCardItems: computePlatformRateCards(
+              "youtube",
+              updated.youtube.followerCount || 0,
+              updated.youtube.avgLikes || 0,
+              updated.youtube.avgComments || 0,
+              updated.youtube.avgViews || 0,
+              0,
+              targetNicheId,
+              targetRegion,
+              {
+                avgShortLikes: 0,
+                avgShortComments: 0,
+                avgShortViews: updated.youtube.avgShortViews || 0,
+              }
+            ),
+          };
+        }
+
+        if (updated.tiktok.status === "ready") {
+          updated.tiktok = {
+            ...updated.tiktok,
+            rateCardItems: computePlatformRateCards(
+              "tiktok",
+              updated.tiktok.followerCount || 0,
+              updated.tiktok.avgLikes || 0,
+              updated.tiktok.avgComments || 0,
+              updated.tiktok.avgViews || 0,
+              0,
+              targetNicheId,
+              targetRegion
+            ),
+          };
+        }
+
+        return updated;
+      });
+    },
+    [computePlatformRateCards]
   );
 
   // Scrape single platform helper using dedicated tested scrapers (/api/scrapers/*)
@@ -288,7 +375,7 @@ export function InfluencerRadarDashboard() {
       );
 
       try {
-        let endpoint = `/api/scrapers/${targetPlatform}`;
+        const endpoint = `/api/scrapers/${targetPlatform}`;
 
         const res = await fetch(endpoint, {
           method: "POST",
@@ -366,6 +453,11 @@ export function InfluencerRadarDashboard() {
           avgShortViews = stats.avgShortVideoViews || 0;
           avgLongEngagementRate = stats.avgLongEngagementRate || 0;
           avgShortEngagementRate = stats.avgShortEngagementRate || 0;
+
+          // Official YouTube Country
+          if (channel.country && REGIONAL_CONFIG[channel.country.toUpperCase() as RegionCode]) {
+            setSelectedRegion(channel.country.toUpperCase() as RegionCode);
+          }
 
           const longVids = Array.isArray(data.longVideos) ? data.longVideos : [];
           const shortVids = Array.isArray(data.shortVideos) ? data.shortVideos : [];
@@ -451,7 +543,7 @@ export function InfluencerRadarDashboard() {
           }
         }
 
-        // Compute rate sheet dynamically
+        // Compute rate sheet dynamically using active region & niche
         const rateCardItems = computePlatformRateCards(
           targetPlatform,
           followerCount,
@@ -459,7 +551,8 @@ export function InfluencerRadarDashboard() {
           avgComments,
           avgViews,
           targetPlatform === "tiktok" ? (data.stats?.avgSharesPerVideo || 0) : 0,
-          8,
+          activeNicheId,
+          selectedRegion,
           targetPlatform === "youtube"
             ? {
                 avgShortLikes,
@@ -549,7 +642,7 @@ export function InfluencerRadarDashboard() {
         inFlightScrapes.current.delete(scrapeKey);
       }
     },
-    [addActivity, computePlatformRateCards]
+    [addActivity, computePlatformRateCards, activeNicheId, selectedRegion]
   );
 
   // Main Form Submit
@@ -562,6 +655,8 @@ export function InfluencerRadarDashboard() {
     setHasSearched(true);
     setActivityFeed([]);
     setCreatorMeta(null);
+    setCompleteIntelligence(null);
+    hasPromptedMissingModal.current = false;
 
     // Reset platform states
     setPlatforms({
@@ -620,7 +715,7 @@ export function InfluencerRadarDashboard() {
     addActivity(`Gemini 3.7 Flash: Synthesizing 19-point Creator Intelligence across ${readyList.length} platform(s)...`, "info");
 
     try {
-      const multiInput: import("@/lib/ai/gemini").MultiPlatformCreatorInput = {
+      const multiInput: MultiPlatformCreatorInput = {
         creatorName:
           creatorMeta?.displayName ||
           platforms.youtube.displayName ||
@@ -631,7 +726,7 @@ export function InfluencerRadarDashboard() {
           platforms.tiktok.username ||
           "Creator",
         primaryPlatform: readyList[0],
-        reportedCountry: "US",
+        reportedCountry: selectedRegion,
       };
 
       if (platforms.youtube.status === "ready") {
@@ -703,15 +798,30 @@ export function InfluencerRadarDashboard() {
       const res = await fetch("/api/calculator/synthesize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ multiInput, regionCode: "US", bypassCache }),
+        body: JSON.stringify({ multiInput, regionCode: selectedRegion, bypassCache }),
       });
 
       const json = await res.json();
       if (json.success && json.intelligence) {
-        setCompleteIntelligence(json.intelligence);
+        const intel = json.intelligence as CompleteCreatorIntelligence;
+        setCompleteIntelligence(intel);
         synthesizedHash.current = currentHash;
+
+        const detectedCountry = (intel.geography?.countryCode as RegionCode) || selectedRegion;
+        const detectedNicheId = intel.profile?.primaryNiche?.id || activeNicheId;
+
+        if (detectedCountry && REGIONAL_CONFIG[detectedCountry]) {
+          setSelectedRegion(detectedCountry);
+        }
+        if (detectedNicheId) {
+          setActiveNicheId(detectedNicheId);
+        }
+
+        // Recompute all platform rates with the detected country PPP & niche!
+        recomputeAllPlatformRates(detectedCountry, detectedNicheId);
+
         addActivity(
-          `Intelligence Verified (24h Cache): ${json.intelligence.profile.creatorType} · ${json.intelligence.profile.primaryNiche.name} (${json.intelligence.profile.primaryNiche.multiplier}x)`,
+          `Intelligence Verified (24h Cache): ${intel.profile.creatorType} · ${intel.profile.primaryNiche.name} (${intel.profile.primaryNiche.multiplier}x) · Calibrated for ${REGIONAL_CONFIG[detectedCountry]?.name || detectedCountry} (${REGIONAL_CONFIG[detectedCountry]?.pppIndex || 1}x PPP)`,
           "success"
         );
       }
@@ -720,9 +830,9 @@ export function InfluencerRadarDashboard() {
     } finally {
       setIsSynthesizing(false);
     }
-  }, [platforms, creatorMeta, addActivity]);
+  }, [platforms, creatorMeta, selectedRegion, activeNicheId, recomputeAllPlatformRates, addActivity]);
 
-  // Auto-trigger synthesis once all active in-flight scrapes settle
+  // Auto-trigger synthesis and prompt missing modal once all in-flight scrapes settle
   useEffect(() => {
     const isAnyInFlight =
       platforms.instagram.status === "loading" ||
@@ -732,10 +842,32 @@ export function InfluencerRadarDashboard() {
     if (!isAnyInFlight && verifiedChannelsCount > 0) {
       const timer = setTimeout(() => {
         triggerOmnichannelSynthesis();
-      }, 350);
+
+        // Prompt Missing Platforms Modal if not all 3 channels are found
+        if (verifiedChannelsCount < 3 && !hasPromptedMissingModal.current) {
+          setIsMissingModalOpen(true);
+          hasPromptedMissingModal.current = true;
+        }
+      }, 500);
+
       return () => clearTimeout(timer);
     }
   }, [platforms, verifiedChannelsCount, triggerOmnichannelSynthesis]);
+
+  // Handle Missing Platforms Submission
+  const handleSubmitMissingPlatforms = () => {
+    setIsMissingModalOpen(false);
+
+    if (missingInputs.youtube.trim() && platforms.youtube.status !== "ready") {
+      scrapePlatform(missingInputs.youtube.trim(), "youtube", "User linked YouTube account");
+    }
+    if (missingInputs.instagram.trim() && platforms.instagram.status !== "ready") {
+      scrapePlatform(missingInputs.instagram.trim(), "instagram", "User linked Instagram account");
+    }
+    if (missingInputs.tiktok.trim() && platforms.tiktok.status !== "ready") {
+      scrapePlatform(missingInputs.tiktok.trim(), "tiktok", "User linked TikTok account");
+    }
+  };
 
   // Compute Omnichannel Bundles (Starter & Full Pack)
   const bundleOffers = useMemo(() => {
@@ -759,8 +891,9 @@ export function InfluencerRadarDashboard() {
         last3PostsAvgLikes: starterPrimary.avgLikes || 500,
         last3PostsAvgComments: starterPrimary.avgComments || 25,
         last3PostsAvgViews: starterPrimary.avgViews,
-        primaryPlatform: "instagram",
-        primaryNicheId: 8,
+        primaryPlatform: starterPrimary === platforms.instagram ? "instagram" : "youtube",
+        primaryNicheId: activeNicheId,
+        regionCode: selectedRegion,
       },
       deliverables: starterDeliverables,
       commercialTerms: { usageRights: { scope: "organic_repost", duration: "30_days" } },
@@ -785,32 +918,37 @@ export function InfluencerRadarDashboard() {
         last3PostsAvgLikes: 1000,
         last3PostsAvgComments: 50,
         primaryPlatform: "youtube",
-        primaryNicheId: 8,
+        primaryNicheId: activeNicheId,
+        regionCode: selectedRegion,
       },
       deliverables: authorityDeliverables,
       commercialTerms: { usageRights: { scope: "paid_partnership_ads", duration: "30_days" } },
     };
     const authCalc = calculateInfluencerRate(authInput);
 
+    const isForeign = selectedRegion !== "US";
+    const starterUsd = isForeign ? `(~$${starterCalc.lineItems.totalUSD.toLocaleString()} USD)` : "";
+    const authUsd = isForeign ? `(~$${authCalc.lineItems.totalUSD.toLocaleString()} USD)` : "";
+
     return {
       starter: {
         title: "Cross-Platform Starter Combo",
         subtitle: starterDeliverables.map((d) => FORMAT_LABELS[d.format]?.tag || d.format).join(" + "),
-        typicalFormatted: starterCalc.valuationRange.formatted.typical,
+        typicalFormatted: `${starterCalc.valuationRange.formatted.typical} ${starterUsd}`,
         lowFormatted: starterCalc.valuationRange.formatted.low,
         highFormatted: starterCalc.valuationRange.formatted.high,
-        savings: starterCalc.lineItems.bundleDiscountAmountUSD,
+        savings: `${starterCalc.metrics.currencySymbol}${Math.round(starterCalc.lineItems.bundleDiscountAmountUSD * (REGIONAL_CONFIG[selectedRegion]?.pppIndex || 1) * (REGIONAL_CONFIG[selectedRegion]?.fxRateToUSD || 1)).toLocaleString()} ${starterCalc.metrics.currency}`,
       },
       authority: {
         title: "Omnichannel 360 Authority Pack",
         subtitle: authorityDeliverables.map((d) => FORMAT_LABELS[d.format]?.tag || d.format).join(" + "),
-        typicalFormatted: authCalc.valuationRange.formatted.typical,
+        typicalFormatted: `${authCalc.valuationRange.formatted.typical} ${authUsd}`,
         lowFormatted: authCalc.valuationRange.formatted.low,
         highFormatted: authCalc.valuationRange.formatted.high,
-        savings: authCalc.lineItems.bundleDiscountAmountUSD,
+        savings: `${authCalc.metrics.currencySymbol}${Math.round(authCalc.lineItems.bundleDiscountAmountUSD * (REGIONAL_CONFIG[selectedRegion]?.pppIndex || 1) * (REGIONAL_CONFIG[selectedRegion]?.fxRateToUSD || 1)).toLocaleString()} ${authCalc.metrics.currency}`,
       },
     };
-  }, [verifiedChannelsCount, platforms, totalAudienceCount]);
+  }, [verifiedChannelsCount, platforms, totalAudienceCount, activeNicheId, selectedRegion]);
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
@@ -829,7 +967,7 @@ export function InfluencerRadarDashboard() {
           </h1>
 
           <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
-            Enter a creator profile link or handle. The autonomous radar will evaluate engagement and discover linked channels.
+            Enter a creator profile link or handle. The autonomous radar will evaluate engagement, discover linked channels, and calibrate for local market rates.
           </p>
         </div>
 
@@ -887,10 +1025,8 @@ export function InfluencerRadarDashboard() {
             {/* Conditional Platform Selector (Only for handle) */}
             {hasHandleInput && (
               <div className="flex items-center justify-between p-2 rounded-xl bg-gray-50/70 border border-gray-150 text-xs animate-fadeIn">
-                <span className="text-gray-500 font-medium text-[11px]">
-                  Handle Platform:
-                </span>
-                <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-gray-200 shadow-2xs">
+                <span className="text-gray-500 font-medium">Handle Platform:</span>
+                <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setSelectedPlatform("instagram")}
@@ -960,11 +1096,11 @@ export function InfluencerRadarDashboard() {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
               <span className="text-xs font-bold text-gray-900 tracking-wide uppercase">
-                Neural Telemetry & Multi-Platform Valuation Engine
+                Neural Telemetry &amp; Multi-Platform Valuation Engine
               </span>
             </div>
             <span className="font-mono text-[10px] text-gray-400 hidden sm:inline-block">
-              Autonomous Identity & Valuation Pipeline
+              Autonomous Identity &amp; Valuation Pipeline
             </span>
           </div>
 
@@ -1057,6 +1193,50 @@ export function InfluencerRadarDashboard() {
                     {verifiedChannelsCount} Platforms
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* COUNTRY & GDP PPP CALIBRATION CONTROLLER                  */}
+          {/* ========================================================= */}
+          {verifiedChannelsCount > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-gray-50 border border-gray-200 text-xs animate-fadeIn">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1">
+                  <span>🌐</span> Country Calibration:
+                </span>
+                <select
+                  value={selectedRegion}
+                  onChange={(e) => {
+                    const newReg = e.target.value as RegionCode;
+                    setSelectedRegion(newReg);
+                    recomputeAllPlatformRates(newReg, activeNicheId);
+                  }}
+                  className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs"
+                >
+                  <option value="PK">🇵🇰 Pakistan (PKR · 0.18x PPP)</option>
+                  <option value="US">🇺🇸 United States (USD · 1.00x)</option>
+                  <option value="GB">🇬🇧 United Kingdom (GBP · 0.85x PPP)</option>
+                  <option value="IN">🇮🇳 India (INR · 0.24x PPP)</option>
+                  <option value="CA">🇨🇦 Canada (CAD · 0.90x PPP)</option>
+                  <option value="AU">🇦🇺 Australia (AUD · 0.88x PPP)</option>
+                  <option value="AE">🇦🇪 United Arab Emirates (AED · 0.68x PPP)</option>
+                  <option value="SA">🇸🇦 Saudi Arabia (SAR · 0.62x PPP)</option>
+                  <option value="DE">🇩🇪 Germany (EUR · 0.85x PPP)</option>
+                  <option value="FR">🇫🇷 France (EUR · 0.84x PPP)</option>
+                  <option value="SG">🇸🇬 Singapore (SGD · 0.82x PPP)</option>
+                  <option value="BR">🇧🇷 Brazil (BRL · 0.36x PPP)</option>
+                  <option value="BD">🇧🇩 Bangladesh (BDT · 0.20x PPP)</option>
+                  <option value="NG">🇳🇬 Nigeria (NGN · 0.16x PPP)</option>
+                  <option value="EG">🇪🇬 Egypt (EGP · 0.17x PPP)</option>
+                  <option value="TR">🇹🇷 Turkey (TRY · 0.32x PPP)</option>
+                  <option value="ZA">🇿🇦 South Africa (ZAR · 0.38x PPP)</option>
+                </select>
+              </div>
+
+              <div className="text-[11px] text-gray-500 font-medium">
+                Applied: <span className="font-bold text-gray-950">{REGIONAL_CONFIG[selectedRegion]?.name || selectedRegion}</span> ({REGIONAL_CONFIG[selectedRegion]?.pppIndex}x GDP PPP · {REGIONAL_CONFIG[selectedRegion]?.currency})
               </div>
             </div>
           )}
@@ -1274,7 +1454,7 @@ export function InfluencerRadarDashboard() {
                         {bundleOffers.starter.typicalFormatted}
                       </div>
                       <div className="text-[10px] text-emerald-400 font-mono">
-                        Save ${bundleOffers.starter.savings} USD
+                        Save {bundleOffers.starter.savings}
                       </div>
                     </div>
                   </div>
@@ -1295,7 +1475,7 @@ export function InfluencerRadarDashboard() {
                         {bundleOffers.authority.typicalFormatted}
                       </div>
                       <div className="text-[10px] text-emerald-400 font-mono">
-                        Save ${bundleOffers.authority.savings} USD
+                        Save {bundleOffers.authority.savings}
                       </div>
                     </div>
                   </div>
@@ -1311,6 +1491,131 @@ export function InfluencerRadarDashboard() {
           {/* SECTION 6: RECENT MEDIA & EMPIRICAL POST AUDITS          */}
           {/* ========================================================= */}
           <RecentMediaAuditFeed platforms={platforms} />
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SECTION 7: MISSING PLATFORM DISCOVERY MODAL POPUP         */}
+      {/* ========================================================= */}
+      {isMissingModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 text-left relative animate-scaleUp">
+            <button
+              type="button"
+              onClick={() => setIsMissingModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-sm cursor-pointer"
+            >
+              ✕
+            </button>
+
+            {/* Modal Header */}
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold">
+                <span>⚡</span> Omnichannel Radar Link
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-gray-950">
+                Complete 3-Platform Report for @{creatorMeta?.displayName || "Creator"}
+              </h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                We verified {verifiedChannelsCount} account(s), but couldn&apos;t automatically discover all 3 channels in the bio. Add missing links below to get a 100% complete 360° intelligence &amp; package rate sheet.
+              </p>
+            </div>
+
+            {/* Verified vs Missing List */}
+            <div className="space-y-3">
+              {/* Verified Accounts */}
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Verified Platforms</div>
+                <div className="flex flex-wrap gap-2">
+                  {platforms.youtube.status === "ready" && (
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1">
+                      ✓ YouTube (@{platforms.youtube.username})
+                    </span>
+                  )}
+                  {platforms.instagram.status === "ready" && (
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1">
+                      ✓ Instagram (@{platforms.instagram.username})
+                    </span>
+                  )}
+                  {platforms.tiktok.status === "ready" && (
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1">
+                      ✓ TikTok (@{platforms.tiktok.username})
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Missing Accounts Inputs */}
+              <div className="space-y-2.5 pt-2 border-t border-gray-100">
+                <div className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">Add Unfound Channels</div>
+
+                {platforms.youtube.status !== "ready" && (
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                      <span>🎥</span> YouTube Channel URL or Handle:
+                    </label>
+                    <input
+                      type="text"
+                      value={missingInputs.youtube}
+                      onChange={(e) => setMissingInputs((prev) => ({ ...prev, youtube: e.target.value }))}
+                      placeholder="https://youtube.com/@channel or @handle"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                    />
+                  </div>
+                )}
+
+                {platforms.instagram.status !== "ready" && (
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                      <span>📸</span> Instagram Profile URL or Handle:
+                    </label>
+                    <input
+                      type="text"
+                      value={missingInputs.instagram}
+                      onChange={(e) => setMissingInputs((prev) => ({ ...prev, instagram: e.target.value }))}
+                      placeholder="https://instagram.com/username or @handle"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                    />
+                  </div>
+                )}
+
+                {platforms.tiktok.status !== "ready" && (
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                      <span>🎵</span> TikTok Profile URL or Handle:
+                    </label>
+                    <input
+                      type="text"
+                      value={missingInputs.tiktok}
+                      onChange={(e) => setMissingInputs((prev) => ({ ...prev, tiktok: e.target.value }))}
+                      placeholder="https://tiktok.com/@username or @handle"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setIsMissingModalOpen(false)}
+                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-950 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all cursor-pointer"
+              >
+                Skip &amp; View {verifiedChannelsCount}-Platform Report
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSubmitMissingPlatforms}
+                className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-white bg-gray-950 hover:bg-black rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>Sync &amp; Complete 360° Report</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -1467,8 +1772,15 @@ function PlatformRateCardItem({
                       {item.formattedLow} – {item.formattedHigh}
                     </div>
                   </div>
-                  <div className="font-bold font-mono text-gray-950 shrink-0">
-                    {item.formattedAmount}
+                  <div className="text-right shrink-0">
+                    <div className="font-bold font-mono text-gray-950">
+                      {item.formattedAmount}
+                    </div>
+                    {item.usdEquivalentFormatted && (
+                      <div className="text-[10px] text-gray-400 font-mono">
+                        {item.usdEquivalentFormatted}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -1521,7 +1833,7 @@ function RecentMediaAuditFeed({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-gray-950" />
             <h3 className="text-xs sm:text-sm font-bold tracking-tight text-gray-950">
-              Recent Media & Empirical Content Audits
+              Recent Media &amp; Empirical Content Audits
             </h3>
           </div>
           <p className="text-[11px] text-gray-500 mt-0.5">
@@ -1648,60 +1960,29 @@ function InstagramPostsGrid({
             {/* Metrics Row (Likes & Comments) */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
-                <div className="flex items-center gap-1.5 text-gray-900 font-bold">
-                  <svg className="w-3.5 h-3.5 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
-                  <span>{post.likes > 0 ? formatShortNumber(post.likes) : "—"}</span>
+                <div className="flex items-center gap-1.5 text-gray-700">
+                  <span>❤️</span>
+                  <span className="font-bold">{formatShortNumber(post.likes)}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-gray-900 font-bold">
-                  <svg className="w-3.5 h-3.5 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z" />
-                  </svg>
-                  <span>{post.commentsCount > 0 ? formatShortNumber(post.commentsCount) : "—"}</span>
+                <div className="flex items-center gap-1.5 text-gray-700">
+                  <span>💬</span>
+                  <span className="font-bold">{formatShortNumber(post.commentsCount)}</span>
                 </div>
               </div>
 
-              {/* Location Tag */}
-              {post.location && (
-                <div className="flex items-center gap-1 text-[11px] text-gray-600 font-medium truncate">
-                  <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="truncate">{post.location}</span>
-                </div>
-              )}
-
               {/* Caption */}
-              <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
-                {post.caption || "No caption available."}
-              </p>
-
-              {/* Hashtags Pills */}
-              {post.postHashtags && post.postHashtags.length > 0 && (
-                <div className="flex flex-wrap gap-1 pt-0.5">
-                  {post.postHashtags.slice(0, 3).map((tag, tIdx) => (
-                    <span key={tIdx} className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-mono">
-                      {tag.startsWith("#") ? tag : `#${tag}`}
-                    </span>
-                  ))}
-                  {post.postHashtags.length > 3 && (
-                    <span className="text-[10px] text-gray-400 font-mono self-center">
-                      +{post.postHashtags.length - 3}
-                    </span>
-                  )}
-                </div>
+              {post.caption && (
+                <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
+                  {post.caption}
+                </p>
               )}
             </div>
 
-            {/* Direct Link Footer */}
-            <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
-              <span className="text-gray-400 font-mono">
-                {post.datetime ? new Date(post.datetime).toLocaleDateString() : ""}
-              </span>
+            {/* Link Footer */}
+            <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] font-mono text-gray-400">
+              <span>{post.datetime ? new Date(post.datetime).toLocaleDateString() : `@${username}`}</span>
               <a
-                href={post.url || `https://www.instagram.com/${username}`}
+                href={post.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
@@ -1720,184 +2001,94 @@ function InstagramPostsGrid({
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: YouTube Videos Grid (Long-Form & Shorts with ER Badges)
+// Sub-Component: YouTube Videos Grid
 // ----------------------------------------------------------------------
 function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
-  const [formatFilter, setFormatFilter] = useState<"all" | "long" | "shorts">("all");
-
-  const longVideos = useMemo(
-    () => videos.filter((v) => !v.isShort && (v.durationSeconds === undefined || v.durationSeconds > 120)),
-    [videos]
-  );
-  const shortVideos = useMemo(
-    () => videos.filter((v) => v.isShort || (v.durationSeconds !== undefined && v.durationSeconds > 0 && v.durationSeconds <= 120)),
-    [videos]
-  );
-
-  const displayedVideos = useMemo(() => {
-    if (formatFilter === "long") return longVideos;
-    if (formatFilter === "shorts") return shortVideos;
-    return [...longVideos, ...shortVideos];
-  }, [formatFilter, longVideos, shortVideos]);
-
   return (
-    <div className="space-y-3.5">
-      {/* Sub-Filter Controls for Long-Form vs Shorts */}
-      {(longVideos.length > 0 && shortVideos.length > 0) && (
-        <div className="flex items-center justify-between gap-2 bg-gray-50/80 p-1.5 rounded-xl border border-gray-200/80">
-          <div className="text-[11px] font-semibold text-gray-500 pl-1">
-            Filter Content Format:
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setFormatFilter("all")}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
-                formatFilter === "all"
-                  ? "bg-white text-gray-950 shadow-2xs border border-gray-200"
-                  : "text-gray-600 hover:text-gray-950"
-              }`}
-            >
-              All Uploads ({videos.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFormatFilter("long")}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                formatFilter === "long"
-                  ? "bg-white text-gray-950 shadow-2xs border border-gray-200"
-                  : "text-gray-600 hover:text-gray-950"
-              }`}
-            >
-              <svg className="w-3 h-3 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              <span>Long-Form ({longVideos.length})</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setFormatFilter("shorts")}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                formatFilter === "shorts"
-                  ? "bg-white text-gray-950 shadow-2xs border border-gray-200"
-                  : "text-gray-600 hover:text-gray-950"
-              }`}
-            >
-              <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.77 10.32l-1.2-.5a3.1 3.1 0 00-4.04-1.68l-3.3 1.4a3.1 3.1 0 00-1.68 4.04l.5 1.2a3.1 3.1 0 004.04 1.68l3.3-1.4a3.1 3.1 0 001.68-4.04z" />
-              </svg>
-              <span>Shorts ({shortVideos.length})</span>
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      {videos.slice(0, 9).map((vid, idx) => {
+        return (
+          <div
+            key={vid.id || vid.url || idx}
+            className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
+          >
+            <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
+              {vid.thumbnailUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={vid.thumbnailUrl}
+                  alt={vid.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
+                  No Thumbnail
+                </div>
+              )}
 
-      {/* Videos Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-        {displayedVideos.map((vid, idx) => {
-          const isShortVideo = vid.isShort || (vid.durationSeconds !== undefined && vid.durationSeconds > 0 && vid.durationSeconds <= 120);
-
-          return (
-            <div
-              key={vid.id || idx}
-              className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
-            >
-              {/* Video Thumbnail & Overlays */}
-              <div className={`relative w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60 ${isShortVideo ? "aspect-[9/16] max-h-[280px]" : "aspect-video"}`}>
-                {vid.thumbnailUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={vid.thumbnailUrl}
-                    alt={vid.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
+              <div className="absolute top-2 left-2 flex gap-1">
+                {vid.isShort ? (
+                  <span className="px-2 py-0.5 rounded-md bg-red-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs">
+                    Short
+                  </span>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
-                    No Thumbnail
-                  </div>
-                )}
-
-                {/* Floating Top Badges */}
-                <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
-                  {/* Format Badge */}
-                  <span
-                    className={`px-2 py-0.5 rounded-md font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1 ${
-                      isShortVideo
-                        ? "bg-red-600/90 text-white"
-                        : "bg-gray-900/90 text-white"
-                    }`}
-                  >
-                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
-                      {isShortVideo ? (
-                        <path d="M17.77 10.32l-1.2-.5a3.1 3.1 0 00-4.04-1.68l-3.3 1.4a3.1 3.1 0 00-1.68 4.04l.5 1.2a3.1 3.1 0 004.04 1.68l3.3-1.4a3.1 3.1 0 001.68-4.04z" />
-                      ) : (
-                        <path d="M8 5v14l11-7z" />
-                      )}
-                    </svg>
-                    <span>{isShortVideo ? "Short" : "Long-Form"}</span>
-                  </span>
-
-                  {/* ER Sample Badge (Identical to Instagram styling with pulsing dot) */}
-                  {vid.isErSample !== false && (
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      ER Sample
-                    </span>
-                  )}
-                </div>
-
-                {/* Duration Badge */}
-                {vid.durationFormatted && (
-                  <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-semibold backdrop-blur-xs">
-                    {vid.durationFormatted}
+                  <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
+                    Long Video
                   </span>
                 )}
               </div>
 
-              {/* Title & Metrics */}
-              <div className="space-y-1.5">
-                <h4 className="text-xs font-bold text-gray-950 line-clamp-2 leading-snug group-hover:text-black">
-                  {vid.title}
-                </h4>
-
-                <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
-                  <div className="text-gray-900 font-bold">
-                    {vid.viewCount ? `${formatShortNumber(vid.viewCount)} views` : "0 views"}
-                  </div>
-                  <div className="text-gray-600">
-                    {vid.likeCount ? `${formatShortNumber(vid.likeCount)} likes` : "0 likes"}
-                  </div>
+              {vid.durationFormatted && (
+                <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-black/80 text-white text-[10px] font-mono backdrop-blur-xs">
+                  {vid.durationFormatted}
                 </div>
-              </div>
+              )}
+            </div>
 
-              {/* Footer */}
-              <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
-                <span className="text-gray-400 font-mono">
-                  {vid.publishedAt ? new Date(vid.publishedAt).toLocaleDateString() : ""}
-                </span>
-                <a
-                  href={vid.url || `https://www.youtube.com/watch?v=${vid.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
-                >
-                  <span>{isShortVideo ? "Watch Short" : "Watch Video"}</span>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
+            <div className="space-y-1.5">
+              <h4 className="text-xs font-bold text-gray-950 line-clamp-2 leading-snug">
+                {vid.title}
+              </h4>
+              <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono text-gray-700">
+                <div className="flex items-center gap-1">
+                  <span>👁️</span>
+                  <span className="font-bold">{formatShortNumber(vid.viewCount)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span>❤️</span>
+                  <span className="font-bold">{formatShortNumber(vid.likeCount)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span>💬</span>
+                  <span className="font-bold">{formatShortNumber(vid.commentCount)}</span>
+                </div>
               </div>
             </div>
-          );
-        })}
-      </div>
+
+            <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] font-mono text-gray-400">
+              <span>{vid.publishedAt ? new Date(vid.publishedAt).toLocaleDateString() : ""}</span>
+              <a
+                href={vid.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
+              >
+                <span>Watch</span>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: TikTok Videos Grid (12 Recent Posts + 4 ER Samples)
+// Sub-Component: TikTok Videos Grid
 // ----------------------------------------------------------------------
 function TikTokVideosGrid({
   videos,
@@ -1906,29 +2097,20 @@ function TikTokVideosGrid({
   videos: TikTokVideoItem[];
   username: string;
 }) {
-  // Show up to 12 videos, with the 4 trimmed-mean ER sample posts appearing first
-  const sortedVideos = useMemo(() => {
-    const validVideos = videos.slice(0, 12);
-    const erSamples = validVideos.filter((v) => v.isEnrichedSample);
-    const otherPosts = validVideos.filter((v) => !v.isEnrichedSample);
-    return [...erSamples, ...otherPosts];
-  }, [videos]);
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      {sortedVideos.map((vid, idx) => {
+      {videos.slice(0, 9).map((vid, idx) => {
         return (
           <div
-            key={vid.id || idx}
+            key={vid.id || vid.url || idx}
             className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
           >
-            {/* Cover Image & Badges */}
-            <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
+            <div className="relative aspect-[9/12] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
               {vid.coverImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={vid.coverImage}
-                  alt={vid.description || "TikTok video"}
+                  alt={vid.description || "TikTok Video"}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
@@ -1938,65 +2120,45 @@ function TikTokVideosGrid({
                 </div>
               )}
 
-              {/* Floating Badges Overlay */}
-              <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
-                <div className="flex flex-wrap gap-1">
-                  {vid.isPinned ? (
-                    <span className="px-2 py-0.5 rounded-md bg-amber-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
-                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                      </svg>
-                      Pinned Video
-                    </span>
-                  ) : vid.isEnrichedSample ? (
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      ER Sample
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
-                      Recent #{idx + 1}
-                    </span>
-                  )}
-                </div>
-
-                <span className="px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-mono uppercase backdrop-blur-xs">
-                  TikTok
-                </span>
+              <div className="absolute top-2 left-2 flex gap-1">
+                {vid.isPinned ? (
+                  <span className="px-2 py-0.5 rounded-md bg-amber-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
+                    📌 Pinned
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-md bg-cyan-600/90 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
+                    Video #{idx + 1}
+                  </span>
+                )}
               </div>
-
-              {/* Plays Badge */}
-              <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-semibold backdrop-blur-xs flex items-center gap-1">
-                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                {vid.playCount ? formatShortNumber(vid.playCount) : "0"}
-              </span>
             </div>
 
-            {/* Description & Performance */}
             <div className="space-y-1.5">
-              <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
-                {vid.description || "No caption provided."}
-              </p>
-
-              <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
-                <div className="text-gray-900 font-bold">
-                  {vid.diggCount ? `${formatShortNumber(vid.diggCount)} likes` : "0 likes"}
+              {vid.description && (
+                <p className="text-xs font-medium text-gray-950 line-clamp-2 leading-snug">
+                  {vid.description}
+                </p>
+              )}
+              <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono text-gray-700">
+                <div className="flex items-center gap-1">
+                  <span>👁️</span>
+                  <span className="font-bold">{formatShortNumber(vid.playCount)}</span>
                 </div>
-                <div className="text-gray-600">
-                  {vid.commentCount ? `${formatShortNumber(vid.commentCount)} comments` : "0 comments"}
+                <div className="flex items-center gap-1">
+                  <span>❤️</span>
+                  <span className="font-bold">{formatShortNumber(vid.diggCount)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span>💬</span>
+                  <span className="font-bold">{formatShortNumber(vid.commentCount)}</span>
                 </div>
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
-              <span className="text-gray-400 font-mono">
-                {vid.createDate ? new Date(vid.createDate).toLocaleDateString() : "TikTok Video"}
-              </span>
+            <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] font-mono text-gray-400">
+              <span>@{username}</span>
               <a
-                href={vid.url || `https://www.tiktok.com/@${username}/video/${vid.id}`}
+                href={vid.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
