@@ -706,3 +706,82 @@ model CalculatorValuationHistory {
   @@index([createdAt(sort: Desc)])
   @@map("calculator_valuation_history")
 }
+
+// ==========================================
+// CREATOR INTELLIGENCE (19-POINT LLM DOSSIER)
+// ==========================================
+
+model CreatorIntelligence {
+  id                    String    @id @default(uuid())
+  creatorHandle         String    @map("creator_handle")
+  creatorName           String    @map("creator_name")
+  primaryPlatform       String    @map("primary_platform") // "youtube" | "instagram" | "tiktok"
+
+  // Connected Scraper Snapshot References
+  youtubeScrapeId       String?   @map("youtube_scrape_id")
+  instagramScrapeId     String?   @map("instagram_scrape_id")
+  tiktokScrapeId        String?   @map("tiktok_scrape_id")
+
+  // 1. Profile & Identity
+  creatorType           String    @map("creator_type")
+  profilePositioning    String    @map("profile_positioning")
+  primaryNicheId        Int       @map("primary_niche_id")
+  primaryNicheName      String    @map("primary_niche_name")
+  secondaryNiches       Json      @map("secondary_niches")
+  microNiches           String[]  @default([]) @map("micro_niches")
+  creatorDescription    String    @db.Text @map("creator_description")
+  identityConfidence    Float     @default(0.95) @map("identity_confidence")
+
+  // 2. Geography Intelligence
+  countryCode           String?   @map("country_code")
+  countryName           String?   @map("country_name")
+  city                  String?   @map("city")
+  region                String?   @map("region")
+  geographyConfidence   Float     @default(0.90) @map("geography_confidence")
+  geographyEvidence     String[]  @default([]) @map("geography_evidence")
+
+  // 3. Audience Intelligence (JSONB)
+  audienceIntelligence  Json      @map("audience_intelligence")
+
+  // 4. Content & Theme Intelligence (JSONB)
+  contentIntelligence   Json      @map("content_intelligence")
+  contentThemes         Json      @default("[]") @map("content_themes")
+  contentFormatIntel    Json?     @map("content_format_intel")
+
+  // 5. Performance & Engagement Intelligence (JSONB)
+  performanceIntel      Json      @map("performance_intel")
+  engagementIntel       Json      @map("engagement_intel")
+
+  // 6. Commercial & Brand Fit Intelligence (JSONB)
+  commercialIntel       Json      @map("commercial_intel")
+  brandFit              Json      @map("brand_fit")
+  brandSafety           Json      @map("brand_safety")
+
+  // 7. Qualitative Strategy & Recommendations (JSONB)
+  strengths             Json      @default("[]") @map("strengths")
+  considerations        Json      @default("[]") @map("considerations")
+  partnershipRecs       Json      @default("[]") @map("partnership_recs")
+
+  // 8. 3-Tier Executive Summaries
+  oneLineSummary        String    @map("one_line_summary")
+  brandSummary          String    @db.Text @map("brand_summary")
+  detailedSummary       String    @db.Text @map("detailed_summary")
+
+  // 9. Meta, Confidence & Uncertainty
+  confidenceScores      Json      @map("confidence_scores")
+  evidence              Json      @map("evidence")
+  uncertainties         String[]  @default([]) @map("uncertainties")
+
+  // Raw LLM Backup & Model Info
+  rawLlmResponse        Json      @map("raw_llm_response")
+  llmModelUsed          String    @default("gemini-3.7-flash") @map("llm_model_used")
+
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@index([creatorHandle])
+  @@index([primaryNicheId])
+  @@index([countryCode])
+  @@index([creatorHandle, createdAt(sort: Desc)])
+  @@map("creator_intelligence")
+}

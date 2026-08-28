@@ -60,6 +60,7 @@ export function MultiPlatformCalculatorGrid({
 
   // Cross-Platform Unified AI Intelligence State
   const [aiSynthesis, setAiSynthesis] = useState<CreatorAIClassification | null>(null);
+  const [completeIntelligence, setCompleteIntelligence] = useState<import("@/lib/ai/types").CompleteCreatorIntelligence | null>(null);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const synthesizedPlatformsHash = useRef<string>("");
 
@@ -81,7 +82,7 @@ export function MultiPlatformCalculatorGrid({
   }, [platformStates]);
 
   // Unified Omnichannel AI Synthesis Function
-  const triggerOmnichannelSynthesis = useCallback(async () => {
+  const triggerOmnichannelSynthesis = useCallback(async (bypassCache = false) => {
     const readyList: Platform[] = [];
     if (platformStates.youtube.status === "ready") readyList.push("youtube");
     if (platformStates.instagram.status === "ready") readyList.push("instagram");
@@ -90,7 +91,7 @@ export function MultiPlatformCalculatorGrid({
     if (readyList.length === 0) return;
 
     const currentHash = readyList.map((p) => `${p}:${platformStates[p].username || ""}`).sort().join("|");
-    if (currentHash === synthesizedPlatformsHash.current) return; // Already synthesized for this exact combo
+    if (currentHash === synthesizedPlatformsHash.current && !bypassCache) return;
 
     setIsSynthesizing(true);
 
@@ -114,6 +115,7 @@ export function MultiPlatformCalculatorGrid({
           title: platformStates.youtube.displayName,
           subscriberCount: platformStates.youtube.followerCount,
           avgViews: platformStates.youtube.avgViews,
+          observedEr: platformStates.youtube.engagementRate,
         };
       }
 
@@ -123,6 +125,7 @@ export function MultiPlatformCalculatorGrid({
           fullName: platformStates.instagram.displayName,
           followerCount: platformStates.instagram.followerCount,
           avgLikes: platformStates.instagram.avgLikes,
+          observedEr: platformStates.instagram.engagementRate,
         };
       }
 
@@ -132,18 +135,20 @@ export function MultiPlatformCalculatorGrid({
           nickname: platformStates.tiktok.displayName,
           followerCount: platformStates.tiktok.followerCount,
           avgViews: platformStates.tiktok.avgViews,
+          observedEr: platformStates.tiktok.engagementRate,
         };
       }
 
       const res = await fetch("/api/calculator/synthesize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ multiInput, regionCode }),
+        body: JSON.stringify({ multiInput, regionCode, bypassCache }),
       });
 
       const json = await res.json();
-      if (json.success && json.aiEnrichment) {
-        setAiSynthesis(json.aiEnrichment);
+      if (json.success) {
+        if (json.aiEnrichment) setAiSynthesis(json.aiEnrichment);
+        if (json.intelligence) setCompleteIntelligence(json.intelligence);
         synthesizedPlatformsHash.current = currentHash;
       }
     } catch (e) {
@@ -437,8 +442,133 @@ export function MultiPlatformCalculatorGrid({
           </div>
         </div>
 
-        {/* AI Synthesis Summary Card (When Generated) */}
-        {aiSynthesis && (
+        {/* Complete 19-Point Creator Intelligence Dossier (When Generated) */}
+        {completeIntelligence ? (
+          <div className="space-y-4 pt-2 border-t border-white/10">
+            {/* Top Bar: Summaries & Refresh Button */}
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs space-y-3 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-gray-400">Positioning:</span>
+                  <span className="font-bold text-white bg-white/10 px-2.5 py-0.5 rounded-lg">
+                    {completeIntelligence.profile.creatorType || "Creator"}
+                  </span>
+                  {completeIntelligence.geography?.countryCode && (
+                    <span className="font-bold text-cyan-300 uppercase tracking-wider bg-cyan-950/60 border border-cyan-500/30 px-2 py-0.5 rounded-md">
+                      📍 {completeIntelligence.geography.countryName || completeIntelligence.geography.countryCode} {completeIntelligence.geography.city ? `(${completeIntelligence.geography.city})` : ""}
+                    </span>
+                  )}
+                  {completeIntelligence.brandSafety?.overallRisk && (
+                    <span className={`font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                      completeIntelligence.brandSafety.overallRisk === "Low"
+                        ? "bg-emerald-950/60 border-emerald-500/30 text-emerald-300"
+                        : "bg-amber-950/60 border-amber-500/30 text-amber-300"
+                    }`}>
+                      Safety: {completeIntelligence.brandSafety.overallRisk} Risk
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-gray-400 font-medium">
+                    24h Verified Cache
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => triggerOmnichannelSynthesis(true)}
+                    disabled={isSynthesizing}
+                    className="px-2.5 py-1 text-[11px] font-bold bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all border border-white/10 cursor-pointer"
+                  >
+                    {isSynthesizing ? "Refreshing..." : "↻ Refresh AI"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Brand Summary */}
+              <p className="text-gray-200 leading-relaxed text-xs font-medium">
+                &ldquo;{completeIntelligence.summary.brandSummary || completeIntelligence.summary.oneLine}&rdquo;
+              </p>
+
+              {/* Micro-Niches Badges */}
+              {completeIntelligence.profile.microNiches?.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[11px] text-gray-400 font-semibold">Micro-Niches:</span>
+                  {completeIntelligence.profile.microNiches.map((mn, i) => (
+                    <span key={i} className="text-[10px] font-semibold bg-gray-800 text-gray-300 px-2 py-0.5 rounded-md border border-gray-700">
+                      {mn}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 4-Pillar Intelligence Sub-Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              {/* Pillar 1: Inferred Audience */}
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2">
+                <div className="text-[11px] font-black uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
+                  <span>👥</span> Inferred Audience
+                </div>
+                <div className="space-y-1 text-gray-300 text-[11px]">
+                  <div className="flex justify-between"><span className="text-gray-400">Demographic:</span> <span className="font-semibold text-white">{completeIntelligence.audience.genderSkew || "Balanced"}, {completeIntelligence.audience.likelyAgeRange}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Buyer Intent:</span> <span className="font-semibold text-emerald-400">{completeIntelligence.audience.purchaseIntent || "Moderate"}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Top Market:</span> <span className="font-semibold text-white">{completeIntelligence.audience.primaryMarket || "Global"}</span></div>
+                </div>
+                {completeIntelligence.audience.interests?.length > 0 && (
+                  <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
+                    Interests: {completeIntelligence.audience.interests.slice(0, 3).join(", ")}
+                  </div>
+                )}
+              </div>
+
+              {/* Pillar 2: Content DNA & Themes */}
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2">
+                <div className="text-[11px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                  <span>🎬</span> Content DNA
+                </div>
+                <div className="space-y-1 text-gray-300 text-[11px]">
+                  <div className="flex justify-between"><span className="text-gray-400">Primary Format:</span> <span className="font-semibold text-white">{completeIntelligence.content.dominantFormat || "Video"}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Production:</span> <span className="font-semibold text-white">{completeIntelligence.content.productionLevel || "High"}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Consistency:</span> <span className="font-semibold text-white">{completeIntelligence.content.contentConsistency || "High"}</span></div>
+                </div>
+                {completeIntelligence.contentThemes?.length > 0 && (
+                  <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
+                    Themes: {completeIntelligence.contentThemes.slice(0, 3).map((t) => t.theme).join(", ")}
+                  </div>
+                )}
+              </div>
+
+              {/* Pillar 3: Commercial & Brand Fit */}
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2">
+                <div className="text-[11px] font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
+                  <span>🤝</span> Brand Fit
+                </div>
+                <div className="space-y-1 text-gray-300 text-[11px]">
+                  <div className="flex justify-between"><span className="text-gray-400">Commercial Intent:</span> <span className="font-semibold text-white">{completeIntelligence.commercialIntelligence.commercialIntent || "High"}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Suitability:</span> <span className="font-semibold text-emerald-400">{completeIntelligence.brandFit.brandSuitability || "High"}</span></div>
+                </div>
+                {completeIntelligence.brandFit.bestFitCategories?.length > 0 && (
+                  <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
+                    Categories: {completeIntelligence.brandFit.bestFitCategories.slice(0, 3).join(", ")}
+                  </div>
+                )}
+              </div>
+
+              {/* Pillar 4: Top Strengths */}
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2">
+                <div className="text-[11px] font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                  <span>⭐</span> Key Strengths
+                </div>
+                <div className="space-y-1 text-gray-300 text-[11px]">
+                  {completeIntelligence.strengths?.slice(0, 2).map((s, i) => (
+                    <div key={i} className="line-clamp-1">
+                      <span className="font-bold text-white">• {s.area}:</span> <span className="text-gray-400">{s.description}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : aiSynthesis ? (
           <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs space-y-2 text-xs">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -462,7 +592,7 @@ export function MultiPlatformCalculatorGrid({
               </p>
             )}
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* 4-Card Responsive Grid */}
