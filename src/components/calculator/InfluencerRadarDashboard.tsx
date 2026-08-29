@@ -1582,200 +1582,234 @@ export function InfluencerRadarDashboard() {
       {/* ========================================================= */}
       {/* SECTION 7: MISSING PLATFORM DISCOVERY MODAL POPUP         */}
       {/* ========================================================= */}
-      {isMissingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/70 backdrop-blur-md animate-fadeIn">
-          <div className="bg-white rounded-3xl border border-gray-200/90 shadow-2xl max-w-lg w-full overflow-hidden text-left relative animate-scaleUp">
-            {/* Modal Header Banner */}
-            <div className="bg-gradient-to-b from-gray-50/90 via-white to-white px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-100 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-950 text-white text-[11px] font-bold shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Omnichannel Radar Discovery</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMissingModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-900 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-xs cursor-pointer"
-                  aria-label="Close modal"
-                >
-                  ✕
-                </button>
-              </div>
+      {isMissingModalOpen && (() => {
+        const hasAnyMissingInput = Boolean(
+          (missingInputs.youtube && missingInputs.youtube.trim().length > 0) ||
+          (missingInputs.instagram && missingInputs.instagram.trim().length > 0) ||
+          (missingInputs.tiktok && missingInputs.tiktok.trim().length > 0)
+        );
 
-              <h3 className="text-lg sm:text-xl font-extrabold text-gray-950 tracking-tight pt-1">
-                Unlock Complete 360° Report
-              </h3>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                We verified <strong className="text-gray-900 font-semibold">{verifiedChannelsCount} channel(s)</strong> for @{creatorMeta?.displayName || "Creator"}, but couldn&apos;t automatically discover all 3 channels in the bio. Add unfound handles to calculate multi-platform bundle rates &amp; full intelligence.
-              </p>
-            </div>
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/75 backdrop-blur-md animate-fadeIn">
+            <div className="relative bg-white/95 rounded-3xl border border-gray-200/90 shadow-2xl max-w-lg w-full overflow-hidden text-left animate-scaleUp">
+              {/* Background World Map Pattern from Hero */}
+              <div
+                className="absolute inset-0 pointer-events-none opacity-20 sm:opacity-30 bg-center bg-cover bg-no-repeat transition-opacity"
+                style={{ backgroundImage: "url('/hero-image-calcuator.webp')" }}
+              />
+              {/* Soft gradient mask for text readability */}
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/95 via-white/85 to-white/95" />
 
-            {/* Modal Body */}
-            <div className="px-5 sm:px-6 py-4 space-y-4">
-              {/* Verified Accounts Section */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                  <span>Verified Connected Channels</span>
-                  <span className="text-emerald-600 font-semibold lowercase tracking-normal">({verifiedChannelsCount}/3 connected)</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {platforms.youtube.status === "ready" && (
-                    <div className="px-3 py-2 rounded-xl bg-gray-50 border border-gray-200/80 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <svg className="w-4 h-4 text-red-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                        </svg>
-                        <div className="truncate">
-                          <div className="text-xs font-bold text-gray-900 truncate">YouTube</div>
-                          <div className="text-[10px] font-mono text-gray-500 truncate">@{platforms.youtube.username?.replace(/^@/, "")}</div>
-                        </div>
-                      </div>
-                      <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                        ✓ Verified
-                      </span>
+              {/* Modal Content */}
+              <div className="relative z-10">
+                {/* Modal Header Banner */}
+                <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-100 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-950 text-white text-[11px] font-bold shadow-2xs">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Omnichannel Radar Discovery</span>
                     </div>
-                  )}
+                    <button
+                      type="button"
+                      onClick={() => setIsMissingModalOpen(false)}
+                      className="text-gray-400 hover:text-gray-900 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-xs cursor-pointer"
+                      aria-label="Close modal"
+                    >
+                      ✕
+                    </button>
+                  </div>
 
-                  {platforms.instagram.status === "ready" && (
-                    <div className="px-3 py-2 rounded-xl bg-gray-50 border border-gray-200/80 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <svg className="w-4 h-4 text-pink-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                        </svg>
-                        <div className="truncate">
-                          <div className="text-xs font-bold text-gray-900 truncate">Instagram</div>
-                          <div className="text-[10px] font-mono text-gray-500 truncate">@{platforms.instagram.username?.replace(/^@/, "")}</div>
-                        </div>
-                      </div>
-                      <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                        ✓ Verified
-                      </span>
-                    </div>
-                  )}
-
-                  {platforms.tiktok.status === "ready" && (
-                    <div className="px-3 py-2 rounded-xl bg-gray-50 border border-gray-200/80 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <svg className="w-4 h-4 text-gray-950 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01v8.08c0 2.15-.65 4.35-1.95 6.07-1.4 1.83-3.52 3.03-5.8 3.34-2.3.31-4.72-.25-6.6-1.57-2.02-1.41-3.37-3.66-3.69-6.08-.34-2.52.41-5.14 2.05-7.07 1.67-1.97 4.16-3.08 6.72-2.98.02 1.42.01 2.84.01 4.26-1.52-.08-3.1.44-4.08 1.62-.97 1.16-1.22 2.81-.66 4.24.54 1.42 1.85 2.45 3.36 2.6 1.47.16 3-.47 3.8-1.7.53-.8.76-1.77.74-2.73V.02h.07z"/>
-                        </svg>
-                        <div className="truncate">
-                          <div className="text-xs font-bold text-gray-900 truncate">TikTok</div>
-                          <div className="text-[10px] font-mono text-gray-500 truncate">@{platforms.tiktok.username?.replace(/^@/, "")}</div>
-                        </div>
-                      </div>
-                      <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                        ✓ Verified
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Missing Accounts Input Fields */}
-              <div className="space-y-3 pt-3 border-t border-gray-100">
-                <div className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
-                  Add Unfound Channel(s)
+                  <h3 className="text-lg sm:text-xl font-extrabold text-gray-950 tracking-tight pt-1">
+                    Unlock Complete 360° Report
+                  </h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    We verified <strong className="text-gray-900 font-semibold">{verifiedChannelsCount} channel(s)</strong> for @{creatorMeta?.displayName || "Creator"}, but couldn&apos;t automatically discover all 3 channels in the bio. Add unfound handles to calculate multi-platform bundle rates &amp; full intelligence.
+                  </p>
                 </div>
 
-                {platforms.youtube.status !== "ready" && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                      <svg className="w-3.5 h-3.5 text-red-600" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                      </svg>
-                      <span>YouTube Channel Link or @Handle</span>
-                    </label>
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={missingInputs.youtube}
-                        onChange={(e) => setMissingInputs((prev) => ({ ...prev, youtube: e.target.value }))}
-                        placeholder="https://youtube.com/@channel or @handle"
-                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-gray-50/60 focus:bg-white focus:outline-none focus:border-gray-950 focus:ring-2 focus:ring-gray-950/10 font-medium transition-all"
-                      />
+                {/* Modal Body */}
+                <div className="px-5 sm:px-6 py-4 space-y-4">
+                  {/* Verified Accounts Section */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                      <span>Verified Connected Channels</span>
+                      <span className="text-emerald-600 font-semibold lowercase tracking-normal">({verifiedChannelsCount}/3 connected)</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {platforms.youtube.status === "ready" && (
+                        <div className="px-3 py-2 rounded-xl bg-white/90 border border-gray-200 shadow-2xs flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <svg className="w-4 h-4 text-red-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                            <div className="truncate">
+                              <div className="text-xs font-bold text-gray-900 truncate">YouTube</div>
+                              <div className="text-[10px] font-mono text-gray-500 truncate">@{platforms.youtube.username?.replace(/^@/, "")}</div>
+                            </div>
+                          </div>
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                            ✓ Verified
+                          </span>
+                        </div>
+                      )}
+
+                      {platforms.instagram.status === "ready" && (
+                        <div className="px-3 py-2 rounded-xl bg-white/90 border border-gray-200 shadow-2xs flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <svg className="w-4 h-4 text-pink-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                            <div className="truncate">
+                              <div className="text-xs font-bold text-gray-900 truncate">Instagram</div>
+                              <div className="text-[10px] font-mono text-gray-500 truncate">@{platforms.instagram.username?.replace(/^@/, "")}</div>
+                            </div>
+                          </div>
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                            ✓ Verified
+                          </span>
+                        </div>
+                      )}
+
+                      {platforms.tiktok.status === "ready" && (
+                        <div className="px-3 py-2 rounded-xl bg-white/90 border border-gray-200 shadow-2xs flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <svg className="w-4 h-4 text-gray-950 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01v8.08c0 2.15-.65 4.35-1.95 6.07-1.4 1.83-3.52 3.03-5.8 3.34-2.3.31-4.72-.25-6.6-1.57-2.02-1.41-3.37-3.66-3.69-6.08-.34-2.52.41-5.14 2.05-7.07 1.67-1.97 4.16-3.08 6.72-2.98.02 1.42.01 2.84.01 4.26-1.52-.08-3.1.44-4.08 1.62-.97 1.16-1.22 2.81-.66 4.24.54 1.42 1.85 2.45 3.36 2.6 1.47.16 3-.47 3.8-1.7.53-.8.76-1.77.74-2.73V.02h.07z"/>
+                            </svg>
+                            <div className="truncate">
+                              <div className="text-xs font-bold text-gray-900 truncate">TikTok</div>
+                              <div className="text-[10px] font-mono text-gray-500 truncate">@{platforms.tiktok.username?.replace(/^@/, "")}</div>
+                            </div>
+                          </div>
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                            ✓ Verified
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
 
-                {platforms.instagram.status !== "ready" && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                      <svg className="w-3.5 h-3.5 text-pink-600" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  {/* Missing Accounts Input Fields */}
+                  <div className="space-y-3 pt-3 border-t border-gray-100">
+                    <div className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+                      Add Unfound Channel(s)
+                    </div>
+
+                    {platforms.youtube.status !== "ready" && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                          </svg>
+                          <span>YouTube Channel Link or @Handle</span>
+                        </label>
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={missingInputs.youtube}
+                            onChange={(e) => setMissingInputs((prev) => ({ ...prev, youtube: e.target.value }))}
+                            placeholder="https://youtube.com/@channel or @handle"
+                            className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-white/90 focus:bg-white focus:outline-none focus:border-gray-950 focus:ring-2 focus:ring-gray-950/10 font-medium transition-all shadow-2xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {platforms.instagram.status !== "ready" && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-pink-600" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                          </svg>
+                          <span>Instagram Profile Link or @Handle</span>
+                        </label>
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={missingInputs.instagram}
+                            onChange={(e) => setMissingInputs((prev) => ({ ...prev, instagram: e.target.value }))}
+                            placeholder="https://instagram.com/username or @handle"
+                            className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-white/90 focus:bg-white focus:outline-none focus:border-gray-950 focus:ring-2 focus:ring-gray-950/10 font-medium transition-all shadow-2xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {platforms.tiktok.status !== "ready" && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-gray-950" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01v8.08c0 2.15-.65 4.35-1.95 6.07-1.4 1.83-3.52 3.03-5.8 3.34-2.3.31-4.72-.25-6.6-1.57-2.02-1.41-3.37-3.66-3.69-6.08-.34-2.52.41-5.14 2.05-7.07 1.67-1.97 4.16-3.08 6.72-2.98.02 1.42.01 2.84.01 4.26-1.52-.08-3.1.44-4.08 1.62-.97 1.16-1.22 2.81-.66 4.24.54 1.42 1.85 2.45 3.36 2.6 1.47.16 3-.47 3.8-1.7.53-.8.76-1.77.74-2.73V.02h.07z"/>
+                          </svg>
+                          <span>TikTok Profile Link or @Handle</span>
+                        </label>
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={missingInputs.tiktok}
+                            onChange={(e) => setMissingInputs((prev) => ({ ...prev, tiktok: e.target.value }))}
+                            placeholder="https://tiktok.com/@username or @handle"
+                            className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-white/90 focus:bg-white focus:outline-none focus:border-gray-950 focus:ring-2 focus:ring-gray-950/10 font-medium transition-all shadow-2xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Benefit Card */}
+                  <div className="p-3 rounded-2xl bg-white/80 border border-gray-200/90 shadow-2xs flex items-start gap-2.5 text-xs">
+                    <div className="w-5 h-5 rounded-md bg-gray-950 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                      <svg className="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                      <span>Instagram Profile Link or @Handle</span>
-                    </label>
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={missingInputs.instagram}
-                        onChange={(e) => setMissingInputs((prev) => ({ ...prev, instagram: e.target.value }))}
-                        placeholder="https://instagram.com/username or @handle"
-                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-gray-50/60 focus:bg-white focus:outline-none focus:border-gray-950 focus:ring-2 focus:ring-gray-950/10 font-medium transition-all"
-                      />
+                    </div>
+                    <div className="text-gray-600 leading-relaxed text-[11px]">
+                      Connecting all 3 channels unlocks the <strong className="text-gray-950 font-bold">Omnichannel 360 Authority Package</strong> with automatic multi-platform bundle discounts.
                     </div>
                   </div>
-                )}
+                </div>
 
-                {platforms.tiktok.status !== "ready" && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                      <svg className="w-3.5 h-3.5 text-gray-950" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01v8.08c0 2.15-.65 4.35-1.95 6.07-1.4 1.83-3.52 3.03-5.8 3.34-2.3.31-4.72-.25-6.6-1.57-2.02-1.41-3.37-3.66-3.69-6.08-.34-2.52.41-5.14 2.05-7.07 1.67-1.97 4.16-3.08 6.72-2.98.02 1.42.01 2.84.01 4.26-1.52-.08-3.1.44-4.08 1.62-.97 1.16-1.22 2.81-.66 4.24.54 1.42 1.85 2.45 3.36 2.6 1.47.16 3-.47 3.8-1.7.53-.8.76-1.77.74-2.73V.02h.07z"/>
-                      </svg>
-                      <span>TikTok Profile Link or @Handle</span>
-                    </label>
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={missingInputs.tiktok}
-                        onChange={(e) => setMissingInputs((prev) => ({ ...prev, tiktok: e.target.value }))}
-                        placeholder="https://tiktok.com/@username or @handle"
-                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-gray-50/60 focus:bg-white focus:outline-none focus:border-gray-950 focus:ring-2 focus:ring-gray-950/10 font-medium transition-all"
-                      />
+                {/* Modal Actions Footer */}
+                <div className="px-5 sm:px-6 py-4 bg-gray-50/90 border-t border-gray-100 flex items-center justify-end gap-2">
+                  {hasAnyMissingInput ? (
+                    <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 w-full">
+                      <button
+                        type="button"
+                        onClick={() => setIsMissingModalOpen(false)}
+                        className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-gray-600 hover:text-gray-950 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl transition-all cursor-pointer text-center shadow-2xs"
+                      >
+                        Skip &amp; View {verifiedChannelsCount}-Platform Report
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleSubmitMissingPlatforms}
+                        className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-white bg-gray-950 hover:bg-black rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 text-center animate-fadeIn"
+                      >
+                        <span>Sync &amp; Complete 360° Report</span>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </button>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Benefit Card */}
-              <div className="p-3 rounded-2xl bg-gray-50 border border-gray-200/80 flex items-start gap-2.5 text-xs">
-                <div className="w-5 h-5 rounded-md bg-gray-950 text-white flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsMissingModalOpen(false)}
+                      className="w-full px-5 py-3 text-xs font-bold text-white bg-gray-950 hover:bg-black rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 text-center"
+                    >
+                      <span>Continue &amp; View {verifiedChannelsCount}-Platform Report</span>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
-                <div className="text-gray-600 leading-relaxed text-[11px]">
-                  Connecting all 3 channels unlocks the <strong className="text-gray-950 font-bold">Omnichannel 360 Authority Package</strong> with automatic multi-platform bundle discounts.
-                </div>
               </div>
-            </div>
-
-            {/* Modal Actions Footer */}
-            <div className="px-5 sm:px-6 py-4 bg-gray-50/80 border-t border-gray-100 flex flex-col-reverse sm:flex-row items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setIsMissingModalOpen(false)}
-                className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-gray-600 hover:text-gray-950 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl transition-all cursor-pointer text-center"
-              >
-                Skip &amp; View {verifiedChannelsCount}-Platform Report
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSubmitMissingPlatforms}
-                className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-white bg-gray-950 hover:bg-black rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 text-center"
-              >
-                <span>Sync &amp; Complete 360° Report</span>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
