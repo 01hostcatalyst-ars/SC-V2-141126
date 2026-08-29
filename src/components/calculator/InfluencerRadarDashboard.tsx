@@ -951,137 +951,152 @@ export function InfluencerRadarDashboard() {
   }, [verifiedChannelsCount, platforms, totalAudienceCount, activeNicheId, selectedRegion]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8">
+    <div className="w-full max-w-5xl mx-auto space-y-8">
       {/* ========================================================= */}
-      {/* SECTION 1: MINIMAL SEARCH & RADAR INPUT                   */}
+      {/* SECTION 1: HERO SECTION (2-COLUMN WITH BG IMAGE)          */}
       {/* ========================================================= */}
-      <div className="w-full max-w-xl mx-auto text-center space-y-4">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-gray-700 text-[11px] font-medium tracking-wide">
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-900" />
-            <span>2025–2026 Multi-Channel Rate Engine</span>
+      <div className="relative w-full rounded-3xl border border-gray-200/90 bg-white/70 backdrop-blur-xs overflow-hidden p-6 sm:p-8 lg:p-10 shadow-sm">
+        {/* Background Map Image */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-20 sm:opacity-30 lg:opacity-40 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
+          style={{ backgroundImage: "url('/hero-image-calcuator.webp')" }}
+        />
+
+        {/* Soft radial overlay gradient for contrast and readability */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-white/95 via-white/85 to-white/95" />
+
+        {/* Two-Column Grid: Left Title / Right Search */}
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+          {/* Left Column: Heading, Subtitle & Badge */}
+          <div className="lg:col-span-6 space-y-3 text-left">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gray-900 text-white text-[11px] font-bold tracking-wide shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>2025–2026 Multi-Channel Rate Engine</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-950 leading-tight">
+              Influencer Rate Calculator
+            </h1>
+
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-lg">
+              Enter a creator profile link or handle. The autonomous radar will evaluate engagement, discover linked channels, and calibrate for local market rates.
+            </p>
           </div>
 
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-950">
-            Influencer Rate Calculator
-          </h1>
-
-          <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
-            Enter a creator profile link or handle. The autonomous radar will evaluate engagement, discover linked channels, and calibrate for local market rates.
-          </p>
-        </div>
-
-        {/* Search Container */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-3 sm:p-3.5 space-y-2.5 text-left">
-          <form onSubmit={handleStart} className="space-y-2.5">
-            <div className="relative flex items-center bg-gray-50/80 rounded-xl border border-gray-200 focus-within:border-gray-900 focus-within:bg-white focus-within:ring-1 focus-within:ring-gray-900 transition-all p-1">
-              <div className="pl-3 pr-1 text-gray-400 shrink-0">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.75"
-                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                  />
-                </svg>
-              </div>
-
-              <input
-                type="text"
-                value={inputQuery}
-                onChange={(e) => setInputQuery(e.target.value)}
-                placeholder="Paste URL or enter handle (e.g. @irfanjunejo)"
-                className="flex-1 px-2.5 py-1.5 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 bg-transparent outline-none font-medium"
-              />
-
-              <button
-                type="submit"
-                disabled={isSearching || !inputQuery.trim()}
-                className="px-4 py-2 bg-gray-950 hover:bg-black disabled:opacity-40 text-white font-semibold text-xs rounded-lg transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed"
-              >
-                {isSearching ? (
-                  <>
-                    <svg className="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Right Column: Search Card */}
+          <div className="lg:col-span-6">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200 shadow-md p-3.5 sm:p-4 space-y-2.5 text-left">
+              <form onSubmit={handleStart} className="space-y-2.5">
+                <div className="relative flex items-center bg-gray-50/90 rounded-xl border border-gray-200 focus-within:border-gray-900 focus-within:bg-white focus-within:ring-1 focus-within:ring-gray-900 transition-all p-1">
+                  <div className="pl-3 pr-1 text-gray-400 shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        strokeWidth="1.75"
+                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
                       />
                     </svg>
-                    <span>Scanning</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Start</span>
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </div>
+                  </div>
 
-            {/* Conditional Platform Selector (Only for handle) */}
-            {hasHandleInput && (
-              <div className="flex items-center justify-between p-2 rounded-xl bg-gray-50/70 border border-gray-150 text-xs animate-fadeIn">
-                <span className="text-gray-500 font-medium">Handle Platform:</span>
-                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={inputQuery}
+                    onChange={(e) => setInputQuery(e.target.value)}
+                    placeholder="Paste URL or enter handle (e.g. @irfanjunejo)"
+                    className="flex-1 px-2.5 py-1.5 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 bg-transparent outline-none font-medium"
+                  />
+
                   <button
-                    type="button"
-                    onClick={() => setSelectedPlatform("instagram")}
-                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
-                      selectedPlatform === "instagram"
-                        ? "bg-gray-950 text-white shadow-2xs"
-                        : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
-                    }`}
+                    type="submit"
+                    disabled={isSearching || !inputQuery.trim()}
+                    className="px-4 py-2 bg-gray-950 hover:bg-black disabled:opacity-40 text-white font-semibold text-xs rounded-lg transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed"
                   >
-                    Instagram
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPlatform("youtube")}
-                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
-                      selectedPlatform === "youtube"
-                        ? "bg-gray-950 text-white shadow-2xs"
-                        : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
-                    }`}
-                  >
-                    YouTube
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPlatform("tiktok")}
-                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
-                      selectedPlatform === "tiktok"
-                        ? "bg-gray-950 text-white shadow-2xs"
-                        : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
-                    }`}
-                  >
-                    TikTok
+                    {isSearching ? (
+                      <>
+                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        <span>Scanning</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Start</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </>
+                    )}
                   </button>
                 </div>
-              </div>
-            )}
-          </form>
 
-          {/* Quick Examples */}
-          <div className="pt-1.5 border-t border-gray-100 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500">
-            <span className="text-gray-400">Try:</span>
-            <button
-              type="button"
-              onClick={() => handleQuickTest("https://www.instagram.com/irfanjunejo/", "instagram")}
-              className="px-2 py-0.5 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 transition-all border border-gray-200/60 cursor-pointer"
-            >
-              @irfanjunejo (Multi-Channel Bio)
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickTest("https://www.youtube.com/@mkbhd", "youtube")}
-              className="px-2 py-0.5 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 transition-all border border-gray-200/60 cursor-pointer"
-            >
-              @mkbhd (YouTube)
-            </button>
+                {/* Conditional Platform Selector (Only for handle) */}
+                {hasHandleInput && (
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-gray-50/70 border border-gray-150 text-xs animate-fadeIn">
+                    <span className="text-gray-500 font-medium">Handle Platform:</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlatform("instagram")}
+                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+                          selectedPlatform === "instagram"
+                            ? "bg-gray-950 text-white shadow-2xs"
+                            : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
+                        }`}
+                      >
+                        Instagram
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlatform("youtube")}
+                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+                          selectedPlatform === "youtube"
+                            ? "bg-gray-950 text-white shadow-2xs"
+                            : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
+                        }`}
+                      >
+                        YouTube
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlatform("tiktok")}
+                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+                          selectedPlatform === "tiktok"
+                            ? "bg-gray-950 text-white shadow-2xs"
+                            : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
+                        }`}
+                      >
+                        TikTok
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </form>
+
+              {/* Quick Examples */}
+              <div className="pt-1.5 border-t border-gray-100 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500">
+                <span className="text-gray-400">Try:</span>
+                <button
+                  type="button"
+                  onClick={() => handleQuickTest("https://www.instagram.com/irfanjunejo/", "instagram")}
+                  className="px-2 py-0.5 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 transition-all border border-gray-200/60 cursor-pointer"
+                >
+                  @irfanjunejo (Multi-Channel Bio)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickTest("https://www.youtube.com/@mkbhd", "youtube")}
+                  className="px-2 py-0.5 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 transition-all border border-gray-200/60 cursor-pointer"
+                >
+                  @mkbhd (YouTube)
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
