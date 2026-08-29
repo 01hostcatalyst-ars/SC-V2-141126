@@ -955,26 +955,26 @@ export function InfluencerRadarDashboard() {
       {/* ========================================================= */}
       {/* SECTION 1: HERO SECTION (2-COLUMN WITH BG IMAGE)          */}
       {/* ========================================================= */}
-      <div className="relative w-full rounded-3xl border border-gray-200/90 bg-white/70 backdrop-blur-xs overflow-hidden p-6 sm:p-8 lg:p-10 shadow-sm">
-        {/* Background Map Image */}
+      <div className="relative w-full rounded-2xl sm:rounded-3xl border border-gray-200/90 bg-white/70 backdrop-blur-xs overflow-hidden p-4 sm:p-7 lg:p-10 shadow-sm">
+        {/* Background Map Image with high mobile visibility */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-20 sm:opacity-30 lg:opacity-40 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
+          className="absolute inset-0 pointer-events-none opacity-35 sm:opacity-35 lg:opacity-40 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
           style={{ backgroundImage: "url('/hero-image-calcuator.webp')" }}
         />
 
-        {/* Soft radial overlay gradient for contrast and readability */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-white/95 via-white/85 to-white/95" />
+        {/* Soft gradient overlay tuned for mobile & desktop contrast */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/80 via-white/70 to-white/90 sm:bg-gradient-to-r sm:from-white/95 sm:via-white/80 sm:to-white/95" />
 
         {/* Two-Column Grid: Left Title / Right Search */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center">
           {/* Left Column: Heading, Subtitle & Badge */}
-          <div className="lg:col-span-6 space-y-3 text-left">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gray-900 text-white text-[11px] font-bold tracking-wide shadow-2xs">
+          <div className="lg:col-span-6 space-y-2.5 sm:space-y-3 text-left">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gray-900 text-white text-[10px] sm:text-[11px] font-bold tracking-wide shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>2025–2026 Multi-Channel Rate Engine</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-950 leading-tight">
+            <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-950 leading-tight">
               Influencer Rate Calculator
             </h1>
 
@@ -985,10 +985,10 @@ export function InfluencerRadarDashboard() {
 
           {/* Right Column: Search Card */}
           <div className="lg:col-span-6">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200 shadow-md p-3.5 sm:p-4 space-y-2.5 text-left">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200 shadow-md p-3 sm:p-4 space-y-2.5 text-left">
               <form onSubmit={handleStart} className="space-y-2.5">
                 <div className="relative flex items-center bg-gray-50/90 rounded-xl border border-gray-200 focus-within:border-gray-900 focus-within:bg-white focus-within:ring-1 focus-within:ring-gray-900 transition-all p-1">
-                  <div className="pl-3 pr-1 text-gray-400 shrink-0">
+                  <div className="pl-2.5 sm:pl-3 pr-1 text-gray-400 shrink-0">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
@@ -1003,14 +1003,14 @@ export function InfluencerRadarDashboard() {
                     type="text"
                     value={inputQuery}
                     onChange={(e) => setInputQuery(e.target.value)}
-                    placeholder="Paste URL or enter handle (e.g. @irfanjunejo)"
-                    className="flex-1 px-2.5 py-1.5 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 bg-transparent outline-none font-medium"
+                    placeholder="Paste URL or handle (@creator)"
+                    className="w-full min-w-0 px-2 py-1.5 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 bg-transparent outline-none font-medium"
                   />
 
                   <button
                     type="submit"
                     disabled={isSearching || !inputQuery.trim()}
-                    className="px-4 py-2 bg-gray-950 hover:bg-black disabled:opacity-40 text-white font-semibold text-xs rounded-lg transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed"
+                    className="px-3.5 sm:px-4 py-2 bg-gray-950 hover:bg-black disabled:opacity-40 text-white font-semibold text-xs rounded-lg transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed"
                   >
                     {isSearching ? (
                       <>
@@ -1037,13 +1037,13 @@ export function InfluencerRadarDashboard() {
 
                 {/* Conditional Platform Selector (Only for handle) */}
                 {hasHandleInput && (
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-gray-50/70 border border-gray-150 text-xs animate-fadeIn">
-                    <span className="text-gray-500 font-medium">Handle Platform:</span>
+                  <div className="flex flex-wrap items-center justify-between p-2 rounded-xl bg-gray-50/70 border border-gray-150 text-xs gap-1.5 animate-fadeIn">
+                    <span className="text-gray-500 font-medium text-[11px] sm:text-xs">Handle Platform:</span>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => setSelectedPlatform("instagram")}
-                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+                        className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
                           selectedPlatform === "instagram"
                             ? "bg-gray-950 text-white shadow-2xs"
                             : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
@@ -1054,7 +1054,7 @@ export function InfluencerRadarDashboard() {
                       <button
                         type="button"
                         onClick={() => setSelectedPlatform("youtube")}
-                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+                        className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
                           selectedPlatform === "youtube"
                             ? "bg-gray-950 text-white shadow-2xs"
                             : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
@@ -1065,7 +1065,7 @@ export function InfluencerRadarDashboard() {
                       <button
                         type="button"
                         onClick={() => setSelectedPlatform("tiktok")}
-                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+                        className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
                           selectedPlatform === "tiktok"
                             ? "bg-gray-950 text-white shadow-2xs"
                             : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
@@ -1080,20 +1080,20 @@ export function InfluencerRadarDashboard() {
 
               {/* Quick Examples */}
               <div className="pt-1.5 border-t border-gray-100 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500">
-                <span className="text-gray-400">Try:</span>
+                <span className="text-gray-400 font-medium">Try:</span>
                 <button
                   type="button"
                   onClick={() => handleQuickTest("https://www.instagram.com/irfanjunejo/", "instagram")}
                   className="px-2 py-0.5 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 transition-all border border-gray-200/60 cursor-pointer"
                 >
-                  @irfanjunejo (Multi-Channel Bio)
+                  @irfanjunejo <span className="hidden sm:inline">(Multi-Channel Bio)</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickTest("https://www.youtube.com/@mkbhd", "youtube")}
                   className="px-2 py-0.5 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 transition-all border border-gray-200/60 cursor-pointer"
                 >
-                  @mkbhd (YouTube)
+                  @mkbhd <span className="hidden sm:inline">(YouTube)</span>
                 </button>
               </div>
             </div>
@@ -1590,36 +1590,36 @@ export function InfluencerRadarDashboard() {
         );
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/75 backdrop-blur-md animate-fadeIn">
-            <div className="relative bg-white/95 rounded-3xl border border-gray-200/90 shadow-2xl max-w-lg w-full overflow-hidden text-left animate-scaleUp">
-              {/* Background World Map Pattern from Hero */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-gray-950/75 backdrop-blur-md animate-fadeIn">
+            <div className="relative bg-white/95 rounded-2xl sm:rounded-3xl border border-gray-200/90 shadow-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto text-left animate-scaleUp">
+              {/* Background World Map Pattern from Hero with high mobile visibility */}
               <div
-                className="absolute inset-0 pointer-events-none opacity-20 sm:opacity-30 bg-center bg-cover bg-no-repeat transition-opacity"
+                className="absolute inset-0 pointer-events-none opacity-35 sm:opacity-30 bg-center bg-cover bg-no-repeat transition-opacity"
                 style={{ backgroundImage: "url('/hero-image-calcuator.webp')" }}
               />
               {/* Soft gradient mask for text readability */}
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/95 via-white/85 to-white/95" />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/90 via-white/80 to-white/90" />
 
               {/* Modal Content */}
               <div className="relative z-10">
                 {/* Modal Header Banner */}
-                <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-100 space-y-2">
+                <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-100 space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-950 text-white text-[11px] font-bold shadow-2xs">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-gray-950 text-white text-[10px] sm:text-[11px] font-bold shadow-2xs">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                       <span>Omnichannel Radar Discovery</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsMissingModalOpen(false)}
-                      className="text-gray-400 hover:text-gray-900 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-xs cursor-pointer"
+                      className="text-gray-400 hover:text-gray-900 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-xs cursor-pointer"
                       aria-label="Close modal"
                     >
                       ✕
                     </button>
                   </div>
 
-                  <h3 className="text-lg sm:text-xl font-extrabold text-gray-950 tracking-tight pt-1">
+                  <h3 className="text-base sm:text-xl font-extrabold text-gray-950 tracking-tight pt-1">
                     Unlock Complete 360° Report
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed">
@@ -1628,7 +1628,7 @@ export function InfluencerRadarDashboard() {
                 </div>
 
                 {/* Modal Body */}
-                <div className="px-5 sm:px-6 py-4 space-y-4">
+                <div className="px-4 sm:px-6 py-3.5 sm:py-4 space-y-3.5 sm:space-y-4">
                   {/* Verified Accounts Section */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider">
@@ -1770,7 +1770,7 @@ export function InfluencerRadarDashboard() {
                 </div>
 
                 {/* Modal Actions Footer */}
-                <div className="px-5 sm:px-6 py-4 bg-gray-50/90 border-t border-gray-100 flex items-center justify-end gap-2">
+                <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-gray-50/90 border-t border-gray-100 flex items-center justify-end gap-2">
                   {hasAnyMissingInput ? (
                     <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 w-full">
                       <button
