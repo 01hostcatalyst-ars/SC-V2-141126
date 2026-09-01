@@ -249,11 +249,16 @@ Core Principles & Rules:
 
 2. GEOGRAPHY INTELLIGENCE:
    - countryCode: 2-letter ISO code (e.g. "US", "GB", "PK", "IN", "CA", "AU", "AE") or null if signals are insufficient. Never force a country guess.
-   - countryName, city, region, confidence, and specific evidence list.
+   - countryName: Full official country name (e.g. "Pakistan", "United States", "United Kingdom", "India").
+   - city, region, confidence, and specific evidence list.
 
-3. AUDIENCE PERSONA (Inferred):
+3. AUDIENCE PERSONA & REGIONAL MARKETS (Inferred):
    - likelyAgeRange (e.g. "18-34"), genderSkew (e.g. "Female-skewed", "Male-skewed", "Balanced"). DO NOT invent fake demographic percentages like "64.2% female".
-   - primaryMarket, interests[], purchaseIntent ("High" | "Moderate" | "Low"), audienceIntent[], profile explanation, confidence.
+   - primaryMarket: EXACTLY ONE Single Primary Country Name (e.g. "Pakistan", "United States", "United Kingdom", "India", "Canada", "Australia", "United Arab Emirates").
+     * CRITICAL RULE: This MUST be only ONE single real country name identified after carefully analyzing post titles, captions, spoken/written language, comments, tagged brands, and bio.
+     * NEVER output composite strings, diaspora groups, or multiple countries in primaryMarket (e.g. NEVER "Pakistan & South Asian Global Diaspora", NEVER "US/UK", NEVER "South Asia"). It MUST strictly be the single primary country name (e.g. "Pakistan").
+   - secondaryMarkets: Array of 2-3 secondary countries or diaspora markets (e.g. ["South Asian Global Diaspora (UAE, UK, US)", "United Arab Emirates", "United Kingdom"] or ["Canada", "Australia"]).
+   - interests[], purchaseIntent ("High" | "Moderate" | "Low"), audienceIntent[], profile explanation, confidence.
 
 4. CONTENT & FORMAT INTELLIGENCE:
    - themes[], dominantFormat ("Short-form video" | "Long-form video" | "Image feed" | "Carousel"), formats[], style[], tone[], productionLevel ("High" | "Medium-High" | "Medium" | "Lo-Fi"), contentConsistency ("High" | "Moderate" | "Inconsistent"), promotionalContentLevel ("High" | "Moderate" | "Low").
@@ -448,16 +453,60 @@ export function normalizeCompleteIntelligence(raw: unknown): CompleteCreatorInte
       confidence: typeof geography.confidence === 'number' ? geography.confidence : 0.8,
       evidence: Array.isArray(geography.evidence) ? geography.evidence : [],
     },
-    audience: {
-      likelyAgeRange: audience.likelyAgeRange || '18-34',
-      genderSkew: audience.genderSkew || 'Balanced',
-      primaryMarket: audience.primaryMarket || 'Global',
-      interests: Array.isArray(audience.interests) ? audience.interests : [],
-      purchaseIntent: audience.purchaseIntent || 'Moderate',
-      audienceIntent: Array.isArray(audience.audienceIntent) ? audience.audienceIntent : [],
-      profile: audience.profileDescription || audience.profile || '',
-      confidence: typeof audience.confidence === 'number' ? audience.confidence : 0.85,
-    },
+    audience: (() => {
+      let rawPrimary = (audience.primaryMarket || geography.countryName || 'Global').trim();
+      let secondaryMarkets: string[] = Array.isArray(audience.secondaryMarkets)
+        ? audience.secondaryMarkets.map((s: any) => String(s).trim()).filter(Boolean)
+        : [];
+
+      // If primaryMarket contains composite strings (e.g. "Pakistan & South Asian Global Diaspora (UAE, UK, US)")
+      if (
+        rawPrimary.includes('&') ||
+        rawPrimary.includes('/') ||
+        rawPrimary.toLowerCase().includes('diaspora') ||
+        rawPrimary.includes('(')
+      ) {
+        const splitParts = rawPrimary.split(/\s*&\s*|\s*\/\s*|\s*,\s*(?=[A-Z])/);
+        if (splitParts.length > 1) {
+          rawPrimary = splitParts[0].replace(/\s*\(.*?\)/g, '').trim();
+          for (let i = 1; i < splitParts.length; i++) {
+            const sec = splitParts[i].trim();
+            if (sec && !secondaryMarkets.includes(sec)) {
+              secondaryMarkets.push(sec);
+            }
+          }
+        } else if (rawPrimary.includes('(')) {
+          const match = rawPrimary.match(/^([^(]+)\s*\((.*?)\)$/);
+          if (match) {
+            rawPrimary = match[1].trim();
+            const sec = match[2].trim();
+            if (sec && !secondaryMarkets.includes(sec)) {
+              secondaryMarkets.push(sec);
+            }
+          }
+        }
+      }
+
+      // If geography.countryName is known and clean, and rawPrimary still contains diaspora, ensure primary is the single country
+      if (geography.countryName && (rawPrimary.toLowerCase().includes('diaspora') || rawPrimary === 'Global')) {
+        if (!secondaryMarkets.includes(rawPrimary) && rawPrimary !== 'Global') {
+          secondaryMarkets.unshift(rawPrimary);
+        }
+        rawPrimary = geography.countryName;
+      }
+
+      return {
+        likelyAgeRange: audience.likelyAgeRange || '18-34',
+        genderSkew: audience.genderSkew || 'Balanced',
+        primaryMarket: rawPrimary,
+        secondaryMarkets,
+        interests: Array.isArray(audience.interests) ? audience.interests : [],
+        purchaseIntent: audience.purchaseIntent || 'Moderate',
+        audienceIntent: Array.isArray(audience.audienceIntent) ? audience.audienceIntent : [],
+        profile: audience.profileDescription || audience.profile || '',
+        confidence: typeof audience.confidence === 'number' ? audience.confidence : 0.85,
+      };
+    })(),
     content: {
       themes: Array.isArray(content.themes) ? content.themes : Array.isArray(contentAndFormat.themes) ? contentAndFormat.themes : [],
       dominantFormat: content.dominantFormat || contentAndFormat.dominantFormat || 'Video',

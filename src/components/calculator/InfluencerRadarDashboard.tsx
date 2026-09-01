@@ -950,6 +950,44 @@ export function InfluencerRadarDashboard() {
     };
   }, [verifiedChannelsCount, platforms, totalAudienceCount, activeNicheId, selectedRegion]);
 
+  // Extract and normalize primary & secondary regional markets
+  const { cleanPrimaryMarket, secondaryMarketsList } = useMemo(() => {
+    if (!completeIntelligence?.audience) {
+      return { cleanPrimaryMarket: "Global", secondaryMarketsList: [] };
+    }
+
+    let primary = (completeIntelligence.audience.primaryMarket || completeIntelligence.geography?.countryName || "Global").trim();
+    let secondaries = Array.isArray(completeIntelligence.audience.secondaryMarkets)
+      ? [...completeIntelligence.audience.secondaryMarkets]
+      : [];
+
+    // Clean composite strings if cached before normalization (e.g. "Pakistan & South Asian Global Diaspora (UAE, UK, US)")
+    if (primary.includes('&') || primary.includes('/') || primary.toLowerCase().includes('diaspora') || primary.includes('(')) {
+      const splitParts = primary.split(/\s*&\s*|\s*\/\s*|\s*,\s*(?=[A-Z])/);
+      if (splitParts.length > 1) {
+        primary = splitParts[0].replace(/\s*\(.*?\)/g, '').trim();
+        for (let i = 1; i < splitParts.length; i++) {
+          const sec = splitParts[i].trim();
+          if (sec && !secondaries.includes(sec)) secondaries.push(sec);
+        }
+      } else if (primary.includes('(')) {
+        const match = primary.match(/^([^(]+)\s*\((.*?)\)$/);
+        if (match) {
+          primary = match[1].trim();
+          const sec = match[2].trim();
+          if (sec && !secondaries.includes(sec)) secondaries.push(sec);
+        }
+      }
+    }
+
+    if (completeIntelligence.geography?.countryName && (primary.toLowerCase().includes('diaspora') || primary === 'Global')) {
+      if (!secondaries.includes(primary) && primary !== 'Global') secondaries.unshift(primary);
+      primary = completeIntelligence.geography.countryName;
+    }
+
+    return { cleanPrimaryMarket: primary, secondaryMarketsList: secondaries };
+  }, [completeIntelligence]);
+
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8">
       {/* ========================================================= */}
@@ -1299,10 +1337,16 @@ export function InfluencerRadarDashboard() {
                       <span className="text-gray-500">Commercial Buyer Intent</span>
                       <span className="font-bold text-gray-900 bg-gray-200/70 px-2 py-0.5 rounded-md text-[11px]">{completeIntelligence.audience?.purchaseIntent || "Moderate"} Intent</span>
                     </div>
-                    <div className="flex justify-between items-center py-0.5">
+                    <div className={`flex justify-between items-center py-0.5 ${secondaryMarketsList.length > 0 ? "border-b border-gray-100" : ""}`}>
                       <span className="text-gray-500">Primary Regional Market</span>
-                      <span className="font-semibold text-gray-950">{completeIntelligence.audience?.primaryMarket || "Global"}</span>
+                      <span className="font-semibold text-gray-950">{cleanPrimaryMarket}</span>
                     </div>
+                    {secondaryMarketsList.length > 0 && (
+                      <div className="flex justify-between items-start py-0.5 gap-2">
+                        <span className="text-gray-500 shrink-0">Secondary Regional Markets</span>
+                        <span className="font-medium text-gray-800 text-right">{secondaryMarketsList.join(", ")}</span>
+                      </div>
+                    )}
                   </div>
                   {(completeIntelligence.audience?.interests?.length ?? 0) > 0 && (
                     <div className="pt-2 border-t border-gray-200/60 space-y-1">

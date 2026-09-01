@@ -30,6 +30,7 @@ export interface CompleteCreatorIntelligence {
     likelyAgeRange: string;
     genderSkew: string;
     primaryMarket: string;
+    secondaryMarkets?: string[];
     interests: string[];
     purchaseIntent: string;
     audienceIntent: string[];

@@ -511,7 +511,10 @@ export function MultiPlatformCalculatorGrid({
                 <div className="space-y-1 text-gray-300 text-[11px]">
                   <div className="flex justify-between"><span className="text-gray-400">Demographic:</span> <span className="font-semibold text-white">{completeIntelligence.audience.genderSkew || "Balanced"}, {completeIntelligence.audience.likelyAgeRange}</span></div>
                   <div className="flex justify-between"><span className="text-gray-400">Buyer Intent:</span> <span className="font-semibold text-emerald-400">{completeIntelligence.audience.purchaseIntent || "Moderate"}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400">Top Market:</span> <span className="font-semibold text-white">{completeIntelligence.audience.primaryMarket || "Global"}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Primary Market:</span> <span className="font-semibold text-white">{completeIntelligence.audience.primaryMarket || "Global"}</span></div>
+                  {completeIntelligence.audience.secondaryMarkets && completeIntelligence.audience.secondaryMarkets.length > 0 && (
+                    <div className="flex justify-between gap-1 text-[10px]"><span className="text-gray-400 shrink-0">Secondary Markets:</span> <span className="font-medium text-gray-300 text-right">{completeIntelligence.audience.secondaryMarkets.join(", ")}</span></div>
+                  )}
                 </div>
                 {completeIntelligence.audience.interests?.length > 0 && (
                   <div className="text-[10px] text-gray-400 pt-1 line-clamp-1">
