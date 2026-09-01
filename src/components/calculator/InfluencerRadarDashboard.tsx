@@ -1102,11 +1102,11 @@ export function InfluencerRadarDashboard() {
       </div>
 
       {/* ========================================================= */}
-      {/* SECTION 2: UNIFIED OMNICHANNEL TELEMETRY TICKER CARD      */}
+      {/* SECTION 2: DYNAMIC COMMAND ISLAND (1-LINE TELEMETRY)      */}
       {/* ========================================================= */}
       {hasSearched && (
         <div className="space-y-8 animate-fadeIn">
-          <UnifiedOmnichannelTelemetryTicker
+          <DynamicCommandIslandTicker
             platforms={platforms}
             igStepIdx={igStepIdx}
             ytStepIdx={ytStepIdx}
@@ -1115,6 +1115,7 @@ export function InfluencerRadarDashboard() {
             onOpenMissingModal={() => setIsMissingModalOpen(true)}
             selectedRegion={selectedRegion}
             completeIntelligence={completeIntelligence}
+            isSynthesizing={isSynthesizing}
           />
 
           {/* ========================================================= */}
@@ -2340,9 +2341,9 @@ function TikTokVideosGrid({
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: Unified Omnichannel Telemetry Command Ticker Card
+// Sub-Component: Dynamic Command Island (1-Line Telemetry Ticker)
 // ----------------------------------------------------------------------
-function UnifiedOmnichannelTelemetryTicker({
+function DynamicCommandIslandTicker({
   platforms,
   igStepIdx,
   ytStepIdx,
@@ -2350,6 +2351,7 @@ function UnifiedOmnichannelTelemetryTicker({
   verifiedChannelsCount,
   onOpenMissingModal,
   selectedRegion,
+  isSynthesizing,
 }: {
   platforms: {
     instagram: DiscoveredPlatformData;
@@ -2363,227 +2365,164 @@ function UnifiedOmnichannelTelemetryTicker({
   onOpenMissingModal: () => void;
   selectedRegion: RegionCode;
   completeIntelligence: CompleteCreatorIntelligence | null;
+  isSynthesizing?: boolean;
 }) {
   const syncPercentage = Math.round((verifiedChannelsCount / 3) * 100);
 
-  const platformItems: Array<{
-    key: Platform;
-    name: string;
-    icon: React.ReactNode;
-    data: DiscoveredPlatformData;
-    steps: PlatformTickerStep[];
-    stepIdx: number;
-    metricLabel: string;
-  }> = [
+  // Check if any platform is currently scraping or synthesizing
+  const isAnyLoading =
+    platforms.youtube.status === "loading" ||
+    platforms.instagram.status === "loading" ||
+    platforms.tiktok.status === "loading" ||
+    Boolean(isSynthesizing);
+
+  // Determine current active loading text
+  let activeProcessText = "";
+  if (platforms.youtube.status === "loading") {
+    const step = YOUTUBE_TICKER_STEPS[Math.min(ytStepIdx, YOUTUBE_TICKER_STEPS.length - 1)] || YOUTUBE_TICKER_STEPS[0];
+    activeProcessText = `YouTube: ${step.text} (${step.percent}%)`;
+  } else if (platforms.instagram.status === "loading") {
+    const step = INSTAGRAM_TICKER_STEPS[Math.min(igStepIdx, INSTAGRAM_TICKER_STEPS.length - 1)] || INSTAGRAM_TICKER_STEPS[0];
+    activeProcessText = `Instagram: ${step.text} (${step.percent}%)`;
+  } else if (platforms.tiktok.status === "loading") {
+    const step = TIKTOK_TICKER_STEPS[Math.min(ttStepIdx, TIKTOK_TICKER_STEPS.length - 1)] || TIKTOK_TICKER_STEPS[0];
+    activeProcessText = `TikTok: ${step.text} (${step.percent}%)`;
+  } else if (isSynthesizing) {
+    activeProcessText = "SignCollab LLM Engine: Synthesizing 19-point Creator Intelligence Dossier...";
+  } else {
+    // All in-flight requests finished: show glanceable 1-line verified telemetry
+    const parts: string[] = [];
+    if (platforms.youtube.status === "ready") {
+      parts.push(`YouTube (@${platforms.youtube.username?.replace(/^@/, "")} · ${formatShortNumber(platforms.youtube.followerCount)} Subs)`);
+    }
+    if (platforms.instagram.status === "ready") {
+      parts.push(`Instagram (@${platforms.instagram.username?.replace(/^@/, "")} · ${formatShortNumber(platforms.instagram.followerCount)} Reach)`);
+    }
+    if (platforms.tiktok.status === "ready") {
+      parts.push(`TikTok (@${platforms.tiktok.username?.replace(/^@/, "")} · ${formatShortNumber(platforms.tiktok.followerCount)})`);
+    }
+
+    if (parts.length > 0) {
+      activeProcessText = `${parts.join(" · ")} Verified`;
+      if (verifiedChannelsCount < 3) {
+        activeProcessText += ` · ${3 - verifiedChannelsCount} in Standby`;
+      }
+    } else {
+      activeProcessText = "Awaiting channel discovery or direct input";
+    }
+  }
+
+  // Icons array for left dynamic island stack
+  const platformIcons = [
     {
       key: "youtube",
       name: "YouTube",
+      status: platforms.youtube.status,
       icon: (
-        <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-3.5 h-3.5 text-red-500" viewBox="0 0 24 24" fill="currentColor">
           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
         </svg>
       ),
-      data: platforms.youtube,
-      steps: YOUTUBE_TICKER_STEPS,
-      stepIdx: ytStepIdx,
-      metricLabel: "Subscribers",
     },
     {
       key: "instagram",
       name: "Instagram",
+      status: platforms.instagram.status,
       icon: (
-        <svg className="w-4 h-4 text-pink-500" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-3.5 h-3.5 text-pink-500" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
         </svg>
       ),
-      data: platforms.instagram,
-      steps: INSTAGRAM_TICKER_STEPS,
-      stepIdx: igStepIdx,
-      metricLabel: "Followers",
     },
     {
       key: "tiktok",
       name: "TikTok",
+      status: platforms.tiktok.status,
       icon: (
-        <svg className="w-3.5 h-3.5 text-cyan-400" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
         </svg>
       ),
-      data: platforms.tiktok,
-      steps: TIKTOK_TICKER_STEPS,
-      stepIdx: ttStepIdx,
-      metricLabel: "Followers",
     },
   ];
 
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-gray-950 text-white border border-gray-800 shadow-xl overflow-hidden animate-fadeIn">
-      {/* Top Header Strip */}
-      <div className="px-4 sm:px-6 py-3 border-b border-gray-800/90 bg-gray-900/60 flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shrink-0" />
-          <span className="text-xs font-bold tracking-wide uppercase text-white">
-            Neural Telemetry &amp; Omnichannel Engine
-          </span>
-          <span className="px-2 py-0.5 rounded-full bg-gray-800 text-[10px] font-mono text-cyan-300 border border-gray-700">
-            {verifiedChannelsCount}/3 Channels Synced ({syncPercentage}%)
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 text-[10px] font-mono text-gray-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span>Real-Time Valuation Pipeline</span>
-        </div>
-      </div>
-
-      {/* 3 Parallel Platform Rails */}
-      <div className="divide-y divide-gray-800/70">
-        {platformItems.map((item) => {
-          const isReady = item.data.status === "ready";
-          const isLoading = item.data.status === "loading";
-          const isIdle = item.data.status === "idle";
-          const isError = item.data.status === "error";
-
-          const currentStep = item.steps[Math.min(item.stepIdx, item.steps.length - 1)] || item.steps[0];
-          const percent = isReady ? 100 : isIdle ? 0 : isError ? 100 : currentStep.percent;
+    <div className="w-full bg-gray-950 text-white rounded-2xl border border-gray-800/90 shadow-md px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2.5 sm:gap-4 overflow-hidden animate-fadeIn">
+      {/* Left: 3 Brand Icons Stack with Status Rings */}
+      <div className="flex items-center gap-1.5 shrink-0">
+        {platformIcons.map((p) => {
+          const isReady = p.status === "ready";
+          const isLoading = p.status === "loading";
 
           return (
             <div
-              key={item.key}
-              className="p-3.5 sm:px-6 sm:py-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors"
+              key={p.key}
+              title={`${p.name}: ${isReady ? "Verified" : isLoading ? "Scanning" : "Standby"}`}
+              onClick={!isReady ? onOpenMissingModal : undefined}
+              className={`relative p-1.5 rounded-lg flex items-center justify-center transition-all ${
+                !isReady ? "cursor-pointer hover:bg-gray-800" : ""
+              } ${
+                isReady
+                  ? "bg-gray-900 border border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.2)]"
+                  : isLoading
+                  ? "bg-gray-900 border border-cyan-500/40 animate-pulse"
+                  : "bg-gray-900/60 border border-gray-800 opacity-60 hover:opacity-100"
+              }`}
             >
-              {/* Left Platform Identity */}
-              <div className="flex items-center gap-3 min-w-[210px] shrink-0">
-                <div className="p-2 rounded-xl bg-gray-900 border border-gray-800 text-white shrink-0 shadow-2xs">
-                  {item.icon}
-                </div>
-                <div className="truncate">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-white">{item.name}</span>
-                    {item.data.username ? (
-                      <span className="text-[11px] font-mono text-gray-400 truncate">
-                        @{item.data.username.replace(/^@/, "")}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-mono text-gray-500">Unlinked</span>
-                    )}
-                  </div>
-                  <div className="text-[10px] font-mono text-gray-400 mt-0.5">
-                    {isReady && item.data.followerCount ? (
-                      <span className="text-emerald-400 font-semibold">
-                        {formatShortNumber(item.data.followerCount)} {item.metricLabel}
-                        {(item.data.engagementRate || item.data.shortEngagementRate)
-                          ? ` · ${(item.data.engagementRate || item.data.shortEngagementRate)!.toFixed(1)}% ER`
-                          : ""}
-                      </span>
-                    ) : isLoading ? (
-                      <span className="text-cyan-300 animate-pulse font-sans">
-                        Scanning: {currentStep.text}
-                      </span>
-                    ) : isError ? (
-                      <span className="text-rose-400">Resolution error</span>
-                    ) : (
-                      <span className="text-gray-500">Standby: Awaiting connection</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Middle Track / Live Progress Bar */}
-              <div className="flex-1 min-w-0 max-w-md space-y-1">
-                <div className="flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-gray-400 truncate">
-                    {isReady
-                      ? `Defended rates active (${item.name})`
-                      : isLoading
-                      ? `Step ${currentStep.step}/${item.steps.length}: Ingesting stream`
-                      : `Awaiting channel entity`}
-                  </span>
-                  <span
-                    className={`font-semibold ${
-                      isReady ? "text-emerald-400" : isLoading ? "text-cyan-400" : "text-gray-600"
-                    }`}
-                  >
-                    {percent}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden border border-gray-800/80">
-                  <div
-                    className={`h-full transition-all duration-700 ease-out rounded-full ${
-                      isReady
-                        ? "bg-gradient-to-r from-emerald-500 to-teal-400"
-                        : isError
-                        ? "bg-rose-500"
-                        : isLoading
-                        ? "bg-gradient-to-r from-cyan-400 to-teal-400"
-                        : "bg-gray-800"
-                    }`}
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Right Status Badge / CTA */}
-              <div className="shrink-0 flex items-center justify-end">
-                {isReady ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-800/60 text-emerald-300 text-[11px] font-bold font-mono">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>VERIFIED (100%)</span>
-                  </div>
-                ) : isLoading ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-800/60 text-cyan-300 text-[11px] font-bold font-mono animate-pulse">
-                    <svg className="w-3 h-3 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>SCANNING</span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={onOpenMissingModal}
-                    className="flex items-center gap-1 px-3 py-1 rounded-full bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
-                  >
-                    <span>+ Link Channel</span>
-                    <svg className="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                )}
-              </div>
+              {p.icon}
+              {/* Mini Status Dot */}
+              <span
+                className={`absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full ${
+                  isReady
+                    ? "bg-emerald-400 shadow-[0_0_4px_#34d399]"
+                    : isLoading
+                    ? "bg-cyan-400 animate-ping"
+                    : "bg-gray-600"
+                }`}
+              />
             </div>
           );
         })}
       </div>
 
-      {/* Bottom Live Audit Stream Ticker Ribbon */}
-      <div className="px-4 sm:px-6 py-2.5 bg-black/50 border-t border-gray-800/80 flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-gray-400">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-cyan-400 font-bold uppercase flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-            LIVE AUDIT STREAM:
+      {/* Middle: Single-Line Live Telemetry Process Ticker */}
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        {isAnyLoading ? (
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
+        ) : (
+          <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+        )}
+        <div className="text-[11px] sm:text-xs font-mono truncate text-gray-200">
+          <span className={isAnyLoading ? "text-cyan-300 font-semibold" : "text-gray-300"}>
+            {activeProcessText}
           </span>
-          <span className="text-gray-300">
-            {platforms.youtube.status === "ready"
-              ? `[YouTube: ${formatShortNumber(platforms.youtube.followerCount)} Subs Verified]`
-              : "[YouTube: Standby]"}
-          </span>
-          <span className="text-gray-600">➔</span>
-          <span className="text-gray-300">
-            {platforms.instagram.status === "ready"
-              ? `[Instagram: ${formatShortNumber(platforms.instagram.followerCount)} Reach Verified]`
-              : "[Instagram: Standby]"}
-          </span>
-          <span className="text-gray-600">➔</span>
-          <span className="text-gray-300">
-            {platforms.tiktok.status === "ready"
-              ? `[TikTok: ${formatShortNumber(platforms.tiktok.followerCount)} Verified]`
-              : "[TikTok: Standby]"}
-          </span>
-          <span className="text-gray-600">➔</span>
-          <span className="text-emerald-400">
-            [PPP Calibration: {REGIONAL_CONFIG[selectedRegion]?.currency || selectedRegion} Active]
-          </span>
+        </div>
+      </div>
+
+      {/* Right: Compact Sync Pill / Link CTA */}
+      <div className="flex items-center gap-2 shrink-0">
+        {verifiedChannelsCount < 3 && (
+          <button
+            type="button"
+            onClick={onOpenMissingModal}
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-[10px] font-bold font-mono transition-all cursor-pointer shadow-2xs"
+          >
+            <span>+ Link</span>
+          </button>
+        )}
+
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-900/90 border border-gray-800 text-[10px] sm:text-[11px] font-mono text-gray-300">
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              verifiedChannelsCount === 3
+                ? "bg-emerald-400"
+                : verifiedChannelsCount > 0
+                ? "bg-cyan-400"
+                : "bg-gray-500"
+            }`}
+          />
+          <span className="font-bold text-white">{verifiedChannelsCount}/3</span>
+          <span className="text-gray-500 hidden sm:inline">({syncPercentage}%)</span>
         </div>
       </div>
     </div>
