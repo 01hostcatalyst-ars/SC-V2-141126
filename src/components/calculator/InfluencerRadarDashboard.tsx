@@ -13,6 +13,7 @@ interface DiscoveredPlatformData {
   username?: string;
   displayName?: string;
   avatarUrl?: string;
+  country?: string;
   followerCount?: number;
   avgLikes?: number;
   avgComments?: number;
@@ -406,10 +407,12 @@ export function InfluencerRadarDashboard() {
         let avgShortEngagementRate = 0;
         let avgShortLikes = 0;
         let avgShortComments = 0;
+        let channelCountry: string | undefined = undefined;
 
         if (targetPlatform === "instagram") {
           const profile = data.profile || {};
           const stats = data.stats || {};
+          channelCountry = profile.countryCode || profile.city;
           followerCount = profile.followerCount || 0;
           avgLikes = stats.avgLikesPerPost || 0;
           avgComments = stats.avgCommentsPerPost || 0;
@@ -455,6 +458,7 @@ export function InfluencerRadarDashboard() {
           avgShortEngagementRate = stats.avgShortEngagementRate || 0;
 
           // Official YouTube Country
+          channelCountry = channel.country;
           if (channel.country && REGIONAL_CONFIG[channel.country.toUpperCase() as RegionCode]) {
             setSelectedRegion(channel.country.toUpperCase() as RegionCode);
           }
@@ -570,6 +574,7 @@ export function InfluencerRadarDashboard() {
             username,
             displayName,
             avatarUrl,
+            country: channelCountry,
             followerCount,
             avgLikes,
             avgComments,
@@ -726,7 +731,7 @@ export function InfluencerRadarDashboard() {
           platforms.tiktok.username ||
           "Creator",
         primaryPlatform: readyList[0],
-        reportedCountry: selectedRegion,
+        reportedCountry: REGIONAL_CONFIG[selectedRegion]?.name || selectedRegion,
       };
 
       if (platforms.youtube.status === "ready") {
@@ -745,6 +750,7 @@ export function InfluencerRadarDashboard() {
           title: platforms.youtube.displayName,
           subscriberCount: platforms.youtube.followerCount,
           avgViews: platforms.youtube.avgViews,
+          country: platforms.youtube.country,
           recentTitles: ytVideos.map((v) => v.title).filter((t): t is string => Boolean(t)).slice(0, 15),
           topComments,
           observedEr: platforms.youtube.engagementRate,
@@ -765,6 +771,7 @@ export function InfluencerRadarDashboard() {
         multiInput.instagram = {
           username: platforms.instagram.username || "",
           fullName: platforms.instagram.displayName,
+          city: platforms.instagram.country,
           followerCount: platforms.instagram.followerCount,
           avgLikes: platforms.instagram.avgLikes,
           recentCaptions: igPosts.map((p) => p.caption).filter((c): c is string => Boolean(c)).slice(0, 12),
@@ -952,12 +959,22 @@ export function InfluencerRadarDashboard() {
 
   // Extract and normalize primary & secondary regional markets
   const { cleanPrimaryMarket, secondaryMarketsList } = useMemo(() => {
-    if (!completeIntelligence?.audience) {
-      return { cleanPrimaryMarket: "Global", secondaryMarketsList: [] };
-    }
+    const isInvalid = (val: string | null | undefined): boolean => {
+      if (!val) return true;
+      const v = val.trim().toLowerCase();
+      return (
+        v === "global" ||
+        v === "worldwide" ||
+        v === "international" ||
+        v === "none" ||
+        v === "unknown" ||
+        v === "null" ||
+        v === "n/a"
+      );
+    };
 
-    let primary = (completeIntelligence.audience.primaryMarket || completeIntelligence.geography?.countryName || "Global").trim();
-    let secondaries = Array.isArray(completeIntelligence.audience.secondaryMarkets)
+    let primary = completeIntelligence?.audience?.primaryMarket?.trim() || "";
+    let secondaries = Array.isArray(completeIntelligence?.audience?.secondaryMarkets)
       ? [...completeIntelligence.audience.secondaryMarkets]
       : [];
 
@@ -980,13 +997,21 @@ export function InfluencerRadarDashboard() {
       }
     }
 
-    if (completeIntelligence.geography?.countryName && (primary.toLowerCase().includes('diaspora') || primary === 'Global')) {
-      if (!secondaries.includes(primary) && primary !== 'Global') secondaries.unshift(primary);
-      primary = completeIntelligence.geography.countryName;
+    // Resolve primary country - NEVER return "Global" or "Worldwide"
+    if (isInvalid(primary)) {
+      if (!isInvalid(completeIntelligence?.geography?.countryName)) {
+        primary = completeIntelligence!.geography!.countryName!;
+      } else if (completeIntelligence?.geography?.countryCode && REGIONAL_CONFIG[completeIntelligence.geography.countryCode as RegionCode]) {
+        primary = REGIONAL_CONFIG[completeIntelligence.geography.countryCode as RegionCode].name;
+      } else if (platforms.youtube.country && REGIONAL_CONFIG[platforms.youtube.country.toUpperCase() as RegionCode]) {
+        primary = REGIONAL_CONFIG[platforms.youtube.country.toUpperCase() as RegionCode].name;
+      } else {
+        primary = REGIONAL_CONFIG[selectedRegion]?.name || "United States";
+      }
     }
 
     return { cleanPrimaryMarket: primary, secondaryMarketsList: secondaries };
-  }, [completeIntelligence]);
+  }, [completeIntelligence, selectedRegion, platforms.youtube.country]);
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8">

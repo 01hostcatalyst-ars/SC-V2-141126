@@ -16,6 +16,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'No platform data provided for synthesis.' }, { status: 400 });
     }
 
+    if (regionCode && !multiInput.reportedCountry) {
+      multiInput.reportedCountry = regionCode;
+    }
+
     console.log(`[Calculator Synthesize API] Synthesizing complete 19-point intelligence for "${multiInput.creatorName}"...`);
 
     const completeIntel = await generateCompleteCreatorIntelligence(multiInput, Boolean(bypassCache));

@@ -1,4 +1,5 @@
-import { PRIMARY_NICHES } from '../calculator/constants';
+import { PRIMARY_NICHES, REGIONAL_CONFIG } from '../calculator/constants';
+import { RegionCode } from '../calculator/types';
 import { JWT } from 'google-auth-library';
 import { CompleteCreatorIntelligence } from './types';
 import { getRecentCreatorIntelligence, saveCreatorIntelligence } from './storage';
@@ -99,31 +100,28 @@ let cachedToken: { token: string; expiresAt: number } | null = null;
  * Generates and caches an OAuth2 Bearer token using Google Cloud Service Account credentials
  */
 async function getGoogleCloudAccessToken(): Promise<string> {
-  const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL?.trim();
-  const privateKeyRaw = process.env.GOOGLE_CLOUD_PRIVATE_KEY?.trim();
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID?.trim();
-
-  if (!clientEmail || !privateKeyRaw || !projectId) {
-    throw new Error(
-      '[Gemini Vertex AI] Missing required Google Cloud environment variables: GOOGLE_CLOUD_PROJECT_ID, GOOGLE_CLOUD_CLIENT_EMAIL, or GOOGLE_CLOUD_PRIVATE_KEY.'
-    );
-  }
-
-  // Use cached token if still valid for at least 5 minutes
-  if (cachedToken && cachedToken.expiresAt > Date.now() + 5 * 60 * 1000) {
+  if (cachedToken && cachedToken.expiresAt > Date.now()) {
     return cachedToken.token;
   }
 
+  const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL?.trim();
+  const privateKeyRaw = process.env.GOOGLE_CLOUD_PRIVATE_KEY?.trim();
+
+  if (!clientEmail || !privateKeyRaw) {
+    throw new Error('[Gemini Vertex AI] Google Cloud credentials missing in environment variables.');
+  }
+
   const privateKey = privateKeyRaw.replace(/\\n/g, '\n');
-  const auth = new JWT({
+
+  const jwtClient = new JWT({
     email: clientEmail,
     key: privateKey,
     scopes: ['https://www.googleapis.com/auth/cloud-platform'],
   });
 
-  const tokenRes = await auth.getAccessToken();
-  if (!tokenRes?.token) {
-    throw new Error('[Gemini Vertex AI] Failed to acquire Google Cloud OAuth access token from Service Account.');
+  const tokenRes = await jwtClient.getAccessToken();
+  if (!tokenRes.token) {
+    throw new Error('[Gemini Vertex AI] Failed to obtain OAuth2 token from Google Cloud.');
   }
 
   cachedToken = {
@@ -140,6 +138,11 @@ async function getGoogleCloudAccessToken(): Promise<string> {
 function buildCuratedPromptContext(input: MultiPlatformCreatorInput): string {
   const platformDossiers: string[] = [];
 
+  if (input.reportedCountry) {
+    platformDossiers.push(`  [CALIBRATED REGIONAL MARKET BASELINE]
+  - Target Market Baseline: ${input.reportedCountry}`);
+  }
+
   if (input.youtube) {
     const yt = input.youtube;
     const topics = yt.topicCategories?.length ? `YouTube Official Topics: ${yt.topicCategories.join(', ')}` : '';
@@ -150,7 +153,7 @@ function buildCuratedPromptContext(input: MultiPlatformCreatorInput): string {
     platformDossiers.push(`  [YOUTUBE CHANNEL]
   - Channel Name: ${yt.title || 'Unknown'} (Handle: ${yt.handle || 'None'})
   - Description: ${yt.description || 'None'}
-  - Official Country: ${yt.country || 'Unknown'}
+  - Official Channel Country: ${yt.country || 'Unknown'}
   - Audience Scale: ${(yt.subscriberCount || 0).toLocaleString()} subscribers
   - Performance Medians: ${(yt.avgViews || 0).toLocaleString()} avg views | ${(yt.avgLikes || 0).toLocaleString()} avg likes | ${(yt.avgComments || 0).toLocaleString()} avg comments
   ${yt.observedEr ? `- Calculated Engagement Rate: ${yt.observedEr}%` : ''}
@@ -248,15 +251,17 @@ Core Principles & Rules:
    - confidence: Numerical score (0.0 to 1.0).
 
 2. GEOGRAPHY INTELLIGENCE:
-   - countryCode: 2-letter ISO code (e.g. "US", "GB", "PK", "IN", "CA", "AU", "AE") or null if signals are insufficient. Never force a country guess.
-   - countryName: Full official country name (e.g. "Pakistan", "United States", "United Kingdom", "India").
-   - city, region, confidence, and specific evidence list.
+   - countryCode: 2-letter ISO code (e.g. "US", "GB", "PK", "IN", "CA", "AU", "AE").
+     * CRITICAL MANDATE: You MUST resolve exactly 1 primary sovereign country code. You MUST NEVER return null, "Global", or "Worldwide".
+     * Analyze post titles, captions, local spoken/written language, currency mentions (PKR, Rs, $, £, INR, AED), phone prefixes (+92, +1, +44, +91), tagged locations (Karachi, Lahore, London, New York, Mumbai), official YouTube channel country, and Calibrated Regional Market Baseline.
+   - countryName: Full official country name (e.g. "Pakistan", "United States", "United Kingdom", "India", "Canada", "Australia", "United Arab Emirates").
+     * STRICTLY FORBIDDEN: NEVER output "Global", "Worldwide", "International", or "Unknown".
 
 3. AUDIENCE PERSONA & REGIONAL MARKETS (Inferred):
    - likelyAgeRange (e.g. "18-34"), genderSkew (e.g. "Female-skewed", "Male-skewed", "Balanced"). DO NOT invent fake demographic percentages like "64.2% female".
    - primaryMarket: EXACTLY ONE Single Primary Country Name (e.g. "Pakistan", "United States", "United Kingdom", "India", "Canada", "Australia", "United Arab Emirates").
-     * CRITICAL RULE: This MUST be only ONE single real country name identified after carefully analyzing post titles, captions, spoken/written language, comments, tagged brands, and bio.
-     * NEVER output composite strings, diaspora groups, or multiple countries in primaryMarket (e.g. NEVER "Pakistan & South Asian Global Diaspora", NEVER "US/UK", NEVER "South Asia"). It MUST strictly be the single primary country name (e.g. "Pakistan").
+     * ABSOLUTE MANDATORY REQUIREMENT: Must be a SINGLE sovereign country name (MUST match countryName).
+     * STRICTLY PROHIBITED: NEVER output "Global", "Worldwide", "International", "None", or composite phrases like "Pakistan & South Asian Diaspora". It MUST be ONLY the 1 single country name (e.g. "Pakistan").
    - secondaryMarkets: Array of 2-3 secondary countries or diaspora markets (e.g. ["South Asian Global Diaspora (UAE, UK, US)", "United Arab Emirates", "United Kingdom"] or ["Canada", "Australia"]).
    - interests[], purchaseIntent ("High" | "Moderate" | "Low"), audienceIntent[], profile explanation, confidence.
 
@@ -346,7 +351,7 @@ Generate the Complete 19-Point Creator Intelligence Dossier JSON.`;
       }
 
       const rawJson = JSON.parse(candidateText);
-      const normalized = normalizeCompleteIntelligence(rawJson);
+      const normalized = normalizeCompleteIntelligence(rawJson, input);
 
       // Persist to PostgreSQL with 24-hour cache timestamp
       try {
@@ -379,7 +384,7 @@ Generate the Complete 19-Point Creator Intelligence Dossier JSON.`;
  * Robust Normalizer that maps both snake_case, camelCase, and grouped Gemini JSON structures
  * into the strict CompleteCreatorIntelligence interface.
  */
-export function normalizeCompleteIntelligence(raw: unknown): CompleteCreatorIntelligence {
+export function normalizeCompleteIntelligence(raw: unknown, input?: MultiPlatformCreatorInput): CompleteCreatorIntelligence {
   const r = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, any>;
   const profile = (r.profile && typeof r.profile === 'object' ? r.profile : {}) as Record<string, any>;
   const geography = (r.geography && typeof r.geography === 'object' ? r.geography : {}) as Record<string, any>;
@@ -431,6 +436,104 @@ export function normalizeCompleteIntelligence(raw: unknown): CompleteCreatorInte
     }
   }
 
+  const isInvalidCountry = (val: string | null | undefined): boolean => {
+    if (!val) return true;
+    const v = val.trim().toLowerCase();
+    return (
+      v === 'global' ||
+      v === 'worldwide' ||
+      v === 'international' ||
+      v === 'none' ||
+      v === 'unknown' ||
+      v === 'null' ||
+      v === 'n/a'
+    );
+  };
+
+  let rawPrimaryMarket = (audience.primaryMarket || geography.countryName || '').trim();
+  let secondaryMarketsList: string[] = Array.isArray(audience.secondaryMarkets)
+    ? audience.secondaryMarkets.map((s: any) => String(s).trim()).filter(Boolean)
+    : [];
+
+  // If primaryMarket contains composite strings (e.g. "Pakistan & South Asian Global Diaspora (UAE, UK, US)")
+  if (
+    rawPrimaryMarket.includes('&') ||
+    rawPrimaryMarket.includes('/') ||
+    rawPrimaryMarket.toLowerCase().includes('diaspora') ||
+    rawPrimaryMarket.includes('(')
+  ) {
+    const splitParts = rawPrimaryMarket.split(/\s*&\s*|\s*\/\s*|\s*,\s*(?=[A-Z])/);
+    if (splitParts.length > 1) {
+      rawPrimaryMarket = splitParts[0].replace(/\s*\(.*?\)/g, '').trim();
+      for (let i = 1; i < splitParts.length; i++) {
+        const sec = splitParts[i].trim();
+        if (sec && !secondaryMarketsList.includes(sec)) {
+          secondaryMarketsList.push(sec);
+        }
+      }
+    } else if (rawPrimaryMarket.includes('(')) {
+      const match = rawPrimaryMarket.match(/^([^(]+)\s*\((.*?)\)$/);
+      if (match) {
+        rawPrimaryMarket = match[1].trim();
+        const sec = match[2].trim();
+        if (sec && !secondaryMarketsList.includes(sec)) {
+          secondaryMarketsList.push(sec);
+        }
+      }
+    }
+  }
+
+  // If rawPrimaryMarket is invalid ("Global", "Worldwide", etc.), resolve from available signals:
+  if (isInvalidCountry(rawPrimaryMarket)) {
+    if (!isInvalidCountry(geography.countryName)) {
+      rawPrimaryMarket = geography.countryName;
+    } else if (geography.countryCode && REGIONAL_CONFIG[geography.countryCode.toUpperCase() as RegionCode]) {
+      rawPrimaryMarket = REGIONAL_CONFIG[geography.countryCode.toUpperCase() as RegionCode].name;
+    } else if (input?.youtube?.country && REGIONAL_CONFIG[input.youtube.country.toUpperCase() as RegionCode]) {
+      rawPrimaryMarket = REGIONAL_CONFIG[input.youtube.country.toUpperCase() as RegionCode].name;
+    } else if (input?.reportedCountry && !isInvalidCountry(input.reportedCountry)) {
+      rawPrimaryMarket = REGIONAL_CONFIG[input.reportedCountry.toUpperCase() as RegionCode]?.name || input.reportedCountry;
+    } else {
+      // Contextual text analysis fallback
+      const textCorpus = [
+        input?.creatorName,
+        input?.youtube?.title,
+        input?.youtube?.description,
+        input?.instagram?.biography,
+        input?.instagram?.city,
+        input?.instagram?.businessAddress,
+        ...(input?.youtube?.recentTitles || []),
+        ...(input?.instagram?.recentCaptions || []),
+      ].join(' ').toLowerCase();
+
+      if (textCorpus.includes('pakistan') || textCorpus.includes('karachi') || textCorpus.includes('lahore') || textCorpus.includes('islamabad') || textCorpus.includes('pkr') || textCorpus.includes('pakistani')) {
+        rawPrimaryMarket = 'Pakistan';
+      } else if (textCorpus.includes('india') || textCorpus.includes('mumbai') || textCorpus.includes('delhi') || textCorpus.includes('bengaluru') || textCorpus.includes('inr') || textCorpus.includes('indian')) {
+        rawPrimaryMarket = 'India';
+      } else if (textCorpus.includes('london') || textCorpus.includes('manchester') || textCorpus.includes('uk') || textCorpus.includes('britain') || textCorpus.includes('england')) {
+        rawPrimaryMarket = 'United Kingdom';
+      } else if (textCorpus.includes('canada') || textCorpus.includes('toronto') || textCorpus.includes('vancouver')) {
+        rawPrimaryMarket = 'Canada';
+      } else if (textCorpus.includes('dubai') || textCorpus.includes('uae') || textCorpus.includes('abu dhabi')) {
+        rawPrimaryMarket = 'United Arab Emirates';
+      } else if (textCorpus.includes('australia') || textCorpus.includes('sydney') || textCorpus.includes('melbourne')) {
+        rawPrimaryMarket = 'Australia';
+      } else {
+        rawPrimaryMarket = 'United States';
+      }
+    }
+  }
+
+  // Ensure geography matches the resolved sovereign country
+  const resolvedCountryName = isInvalidCountry(geography.countryName) ? rawPrimaryMarket : geography.countryName;
+  let resolvedCountryCode = geography.countryCode || null;
+  if (!resolvedCountryCode) {
+    const foundEntry = Object.entries(REGIONAL_CONFIG).find(([_, cfg]) => cfg.name.toLowerCase() === rawPrimaryMarket.toLowerCase());
+    if (foundEntry) {
+      resolvedCountryCode = foundEntry[0];
+    }
+  }
+
   return {
     profile: {
       creatorType: profile.creatorType || 'Content Creator',
@@ -446,67 +549,24 @@ export function normalizeCompleteIntelligence(raw: unknown): CompleteCreatorInte
       confidence: typeof profile.confidence === 'number' ? profile.confidence : 0.95,
     },
     geography: {
-      countryCode: geography.countryCode || null,
-      countryName: geography.countryName || null,
+      countryCode: resolvedCountryCode,
+      countryName: resolvedCountryName,
       city: geography.city || null,
       region: geography.region || null,
       confidence: typeof geography.confidence === 'number' ? geography.confidence : 0.8,
       evidence: Array.isArray(geography.evidence) ? geography.evidence : [],
     },
-    audience: (() => {
-      let rawPrimary = (audience.primaryMarket || geography.countryName || 'Global').trim();
-      let secondaryMarkets: string[] = Array.isArray(audience.secondaryMarkets)
-        ? audience.secondaryMarkets.map((s: any) => String(s).trim()).filter(Boolean)
-        : [];
-
-      // If primaryMarket contains composite strings (e.g. "Pakistan & South Asian Global Diaspora (UAE, UK, US)")
-      if (
-        rawPrimary.includes('&') ||
-        rawPrimary.includes('/') ||
-        rawPrimary.toLowerCase().includes('diaspora') ||
-        rawPrimary.includes('(')
-      ) {
-        const splitParts = rawPrimary.split(/\s*&\s*|\s*\/\s*|\s*,\s*(?=[A-Z])/);
-        if (splitParts.length > 1) {
-          rawPrimary = splitParts[0].replace(/\s*\(.*?\)/g, '').trim();
-          for (let i = 1; i < splitParts.length; i++) {
-            const sec = splitParts[i].trim();
-            if (sec && !secondaryMarkets.includes(sec)) {
-              secondaryMarkets.push(sec);
-            }
-          }
-        } else if (rawPrimary.includes('(')) {
-          const match = rawPrimary.match(/^([^(]+)\s*\((.*?)\)$/);
-          if (match) {
-            rawPrimary = match[1].trim();
-            const sec = match[2].trim();
-            if (sec && !secondaryMarkets.includes(sec)) {
-              secondaryMarkets.push(sec);
-            }
-          }
-        }
-      }
-
-      // If geography.countryName is known and clean, and rawPrimary still contains diaspora, ensure primary is the single country
-      if (geography.countryName && (rawPrimary.toLowerCase().includes('diaspora') || rawPrimary === 'Global')) {
-        if (!secondaryMarkets.includes(rawPrimary) && rawPrimary !== 'Global') {
-          secondaryMarkets.unshift(rawPrimary);
-        }
-        rawPrimary = geography.countryName;
-      }
-
-      return {
-        likelyAgeRange: audience.likelyAgeRange || '18-34',
-        genderSkew: audience.genderSkew || 'Balanced',
-        primaryMarket: rawPrimary,
-        secondaryMarkets,
-        interests: Array.isArray(audience.interests) ? audience.interests : [],
-        purchaseIntent: audience.purchaseIntent || 'Moderate',
-        audienceIntent: Array.isArray(audience.audienceIntent) ? audience.audienceIntent : [],
-        profile: audience.profileDescription || audience.profile || '',
-        confidence: typeof audience.confidence === 'number' ? audience.confidence : 0.85,
-      };
-    })(),
+    audience: {
+      likelyAgeRange: audience.likelyAgeRange || '18-34',
+      genderSkew: audience.genderSkew || 'Balanced',
+      primaryMarket: rawPrimaryMarket,
+      secondaryMarkets: secondaryMarketsList,
+      interests: Array.isArray(audience.interests) ? audience.interests : [],
+      purchaseIntent: audience.purchaseIntent || 'Moderate',
+      audienceIntent: Array.isArray(audience.audienceIntent) ? audience.audienceIntent : [],
+      profile: audience.profileDescription || audience.profile || '',
+      confidence: typeof audience.confidence === 'number' ? audience.confidence : 0.85,
+    },
     content: {
       themes: Array.isArray(content.themes) ? content.themes : Array.isArray(contentAndFormat.themes) ? contentAndFormat.themes : [],
       dominantFormat: content.dominantFormat || contentAndFormat.dominantFormat || 'Video',
