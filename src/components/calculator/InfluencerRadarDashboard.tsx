@@ -877,8 +877,61 @@ export function InfluencerRadarDashboard() {
   };
 
   // Compute Omnichannel Bundles (Starter & Full Pack)
+  // Per spec: each deliverable uses its OWN platform's native metrics (Steps 1-4)
   const bundleOffers = useMemo(() => {
     if (verifiedChannelsCount < 2) return null;
+
+    const regConfig = REGIONAL_CONFIG[selectedRegion] || REGIONAL_CONFIG["US"];
+
+    // Helper: Calculate a bundle by computing each deliverable individually with its own platform's metrics
+    const computeBundle = (
+      deliverables: Array<{ id: string; platform: Platform; format: DeliverableFormat; quantity: number }>,
+      usageScope: "organic_repost" | "paid_partnership_ads"
+    ) => {
+      // Step 1-4: Calculate each deliverable with its own platform's native data
+      let grossTotalUSD = 0;
+      for (const item of deliverables) {
+        const platData = platforms[item.platform];
+        const singleInput: PricingInput = {
+          creator: {
+            followerCount: platData.followerCount || 25000,
+            last3PostsAvgLikes: platData.avgLikes || 500,
+            last3PostsAvgComments: platData.avgComments || 25,
+            last3PostsAvgViews: platData.avgViews,
+            primaryPlatform: item.platform,
+            primaryNicheId: activeNicheId,
+            regionCode: selectedRegion,
+          },
+          deliverables: [{ ...item, quantity: 1 }],
+          commercialTerms: { usageRights: { scope: "organic_repost", duration: "30_days" } },
+        };
+        const res = calculateInfluencerRate(singleInput);
+        grossTotalUSD += res.lineItems.grossTotalUSD;
+      }
+
+      // Step 5: Multi-Asset Bundle Volume Discount
+      const totalAssetCount = deliverables.reduce((sum, d) => sum + d.quantity, 0);
+      const bundleDiscountPercent = totalAssetCount >= 4 ? 0.15 : totalAssetCount >= 2 ? 0.10 : 0.00;
+      const bundleDiscountAmountUSD = grossTotalUSD * bundleDiscountPercent;
+      const netContentFeeUSD = grossTotalUSD - bundleDiscountAmountUSD;
+
+      // Step 6: Commercial Rights Surcharge
+      const usagePercent = usageScope === "paid_partnership_ads" ? 0.25 : 0.00;
+      const commercialRightsFeeUSD = netContentFeeUSD * usagePercent;
+      const totalUSD = netContentFeeUSD + commercialRightsFeeUSD;
+
+      // Step 8: PPP & FX localization
+      const localizedMedian = totalUSD * regConfig.pppIndex * regConfig.fxRateToUSD;
+
+      // Step 9: Defended Negotiation Bounds
+      const lowP25 = Math.round(localizedMedian * 0.80);
+      const typicalMedian = Math.round(localizedMedian);
+      const highP75 = Math.round(localizedMedian * 1.25);
+
+      const savingsLocalized = Math.round(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
+
+      return { grossTotalUSD, totalUSD, lowP25, typicalMedian, highP75, savingsLocalized };
+    };
 
     // 1. Starter Cross-Post Bundle
     const starterDeliverables: Array<{ id: string; platform: Platform; format: DeliverableFormat; quantity: number }> = [];
@@ -891,21 +944,7 @@ export function InfluencerRadarDashboard() {
       starterDeliverables.push({ id: "2", platform: "youtube", format: "yt_short", quantity: 1 });
     }
 
-    const starterPrimary = platforms.instagram.status === "ready" ? platforms.instagram : platforms.youtube;
-    const starterInput: PricingInput = {
-      creator: {
-        followerCount: starterPrimary.followerCount || 25000,
-        last3PostsAvgLikes: starterPrimary.avgLikes || 500,
-        last3PostsAvgComments: starterPrimary.avgComments || 25,
-        last3PostsAvgViews: starterPrimary.avgViews,
-        primaryPlatform: starterPrimary === platforms.instagram ? "instagram" : "youtube",
-        primaryNicheId: activeNicheId,
-        regionCode: selectedRegion,
-      },
-      deliverables: starterDeliverables,
-      commercialTerms: { usageRights: { scope: "organic_repost", duration: "30_days" } },
-    };
-    const starterCalc = calculateInfluencerRate(starterInput);
+    const starterResult = computeBundle(starterDeliverables, "organic_repost");
 
     // 2. Full Omnichannel Authority Pack
     const authorityDeliverables: Array<{ id: string; platform: Platform; format: DeliverableFormat; quantity: number }> = [];
@@ -919,43 +958,31 @@ export function InfluencerRadarDashboard() {
       authorityDeliverables.push({ id: "3", platform: "tiktok", format: "tiktok_video", quantity: 1 });
     }
 
-    const authInput: PricingInput = {
-      creator: {
-        followerCount: totalAudienceCount || 50000,
-        last3PostsAvgLikes: 1000,
-        last3PostsAvgComments: 50,
-        primaryPlatform: "youtube",
-        primaryNicheId: activeNicheId,
-        regionCode: selectedRegion,
-      },
-      deliverables: authorityDeliverables,
-      commercialTerms: { usageRights: { scope: "paid_partnership_ads", duration: "30_days" } },
-    };
-    const authCalc = calculateInfluencerRate(authInput);
+    const authResult = computeBundle(authorityDeliverables, "paid_partnership_ads");
 
     const isForeign = selectedRegion !== "US";
-    const starterUsd = isForeign ? `(~$${starterCalc.lineItems.totalUSD.toLocaleString()} USD)` : "";
-    const authUsd = isForeign ? `(~$${authCalc.lineItems.totalUSD.toLocaleString()} USD)` : "";
+    const starterUsd = isForeign ? `(~$${starterResult.totalUSD.toLocaleString()} USD)` : "";
+    const authUsd = isForeign ? `(~$${authResult.totalUSD.toLocaleString()} USD)` : "";
 
     return {
       starter: {
         title: "Cross-Platform Starter Combo",
         subtitle: starterDeliverables.map((d) => FORMAT_LABELS[d.format]?.tag || d.format).join(" + "),
-        typicalFormatted: `${starterCalc.valuationRange.formatted.typical} ${starterUsd}`,
-        lowFormatted: starterCalc.valuationRange.formatted.low,
-        highFormatted: starterCalc.valuationRange.formatted.high,
-        savings: `${starterCalc.metrics.currencySymbol}${Math.round(starterCalc.lineItems.bundleDiscountAmountUSD * (REGIONAL_CONFIG[selectedRegion]?.pppIndex || 1) * (REGIONAL_CONFIG[selectedRegion]?.fxRateToUSD || 1)).toLocaleString()} ${starterCalc.metrics.currency}`,
+        typicalFormatted: `${regConfig.symbol}${starterResult.typicalMedian.toLocaleString()} ${starterUsd}`,
+        lowFormatted: `${regConfig.symbol}${starterResult.lowP25.toLocaleString()}`,
+        highFormatted: `${regConfig.symbol}${starterResult.highP75.toLocaleString()}`,
+        savings: `${regConfig.symbol}${starterResult.savingsLocalized.toLocaleString()} ${regConfig.currency}`,
       },
       authority: {
         title: "Omnichannel 360 Authority Pack",
         subtitle: authorityDeliverables.map((d) => FORMAT_LABELS[d.format]?.tag || d.format).join(" + "),
-        typicalFormatted: `${authCalc.valuationRange.formatted.typical} ${authUsd}`,
-        lowFormatted: authCalc.valuationRange.formatted.low,
-        highFormatted: authCalc.valuationRange.formatted.high,
-        savings: `${authCalc.metrics.currencySymbol}${Math.round(authCalc.lineItems.bundleDiscountAmountUSD * (REGIONAL_CONFIG[selectedRegion]?.pppIndex || 1) * (REGIONAL_CONFIG[selectedRegion]?.fxRateToUSD || 1)).toLocaleString()} ${authCalc.metrics.currency}`,
+        typicalFormatted: `${regConfig.symbol}${authResult.typicalMedian.toLocaleString()} ${authUsd}`,
+        lowFormatted: `${regConfig.symbol}${authResult.lowP25.toLocaleString()}`,
+        highFormatted: `${regConfig.symbol}${authResult.highP75.toLocaleString()}`,
+        savings: `${regConfig.symbol}${authResult.savingsLocalized.toLocaleString()} ${regConfig.currency}`,
       },
     };
-  }, [verifiedChannelsCount, platforms, totalAudienceCount, activeNicheId, selectedRegion]);
+  }, [verifiedChannelsCount, platforms, activeNicheId, selectedRegion]);
 
   // Extract and normalize primary & secondary regional markets
   const { cleanPrimaryMarket, secondaryMarketsList } = useMemo(() => {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { PlatformDataState } from "./PlatformRateCard";
 import { calculateInfluencerRate } from "@/lib/calculator/engine";
 import { PricingInput, DeliverableItem, RegionCode } from "@/lib/calculator/types";
-import { FORMAT_LABELS } from "@/lib/calculator/constants";
+import { FORMAT_LABELS, REGIONAL_CONFIG } from "@/lib/calculator/constants";
 
 interface OmnichannelBundleCardProps {
   platforms: {
@@ -36,6 +36,7 @@ export function OmnichannelBundleCard({
   const hasMultiplePlatforms = readyPlatforms.length >= 2;
 
   // 1. Calculate Starter Combo (e.g. 1x Reel + 1x TikTok or 1x YT Short)
+  // Per spec: each deliverable uses its OWN platform's native metrics (Steps 1-4)
   const starterCombo = useMemo(() => {
     if (!hasMultiplePlatforms) return null;
 
@@ -51,40 +52,62 @@ export function OmnichannelBundleCard({
 
     if (deliverables.length < 2) return null;
 
-    // Use primary platform metrics or highest follower count for base
-    const primary = readyPlatforms[0].data;
-    const input: PricingInput = {
-      creator: {
-        followerCount: primary.followerCount || 25000,
-        last3PostsAvgLikes: primary.avgLikes || 500,
-        last3PostsAvgComments: primary.avgComments || 25,
-        last3PostsAvgViews: primary.avgViews,
-        primaryPlatform: readyPlatforms[0].platform,
-        primaryNicheId,
-        regionCode,
-      },
-      deliverables,
-      commercialTerms: { usageRights: { scope: "organic_repost", duration: "30_days" } },
-    };
+    // Calculate each deliverable individually using its own platform's native metrics
+    let grossTotalUSD = 0;
+    for (const item of deliverables) {
+      const platData = platforms[item.platform];
+      const singleInput: PricingInput = {
+        creator: {
+          followerCount: platData.followerCount || 25000,
+          last3PostsAvgLikes: platData.avgLikes || 500,
+          last3PostsAvgComments: platData.avgComments || 25,
+          last3PostsAvgViews: platData.avgViews,
+          primaryPlatform: item.platform,
+          primaryNicheId,
+          regionCode,
+        },
+        deliverables: [{ ...item, quantity: 1 }],
+        commercialTerms: { usageRights: { scope: "organic_repost", duration: "30_days" } },
+      };
+      const res = calculateInfluencerRate(singleInput);
+      grossTotalUSD += res.lineItems.grossTotalUSD;
+    }
 
-    const res = calculateInfluencerRate(input);
-    const bundledTotal = res.valuationRange.typicalMedian;
-    const savings = res.lineItems.bundleDiscountAmountUSD;
+    // Step 5: Multi-Asset Bundle Volume Discount
+    const totalAssetCount = deliverables.reduce((sum, d) => sum + d.quantity, 0);
+    const bundleDiscountPercent = totalAssetCount >= 4 ? 0.15 : totalAssetCount >= 2 ? 0.10 : 0.00;
+    const bundleDiscountAmountUSD = grossTotalUSD * bundleDiscountPercent;
+    const netContentFeeUSD = grossTotalUSD - bundleDiscountAmountUSD;
+
+    // Step 6: Starter Combo uses organic_repost/30_days = 0% surcharge
+    const totalUSD = netContentFeeUSD;
+
+    // Step 8: PPP & FX localization
+    const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG["US"];
+    const localizedMedian = totalUSD * regConfig.pppIndex * regConfig.fxRateToUSD;
+
+    // Step 9: Defended Negotiation Bounds
+    const lowP25 = Math.round(localizedMedian * 0.80);
+    const typicalMedian = Math.round(localizedMedian);
+    const highP75 = Math.round(localizedMedian * 1.25);
+
+    const savingsLocalized = Math.round(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
 
     return {
-      title: "Starter Cross-Post Combo",
+      title: "Cross-Platform Starter Combo",
       subtitle: `${deliverables.map((d) => FORMAT_LABELS[d.format]?.tag || d.format).join(" + ")}`,
       deliverables,
-      formattedTypical: res.valuationRange.formatted.typical,
-      formattedLow: res.valuationRange.formatted.low,
-      formattedHigh: res.valuationRange.formatted.high,
-      savingsFormatted: `${res.metrics.currency} ${Math.round(savings).toLocaleString()}`,
-      typicalMedian: bundledTotal,
-      currency: res.metrics.currency,
+      formattedTypical: `${regConfig.symbol}${typicalMedian.toLocaleString()}`,
+      formattedLow: `${regConfig.symbol}${lowP25.toLocaleString()}`,
+      formattedHigh: `${regConfig.symbol}${highP75.toLocaleString()}`,
+      savingsFormatted: `${regConfig.currency} ${savingsLocalized.toLocaleString()}`,
+      typicalMedian,
+      currency: regConfig.currency,
     };
   }, [hasMultiplePlatforms, readyPlatforms, platforms, primaryNicheId, regionCode]);
 
   // 2. Calculate Full Omnichannel Authority Pack (All available ready platforms)
+  // Per spec: each deliverable uses its OWN platform's native metrics (Steps 1-4)
   const authorityPack = useMemo(() => {
     if (!hasMultiplePlatforms) return null;
 
@@ -102,35 +125,59 @@ export function OmnichannelBundleCard({
       deliverables.push({ id: "auth_4", platform: "instagram", format: "ig_carousel", quantity: 1 });
     }
 
-    const primary = readyPlatforms[0].data;
-    const input: PricingInput = {
-      creator: {
-        followerCount: primary.followerCount || 25000,
-        last3PostsAvgLikes: primary.avgLikes || 500,
-        last3PostsAvgComments: primary.avgComments || 25,
-        last3PostsAvgViews: primary.avgViews,
-        primaryPlatform: readyPlatforms[0].platform,
-        primaryNicheId,
-        regionCode,
-      },
-      deliverables,
-      commercialTerms: { usageRights: { scope: "paid_partnership_ads", duration: "30_days" } },
-    };
+    // Calculate each deliverable individually using its own platform's native metrics
+    let grossTotalUSD = 0;
+    for (const item of deliverables) {
+      const platData = platforms[item.platform];
+      const singleInput: PricingInput = {
+        creator: {
+          followerCount: platData.followerCount || 25000,
+          last3PostsAvgLikes: platData.avgLikes || 500,
+          last3PostsAvgComments: platData.avgComments || 25,
+          last3PostsAvgViews: platData.avgViews,
+          primaryPlatform: item.platform,
+          primaryNicheId,
+          regionCode,
+        },
+        deliverables: [{ ...item, quantity: 1 }],
+        commercialTerms: { usageRights: { scope: "organic_repost", duration: "30_days" } },
+      };
+      const res = calculateInfluencerRate(singleInput);
+      grossTotalUSD += res.lineItems.grossTotalUSD;
+    }
 
-    const res = calculateInfluencerRate(input);
-    const bundledTotal = res.valuationRange.typicalMedian;
-    const savings = res.lineItems.bundleDiscountAmountUSD;
+    // Step 5: Multi-Asset Bundle Volume Discount
+    const totalAssetCount = deliverables.reduce((sum, d) => sum + d.quantity, 0);
+    const bundleDiscountPercent = totalAssetCount >= 4 ? 0.15 : totalAssetCount >= 2 ? 0.10 : 0.00;
+    const bundleDiscountAmountUSD = grossTotalUSD * bundleDiscountPercent;
+    const netContentFeeUSD = grossTotalUSD - bundleDiscountAmountUSD;
+
+    // Step 6: Authority Pack uses paid_partnership_ads/30_days = +25% surcharge
+    const usagePercent = 0.25;
+    const commercialRightsFeeUSD = netContentFeeUSD * usagePercent;
+    const totalUSD = netContentFeeUSD + commercialRightsFeeUSD;
+
+    // Step 8: PPP & FX localization
+    const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG["US"];
+    const localizedMedian = totalUSD * regConfig.pppIndex * regConfig.fxRateToUSD;
+
+    // Step 9: Defended Negotiation Bounds
+    const lowP25 = Math.round(localizedMedian * 0.80);
+    const typicalMedian = Math.round(localizedMedian);
+    const highP75 = Math.round(localizedMedian * 1.25);
+
+    const savingsLocalized = Math.round(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
 
     return {
-      title: "Omnichannel Authority Pack",
+      title: "Omnichannel 360 Authority Pack",
       subtitle: `${deliverables.map((d) => FORMAT_LABELS[d.format]?.tag || d.format).join(" + ")}`,
       deliverables,
-      formattedTypical: res.valuationRange.formatted.typical,
-      formattedLow: res.valuationRange.formatted.low,
-      formattedHigh: res.valuationRange.formatted.high,
-      savingsFormatted: `${res.metrics.currency} ${Math.round(savings).toLocaleString()}`,
-      typicalMedian: bundledTotal,
-      currency: res.metrics.currency,
+      formattedTypical: `${regConfig.symbol}${typicalMedian.toLocaleString()}`,
+      formattedLow: `${regConfig.symbol}${lowP25.toLocaleString()}`,
+      formattedHigh: `${regConfig.symbol}${highP75.toLocaleString()}`,
+      savingsFormatted: `${regConfig.currency} ${savingsLocalized.toLocaleString()}`,
+      typicalMedian,
+      currency: regConfig.currency,
     };
   }, [hasMultiplePlatforms, readyPlatforms, platforms, primaryNicheId, regionCode]);
 
