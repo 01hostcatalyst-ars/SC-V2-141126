@@ -125,214 +125,292 @@ export const PRIMARY_NICHES: NicheDefinition[] = [
   {
     id: 1,
     name: 'Home Design & Decor',
-    multiplier: 2.67,
-    description: 'High-ticket room staging, architectural lighting, multi-day production ($1,500 / $562 baseline).',
-    evidenceSource: 'Aspire 2026 (p. 14)',
+    multiplier: 1.41,
+    description: 'High-ticket renovation budgets, architectural fixtures, and DTC furniture staging.',
+    evidenceSource: 'SignCollab / Aspire 2026 Calibrated',
   },
   {
     id: 2,
-    name: 'Pet Care & Animals',
-    multiplier: 1.78,
-    description: 'Deep audience affinity, pet talent logistics, high viral share rates ($1,000 / $562 baseline).',
-    evidenceSource: 'Aspire 2026 (p. 14)',
+    name: 'Pets & Animals',
+    multiplier: 1.12,
+    description: 'Clinical veterinary authority, pet behavior training, and dedicated pet care audiences.',
+    evidenceSource: 'SignCollab / Market Rate Analysis',
   },
   {
     id: 3,
-    name: 'Business, Finance & B2B SaaS',
-    multiplier: 1.50,
-    description: 'Highest CPMs across digital media ($30–$60+ CPM), high-intent audience, corporate budgets.',
-    evidenceSource: 'SignCollab Model / Modash 2026',
+    name: 'Business, Finance & SaaS',
+    multiplier: 1.58,
+    description: 'Highest CPMs across digital media ($40–$80+), FinTech acquisition budgets, and enterprise B2B software.',
+    evidenceSource: 'SignCollab / Modash 2026',
   },
   {
     id: 4,
-    name: 'Skilled Trades & DIY',
-    multiplier: 1.44,
-    description: 'Specialized tooling, instructional fidelity, high project completion value ($309 / $214 avg).',
+    name: 'Trades, DIY & Craft',
+    multiplier: 1.28,
+    description: 'Pro-grade tooling sponsorships, automotive restoration, CNC/3D fabrication, and jobsite craftsmanship.',
     evidenceSource: 'Collabstr Verified Deal Data',
   },
   {
     id: 5,
-    name: 'Education & Career Coaching',
-    multiplier: 1.43,
-    description: 'Professional authority, high-ticket digital courses, corporate career transition audiences.',
-    evidenceSource: 'Collabstr Verified Deal Data',
+    name: 'Education & Careers',
+    multiplier: 1.30,
+    description: 'Corporate coaching, executive leadership, tech career transitions, and EdTech subscriptions.',
+    evidenceSource: 'SignCollab / Collabstr Verified Deal Data',
   },
   {
     id: 6,
-    name: 'Technology, Hardware & AI',
-    multiplier: 1.35,
-    description: 'Technical benchmark depth, developer software trials, high hardware buyer consideration.',
-    evidenceSource: 'SignCollab Model / Modash 2026',
+    name: 'Technology & Hardware',
+    multiplier: 1.50,
+    description: 'Flagship consumer electronics, enthusiast PC builds, developer tooling, and AI SaaS automation.',
+    evidenceSource: 'SignCollab / Modash 2026',
   },
   {
     id: 7,
-    name: 'Travel, Tourism & Outdoors',
-    multiplier: 1.33,
-    description: 'On-location filming logistics, high booking values, cinematic drone production ($750 / $562).',
-    evidenceSource: 'Aspire 2026 (p. 14)',
+    name: 'Travel & Hospitality',
+    multiplier: 1.10,
+    description: 'Luxury resorts, rugged overlanding, airline promotions, and regional tourism boards.',
+    evidenceSource: 'SignCollab / Aspire 2026 Calibrated',
   },
   {
     id: 8,
-    name: 'Lifestyle & Daily Vlogs',
-    multiplier: 1.00,
-    description: 'Broad mass-market reach, native storytelling, universal baseline anchor ($562 / $562).',
+    name: 'Lifestyle & Entertainment',
+    multiplier: 0.96,
+    description: 'Universal general consumer benchmark, daily routines, relatable memes, and cultural commentary.',
     evidenceSource: 'Aspire 2026 Baseline Anchor (p. 14)',
   },
   {
     id: 9,
-    name: 'Food, Culinary & Beverage',
-    multiplier: 0.89,
-    description: 'Recipe development time, kitchen styling prep, accessible consumer brand sponsors ($500 / $562).',
-    evidenceSource: 'Aspire 2026 (p. 14)',
+    name: 'Food & Culinary',
+    multiplier: 0.99,
+    description: 'Grocery retail partnerships, artisan cooking appliances, specialty coffee, and restaurant hospitality.',
+    evidenceSource: 'SignCollab / Aspire 2026',
   },
   {
     id: 10,
     name: 'Family & Parenting',
-    multiplier: 0.89,
-    description: 'High-trust parental demographic, strong household purchasing authority ($500 / $562).',
-    evidenceSource: 'Aspire 2026 (p. 14)',
+    multiplier: 1.02,
+    description: 'High-trust parental buying cycles, nursery essentials, family travel, and household FMCG brands.',
+    evidenceSource: 'SignCollab / Aspire 2026',
   },
   {
     id: 11,
-    name: 'Health, Wellness & Fitness',
-    multiplier: 0.80,
-    description: 'Active community engagement, strong DM lead funnels, workout routine demos ($450 / $562).',
-    evidenceSource: 'Aspire 2026 (p. 14)',
+    name: 'Health & Fitness',
+    multiplier: 1.19,
+    description: 'High-ticket biohacking/longevity, gym hypertrophy apparel, athleisure, and endurance running gear.',
+    evidenceSource: 'SignCollab / Market Rate Analysis',
   },
   {
     id: 12,
     name: 'Fashion & Apparel',
-    multiplier: 0.53,
-    description: 'High creator supply, gifting deals, rapid trend turnover hauls ($300 / $562).',
-    evidenceSource: 'Aspire 2026 (p. 14)',
+    multiplier: 0.94,
+    description: 'Prestige luxury tailoring, streetwear drops, everyday outfit lookbooks, and sustainable fashion.',
+    evidenceSource: 'SignCollab / Aspire 2026',
   },
   {
     id: 13,
     name: 'Beauty & Cosmetics',
-    multiplier: 0.45,
-    description: 'Highly saturated creator market, short routine creation times, affiliate deals ($250 / $562).',
-    evidenceSource: 'Aspire 2026 (p. 14)',
+    multiplier: 1.04,
+    description: 'Clinical medical dermatology, designer fragrance houses, salon haircare tools, and makeup swatches.',
+    evidenceSource: 'SignCollab / Aspire 2026',
   },
   {
     id: 14,
-    name: 'Gaming, Esports & Game Streaming',
-    multiplier: 1.05,
-    description: 'Hardware sponsors, gaming laptops, energy drinks, publisher title integrations and streaming.',
-    evidenceSource: 'SignCollab Model / Twitch & YouTube Gaming Market Rates',
+    name: 'Gaming & Esports',
+    multiplier: 0.85,
+    description: 'Competitive esports gameplay, studio title launch reviews, variety streaming, and mobile gaming.',
+    evidenceSource: 'SignCollab / Twitch & YouTube Gaming Rates',
   },
   {
     id: 15,
-    name: 'Sports, Athletics & Fan Culture',
-    multiplier: 1.15,
-    description: 'Team franchise commentary, athletic sportswear, luxury country club sports, action sports entertainment.',
-    evidenceSource: 'SignCollab Model / Athlete & Sports Creator Deal Data',
+    name: 'Sports & Athletics',
+    multiplier: 1.16,
+    description: 'Team franchise leagues, combat sports & F1, affluent country club sports (golf/tennis), and action sports.',
+    evidenceSource: 'SignCollab / Athlete Deal Data',
   },
   {
     id: 16,
-    name: 'News, Media & Global Affairs',
-    multiplier: 1.10,
-    description: 'Independent news summaries, geopolitics explainers, investigative documentaries, public policy analysis.',
-    evidenceSource: 'SignCollab Model / Independent Media & Journalism Market Rates',
+    name: 'News & Commentary',
+    multiplier: 0.95,
+    description: 'Geopolitics explainers, media literacy, investigative journalism, and brand-safety adjusted political commentary.',
+    evidenceSource: 'SignCollab / Independent Journalism Rates',
+  },
+  {
+    id: 17,
+    name: 'Automotive & Mobility',
+    multiplier: 1.24,
+    description: 'OEM automaker ad budgets, electric vehicle charging, luxury supercars, powersports, and digital buying guides.',
+    evidenceSource: 'SignCollab / Automotive Creator Ad Rates',
+  },
+  {
+    id: 18,
+    name: 'Creative Arts & Media',
+    multiplier: 1.24,
+    description: 'Prosumer camera/lens ecosystems, VFX and video editing SaaS, digital illustration, and traditional fine arts.',
+    evidenceSource: 'SignCollab / Creative Tech Sponsor Rates',
+  },
+  {
+    id: 19,
+    name: 'Music, Audio & Performance',
+    multiplier: 1.06,
+    description: 'Audio interfaces, virtual instrument plugins (VSTs), instrument tutorials, DJ hardware, and viral choreography.',
+    evidenceSource: 'SignCollab / Music Industry Creator Deals',
+  },
+  {
+    id: 20,
+    name: 'Literature, Books & Writing',
+    multiplier: 1.04,
+    description: 'BookTok fiction community, business book summaries, creative self-publishing software, and comics/manga.',
+    evidenceSource: 'SignCollab / Publishing & EdTech Ad Rates',
+  },
+  {
+    id: 21,
+    name: 'Pop Culture, Fandom & Anime',
+    multiplier: 0.99,
+    description: 'Anime lore recaps, high-craft cosplay fabrication, film/TV breakdown integrations, and live TCG card breaks.',
+    evidenceSource: 'SignCollab / Entertainment Media Rates',
+  },
+  {
+    id: 22,
+    name: 'Spirituality & Mindfulness',
+    multiplier: 1.11,
+    description: 'High-converting DM funnels for mindset coaching, corporate wellness apps, sound healing, and everyday stoicism.',
+    evidenceSource: 'SignCollab / Digital Coaching & Wellness Rates',
   },
 ];
 
-// 64 Sub-Niches mapped to 16 Primary Niches (4 per Primary)
+// 88 Sub-Niches mapped to 22 Primary Niches (4 per Primary)
 export const SUB_NICHES: SubNicheDefinition[] = [
   // 1. Home Design & Decor (1)
-  { id: 101, primaryNicheId: 1, name: 'Interior Architecture & Renovations', multiplier: 2.80, description: 'Multi-day shoots, architectural lighting, luxury renovations.', keywords: ['interior', 'renovation', 'architecture', 'remodel', 'interior design'] },
-  { id: 102, primaryNicheId: 1, name: 'Furniture Styling & Room Makeovers', multiplier: 2.67, description: 'High-ticket sponsorships, room staging.', keywords: ['furniture', 'makeover', 'decor', 'living room', 'room transformation'] },
-  { id: 103, primaryNicheId: 1, name: 'Smart Home Living & Ambient Lighting', multiplier: 2.40, description: 'Tech-integrated home automation, smart lighting setups.', keywords: ['smart home', 'automation', 'lighting', 'home tech'] },
-  { id: 104, primaryNicheId: 1, name: 'Small Space Living & Aesthetic Organization', multiplier: 2.10, description: 'Viral aesthetic organization, decluttering and storage.', keywords: ['organization', 'small space', 'declutter', 'aesthetic home', 'restock'] },
+  { id: 101, primaryNicheId: 1, name: 'Interior Architecture & Renovations', multiplier: 1.65, description: 'High-ticket renovation budgets and premium architectural fixtures; calibrated to isolate media value.', keywords: ['interior architecture', 'renovation', 'remodel', 'architectural lighting', 'luxury interior', 'home restoration'] },
+  { id: 102, primaryNicheId: 1, name: 'Furniture Styling & Room Makeovers', multiplier: 1.45, description: 'High average order value (AOV) direct-to-consumer furniture, rug, and lighting partnerships.', keywords: ['furniture', 'room makeover', 'room transformation', 'living room styling', 'rugs', 'home styling'] },
+  { id: 103, primaryNicheId: 1, name: 'Smart Home & Ambient Lighting', multiplier: 1.35, description: 'Consumer IoT hardware spend paired with affluent homeowner demographics.', keywords: ['smart home', 'ambient lighting', 'home automation', 'iot', 'philips hue', 'home tech'] },
+  { id: 104, primaryNicheId: 1, name: 'Small Space Living & Organization', multiplier: 1.20, description: 'High retail affiliate velocity (Amazon, Target) and practical home storage conversion.', keywords: ['small space', 'home organization', 'declutter', 'storage', 'restock', 'aesthetic pantry'] },
 
-  // 2. Pet Care & Animals (2)
-  { id: 201, primaryNicheId: 2, name: 'Dog & Cat Training / Behavioral Guidance', multiplier: 1.78, description: 'Animal coordination, deep audience trust, training obedience.', keywords: ['dogs', 'cats', 'puppies', 'pet training', 'obedience'] },
-  { id: 202, primaryNicheId: 2, name: 'Veterinary Medicine & Clinical Pet Nutrition', multiplier: 2.05, description: 'Certified expert credibility, medical authority, health compliance.', keywords: ['veterinary', 'vet', 'pet nutrition', 'animal health', 'diet'] },
-  { id: 203, primaryNicheId: 2, name: 'Pet Comedy, Viral Skits & Animal Lifestyle', multiplier: 1.50, description: 'High-reach pet entertainment, humor, viral reels.', keywords: ['pet comedy', 'funny pets', 'animal skits', 'cute animals'] },
-  { id: 204, primaryNicheId: 2, name: 'Exotic Pets, Aquariums & Herpetology', multiplier: 1.65, description: 'High-ticket hobbyist equipment, specialized animal habitats.', keywords: ['aquarium', 'reptiles', 'exotic pets', 'fishkeeping', 'terrarium'] },
+  // 2. Pets & Animals (2)
+  { id: 201, primaryNicheId: 2, name: 'Dog & Cat Training / Behavior', multiplier: 1.10, description: 'High-trust instructional advice driving digital courses, gear, and behavioral service conversions.', keywords: ['dog training', 'cat training', 'pet behavior', 'puppy training', 'obedience', 'leash reactivity'] },
+  { id: 202, primaryNicheId: 2, name: 'Veterinary Medicine & Clinical Pet Nutrition', multiplier: 1.40, description: 'Regulated medical authority commanding top rates for clinical diets, prescription medications, and pet insurance.', keywords: ['veterinary', 'vet', 'pet nutrition', 'clinical diet', 'pet health', 'animal medicine', 'pet insurance'] },
+  { id: 203, primaryNicheId: 2, name: 'Pet Comedy / Viral / Lifestyle', multiplier: 0.90, description: 'Massive organic reach, but passive viewing intent and lower direct conversion to high-ticket sales.', keywords: ['pet comedy', 'viral pets', 'funny animals', 'dog lifestyle', 'cat reels', 'cute pets'] },
+  { id: 204, primaryNicheId: 2, name: 'Exotic Pets / Aquariums / Herpetology', multiplier: 1.10, description: 'High-barrier hobbyists spending heavily on specialized climate control, filtration, and terrarium gear.', keywords: ['exotic pets', 'aquarium', 'herpetology', 'reptiles', 'terrarium', 'fishkeeping', 'snakes'] },
 
-  // 3. Business, Finance & B2B SaaS (3)
-  { id: 301, primaryNicheId: 3, name: 'Personal Budgeting, Savings & Credit Cards', multiplier: 1.35, description: 'Consumer banking app partnerships, high CPA acquisition rates.', keywords: ['budgeting', 'saving', 'credit cards', 'frugal', 'banking'] },
-  { id: 302, primaryNicheId: 3, name: 'Stock Market, Real Estate & Crypto Investing', multiplier: 1.75, description: 'Highest CPMs across digital media ($40–$80+), strict financial disclosures.', keywords: ['stocks', 'crypto', 'investing', 'wealth', 'trading', 'real estate'] },
-  { id: 303, primaryNicheId: 3, name: 'B2B SaaS, Startups & Venture Capital', multiplier: 1.70, description: 'B2B software purchasing power, executive and founder lead gen.', keywords: ['startup', 'founder', 'business', 'saas', 'software', 'venture capital'] },
-  { id: 304, primaryNicheId: 3, name: 'Freelancing, Solopreneurship & Agency Growth', multiplier: 1.45, description: 'Digital product funnels, solopreneur tools, career autonomy.', keywords: ['freelance', 'agency', 'solopreneur', 'online business', 'remote work'] },
+  // 3. Business, Finance & SaaS (3)
+  { id: 301, primaryNicheId: 3, name: 'Budgeting / Savings / Credit Cards', multiplier: 1.45, description: 'FinTech customer acquisition cost (CAC) budgets with high-payout credit card sign-up and banking affiliate commissions.', keywords: ['budgeting', 'saving', 'credit cards', 'frugal', 'banking', 'personal finance'] },
+  { id: 302, primaryNicheId: 3, name: 'Stock / Real Estate / Crypto Investing', multiplier: 1.70, description: 'High-net-worth investor audience; brokerages and prop firms tolerate CACs exceeding $200–$400.', keywords: ['stocks', 'crypto', 'investing', 'real estate', 'trading', 'wealth', 'portfolio'] },
+  { id: 303, primaryNicheId: 3, name: 'B2B SaaS / Startups / VC', multiplier: 1.75, description: 'High customer lifetime value (LTV); enterprise software brands fund premium flat fees.', keywords: ['b2b', 'saas', 'startup', 'venture capital', 'founder', 'enterprise software', 'tech sales'] },
+  { id: 304, primaryNicheId: 3, name: 'Freelancing / Solopreneurship / Agency', multiplier: 1.40, description: 'High comment-to-DM conversion for project management, invoice tools, and workflow subscriptions.', keywords: ['freelancing', 'solopreneur', 'agency', 'client acquisition', 'remote work', 'consulting'] },
 
-  // 4. Skilled Trades & DIY (4)
-  { id: 401, primaryNicheId: 4, name: 'Custom Woodworking & Furniture Crafting', multiplier: 1.55, description: 'Specialized woodworking machinery, high-value build tutorials.', keywords: ['woodworking', 'carpentry', 'epoxy', 'custom furniture', 'timber'] },
-  { id: 402, primaryNicheId: 4, name: 'Automotive Repair, Tuning & Restoration', multiplier: 1.50, description: 'High-ticket aftermarket parts, mechanic tutorials, car rebuilds.', keywords: ['auto repair', 'car tuning', 'mechanic', 'restoration', 'automotive'] },
-  { id: 403, primaryNicheId: 4, name: 'General Home Improvement & Construction', multiplier: 1.40, description: 'Jobsite tooling, dry walling, plumbing, masonry, construction.', keywords: ['diy', 'construction', 'home improvement', 'plumbing', 'electrical'] },
-  { id: 404, primaryNicheId: 4, name: '3D Printing, CNC Machining & Metal Fabrication', multiplier: 1.60, description: 'Engineering software, CAD, metal fabrication, additive manufacturing.', keywords: ['3d printing', 'cnc', 'metalworking', 'fabrication', 'cad', 'welding'] },
+  // 4. Trades, DIY & Craft (4)
+  { id: 401, primaryNicheId: 4, name: 'Custom Woodworking / Furniture Craft', multiplier: 1.20, description: 'Dedicated toolmaker sponsorships (DeWalt, Festool) and loyal artisan maker audiences.', keywords: ['woodworking', 'carpentry', 'epoxy', 'custom furniture', 'joinery', 'timber'] },
+  { id: 402, primaryNicheId: 4, name: 'Automotive Repair / Tuning / Restoration', multiplier: 1.30, description: 'High aftermarket parts spend, durable mechanical hand tools, and specialized chemical sponsors.', keywords: ['auto repair', 'car tuning', 'mechanic', 'restoration', 'engine rebuild', 'wrenching'] },
+  { id: 403, primaryNicheId: 4, name: 'Home Improvement / Construction', multiplier: 1.25, description: 'Pro-grade building materials, contractor tool deals, and hardware retail chain integrations.', keywords: ['home improvement', 'construction', 'drywall', 'plumbing', 'electrical', 'masonry', 'contractor'] },
+  { id: 404, primaryNicheId: 4, name: '3D Printing / CNC / Metal Fabrication', multiplier: 1.35, description: 'Prosumer desktop manufacturing equipment, high raw-material reorders, and CAD/CAM software.', keywords: ['3d printing', 'cnc', 'metal fabrication', 'machining', 'cad', 'welding', 'additive manufacturing'] },
 
-  // 5. Education & Career Coaching (5)
-  { id: 501, primaryNicheId: 5, name: 'Tech Careers, Coding Bootcamps & Data Science', multiplier: 1.65, description: 'High tuition/course conversions, developer tools, software engineering.', keywords: ['coding', 'programming', 'software engineer', 'data science', 'bootcamp'] },
-  { id: 502, primaryNicheId: 5, name: 'Executive Leadership & Corporate Coaching', multiplier: 1.60, description: 'High-ticket corporate consulting, executive presence, career transitions.', keywords: ['leadership', 'management', 'executive coach', 'corporate career', 'interview'] },
-  { id: 503, primaryNicheId: 5, name: 'Language Learning & Global Education', multiplier: 1.30, description: 'EdTech subscriptions, study abroad programs, language apps.', keywords: ['language learning', 'english', 'spanish', 'study abroad', 'polyglot'] },
-  { id: 504, primaryNicheId: 5, name: 'Student Productivity & Study Techniques', multiplier: 1.15, description: 'Stationery brands, note-taking software, exam preparation routines.', keywords: ['study with me', 'productivity', 'notion', 'student', 'medical student'] },
+  // 5. Education & Careers (5)
+  { id: 501, primaryNicheId: 5, name: 'Tech Careers / Coding / Data Science', multiplier: 1.45, description: 'High-intent adult learners targeting high-paying career transitions and accredited online degrees.', keywords: ['coding', 'tech careers', 'data science', 'software engineering', 'bootcamp', 'python', 'learn to code'] },
+  { id: 502, primaryNicheId: 5, name: 'Executive Leadership / Corporate Coaching', multiplier: 1.55, description: 'Corporate B2B professional development budgets and high-ticket mastermind offerings.', keywords: ['leadership', 'executive coaching', 'management', 'corporate career', 'career advancement', 'interview prep'] },
+  { id: 503, primaryNicheId: 5, name: 'Language Learning / Global Education', multiplier: 1.20, description: 'High-LTV recurring subscription apps (Duolingo, Babbel) and foreign exchange study programs.', keywords: ['language learning', 'study abroad', 'polyglot', 'english learning', 'spanish', 'babbel', 'duolingo'] },
+  { id: 504, primaryNicheId: 5, name: 'Student Productivity / Study', multiplier: 1.00, description: 'High app-install volume for digital note-taking, offset by the lower spending power of students.', keywords: ['study with me', 'student productivity', 'notion', 'med student', 'exam prep', 'study tips'] },
 
-  // 6. Technology, Hardware & AI (6)
-  { id: 601, primaryNicheId: 6, name: 'Consumer Mobile Tech, Smartphones & Audio', multiplier: 1.30, description: 'Rapid consumer hardware reviews, flagship phone comparisons.', keywords: ['smartphones', 'headphones', 'gadgets', 'apple', 'android', 'unboxing'] },
-  { id: 602, primaryNicheId: 6, name: 'PC Hardware, Custom Builds & GPUs', multiplier: 1.45, description: 'Deep technical benchmarks, enthusiast component spending.', keywords: ['gpu', 'pc build', 'hardware', 'custom pc', 'intel', 'amd', 'nvidia'] },
-  { id: 603, primaryNicheId: 6, name: 'AI Productivity Tools & SaaS Automations', multiplier: 1.60, description: 'High trial-to-paid conversion intent, AI workflow tutorials.', keywords: ['ai tools', 'chatgpt', 'automation', 'productivity', 'artificial intelligence'] },
-  { id: 604, primaryNicheId: 6, name: 'Developer Software, Cloud & Cybersecurity', multiplier: 1.65, description: 'Cloud infrastructure, developer ecosystems, enterprise cybersecurity.', keywords: ['cybersecurity', 'cloud', 'devops', 'linux', 'developer tools', 'vpn'] },
+  // 6. Technology & Hardware (6)
+  { id: 601, primaryNicheId: 6, name: 'Consumer Mobile Tech / Audio', multiplier: 1.35, description: 'High consumer electronics marketing budgets; strong conversion on smartphones, earbuds, and accessories.', keywords: ['smartphones', 'headphones', 'earbuds', 'apple', 'android', 'gadgets', 'unboxing'] },
+  { id: 602, primaryNicheId: 6, name: 'PC Hardware / Custom Builds / GPUs', multiplier: 1.40, description: 'High-discretionary-income PC enthusiasts buying motherboards, GPUs, displays, and custom cooling.', keywords: ['pc hardware', 'custom pc', 'gpu', 'graphics card', 'motherboard', 'intel', 'nvidia', 'amd'] },
+  { id: 603, primaryNicheId: 6, name: 'AI Productivity / SaaS Automation', multiplier: 1.60, description: 'Exceptional comment-to-DM conversion for software tools, free prompts, and affiliate SaaS funnels.', keywords: ['ai tools', 'chatgpt', 'automation', 'productivity software', 'workflow', 'prompt engineering'] },
+  { id: 604, primaryNicheId: 6, name: 'Developer Software / Cloud / Cybersecurity', multiplier: 1.65, description: 'High enterprise CACs; cloud platforms and developer tooling brands compete for scarce technical talent.', keywords: ['developer tools', 'cloud', 'cybersecurity', 'devops', 'linux', 'api', 'docker'] },
 
-  // 7. Travel, Tourism & Outdoors (7)
-  { id: 701, primaryNicheId: 7, name: 'Luxury Resorts, 5-Star Hotels & First Class', multiplier: 1.65, description: 'Cinematic drone footage, luxury tourism boards, airline reviews.', keywords: ['luxury hotel', 'resort', 'first class', 'honeymoon', 'luxury travel'] },
-  { id: 702, primaryNicheId: 7, name: 'Rugged Overlanding, Camping & Wilderness', multiplier: 1.35, description: 'Technical outdoor gear demonstration, rugged 4x4 field filming.', keywords: ['camping', 'hiking', 'overlanding', 'national parks', 'outdoors', 'bushcraft'] },
-  { id: 703, primaryNicheId: 7, name: 'Budget Backpacking & Solo Hostel Travel', multiplier: 1.00, description: 'Hostel booking platforms, travel eSIMs, budget flight hacks.', keywords: ['backpacking', 'hostels', 'budget travel', 'solo travel', 'travel hacks'] },
-  { id: 704, primaryNicheId: 7, name: 'City Guides, Food Crawls & Expat Living', multiplier: 1.20, description: 'Local cultural immersion, neighborhood walking tours, relocation.', keywords: ['city guide', 'expat', 'walking tour', 'street food', 'travel vlog'] },
+  // 7. Travel & Hospitality (7)
+  { id: 701, primaryNicheId: 7, name: 'Luxury Resorts / 5-Star / First Class', multiplier: 1.30, description: 'Affluent traveler demographics; calibrated down to account for heavy barter and complimentary stay norms.', keywords: ['luxury hotel', 'resort', 'first class', 'honeymoon', '5 star', 'luxury travel'] },
+  { id: 702, primaryNicheId: 7, name: 'Overlanding / Camping / Wilderness', multiplier: 1.15, description: 'High-cost outdoor gear, vehicle outfitting, satellite communicators, and technical outerwear.', keywords: ['overlanding', 'camping', 'wilderness', 'hiking', 'national parks', 'off road camping'] },
+  { id: 703, primaryNicheId: 7, name: 'Budget Backpacking / Hostel Travel', multiplier: 0.90, description: 'Price-conscious audience; heavily monetized through budget booking affiliate links and e-SIMs.', keywords: ['backpacking', 'hostels', 'budget travel', 'solo travel', 'cheap travel', 'esim'] },
+  { id: 704, primaryNicheId: 7, name: 'City Guides / Food Crawls / Expat', multiplier: 1.05, description: 'Regional tourism boards, domestic airline promotions, and localized leisure hospitality.', keywords: ['city guide', 'expat', 'food crawl', 'walking tour', 'neighborhood guide', 'relocation'] },
 
-  // 8. Lifestyle & Daily Vlogs (8 - Baseline Anchor)
-  { id: 801, primaryNicheId: 8, name: 'Daily Routine Vlogs & Day-in-the-Life', multiplier: 1.00, description: 'Universal baseline anchor, relatable daily routines and storytelling.', keywords: ['day in the life', 'daily vlog', 'routine', 'lifestyle', 'weekly vlog'] },
-  { id: 802, primaryNicheId: 8, name: 'Comedy Skits, Parodies & Relatable Memes', multiplier: 0.95, description: 'Ultra-high viral reach, broad demographic humor, relatable skits.', keywords: ['comedy', 'skits', 'funny', 'parody', 'relatable', 'memes'] },
-  { id: 803, primaryNicheId: 8, name: 'Cultural Commentary & Video Essays', multiplier: 1.15, description: 'Deep long-form retention, cultural analysis, intellectual authority.', keywords: ['video essay', 'commentary', 'pop culture', 'analysis', 'critique'] },
-  { id: 804, primaryNicheId: 8, name: 'University Life & Young Adult Lifestyle', multiplier: 0.90, description: 'Dorm life, college routines, young adult transitions.', keywords: ['college life', 'dorm', 'university', 'young adult', 'apartment tour'] },
+  // 8. Lifestyle & Entertainment (8 - Engine Baseline Anchor)
+  { id: 801, primaryNicheId: 8, name: 'Daily Routine / Day-in-Life', multiplier: 1.00, description: 'Engine Baseline (1.00x): Standard general consumer benchmark across all formats and platforms.', keywords: ['day in the life', 'daily vlog', 'routine', 'lifestyle vlog', 'weekly vlog', 'realistic day'] },
+  { id: 802, primaryNicheId: 8, name: 'Comedy / Parody / Relatable Memes', multiplier: 0.85, description: 'Viral view counts with low purchase intent; broad consumer brands buy awareness at lower CPMs.', keywords: ['comedy', 'skits', 'funny', 'parody', 'memes', 'relatable', 'humor'] },
+  { id: 803, primaryNicheId: 8, name: 'Cultural Commentary / Video Essays', multiplier: 1.10, description: 'High YouTube watch time, strong community retention, and dedicated long-form sponsor integrations.', keywords: ['video essay', 'commentary', 'pop culture analysis', 'critique', 'cultural deep dive'] },
+  { id: 804, primaryNicheId: 8, name: 'University / Young Adult Lifestyle', multiplier: 0.90, description: 'Younger demographic with limited personal disposable income; reliant on low-AOV lifestyle gifting.', keywords: ['college life', 'university', 'dorm', 'young adult', 'apartment tour', 'college routine'] },
 
-  // 9. Food, Culinary & Beverage (9)
-  { id: 901, primaryNicheId: 9, name: 'Quick Weeknight Meals & Meal Prep', multiplier: 0.85, description: 'Grocery supermarket sponsors, meal delivery services, air fryer recipes.', keywords: ['quick recipes', 'meal prep', 'easy dinner', 'air fryer', 'budget meals'] },
-  { id: 902, primaryNicheId: 9, name: 'Gourmet Culinary Techniques & Artisan Baking', multiplier: 1.05, description: 'High production kitchen styling, sourdough, pastry, premium cookware.', keywords: ['baking', 'gourmet', 'culinary technique', 'pastry', 'chef', 'sourdough'] },
-  { id: 903, primaryNicheId: 9, name: 'Specialty Coffee, Wine & Mixology', multiplier: 1.25, description: 'Espresso equipment, luxury cocktail mixology, wine and spirits.', keywords: ['coffee', 'espresso', 'mixology', 'cocktails', 'wine', 'barista'] },
-  { id: 904, primaryNicheId: 9, name: 'Restaurant Reviews & Global Street Food', multiplier: 0.90, description: 'High viral view counts, restaurant hospitality partnerships.', keywords: ['food review', 'street food', 'restaurant', 'food tour', 'eating'] },
+  // 9. Food & Culinary (9)
+  { id: 901, primaryNicheId: 9, name: 'Weeknight Meals / Meal Prep', multiplier: 0.90, description: 'High creator competition; heavy grocery retail partnerships, kitchen staples, and meal kits.', keywords: ['meal prep', 'weeknight meals', 'easy dinner', 'budget meals', 'air fryer recipes', 'quick recipes'] },
+  { id: 902, primaryNicheId: 9, name: 'Gourmet / Culinary / Artisan Baking', multiplier: 1.05, description: 'Premium kitchen appliances, specialty pantry ingredients, cookware sets, and cutlery deals.', keywords: ['gourmet', 'culinary technique', 'artisan baking', 'sourdough', 'pastry', 'chef'] },
+  { id: 903, primaryNicheId: 9, name: 'Specialty Coffee / Wine / Mixology', multiplier: 1.10, description: 'Discretionary luxury consumption, boutique roasters, wine clubs, and premium barware subscriptions.', keywords: ['specialty coffee', 'espresso', 'wine', 'cocktails', 'mixology', 'barista', 'spirits'] },
+  { id: 904, primaryNicheId: 9, name: 'Restaurant Reviews / Street Food', multiplier: 0.90, description: 'Localized geographic appeal with limited access to national brand ad budgets.', keywords: ['restaurant review', 'street food', 'food tour', 'food critique', 'hidden gems'] },
 
   // 10. Family & Parenting (10)
-  { id: 1001, primaryNicheId: 10, name: 'Newborn, Infant Care & Pregnancy', multiplier: 1.10, description: 'High-intent nursery and stroller purchases, maternity care.', keywords: ['pregnancy', 'newborn', 'baby care', 'maternity', 'postpartum'] },
-  { id: 1002, primaryNicheId: 10, name: 'Toddler & Child Play, Toys & Learning', multiplier: 0.85, description: 'Toy brands, educational activities, sensory play for children.', keywords: ['toddler', 'toys', 'kids activities', 'montessori', 'sensory play'] },
-  { id: 1003, primaryNicheId: 10, name: 'Family Travel & Large Household Routines', multiplier: 0.95, description: 'Minivan/SUV sponsorships, large family grocery hauls, family resorts.', keywords: ['family travel', 'large family', 'family vlog', 'mom life', 'household'] },
-  { id: 1004, primaryNicheId: 10, name: 'Modern Parenting & Co-Parenting Advice', multiplier: 0.85, description: 'Parenting literature, positive discipline, emotional intelligence.', keywords: ['parenting advice', 'gentle parenting', 'co-parenting', 'fatherhood', 'motherhood'] },
+  { id: 1001, primaryNicheId: 10, name: 'Newborn / Infant / Pregnancy', multiplier: 1.15, description: 'Urgent parental buying cycles, non-discretionary needs, and high-ticket nursery/stroller gear.', keywords: ['newborn', 'infant', 'pregnancy', 'maternity', 'postpartum', 'baby essentials', 'nursery'] },
+  { id: 1002, primaryNicheId: 10, name: 'Toddler / Toys / Learning', multiplier: 0.95, description: 'High toy brand ad budgets, but heavily offset by aggressive free product gifting practices.', keywords: ['toddler', 'toys', 'kids activities', 'sensory play', 'montessori', 'learning toys'] },
+  { id: 1003, primaryNicheId: 10, name: 'Family Travel / Large Household', multiplier: 1.00, description: 'Multi-passenger travel, minivans, household appliances, and bulk FMCG consumer goods.', keywords: ['family travel', 'large household', 'family vlog', 'mom life', 'household routines'] },
+  { id: 1004, primaryNicheId: 10, name: 'Parenting / Co-Parenting Advice', multiplier: 1.00, description: 'High community trust; balanced between digital services, counseling apps, and family software.', keywords: ['parenting advice', 'co parenting', 'gentle parenting', 'child development', 'family counseling'] },
 
-  // 11. Health, Wellness & Fitness (11)
-  { id: 1101, primaryNicheId: 11, name: 'Bodybuilding, Hypertrophy & Gym Workouts', multiplier: 0.85, description: 'Supplement sponsorships, lifting belts, active gym community.', keywords: ['bodybuilding', 'gym workout', 'lifting', 'muscle growth', 'hypertrophy'] },
-  { id: 1102, primaryNicheId: 11, name: 'Yoga, Pilates & Mindful Mobility', multiplier: 0.80, description: 'Athleisure brands, yoga mats, mindful movement, somatic stretch.', keywords: ['yoga', 'pilates', 'mobility', 'stretching', 'mindfulness'] },
-  { id: 1103, primaryNicheId: 11, name: 'Biohacking, Longevity & Clinical Nutrition', multiplier: 1.25, description: 'High-ticket wearable sensors, blood testing, longevity supplements.', keywords: ['biohacking', 'longevity', 'nutrition', 'supplements', 'fasting', 'cgm'] },
-  { id: 1104, primaryNicheId: 11, name: 'Running, Marathons & Endurance Sports', multiplier: 1.05, description: 'Running shoe brands, sports GPS watches, electrolyte hydration.', keywords: ['running', 'marathon', 'triathlon', 'running shoes', 'endurance'] },
+  // 11. Health & Fitness (11)
+  { id: 1101, primaryNicheId: 11, name: 'Bodybuilding / Hypertrophy / Gym', multiplier: 1.10, description: 'Consistent fitness apparel ambassadorships, creatine/protein supplements, and lifting gear.', keywords: ['bodybuilding', 'hypertrophy', 'gym workout', 'lifting', 'muscle growth', 'protein'] },
+  { id: 1102, primaryNicheId: 11, name: 'Yoga / Pilates / Mindful Mobility', multiplier: 1.05, description: 'Boutique athleisure apparel, wellness retreat packages, and subscription mobility apps.', keywords: ['yoga', 'pilates', 'mobility', 'stretching', 'mindful movement', 'somatic'] },
+  { id: 1103, primaryNicheId: 11, name: 'Biohacking / Longevity / Nutrition', multiplier: 1.45, description: 'High-growth medical education space; high-ticket diagnostic tests, nootropics, and longevity supplements.', keywords: ['biohacking', 'longevity', 'nutrition', 'supplements', 'fasting', 'cgm', 'blood work'] },
+  { id: 1104, primaryNicheId: 11, name: 'Running / Marathon / Endurance', multiplier: 1.15, description: 'High gear turnover (shoes, GPS smartwatches, hydration packs) and affluent amateur athlete demographics.', keywords: ['running', 'marathon', 'triathlon', 'running shoes', 'endurance', 'half marathon'] },
 
   // 12. Fashion & Apparel (12)
-  { id: 1201, primaryNicheId: 12, name: 'Luxury Fashion, Tailoring & Editorial Style', multiplier: 0.85, description: 'Designer fashion houses, bespoke tailoring, luxury timepieces.', keywords: ['luxury fashion', 'designer', 'tailoring', 'menswear', 'haute couture'] },
-  { id: 1202, primaryNicheId: 12, name: 'Streetwear, Sneaker Culture & Vintage Thrift', multiplier: 0.65, description: 'Sneaker release culture, hypebeast drops, vintage archive styling.', keywords: ['streetwear', 'sneakers', 'thrift', 'vintage', 'hypebeast'] },
-  { id: 1203, primaryNicheId: 12, name: 'Fast Fashion Hauls & Everyday Outfit Ideas', multiplier: 0.45, description: 'Rapid turnover fashion hauls, Zara/H&M lookbooks, high volume.', keywords: ['fashion haul', 'outfit ideas', 'lookbook', 'try on haul', 'styling'] },
-  { id: 1204, primaryNicheId: 12, name: 'Sustainable Fashion & Capsule Wardrobes', multiplier: 0.70, description: 'Capsule wardrobe guides, slow fashion, ethical brand sponsorships.', keywords: ['sustainable fashion', 'capsule wardrobe', 'slow fashion', 'minimalist style'] },
+  { id: 1201, primaryNicheId: 12, name: 'Luxury Fashion / Tailoring / Editorial', multiplier: 1.15, description: 'Prestige brand equity, high retail AOVs, and strict category exclusivity riders.', keywords: ['luxury fashion', 'tailoring', 'editorial', 'designer', 'haute couture', 'menswear'] },
+  { id: 1202, primaryNicheId: 12, name: 'Streetwear / Sneakers / Vintage', multiplier: 0.90, description: 'Highly influential, but heavily impacted by product seeding and sneaker gifting norms.', keywords: ['streetwear', 'sneakers', 'vintage', 'thrift', 'hypebeast', 'drop culture'] },
+  { id: 1203, primaryNicheId: 12, name: 'Fast Fashion / Everyday Outfits', multiplier: 0.75, description: 'Extreme creator saturation and heavy reliance on affiliate discount codes and unpaid PR gifting.', keywords: ['fast fashion', 'outfit ideas', 'lookbook', 'try on haul', 'zara haul', 'shein haul'] },
+  { id: 1204, primaryNicheId: 12, name: 'Sustainable Fashion / Capsule Wardrobe', multiplier: 0.95, description: 'High audience trust and ethical alignment, but bounded by smaller independent brand ad budgets.', keywords: ['sustainable fashion', 'capsule wardrobe', 'slow fashion', 'ethical fashion', 'minimalist style'] },
 
   // 13. Beauty & Cosmetics (13)
-  { id: 1301, primaryNicheId: 13, name: 'Dermatology & Medical Skincare', multiplier: 0.90, description: 'Certified dermatologist authority, clinical formulation reviews.', keywords: ['dermatology', 'skincare routine', 'sunscreen', 'retinol', 'acne', 'skincare'] },
-  { id: 1302, primaryNicheId: 13, name: 'High Perfumery & Luxury Fragrance', multiplier: 0.80, description: 'Niche perfumery, luxury fragrance collections, scent reviews.', keywords: ['perfume', 'fragrance', 'cologne', 'scent review', 'niche fragrance'] },
-  { id: 1303, primaryNicheId: 13, name: 'Drugstore Makeup & Everyday Cosmetic Swatches', multiplier: 0.40, description: 'Affordable makeup tutorials, PR gifting, swatch comparisons.', keywords: ['makeup tutorial', 'drugstore makeup', 'lip swatch', 'cosmetics', 'beauty haul'] },
-  { id: 1304, primaryNicheId: 13, name: 'Hair Care, Salon Color & Styling Tools', multiplier: 0.60, description: 'Salon-grade blow dryers, hair styling tools, curly hair methods.', keywords: ['haircare', 'hairstyling', 'curly hair', 'hair dye', 'salon styling'] },
+  { id: 1301, primaryNicheId: 13, name: 'Dermatology / Medical Skincare', multiplier: 1.35, description: 'Clinical board certifications command top pharma and dermo-cosmetic cash budgets.', keywords: ['dermatology', 'medical skincare', 'sunscreen', 'retinol', 'acne', 'clinical skincare'] },
+  { id: 1302, primaryNicheId: 13, name: 'High Perfumery / Luxury Fragrance', multiplier: 1.10, description: 'High-margin luxury gift market; designer houses pay cash retainers to preserve brand prestige.', keywords: ['perfume', 'luxury fragrance', 'cologne', 'scent review', 'niche perfumery'] },
+  { id: 1303, primaryNicheId: 13, name: 'Drugstore Makeup / Cosmetic Swatches', multiplier: 0.75, description: 'High creator supply and heavy PR box gifting; lowest flat-fee median in creator surveys ($250).', keywords: ['drugstore makeup', 'cosmetic swatches', 'makeup tutorial', 'lip swatch', 'affordable beauty'] },
+  { id: 1304, primaryNicheId: 13, name: 'Haircare / Salon Color / Styling Tools', multiplier: 0.95, description: 'Blends everyday PR product gifting with high-ticket electrical styling appliance campaigns.', keywords: ['haircare', 'salon color', 'styling tools', 'curly hair', 'hair blowout', 'dyson airwrap'] },
 
-  // 14. Gaming, Esports & Game Streaming (14)
-  { id: 1401, primaryNicheId: 14, name: 'Competitive Esports & Ranked Gameplay', multiplier: 1.05, description: 'Hardware peripherals, gaming chairs, energy drink sponsorships.', keywords: ['esports', 'ranked', 'valorant', 'cs2', 'apex legends', 'league of legends'] },
-  { id: 1402, primaryNicheId: 14, name: 'Game Reviews, Lore, Guides & Deep Dives', multiplier: 1.20, description: 'High watch-time and buyer intent, game launch sponsorships, lore essays.', keywords: ['game review', 'walkthrough', 'game lore', 'gaming analysis', 'playthrough'] },
-  { id: 1403, primaryNicheId: 14, name: 'Live Stream Entertainment & Variety Gaming', multiplier: 0.95, description: 'High live concurrent viewers, Twitch/Kick/YouTube streaming, funny moments.', keywords: ['streamer', 'twitch', 'live stream', 'variety gaming', 'funny gaming moments'] },
-  { id: 1404, primaryNicheId: 14, name: 'Casual, Sandbox & Mobile Gaming', multiplier: 0.85, description: 'High-volume CPI mobile game deals, Minecraft, Roblox, casual simulator titles.', keywords: ['mobile gaming', 'minecraft', 'roblox', 'casual games', 'gacha', 'simulator'] },
+  // 14. Gaming & Esports (14)
+  { id: 1401, primaryNicheId: 14, name: 'Competitive Esports / Ranked Gameplay', multiplier: 0.85, description: 'High streaming hours, but lower viewer intent to purchase non-endemic commercial products.', keywords: ['esports', 'ranked gameplay', 'valorant', 'cs2', 'apex legends', 'league of legends'] },
+  { id: 1402, primaryNicheId: 14, name: 'Game Reviews / Lore / Guides', multiplier: 1.00, description: 'Highest commercial intent in gaming; primary vehicle for paid studio title launch integrations.', keywords: ['game reviews', 'game lore', 'gaming guides', 'walkthrough', 'deep dive', 'game analysis'] },
+  { id: 1403, primaryNicheId: 14, name: 'Live Variety Gaming', multiplier: 0.80, description: 'Massive watch-time, but dominated by energy drinks, snacks, and low-CPM digital inventory.', keywords: ['variety gaming', 'twitch streamer', 'live stream', 'kick', 'gaming highlights', 'funny gaming'] },
+  { id: 1404, primaryNicheId: 14, name: 'Casual / Sandbox / Mobile Gaming', multiplier: 0.75, description: 'Younger demographic, high ad-blocker usage, and lowest baseline media CPMs ($2–$5).', keywords: ['mobile gaming', 'minecraft', 'roblox', 'sandbox', 'casual gaming', 'cozy gaming'] },
 
-  // 15. Sports, Athletics & Fan Culture (15)
-  { id: 1501, primaryNicheId: 15, name: 'Team Sports & League Analysis (Football, NBA, Cricket)', multiplier: 1.10, description: 'High-passion league game recaps, transfer rumors, fan watch-alongs.', keywords: ['football', 'soccer', 'nba', 'cricket', 'nfl', 'premier league', 'sports analysis'] },
-  { id: 1502, primaryNicheId: 15, name: 'Combat Sports, Motorsports & F1', multiplier: 1.25, description: 'Luxury watch and automotive brand integrations, paddock passes, fight breakdowns.', keywords: ['f1', 'formula 1', 'ufc', 'boxing', 'motorsport', 'combat sports', 'mma'] },
-  { id: 1503, primaryNicheId: 15, name: 'Golf, Tennis & Racket Athletics', multiplier: 1.45, description: 'Highest net-worth audience in sports; country club apparel, clubs, luxury sponsors.', keywords: ['golf', 'tennis', 'pickleball', 'golf swing', 'country club', 'racket'] },
-  { id: 1504, primaryNicheId: 15, name: 'Action Sports, Outdoors & Athlete Entertainment', multiplier: 1.15, description: 'Skateboarding, surfing, trick shots, extreme stunts, Red Bull-style high energy.', keywords: ['action sports', 'skateboarding', 'surfing', 'trick shots', 'snowboarding', 'extreme sports'] },
+  // 15. Sports & Athletics (15)
+  { id: 1501, primaryNicheId: 15, name: 'Team Sports / League Analysis', multiplier: 1.05, description: 'High audience passion, supported by sports betting apps, fan merchandise, and broadcast partners.', keywords: ['team sports', 'football', 'soccer', 'nba', 'nfl', 'cricket', 'league analysis', 'premier league'] },
+  { id: 1502, primaryNicheId: 15, name: 'Combat Sports / Motorsports / F1', multiplier: 1.20, description: 'High-investment lifestyle brands, energy drinks, luxury watches, and automotive sponsorships.', keywords: ['combat sports', 'ufc', 'boxing', 'mma', 'motorsports', 'f1', 'formula 1', 'racing'] },
+  { id: 1503, primaryNicheId: 15, name: 'Golf / Tennis / Racket Sports', multiplier: 1.30, description: 'Affluent participation demographic; high equipment costs, club memberships, and luxury apparel.', keywords: ['golf', 'tennis', 'pickleball', 'racket sports', 'golf swing', 'country club', 'padel'] },
+  { id: 1504, primaryNicheId: 15, name: 'Action Sports / Athlete Entertainment', multiplier: 1.10, description: 'Top organic Instagram engagement rates (3.9%–4.2%) with strong athletic shoe and camera deals.', keywords: ['action sports', 'skateboarding', 'surfing', 'snowboarding', 'trick shots', 'extreme sports'] },
 
-  // 16. News, Media & Global Affairs (16)
-  { id: 1601, primaryNicheId: 16, name: 'Geopolitics, History & Video Documentaries', multiplier: 1.30, description: 'High-income, intellectual audience; premium EdTech, VPN, and SaaS brand partners.', keywords: ['geopolitics', 'history', 'documentary', 'global affairs', 'international relations'] },
-  { id: 1602, primaryNicheId: 16, name: 'Independent Daily News & Media Literacy', multiplier: 1.10, description: 'Daily habit news summaries, fact checking, newsletter and media tool sponsors.', keywords: ['daily news', 'current affairs', 'breaking news', 'media literacy', 'journalism'] },
-  { id: 1603, primaryNicheId: 16, name: 'Investigative Journalism & Social Issues', multiplier: 1.25, description: 'Long-form deep dive reporting, social impact documentaries, author partnerships.', keywords: ['investigative', 'social issues', 'in depth reporting', 'deep dive', 'documentary'] },
-  { id: 1604, primaryNicheId: 16, name: 'Political Commentary, Elections & Public Policy', multiplier: 0.75, description: 'High view velocity; discounted commercial rate due to corporate brand safety filters.', keywords: ['politics', 'political commentary', 'elections', 'public policy', 'debates', 'government'] },
+  // 16. News & Commentary (16)
+  { id: 1601, primaryNicheId: 16, name: 'Geopolitics / History / Documentaries', multiplier: 1.10, description: 'High YouTube retention and watch-time; strong fit for VPNs, audiobooks, and meal services.', keywords: ['geopolitics', 'history', 'documentaries', 'global affairs', 'international relations'] },
+  { id: 1602, primaryNicheId: 16, name: 'Independent News / Media Literacy', multiplier: 0.95, description: 'Highly educated audience, but limited by moderate corporate brand-safety restrictions.', keywords: ['independent news', 'media literacy', 'daily news', 'current affairs', 'fact checking'] },
+  { id: 1603, primaryNicheId: 16, name: 'Investigative Journalism / Social Issues', multiplier: 1.00, description: 'High journalistic credibility; selective brand alignment with mission-driven corporate sponsors.', keywords: ['investigative journalism', 'social issues', 'in depth reporting', 'social impact'] },
+  { id: 1604, primaryNicheId: 16, name: 'Political Commentary / Elections / Policy', multiplier: 0.75, description: 'Severe corporate brand-safety blacklists limit monetization to political PACs and niche direct-response ads.', keywords: ['political commentary', 'elections', 'policy', 'politics', 'government', 'debates'] },
+
+  // 17. Automotive & Mobility (17)
+  { id: 1701, primaryNicheId: 17, name: 'New Car Reviews & EV Technology', multiplier: 1.40, description: 'Large OEM automaker ad budgets, electric vehicle charging networks, auto insurance apps, and dashcam deals.', keywords: ['new car reviews', 'ev technology', 'electric vehicles', 'tesla', 'car review', 'oem automotive'] },
+  { id: 1702, primaryNicheId: 17, name: 'Supercars, Exotics & Luxury Auto', multiplier: 1.30, description: 'Affluent viewership overlapping with luxury watches and financial services; slightly reduced as vehicle sales are aspirational.', keywords: ['supercars', 'exotic cars', 'luxury auto', 'ferrari', 'porsche', 'lamborghini', 'hypercars'] },
+  { id: 1703, primaryNicheId: 17, name: 'Motorcycles, Powersports & Off-Road', multiplier: 1.15, description: 'High-ticket enthusiast protection gear (helmets, leathers, comms headsets) and high brand loyalty.', keywords: ['motorcycles', 'powersports', 'off-road', 'atv', 'dirt bike', 'harley', 'helmets'] },
+  { id: 1704, primaryNicheId: 17, name: 'Car Buying Guides & Commuter Advice', multiplier: 1.10, description: 'High conversion for digital used-car marketplaces, auto-refinance platforms, and aftermarket warranties.', keywords: ['car buying guide', 'used cars', 'commuter advice', 'car financing', 'auto insurance'] },
+
+  // 18. Creative Arts & Media (18)
+  { id: 1801, primaryNicheId: 18, name: 'Photography & Filmmaking Gear', multiplier: 1.35, description: 'Prosumer hardware ecosystems (Sony, Canon, DJI, Aputure); high-AOV cinema lenses and studio lights.', keywords: ['photography gear', 'filmmaking', 'cameras', 'lenses', 'cinematography', 'sony alpha', 'lighting'] },
+  { id: 1802, primaryNicheId: 18, name: 'Video Editing, VFX & Motion Design', multiplier: 1.45, description: 'B2B/Prosumer recurring SaaS models (Adobe, DaVinci Resolve, Epidemic Sound, stock footage platforms).', keywords: ['video editing', 'vfx', 'motion design', 'premiere pro', 'davinci resolve', 'after effects', 'plugins'] },
+  { id: 1803, primaryNicheId: 18, name: 'Digital Illustration & Graphic Design', multiplier: 1.15, description: 'Graphics tablets, stylus accessories, design marketplaces, and portfolio site builder sponsorships.', keywords: ['digital illustration', 'graphic design', 'procreate', 'photoshop', 'drawing tablet', 'typography'] },
+  { id: 1804, primaryNicheId: 18, name: 'Traditional Fine Arts, Pottery & Crafts', multiplier: 1.00, description: 'Fast-growing organic trends on social (+16% yearly growth); monetized via branded art supplies and direct sales.', keywords: ['fine arts', 'pottery', 'ceramics', 'oil painting', 'watercolor', 'crafts', 'sketching'] },
+
+  // 19. Music, Audio & Performance (19)
+  { id: 1901, primaryNicheId: 19, name: 'Music Production & Audio Engineering', multiplier: 1.30, description: 'Audio interfaces, studio monitors, high-margin virtual instrument plugins (VSTs), and DAW licenses.', keywords: ['music production', 'audio engineering', 'beatmaking', 'daw', 'vst', 'studio monitors', 'mixing'] },
+  { id: 1902, primaryNicheId: 19, name: 'Instrument Instruction & Covers', multiplier: 1.05, description: 'Musical instrument manufacturers (Fender, Yamaha), interactive lesson apps, and sheet music libraries.', keywords: ['instrument instruction', 'guitar tutorial', 'piano covers', 'violin', 'music lessons'] },
+  { id: 1903, primaryNicheId: 19, name: 'Dance, Choreography & Viral Performance', multiplier: 0.85, description: 'High organic reach, but heavily dominated by low fixed-fee label sound campaigns rather than high-ticket brands.', keywords: ['dance', 'choreography', 'viral dance', 'hip hop dance', 'ballet', 'dance challenge'] },
+  { id: 1904, primaryNicheId: 19, name: 'DJing & Electronic Audio Equipment', multiplier: 1.05, description: 'Standalone DJ controllers, live sound equipment, festival lifestyle sponsors, and track distribution tools.', keywords: ['djing', 'dj controller', 'pioneer dj', 'electronic music', 'edm', 'club audio'] },
+
+  // 20. Literature, Books & Writing (20)
+  { id: 2001, primaryNicheId: 20, name: 'Fiction, Fantasy & "BookTok"', multiplier: 0.90, description: 'High organic community passion, but major publishers rely heavily on free advance reader copy (ARC) gifting.', keywords: ['booktok', 'fiction', 'fantasy books', 'romance novels', 'book review', 'reading vlog'] },
+  { id: 2002, primaryNicheId: 20, name: 'Non-Fiction & Business Summaries', multiplier: 1.25, description: 'Career-focused readers; high commercial conversion for audiobooks, summaries (Blinkist), and newsletters.', keywords: ['non fiction', 'business book', 'book summary', 'reading notes', 'self development books'] },
+  { id: 2003, primaryNicheId: 20, name: 'Creative Writing & Self-Publishing', multiplier: 1.15, description: 'Manuscript software, author distribution tools, online writing cohorts, and editorial services.', keywords: ['creative writing', 'self publishing', 'author', 'novel writing', 'indie author', 'manuscript'] },
+  { id: 2004, primaryNicheId: 20, name: 'Manga, Comics & Graphic Novels', multiplier: 0.85, description: 'Younger demographic with limited personal spending power; monetized via reader apps and convention events.', keywords: ['manga', 'comics', 'graphic novels', 'manhwa', 'comic haul', 'webtoon'] },
+
+  // 21. Pop Culture, Fandom & Anime (21)
+  { id: 2101, primaryNicheId: 21, name: 'Anime Reviews, Lore & Recaps', multiplier: 0.85, description: 'Engaged fan communities, but non-endemic brand adoption is low; relies on streaming platforms and mobile games.', keywords: ['anime review', 'anime lore', 'anime recaps', 'manga discussion', 'shonen', 'anime breakdown'] },
+  { id: 2102, primaryNicheId: 21, name: 'Cosplay & Prop Fabrication', multiplier: 1.00, description: 'High craftsmanship requiring thermal plastics, 3D printing filaments, contact lenses, and wig-styling tools.', keywords: ['cosplay', 'prop fabrication', 'costume design', 'worbla', 'wigs', 'conventions'] },
+  { id: 2103, primaryNicheId: 21, name: 'Film & TV Breakdown / Pop Culture', multiplier: 1.00, description: 'Streaming platform integrations (Netflix, Disney+), studio junkets, home theater projectors, and VPN deals.', keywords: ['film breakdown', 'movie review', 'tv show recap', 'easter eggs', 'pop culture', 'cinema analysis'] },
+  { id: 2104, primaryNicheId: 21, name: 'Trading Cards & Collectibles (TCG)', multiplier: 1.10, description: 'Active collector capital; high transaction volume on live auction apps (Whatnot), card grading, and protective cases.', keywords: ['trading cards', 'tcg', 'pokemon cards', 'magic the gathering', 'card grading', 'whatnot', 'box break'] },
+
+  // 22. Spirituality & Mindfulness (22)
+  { id: 2201, primaryNicheId: 22, name: 'Manifestation & Mindset Coaching', multiplier: 1.30, description: 'Dominant niche for automated DM funnels converting comment volume into high-ticket course leads.', keywords: ['manifestation', 'mindset coaching', 'law of attraction', 'abundance mindset', 'subconscious mind'] },
+  { id: 2202, primaryNicheId: 22, name: 'Astrology, Crystals & Tarot', multiplier: 0.90, description: 'Active lifestyle following, but bounded corporate brand adoption; monetizes primarily through private client readings.', keywords: ['astrology', 'tarot reading', 'crystals', 'horoscope', 'zodiac', 'birth chart'] },
+  { id: 2203, primaryNicheId: 22, name: 'Meditation, Breathwork & Sound Healing', multiplier: 1.10, description: 'Corporate wellness partnerships, mindfulness apps (Calm, Headspace), and ergonomic lifestyle products.', keywords: ['meditation', 'breathwork', 'sound healing', 'sound bath', 'mindfulness practice', 'pranayama'] },
+  { id: 2204, primaryNicheId: 22, name: 'Philosophy & Everyday Stoicism', multiplier: 1.15, description: 'High watch-time retention on YouTube, strong direct-response sales for journals, and high productivity sponsor fit.', keywords: ['stoicism', 'philosophy', 'marcus aurelius', 'everyday stoic', 'wisdom', 'mindset journal'] },
 ];
 
 /**

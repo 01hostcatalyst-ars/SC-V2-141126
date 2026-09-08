@@ -59,7 +59,7 @@ const YOUTUBE_16_KNOTS = [
   { knotId: 'K16', followers: 5000000, benchmarkEr: 1.00, expectedViews: 600000, rates: { yt_dedicated: 35000, yt_integrated: 25000, yt_short: 10000 }, citation: 'Model Extrapolation' },
 ];
 
-// 2. 14 Primary Sourced Niches & 56 Sub-Niches from Unified Constants
+// 2. 22 Primary Sourced Niches & 88 Sub-Niches from Unified Constants
 import { PRIMARY_NICHES, SUB_NICHES } from '../src/lib/calculator/constants';
 
 // 3. Commercial Rights & Exclusivity Surcharges

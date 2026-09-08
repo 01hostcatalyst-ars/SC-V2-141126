@@ -79,4 +79,34 @@ const inputPK: PricingInput = {
 const resPK = calculateInfluencerRate(inputPK);
 console.log(`Pakistan Localized Valuation: Low: ${resPK.valuationRange.formatted.low} | Typical: ${resPK.valuationRange.formatted.typical} | High: ${resPK.valuationRange.formatted.high}`);
 
-console.log('\nALL VERIFICATION TESTS COMPLETED.');
+console.log('\n--- TEST 5: 22x4 Niche Calibration Spread Test (B2B SaaS 303 vs EV Auto 1701 vs BookTok 2001 vs Fast Fashion 1203) ---');
+const makeTestCreator = (subNicheId: number) => {
+  return calculateInfluencerRate({
+    creator: {
+      followerCount: 50000,
+      last3PostsAvgLikes: 1000,
+      last3PostsAvgComments: 50,
+      primaryNicheId: Math.floor(subNicheId / 100),
+      subNicheId,
+      regionCode: 'US',
+    },
+    deliverables: [{ id: '1', platform: 'instagram', format: 'ig_reel', quantity: 1 }],
+  });
+};
+
+const resSaaS = makeTestCreator(303); // B2B SaaS: 1.75x
+const resAuto = makeTestCreator(1701); // New Car & EV: 1.40x
+const resBook = makeTestCreator(2001); // BookTok: 0.90x
+const resFastFashion = makeTestCreator(1203); // Fast Fashion: 0.75x
+
+console.log(`B2B SaaS (1.75x): Sub=${resSaaS.metrics.subNicheName} (${resSaaS.metrics.nicheMultiplier}x) -> Typical: ${resSaaS.valuationRange.formatted.typical}`);
+console.log(`New Car / EV (1.40x): Sub=${resAuto.metrics.subNicheName} (${resAuto.metrics.nicheMultiplier}x) -> Typical: ${resAuto.valuationRange.formatted.typical}`);
+console.log(`BookTok (0.90x): Sub=${resBook.metrics.subNicheName} (${resBook.metrics.nicheMultiplier}x) -> Typical: ${resBook.valuationRange.formatted.typical}`);
+console.log(`Fast Fashion (0.75x): Sub=${resFastFashion.metrics.subNicheName} (${resFastFashion.metrics.nicheMultiplier}x) -> Typical: ${resFastFashion.valuationRange.formatted.typical}`);
+
+if (resSaaS.metrics.nicheMultiplier !== 1.75 || resAuto.metrics.nicheMultiplier !== 1.40 || resBook.metrics.nicheMultiplier !== 0.90 || resFastFashion.metrics.nicheMultiplier !== 0.75) {
+  throw new Error('Niche multipliers do not match expected values!');
+}
+
+console.log('\nALL VERIFICATION TESTS COMPLETED SUCCESSFULLY.');
+
