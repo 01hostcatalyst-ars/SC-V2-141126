@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { Platform, DeliverableFormat, PricingInput, RegionCode } from "@/lib/calculator/types";
 import { calculateInfluencerRate } from "@/lib/calculator/engine";
 import { FORMAT_LABELS, REGIONAL_CONFIG, PRIMARY_NICHES } from "@/lib/calculator/constants";
@@ -136,6 +137,14 @@ export function InfluencerRadarDashboard() {
   const [completeIntelligence, setCompleteIntelligence] = useState<CompleteCreatorIntelligence | null>(null);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const synthesizedHash = useRef<string>("");
+
+  // Valuation Calibration Pipeline State (atomic reveal after AI country/niche synthesis)
+  const [isValuationCalibrated, setIsValuationCalibrated] = useState(false);
+  const hasUserManuallySelectedRegion = useRef(false);
+  const platformsRef = useRef(platforms);
+  useEffect(() => {
+    platformsRef.current = platforms;
+  }, [platforms]);
 
   // Instagram Ticker Step Progression
   useEffect(() => {
@@ -547,26 +556,28 @@ export function InfluencerRadarDashboard() {
           }
         }
 
-        // Compute rate sheet dynamically using active region & niche
-        const rateCardItems = computePlatformRateCards(
-          targetPlatform,
-          followerCount,
-          avgLikes,
-          avgComments,
-          avgViews,
-          targetPlatform === "tiktok" ? (data.stats?.avgSharesPerVideo || 0) : 0,
-          activeNicheId,
-          selectedRegion,
-          targetPlatform === "youtube"
-            ? {
-                avgShortLikes,
-                avgShortComments,
-                avgShortViews,
-              }
-            : undefined
-        );
+        // Compute rate sheet dynamically using active region & niche ONLY if valuation already calibrated
+        const rateCardItems = isValuationCalibrated
+          ? computePlatformRateCards(
+              targetPlatform,
+              followerCount,
+              avgLikes,
+              avgComments,
+              avgViews,
+              targetPlatform === "tiktok" ? (data.stats?.avgSharesPerVideo || 0) : 0,
+              activeNicheId,
+              selectedRegion,
+              targetPlatform === "youtube"
+                ? {
+                    avgShortLikes,
+                    avgShortComments,
+                    avgShortViews,
+                  }
+                : undefined
+            )
+          : undefined;
 
-        // Render this platform's card IMMEDIATELY
+        // Render this platform's card IMMEDIATELY with verified metrics
         setPlatforms((prev) => ({
           ...prev,
           [targetPlatform]: {
@@ -616,21 +627,16 @@ export function InfluencerRadarDashboard() {
 
         // Trigger autonomous parallel scans for discovered links
         for (const link of externalLinks) {
-          if (link.platform !== targetPlatform) {
-            setPlatforms((current) => {
-              if (current[link.platform].status === "idle") {
-                addActivity(
-                  `Discovered ${link.platform.toUpperCase()} profile in @${username}'s bio link (${link.url}). Initiating autonomous sync...`,
-                  "discovery"
-                );
-                scrapePlatform(
-                  link.url,
-                  link.platform,
-                  `Discovered via @${username}'s ${targetPlatform} bio link`
-                );
-              }
-              return current;
-            });
+          if (link.platform !== targetPlatform && platformsRef.current[link.platform].status === "idle") {
+            addActivity(
+              `Discovered ${link.platform.toUpperCase()} profile in @${username}'s bio link (${link.url}). Initiating autonomous sync...`,
+              "discovery"
+            );
+            scrapePlatform(
+              link.url,
+              link.platform,
+              `Discovered via @${username}'s ${targetPlatform} bio link`
+            );
           }
         }
       } catch (err: unknown) {
@@ -658,6 +664,8 @@ export function InfluencerRadarDashboard() {
 
     setIsSearching(true);
     setHasSearched(true);
+    setIsValuationCalibrated(false);
+    hasUserManuallySelectedRegion.current = false;
     setActivityFeed([]);
     setCreatorMeta(null);
     setCompleteIntelligence(null);
@@ -817,29 +825,41 @@ export function InfluencerRadarDashboard() {
         const detectedCountry = (intel.geography?.countryCode as RegionCode) || selectedRegion;
         const detectedNicheId = intel.profile?.primaryNiche?.id || activeNicheId;
 
-        if (detectedCountry && REGIONAL_CONFIG[detectedCountry]) {
+        const targetCountry = (!hasUserManuallySelectedRegion.current && detectedCountry && REGIONAL_CONFIG[detectedCountry])
+          ? detectedCountry
+          : selectedRegion;
+
+        if (!hasUserManuallySelectedRegion.current && detectedCountry && REGIONAL_CONFIG[detectedCountry]) {
           setSelectedRegion(detectedCountry);
         }
         if (detectedNicheId) {
           setActiveNicheId(detectedNicheId);
         }
 
-        // Recompute all platform rates with the detected country PPP & niche!
-        recomputeAllPlatformRates(detectedCountry, detectedNicheId);
+        // Recompute all platform rates atomically with the detected country PPP & niche!
+        recomputeAllPlatformRates(targetCountry, detectedNicheId);
+        setIsValuationCalibrated(true);
 
         addActivity(
-          `Intelligence Verified (24h Cache): ${intel.profile.creatorType} · ${intel.profile.primaryNiche.name} (${intel.profile.primaryNiche.multiplier}x) · Calibrated for ${REGIONAL_CONFIG[detectedCountry]?.name || detectedCountry} (${REGIONAL_CONFIG[detectedCountry]?.pppIndex || 1}x PPP)`,
+          `Intelligence Verified (24h Cache): ${intel.profile.creatorType} · ${intel.profile.primaryNiche.name} (${intel.profile.primaryNiche.multiplier}x) · Calibrated for ${REGIONAL_CONFIG[targetCountry]?.name || targetCountry} (${REGIONAL_CONFIG[targetCountry]?.pppIndex || 1}x PPP)`,
           "success"
         );
+      } else {
+        // Fallback: unlock valuation with current defaults so user is never stuck
+        recomputeAllPlatformRates(selectedRegion, activeNicheId);
+        setIsValuationCalibrated(true);
       }
     } catch (e) {
       console.warn("[InfluencerRadar AI Synthesis Warning]:", e);
+      // Fallback: unlock valuation with current defaults
+      recomputeAllPlatformRates(selectedRegion, activeNicheId);
+      setIsValuationCalibrated(true);
     } finally {
       setIsSynthesizing(false);
     }
   }, [platforms, creatorMeta, selectedRegion, activeNicheId, recomputeAllPlatformRates, addActivity]);
 
-  // Auto-trigger synthesis and prompt missing modal once all in-flight scrapes settle
+  // Auto-trigger synthesis once all in-flight scrapes settle
   useEffect(() => {
     const isAnyInFlight =
       platforms.instagram.status === "loading" ||
@@ -849,17 +869,35 @@ export function InfluencerRadarDashboard() {
     if (!isAnyInFlight && verifiedChannelsCount > 0) {
       const timer = setTimeout(() => {
         triggerOmnichannelSynthesis();
-
-        // Prompt Missing Platforms Modal if not all 3 channels are found
-        if (verifiedChannelsCount < 3 && !hasPromptedMissingModal.current) {
-          setIsMissingModalOpen(true);
-          hasPromptedMissingModal.current = true;
-        }
-      }, 500);
+      }, 300);
 
       return () => clearTimeout(timer);
     }
   }, [platforms, verifiedChannelsCount, triggerOmnichannelSynthesis]);
+
+  // Prompt Missing Platforms Modal ONLY after valuation has calibrated and settled
+  useEffect(() => {
+    const isAnyInFlight =
+      platforms.instagram.status === "loading" ||
+      platforms.youtube.status === "loading" ||
+      platforms.tiktok.status === "loading";
+
+    if (
+      !isAnyInFlight &&
+      !isSynthesizing &&
+      isValuationCalibrated &&
+      verifiedChannelsCount > 0 &&
+      verifiedChannelsCount < 3 &&
+      !hasPromptedMissingModal.current
+    ) {
+      const modalTimer = setTimeout(() => {
+        setIsMissingModalOpen(true);
+        hasPromptedMissingModal.current = true;
+      }, 2500);
+
+      return () => clearTimeout(modalTimer);
+    }
+  }, [platforms, isSynthesizing, isValuationCalibrated, verifiedChannelsCount]);
 
   // Handle Missing Platforms Submission
   const handleSubmitMissingPlatforms = () => {
@@ -879,7 +917,7 @@ export function InfluencerRadarDashboard() {
   // Compute Omnichannel Bundles (Starter & Full Pack)
   // Per spec: each deliverable uses its OWN platform's native metrics (Steps 1-4)
   const bundleOffers = useMemo(() => {
-    if (verifiedChannelsCount < 2) return null;
+    if (verifiedChannelsCount < 2 || !isValuationCalibrated) return null;
 
     const regConfig = REGIONAL_CONFIG[selectedRegion] || REGIONAL_CONFIG["US"];
 
@@ -892,12 +930,14 @@ export function InfluencerRadarDashboard() {
       let grossTotalUSD = 0;
       for (const item of deliverables) {
         const platData = platforms[item.platform];
+        const isYtShort = item.platform === "youtube" && item.format === "yt_short";
+        const itemViews = isYtShort && platData.avgShortViews ? platData.avgShortViews : platData.avgViews;
         const singleInput: PricingInput = {
           creator: {
             followerCount: platData.followerCount || 25000,
             last3PostsAvgLikes: platData.avgLikes || 500,
             last3PostsAvgComments: platData.avgComments || 25,
-            last3PostsAvgViews: platData.avgViews,
+            last3PostsAvgViews: itemViews,
             primaryPlatform: item.platform,
             primaryNicheId: activeNicheId,
             regionCode: selectedRegion,
@@ -1206,6 +1246,7 @@ export function InfluencerRadarDashboard() {
             selectedRegion={selectedRegion}
             completeIntelligence={completeIntelligence}
             isSynthesizing={isSynthesizing}
+            isValuationCalibrated={isValuationCalibrated}
           />
 
           {/* ========================================================= */}
@@ -1260,41 +1301,65 @@ export function InfluencerRadarDashboard() {
           {/* ========================================================= */}
           {verifiedChannelsCount > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-gray-50 border border-gray-200 text-xs animate-fadeIn">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                    <path strokeWidth="2" d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                  </svg>
-                  Country Calibration:
-                </span>
-                <select
-                  value={selectedRegion}
-                  onChange={(e) => {
-                    const newReg = e.target.value as RegionCode;
-                    setSelectedRegion(newReg);
-                    recomputeAllPlatformRates(newReg, activeNicheId);
-                  }}
-                  className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs"
-                >
-                  <option value="PK">Pakistan (PKR · 0.18x PPP)</option>
-                  <option value="US">United States (USD · 1.00x)</option>
-                  <option value="GB">United Kingdom (GBP · 0.85x PPP)</option>
-                  <option value="IN">India (INR · 0.24x PPP)</option>
-                  <option value="CA">Canada (CAD · 0.90x PPP)</option>
-                  <option value="AU">Australia (AUD · 0.88x PPP)</option>
-                  <option value="AE">United Arab Emirates (AED · 0.68x PPP)</option>
-                  <option value="SA">Saudi Arabia (SAR · 0.62x PPP)</option>
-                  <option value="DE">Germany (EUR · 0.85x PPP)</option>
-                  <option value="FR">France (EUR · 0.84x PPP)</option>
-                  <option value="SG">Singapore (SGD · 0.82x PPP)</option>
-                  <option value="BR">Brazil (BRL · 0.36x PPP)</option>
-                  <option value="BD">Bangladesh (BDT · 0.20x PPP)</option>
-                  <option value="NG">Nigeria (NGN · 0.16x PPP)</option>
-                  <option value="EG">Egypt (EGP · 0.17x PPP)</option>
-                  <option value="TR">Turkey (TRY · 0.32x PPP)</option>
-                  <option value="ZA">South Africa (ZAR · 0.38x PPP)</option>
-                </select>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                      <path strokeWidth="2" d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg>
+                    Country:
+                  </span>
+                  <select
+                    value={selectedRegion}
+                    onChange={(e) => {
+                      const newReg = e.target.value as RegionCode;
+                      hasUserManuallySelectedRegion.current = true;
+                      setSelectedRegion(newReg);
+                      recomputeAllPlatformRates(newReg, activeNicheId);
+                    }}
+                    className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs"
+                  >
+                    <option value="PK">Pakistan (PKR · 0.18x PPP)</option>
+                    <option value="US">United States (USD · 1.00x)</option>
+                    <option value="GB">United Kingdom (GBP · 0.85x PPP)</option>
+                    <option value="IN">India (INR · 0.24x PPP)</option>
+                    <option value="CA">Canada (CAD · 0.90x PPP)</option>
+                    <option value="AU">Australia (AUD · 0.88x PPP)</option>
+                    <option value="AE">United Arab Emirates (AED · 0.68x PPP)</option>
+                    <option value="SA">Saudi Arabia (SAR · 0.62x PPP)</option>
+                    <option value="DE">Germany (EUR · 0.85x PPP)</option>
+                    <option value="FR">France (EUR · 0.84x PPP)</option>
+                    <option value="SG">Singapore (SGD · 0.82x PPP)</option>
+                    <option value="BR">Brazil (BRL · 0.36x PPP)</option>
+                    <option value="BD">Bangladesh (BDT · 0.20x PPP)</option>
+                    <option value="NG">Nigeria (NGN · 0.16x PPP)</option>
+                    <option value="EG">Egypt (EGP · 0.17x PPP)</option>
+                    <option value="TR">Turkey (TRY · 0.32x PPP)</option>
+                    <option value="ZA">South Africa (ZAR · 0.38x PPP)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                    Niche:
+                  </span>
+                  <select
+                    value={activeNicheId}
+                    onChange={(e) => {
+                      const newNiche = Number(e.target.value);
+                      setActiveNicheId(newNiche);
+                      recomputeAllPlatformRates(selectedRegion, newNiche);
+                    }}
+                    className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs"
+                  >
+                    {PRIMARY_NICHES.map((n) => (
+                      <option key={n.id} value={n.id}>
+                        {n.name} ({n.multiplier}x)
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="text-[11px] text-gray-500 font-medium">
@@ -1528,6 +1593,7 @@ export function InfluencerRadarDashboard() {
               data={platforms.instagram}
               metricLabel="Followers"
               onManualSearch={(handle) => scrapePlatform(handle, "instagram")}
+              isValuationCalibrated={isValuationCalibrated}
             />
 
             {/* 2. YouTube Card */}
@@ -1542,6 +1608,7 @@ export function InfluencerRadarDashboard() {
               data={platforms.youtube}
               metricLabel="Subscribers"
               onManualSearch={(handle) => scrapePlatform(handle, "youtube")}
+              isValuationCalibrated={isValuationCalibrated}
             />
 
             {/* 3. TikTok Card */}
@@ -1556,6 +1623,7 @@ export function InfluencerRadarDashboard() {
               data={platforms.tiktok}
               metricLabel="Followers"
               onManualSearch={(handle) => scrapePlatform(handle, "tiktok")}
+              isValuationCalibrated={isValuationCalibrated}
             />
           </div>
 
@@ -1619,6 +1687,35 @@ export function InfluencerRadarDashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* SECTION 5.5: INSTANT SPONSORSHIP CONTRACT WORKFLOW CTA    */}
+          {/* ========================================================= */}
+          {isValuationCalibrated && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/90 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 animate-fadeIn">
+              <div className="space-y-1 text-left">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <h3 className="text-xs sm:text-sm font-bold text-gray-950">
+                    Lock in this valuation with a legal sponsorship agreement
+                  </h3>
+                </div>
+                <p className="text-[11px] text-gray-500 max-w-xl">
+                  Generate an Instant Creator Sponsorship Agreement pre-filled with verified deliverables, usage rights, and calibrated pricing.
+                </p>
+              </div>
+
+              <Link
+                href={`/instant?creator=${encodeURIComponent(creatorMeta?.displayName || creatorMeta?.primaryUsername || "Creator")}&platform=${creatorMeta?.primaryPlatform || "instagram"}`}
+                className="px-4 py-2.5 bg-gray-950 hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Generate Instant Contract</span>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </Link>
             </div>
           )}
 
@@ -1874,6 +1971,7 @@ function PlatformRateCardItem({
   data,
   metricLabel,
   onManualSearch,
+  isValuationCalibrated,
 }: {
   platform: Platform;
   platformName: string;
@@ -1881,6 +1979,7 @@ function PlatformRateCardItem({
   data: DiscoveredPlatformData;
   metricLabel: string;
   onManualSearch?: (handle: string) => void;
+  isValuationCalibrated?: boolean;
 }) {
   const [manualHandle, setManualHandle] = useState("");
 
@@ -1997,36 +2096,60 @@ function PlatformRateCardItem({
 
           {/* Itemized Deliverables Rate Card */}
           <div className="space-y-1.5 pt-1">
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-              Itemized Defended Pricing
+            <div className="flex items-center justify-between text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+              <span>Itemized Defended Pricing</span>
+              {!isValuationCalibrated && (
+                <span className="inline-flex items-center gap-1 text-[10px] text-cyan-600 font-mono font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                  Calibrating AI Dossier
+                </span>
+              )}
             </div>
-            {data.rateCardItems?.map((item) => {
-              const label = FORMAT_LABELS[item.format]?.label || item.format;
 
-              return (
-                <div
-                  key={item.format}
-                  className="flex items-center justify-between p-2 rounded-lg border border-gray-100 hover:border-gray-300 bg-white transition-all text-xs"
-                >
-                  <div className="truncate pr-2">
-                    <div className="font-semibold text-gray-900 truncate">{label}</div>
-                    <div className="text-[10px] text-gray-400 font-mono">
-                      {item.formattedLow} – {item.formattedHigh}
+            {!isValuationCalibrated ? (
+              <div className="space-y-1.5 animate-pulse pt-1">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-2 rounded-lg border border-gray-100 bg-gray-50/70"
+                  >
+                    <div className="space-y-1 w-2/3">
+                      <div className="h-3 bg-gray-200 rounded w-28" />
+                      <div className="h-2 bg-gray-150 rounded w-16" />
                     </div>
+                    <div className="h-4 bg-gray-200 rounded w-14" />
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-bold font-mono text-gray-950">
-                      {item.formattedAmount}
-                    </div>
-                    {item.usdEquivalentFormatted && (
+                ))}
+              </div>
+            ) : (
+              data.rateCardItems?.map((item) => {
+                const label = FORMAT_LABELS[item.format]?.label || item.format;
+
+                return (
+                  <div
+                    key={item.format}
+                    className="flex items-center justify-between p-2 rounded-lg border border-gray-100 hover:border-gray-300 bg-white transition-all text-xs"
+                  >
+                    <div className="truncate pr-2">
+                      <div className="font-semibold text-gray-900 truncate">{label}</div>
                       <div className="text-[10px] text-gray-400 font-mono">
-                        {item.usdEquivalentFormatted}
+                        {item.formattedLow} – {item.formattedHigh}
                       </div>
-                    )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="font-bold font-mono text-gray-950">
+                        {item.formattedAmount}
+                      </div>
+                      {item.usdEquivalentFormatted && (
+                        <div className="text-[10px] text-gray-400 font-mono">
+                          {item.usdEquivalentFormatted}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -2447,7 +2570,9 @@ function DynamicCommandIslandTicker({
   verifiedChannelsCount,
   onOpenMissingModal,
   selectedRegion,
+  completeIntelligence,
   isSynthesizing,
+  isValuationCalibrated,
 }: {
   platforms: {
     instagram: DiscoveredPlatformData;
@@ -2462,6 +2587,7 @@ function DynamicCommandIslandTicker({
   selectedRegion: RegionCode;
   completeIntelligence: CompleteCreatorIntelligence | null;
   isSynthesizing?: boolean;
+  isValuationCalibrated?: boolean;
 }) {
   const syncPercentage = Math.round((verifiedChannelsCount / 3) * 100);
 
@@ -2470,7 +2596,8 @@ function DynamicCommandIslandTicker({
     platforms.youtube.status === "loading" ||
     platforms.instagram.status === "loading" ||
     platforms.tiktok.status === "loading" ||
-    Boolean(isSynthesizing);
+    Boolean(isSynthesizing) ||
+    (!isValuationCalibrated && verifiedChannelsCount > 0);
 
   // Determine current active loading text
   let activeProcessText = "";
@@ -2483,8 +2610,8 @@ function DynamicCommandIslandTicker({
   } else if (platforms.tiktok.status === "loading") {
     const step = TIKTOK_TICKER_STEPS[Math.min(ttStepIdx, TIKTOK_TICKER_STEPS.length - 1)] || TIKTOK_TICKER_STEPS[0];
     activeProcessText = `TikTok: ${step.text} (${step.percent}%)`;
-  } else if (isSynthesizing) {
-    activeProcessText = "SignCollab LLM Engine: Synthesizing 19-point Creator Intelligence Dossier...";
+  } else if (isSynthesizing || (!isValuationCalibrated && verifiedChannelsCount > 0)) {
+    activeProcessText = "SignCollab LLM Engine: Synthesizing 19-point Creator Intelligence & Calibrating Rates...";
   } else {
     // All in-flight requests finished: show glanceable 1-line verified telemetry
     const parts: string[] = [];
