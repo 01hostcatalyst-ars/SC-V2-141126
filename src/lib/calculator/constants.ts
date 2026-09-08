@@ -220,9 +220,23 @@ export const PRIMARY_NICHES: NicheDefinition[] = [
     description: 'Hardware sponsors, gaming laptops, energy drinks, publisher title integrations and streaming.',
     evidenceSource: 'SignCollab Model / Twitch & YouTube Gaming Market Rates',
   },
+  {
+    id: 15,
+    name: 'Sports, Athletics & Fan Culture',
+    multiplier: 1.15,
+    description: 'Team franchise commentary, athletic sportswear, luxury country club sports, action sports entertainment.',
+    evidenceSource: 'SignCollab Model / Athlete & Sports Creator Deal Data',
+  },
+  {
+    id: 16,
+    name: 'News, Media & Global Affairs',
+    multiplier: 1.10,
+    description: 'Independent news summaries, geopolitics explainers, investigative documentaries, public policy analysis.',
+    evidenceSource: 'SignCollab Model / Independent Media & Journalism Market Rates',
+  },
 ];
 
-// 56 Sub-Niches mapped to 14 Primary Niches (4 per Primary)
+// 64 Sub-Niches mapped to 16 Primary Niches (4 per Primary)
 export const SUB_NICHES: SubNicheDefinition[] = [
   // 1. Home Design & Decor (1)
   { id: 101, primaryNicheId: 1, name: 'Interior Architecture & Renovations', multiplier: 2.80, description: 'Multi-day shoots, architectural lighting, luxury renovations.', keywords: ['interior', 'renovation', 'architecture', 'remodel', 'interior design'] },
@@ -307,6 +321,18 @@ export const SUB_NICHES: SubNicheDefinition[] = [
   { id: 1402, primaryNicheId: 14, name: 'Game Reviews, Lore, Guides & Deep Dives', multiplier: 1.20, description: 'High watch-time and buyer intent, game launch sponsorships, lore essays.', keywords: ['game review', 'walkthrough', 'game lore', 'gaming analysis', 'playthrough'] },
   { id: 1403, primaryNicheId: 14, name: 'Live Stream Entertainment & Variety Gaming', multiplier: 0.95, description: 'High live concurrent viewers, Twitch/Kick/YouTube streaming, funny moments.', keywords: ['streamer', 'twitch', 'live stream', 'variety gaming', 'funny gaming moments'] },
   { id: 1404, primaryNicheId: 14, name: 'Casual, Sandbox & Mobile Gaming', multiplier: 0.85, description: 'High-volume CPI mobile game deals, Minecraft, Roblox, casual simulator titles.', keywords: ['mobile gaming', 'minecraft', 'roblox', 'casual games', 'gacha', 'simulator'] },
+
+  // 15. Sports, Athletics & Fan Culture (15)
+  { id: 1501, primaryNicheId: 15, name: 'Team Sports & League Analysis (Football, NBA, Cricket)', multiplier: 1.10, description: 'High-passion league game recaps, transfer rumors, fan watch-alongs.', keywords: ['football', 'soccer', 'nba', 'cricket', 'nfl', 'premier league', 'sports analysis'] },
+  { id: 1502, primaryNicheId: 15, name: 'Combat Sports, Motorsports & F1', multiplier: 1.25, description: 'Luxury watch and automotive brand integrations, paddock passes, fight breakdowns.', keywords: ['f1', 'formula 1', 'ufc', 'boxing', 'motorsport', 'combat sports', 'mma'] },
+  { id: 1503, primaryNicheId: 15, name: 'Golf, Tennis & Racket Athletics', multiplier: 1.45, description: 'Highest net-worth audience in sports; country club apparel, clubs, luxury sponsors.', keywords: ['golf', 'tennis', 'pickleball', 'golf swing', 'country club', 'racket'] },
+  { id: 1504, primaryNicheId: 15, name: 'Action Sports, Outdoors & Athlete Entertainment', multiplier: 1.15, description: 'Skateboarding, surfing, trick shots, extreme stunts, Red Bull-style high energy.', keywords: ['action sports', 'skateboarding', 'surfing', 'trick shots', 'snowboarding', 'extreme sports'] },
+
+  // 16. News, Media & Global Affairs (16)
+  { id: 1601, primaryNicheId: 16, name: 'Geopolitics, History & Video Documentaries', multiplier: 1.30, description: 'High-income, intellectual audience; premium EdTech, VPN, and SaaS brand partners.', keywords: ['geopolitics', 'history', 'documentary', 'global affairs', 'international relations'] },
+  { id: 1602, primaryNicheId: 16, name: 'Independent Daily News & Media Literacy', multiplier: 1.10, description: 'Daily habit news summaries, fact checking, newsletter and media tool sponsors.', keywords: ['daily news', 'current affairs', 'breaking news', 'media literacy', 'journalism'] },
+  { id: 1603, primaryNicheId: 16, name: 'Investigative Journalism & Social Issues', multiplier: 1.25, description: 'Long-form deep dive reporting, social impact documentaries, author partnerships.', keywords: ['investigative', 'social issues', 'in depth reporting', 'deep dive', 'documentary'] },
+  { id: 1604, primaryNicheId: 16, name: 'Political Commentary, Elections & Public Policy', multiplier: 0.75, description: 'High view velocity; discounted commercial rate due to corporate brand safety filters.', keywords: ['politics', 'political commentary', 'elections', 'public policy', 'debates', 'government'] },
 ];
 
 /**
