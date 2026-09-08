@@ -7,6 +7,11 @@ export interface CompleteCreatorIntelligence {
       name: string;
       multiplier: number;
     };
+    subNiche?: {
+      id: number;
+      name: string;
+      multiplier: number;
+    };
     secondaryNiches: Array<{
       id: number;
       name: string;

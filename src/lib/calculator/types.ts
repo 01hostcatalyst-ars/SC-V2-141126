@@ -143,6 +143,8 @@ export interface CalculationResult {
     performanceMultiplier: number;
     nicheMultiplier: number;
     primaryNicheName: string;
+    subNicheId?: number;
+    subNicheName?: string;
     secondaryNiches?: NicheInfo[];
     regionApplied: RegionCode;
     currency: string;

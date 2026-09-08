@@ -239,6 +239,7 @@ export async function POST(req: NextRequest) {
     const aiEnrichment = await (await import('@/lib/ai/gemini')).enrichMultiPlatformCreatorWithAI(multiInput);
 
     const primaryNicheId = aiEnrichment.primaryNiche.id;
+    const subNicheId = aiEnrichment.subNiche?.id;
     const secondaryNicheIds = aiEnrichment.secondaryNiches.map((s) => s.id);
     const finalCountry: RegionCode = (regionCode as RegionCode) || (aiEnrichment.detectedCountry as RegionCode) || 'US';
 
@@ -304,6 +305,7 @@ export async function POST(req: NextRequest) {
         last3PostsAvgShares: avgShares,
         primaryPlatform: platform,
         primaryNicheId,
+        subNicheId,
         secondaryNicheIds,
         regionCode: finalCountry,
       },
@@ -333,6 +335,7 @@ export async function POST(req: NextRequest) {
           last3PostsAvgShares: avgShares,
           primaryPlatform: platform,
           primaryNicheId,
+          subNicheId,
           secondaryNicheIds,
           regionCode: finalCountry,
         },

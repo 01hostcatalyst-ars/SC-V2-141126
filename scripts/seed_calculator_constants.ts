@@ -59,42 +59,8 @@ const YOUTUBE_16_KNOTS = [
   { knotId: 'K16', followers: 5000000, benchmarkEr: 1.00, expectedViews: 600000, rates: { yt_dedicated: 35000, yt_integrated: 25000, yt_short: 10000 }, citation: 'Model Extrapolation' },
 ];
 
-// 2. 13 Primary Sourced Niches (Aspire $562 Lifestyle Baseline)
-const PRIMARY_NICHES = [
-  { id: 1, name: 'Home Design & Decor', multiplier: 2.67, description: 'High-ticket room staging, architectural lighting, multi-day production ($1,500 / $562 baseline).', evidenceSource: 'Aspire 2026 (p. 14)' },
-  { id: 2, name: 'Pet Care & Animals', multiplier: 1.78, description: 'Deep audience affinity, pet talent logistics, high viral share rates ($1,000 / $562 baseline).', evidenceSource: 'Aspire 2026 (p. 14)' },
-  { id: 3, name: 'Business, Finance & B2B SaaS', multiplier: 1.50, description: 'Highest CPMs across digital media ($30–$60+ CPM), high-intent audience, corporate budgets.', evidenceSource: 'SignCollab Model / Modash 2026' },
-  { id: 4, name: 'Skilled Trades & DIY', multiplier: 1.44, description: 'Specialized tooling, instructional fidelity, high project completion value ($309 / $214 avg).', evidenceSource: 'Collabstr Verified Deal Data' },
-  { id: 5, name: 'Education & Career Coaching', multiplier: 1.43, description: 'Professional authority, high-ticket digital courses, corporate career transition audiences.', evidenceSource: 'Collabstr Verified Deal Data' },
-  { id: 6, name: 'Technology, Hardware & AI', multiplier: 1.35, description: 'Technical benchmark depth, developer software trials, high hardware buyer consideration.', evidenceSource: 'SignCollab Model / Modash 2026' },
-  { id: 7, name: 'Travel, Tourism & Outdoors', multiplier: 1.33, description: 'On-location filming logistics, high booking values, cinematic drone production ($750 / $562).', evidenceSource: 'Aspire 2026 (p. 14)' },
-  { id: 8, name: 'Lifestyle & Daily Vlogs', multiplier: 1.00, description: 'Broad mass-market reach, native storytelling, universal baseline anchor ($562 / $562).', evidenceSource: 'Aspire 2026 Baseline Anchor (p. 14)' },
-  { id: 9, name: 'Food, Culinary & Beverage', multiplier: 0.89, description: 'Recipe development time, kitchen styling prep, accessible consumer brand sponsors ($500 / $562).', evidenceSource: 'Aspire 2026 (p. 14)' },
-  { id: 10, name: 'Family & Parenting', multiplier: 0.89, description: 'High-trust parental demographic, strong household purchasing authority ($500 / $562).', evidenceSource: 'Aspire 2026 (p. 14)' },
-  { id: 11, name: 'Health, Wellness & Fitness', multiplier: 0.80, description: 'Active community engagement, strong DM lead funnels, workout routine demos ($450 / $562).', evidenceSource: 'Aspire 2026 (p. 14)' },
-  { id: 12, name: 'Fashion & Apparel', multiplier: 0.53, description: 'High creator supply, gifting deals, rapid trend turnover hauls ($300 / $562).', evidenceSource: 'Aspire 2026 (p. 14)' },
-  { id: 13, name: 'Beauty & Cosmetics', multiplier: 0.45, description: 'Highly saturated creator market, short routine creation times, affiliate deals ($250 / $562).', evidenceSource: 'Aspire 2026 (p. 14)' },
-];
-
-const SUB_NICHES = [
-  { id: 101, primaryNicheId: 1, name: 'Interior Architecture & Renovations', multiplier: 2.80, description: 'Multi-day shoots, architectural lighting, luxury renovations.', keywords: ['interior', 'renovation', 'architecture', 'remodel'] },
-  { id: 102, primaryNicheId: 1, name: 'Furniture Styling & Room Makeovers', multiplier: 2.67, description: 'High-ticket sponsorships, room staging.', keywords: ['furniture', 'makeover', 'decor', 'living room'] },
-  { id: 103, primaryNicheId: 1, name: 'DIY Decor & Woodworking', multiplier: 2.20, description: 'Step-by-step tutorial editing, materials.', keywords: ['diy', 'woodworking', 'crafts', 'home improvement'] },
-
-  { id: 201, primaryNicheId: 2, name: 'Dog & Cat Training / Lifestyle', multiplier: 1.78, description: 'Animal coordination, high community viral share rate.', keywords: ['dogs', 'cats', 'puppies', 'pet training'] },
-  { id: 202, primaryNicheId: 2, name: 'Veterinary Advice & Nutrition', multiplier: 1.90, description: 'Certified expert credibility, health compliance.', keywords: ['veterinary', 'pet food', 'nutrition', 'animal health'] },
-
-  { id: 301, primaryNicheId: 3, name: 'Personal Investing, Stocks & Crypto', multiplier: 1.80, description: 'Highest CPMs, strict financial disclosures.', keywords: ['stocks', 'crypto', 'investing', 'wealth', 'trading'] },
-  { id: 302, primaryNicheId: 3, name: 'B2B SaaS, Startups & Tech Founders', multiplier: 1.65, description: 'B2B software purchasing power, executive lead gen.', keywords: ['startup', 'founder', 'business', 'saas', 'software'] },
-  { id: 303, primaryNicheId: 3, name: 'Real Estate & Property Investing', multiplier: 1.60, description: 'High-net-worth demographic, high conversion values.', keywords: ['real estate', 'property', 'mortgages', 'rentals'] },
-
-  { id: 601, primaryNicheId: 6, name: 'PC Hardware & Custom Builds', multiplier: 1.45, description: 'In-depth benchmarks, high enthusiast spending.', keywords: ['gpu', 'pc build', 'hardware', 'custom pc'] },
-  { id: 602, primaryNicheId: 6, name: 'Consumer Tech, Smartphones & Audio', multiplier: 1.35, description: 'Rapid product cycles, high visual demo requirements.', keywords: ['smartphones', 'headphones', 'gadgets', 'apple', 'android'] },
-  { id: 603, primaryNicheId: 6, name: 'AI Tools & Productivity Automations', multiplier: 1.50, description: 'High trial-to-paid conversion intent, software budgets.', keywords: ['ai tools', 'software', 'automation', 'productivity'] },
-
-  { id: 701, primaryNicheId: 7, name: 'Luxury Resorts & First Class Travel', multiplier: 1.55, description: 'Editorial/cinematic production, luxury audience profile.', keywords: ['luxury hotel', 'resort', 'first class', 'honeymoon'] },
-  { id: 702, primaryNicheId: 7, name: 'Hiking, Camping & Wilderness Adventure', multiplier: 1.35, description: 'Technical gear demonstration, rugged field filming.', keywords: ['camping', 'hiking', 'national parks', 'outdoors'] },
-];
+// 2. 14 Primary Sourced Niches & 56 Sub-Niches from Unified Constants
+import { PRIMARY_NICHES, SUB_NICHES } from '../src/lib/calculator/constants';
 
 // 3. Commercial Rights & Exclusivity Surcharges
 const USAGE_SCHEDULE = [

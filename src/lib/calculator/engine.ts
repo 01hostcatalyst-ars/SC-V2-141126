@@ -125,7 +125,10 @@ export function calculateInfluencerRate(
 
   // 1. Resolve Primary & Secondary Niche Multipliers
   const subNicheObj = creator.subNicheId ? activeSubNiches.find((s) => s.id === creator.subNicheId) : undefined;
-  const primaryNicheObj = activePrimaryNiches.find((p) => p.id === creator.primaryNicheId) || activePrimaryNiches[7]; // Default Lifestyle (1.00x)
+  const primaryNicheObj =
+    activePrimaryNiches.find((p) => p.id === creator.primaryNicheId) ||
+    (subNicheObj ? activePrimaryNiches.find((p) => p.id === subNicheObj.primaryNicheId) : undefined) ||
+    activePrimaryNiches[7]; // Default Lifestyle (1.00x)
 
   let nicheMultiplier = subNicheObj ? subNicheObj.multiplier : (primaryNicheObj?.multiplier ?? 1.0);
   if (creator.isLuxuryOrHighEnd) {
@@ -328,7 +331,9 @@ export function calculateInfluencerRate(
       benchmarkER: Number(benchmarkER.toFixed(2)),
       performanceMultiplier: Number(clampedPerfMultiplier.toFixed(2)),
       nicheMultiplier: Number(nicheMultiplier.toFixed(2)),
-      primaryNicheName: primaryNicheObj?.name || 'Lifestyle',
+      primaryNicheName: primaryNicheObj?.name || 'Lifestyle & Daily Vlogs',
+      subNicheId: subNicheObj?.id,
+      subNicheName: subNicheObj?.name,
       secondaryNiches,
       regionApplied: regionCode,
       currency: regConfig.currency,

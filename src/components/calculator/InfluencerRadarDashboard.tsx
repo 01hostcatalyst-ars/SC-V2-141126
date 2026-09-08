@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useMemo, useEffect } from "react"
 import Link from "next/link";
 import { Platform, DeliverableFormat, PricingInput, RegionCode } from "@/lib/calculator/types";
 import { calculateInfluencerRate } from "@/lib/calculator/engine";
-import { FORMAT_LABELS, REGIONAL_CONFIG, PRIMARY_NICHES } from "@/lib/calculator/constants";
+import { FORMAT_LABELS, REGIONAL_CONFIG, PRIMARY_NICHES, SUB_NICHES, getSubNichesByPrimaryId } from "@/lib/calculator/constants";
 import { InstagramPostItem, YouTubeVideoItem, TikTokVideoItem } from "@/lib/scrapers/types";
 import { CompleteCreatorIntelligence } from "@/lib/ai/types";
 import { MultiPlatformCreatorInput } from "@/lib/ai/gemini";
@@ -108,6 +108,7 @@ export function InfluencerRadarDashboard() {
   // Calibration State (Country & Niche)
   const [selectedRegion, setSelectedRegion] = useState<RegionCode>("US");
   const [activeNicheId, setActiveNicheId] = useState<number>(8);
+  const [activeSubNicheId, setActiveSubNicheId] = useState<number | undefined>(801);
 
   // Missing Platforms Modal State
   const [isMissingModalOpen, setIsMissingModalOpen] = useState(false);
@@ -237,7 +238,8 @@ export function InfluencerRadarDashboard() {
         avgShortLikes?: number;
         avgShortComments?: number;
         avgShortViews?: number;
-      }
+      },
+      subNicheId?: number
     ) => {
       const platformFormats: Record<Platform, DeliverableFormat[]> = {
         instagram: ["ig_reel", "ig_carousel", "ig_static", "ig_story"],
@@ -262,6 +264,7 @@ export function InfluencerRadarDashboard() {
             last3PostsAvgShares: avgShares,
             primaryPlatform: platform,
             primaryNicheId,
+            subNicheId,
             regionCode,
           },
           deliverables: [{ id: String(idx + 1), platform, format: fmt, quantity: 1 }],
@@ -294,9 +297,9 @@ export function InfluencerRadarDashboard() {
     []
   );
 
-  // Recalculates all active platform cards when Country or Niche changes
+  // Recalculates all active platform cards when Country, Niche, or Sub-Niche changes
   const recomputeAllPlatformRates = useCallback(
-    (targetRegion: RegionCode, targetNicheId: number) => {
+    (targetRegion: RegionCode, targetNicheId: number, targetSubNicheId?: number) => {
       setPlatforms((prev) => {
         const updated = { ...prev };
 
@@ -311,7 +314,9 @@ export function InfluencerRadarDashboard() {
               updated.instagram.avgViews || 0,
               0,
               targetNicheId,
-              targetRegion
+              targetRegion,
+              undefined,
+              targetSubNicheId
             ),
           };
         }
@@ -332,7 +337,8 @@ export function InfluencerRadarDashboard() {
                 avgShortLikes: 0,
                 avgShortComments: 0,
                 avgShortViews: updated.youtube.avgShortViews || 0,
-              }
+              },
+              targetSubNicheId
             ),
           };
         }
@@ -348,7 +354,9 @@ export function InfluencerRadarDashboard() {
               updated.tiktok.avgViews || 0,
               0,
               targetNicheId,
-              targetRegion
+              targetRegion,
+              undefined,
+              targetSubNicheId
             ),
           };
         }
@@ -573,7 +581,8 @@ export function InfluencerRadarDashboard() {
                     avgShortComments,
                     avgShortViews,
                   }
-                : undefined
+                : undefined,
+              activeSubNicheId
             )
           : undefined;
 
@@ -653,7 +662,7 @@ export function InfluencerRadarDashboard() {
         inFlightScrapes.current.delete(scrapeKey);
       }
     },
-    [addActivity, computePlatformRateCards, activeNicheId, selectedRegion]
+    [addActivity, computePlatformRateCards, activeNicheId, activeSubNicheId, selectedRegion]
   );
 
   // Main Form Submit
@@ -824,6 +833,7 @@ export function InfluencerRadarDashboard() {
 
         const detectedCountry = (intel.geography?.countryCode as RegionCode) || selectedRegion;
         const detectedNicheId = intel.profile?.primaryNiche?.id || activeNicheId;
+        const detectedSubNicheId = intel.profile?.subNiche?.id || activeSubNicheId;
 
         const targetCountry = (!hasUserManuallySelectedRegion.current && detectedCountry && REGIONAL_CONFIG[detectedCountry])
           ? detectedCountry
@@ -835,29 +845,33 @@ export function InfluencerRadarDashboard() {
         if (detectedNicheId) {
           setActiveNicheId(detectedNicheId);
         }
+        if (detectedSubNicheId) {
+          setActiveSubNicheId(detectedSubNicheId);
+        }
 
-        // Recompute all platform rates atomically with the detected country PPP & niche!
-        recomputeAllPlatformRates(targetCountry, detectedNicheId);
+        // Recompute all platform rates atomically with the detected country PPP, niche & sub-niche!
+        recomputeAllPlatformRates(targetCountry, detectedNicheId, detectedSubNicheId);
         setIsValuationCalibrated(true);
 
+        const subNicheText = intel.profile?.subNiche ? ` · ${intel.profile.subNiche.name} (${intel.profile.subNiche.multiplier}x)` : '';
         addActivity(
-          `Intelligence Verified (24h Cache): ${intel.profile.creatorType} · ${intel.profile.primaryNiche.name} (${intel.profile.primaryNiche.multiplier}x) · Calibrated for ${REGIONAL_CONFIG[targetCountry]?.name || targetCountry} (${REGIONAL_CONFIG[targetCountry]?.pppIndex || 1}x PPP)`,
+          `Intelligence Verified (24h Cache): ${intel.profile.creatorType} · ${intel.profile.primaryNiche.name}${subNicheText} · Calibrated for ${REGIONAL_CONFIG[targetCountry]?.name || targetCountry} (${REGIONAL_CONFIG[targetCountry]?.pppIndex || 1}x PPP)`,
           "success"
         );
       } else {
         // Fallback: unlock valuation with current defaults so user is never stuck
-        recomputeAllPlatformRates(selectedRegion, activeNicheId);
+        recomputeAllPlatformRates(selectedRegion, activeNicheId, activeSubNicheId);
         setIsValuationCalibrated(true);
       }
     } catch (e) {
       console.warn("[InfluencerRadar AI Synthesis Warning]:", e);
       // Fallback: unlock valuation with current defaults
-      recomputeAllPlatformRates(selectedRegion, activeNicheId);
+      recomputeAllPlatformRates(selectedRegion, activeNicheId, activeSubNicheId);
       setIsValuationCalibrated(true);
     } finally {
       setIsSynthesizing(false);
     }
-  }, [platforms, creatorMeta, selectedRegion, activeNicheId, recomputeAllPlatformRates, addActivity]);
+  }, [platforms, creatorMeta, selectedRegion, activeNicheId, activeSubNicheId, recomputeAllPlatformRates, addActivity]);
 
   // Auto-trigger synthesis once all in-flight scrapes settle
   useEffect(() => {
@@ -1316,7 +1330,7 @@ export function InfluencerRadarDashboard() {
                       const newReg = e.target.value as RegionCode;
                       hasUserManuallySelectedRegion.current = true;
                       setSelectedRegion(newReg);
-                      recomputeAllPlatformRates(newReg, activeNicheId);
+                      recomputeAllPlatformRates(newReg, activeNicheId, activeSubNicheId);
                     }}
                     className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs"
                   >
@@ -1342,20 +1356,44 @@ export function InfluencerRadarDashboard() {
 
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
-                    Niche:
+                    Sector:
                   </span>
                   <select
                     value={activeNicheId}
                     onChange={(e) => {
                       const newNiche = Number(e.target.value);
+                      const availableSubs = getSubNichesByPrimaryId(newNiche);
+                      const defaultSub = availableSubs[0]?.id;
                       setActiveNicheId(newNiche);
-                      recomputeAllPlatformRates(selectedRegion, newNiche);
+                      setActiveSubNicheId(defaultSub);
+                      recomputeAllPlatformRates(selectedRegion, newNiche, defaultSub);
                     }}
-                    className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs"
+                    className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs max-w-[210px] truncate"
                   >
                     {PRIMARY_NICHES.map((n) => (
                       <option key={n.id} value={n.id}>
                         {n.name} ({n.multiplier}x)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                    Sub-Niche:
+                  </span>
+                  <select
+                    value={activeSubNicheId || ""}
+                    onChange={(e) => {
+                      const newSub = Number(e.target.value);
+                      setActiveSubNicheId(newSub);
+                      recomputeAllPlatformRates(selectedRegion, activeNicheId, newSub);
+                    }}
+                    className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs max-w-[240px] truncate"
+                  >
+                    {getSubNichesByPrimaryId(activeNicheId).map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.multiplier}x)
                       </option>
                     ))}
                   </select>
@@ -1382,6 +1420,11 @@ export function InfluencerRadarDashboard() {
                   {completeIntelligence.profile?.primaryNiche && (
                     <span className="text-xs font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded-lg border border-gray-200">
                       {completeIntelligence.profile.primaryNiche.name} ({completeIntelligence.profile.primaryNiche.multiplier}x)
+                    </span>
+                  )}
+                  {completeIntelligence.profile?.subNiche && (
+                    <span className="text-xs font-bold text-indigo-950 bg-indigo-50/90 px-3 py-1 rounded-lg border border-indigo-200/90">
+                      {completeIntelligence.profile.subNiche.name} ({completeIntelligence.profile.subNiche.multiplier}x)
                     </span>
                   )}
                   {completeIntelligence.geography?.countryCode && (

@@ -1,4 +1,4 @@
-import { PRIMARY_NICHES, REGIONAL_CONFIG } from '../calculator/constants';
+import { PRIMARY_NICHES, SUB_NICHES, REGIONAL_CONFIG } from '../calculator/constants';
 import { RegionCode } from '../calculator/types';
 import { JWT } from 'google-auth-library';
 import { CompleteCreatorIntelligence } from './types';
@@ -12,6 +12,11 @@ export interface CreatorAIClassification {
     name: string;
     multiplier: number;
     confidence: number;
+  };
+  subNiche?: {
+    id: number;
+    name: string;
+    multiplier: number;
   };
   secondaryNiches: Array<{
     id: number;
@@ -228,25 +233,30 @@ export async function generateCompleteCreatorIntelligence(
 
   const vertexToken = await getGoogleCloudAccessToken();
 
-  const nicheOptions = PRIMARY_NICHES.map(
-    (n) => `ID ${n.id}: "${n.name}" (Multiplier: ${n.multiplier}x) - ${n.description}`
-  ).join('\n');
+  const nicheHierarchyText = PRIMARY_NICHES.map((n) => {
+    const subs = SUB_NICHES.filter((s) => s.primaryNicheId === n.id);
+    const subsText = subs
+      .map((s) => `     * Sub-Niche ID ${s.id}: "${s.name}" (${s.multiplier}x) - ${s.description}`)
+      .join('\n');
+    return `[Primary Niche ID ${n.id}] "${n.name}" (Base: ${n.multiplier}x) - ${n.description}\n${subsText}`;
+  }).join('\n\n');
 
   const curatedDossier = buildCuratedPromptContext(input);
 
   const systemInstruction = `You are an elite influencer marketing economist, brand partnership director, and creator valuation analyst for SignCollab.
 Your job is to analyze creator multi-platform data and output a strict, comprehensive 19-point Creator Intelligence dossier matching the exact required JSON schema.
 
-Available Approved Niches (You MUST pick the Primary Niche and Secondary Niches ONLY from these exact IDs):
-${nicheOptions}
+Available Approved Niches & Sub-Niches (You MUST pick 1 Primary Niche and 1 Sub-Niche ONLY from this exact hierarchy):
+${nicheHierarchyText}
 
 Core Principles & Rules:
 1. PROFILE & IDENTITY:
-   - creatorType: Main professional classification (e.g. "Fashion & Style Creator", "Tech Hardware Reviewer", "Fitness Coach").
-   - profilePositioning: How the creator positions their personal brand (e.g. "Affordable fashion & streetwear lookbooks").
-   - primaryNiche: Approved niche object with exact { id, name, multiplier } from the list above.
-   - secondaryNiches: 2-3 adjacent approved niche objects with { id, name, multiplier } from the list above.
-   - microNiches: Array of 3-5 specific sub-specializations (e.g. ["Streetwear", "Capsule Wardrobes", "Thrift Flips"]).
+   - creatorType: Main professional classification (e.g. "Fashion & Style Creator", "Tech Hardware Reviewer", "Gaming Streamer", "Fitness Coach").
+   - profilePositioning: How the creator positions their personal brand (e.g. "Affordable tech reviews & smartphone camera shootouts").
+   - primaryNiche: Approved primary niche object: { "id": number, "name": string, "multiplier": number } from the list above.
+   - subNiche: Approved sub-niche object belonging to the chosen primary niche: { "id": number, "name": string, "multiplier": number } from the list above.
+   - secondaryNiches: 2-3 adjacent approved primary niche objects with { id, name, multiplier } from the list above.
+   - microNiches: Array of 3-5 specific sub-specializations (e.g. ["Camera Sensors", "Battery Drain Tests", "Custom Keyboards"]).
    - creatorDescription: Short factual 1-2 sentence description.
    - confidence: Numerical score (0.0 to 1.0).
 
@@ -408,21 +418,126 @@ export function normalizeCompleteIntelligence(raw: unknown, input?: MultiPlatfor
   const evidence = (r.evidence || metaAndEvidence.evidence || {}) as Record<string, any>;
   const uncertainties = (Array.isArray(r.uncertainties) ? r.uncertainties : Array.isArray(metaAndEvidence.uncertainties) ? metaAndEvidence.uncertainties : []) as string[];
 
-  // Primary niche resolution
-  const primaryNicheRaw = profile.primaryNiche || {};
-  const primaryDef =
-    PRIMARY_NICHES.find((p) => p.id === primaryNicheRaw.id) ||
-    PRIMARY_NICHES.find((p) => p.name?.toLowerCase() === primaryNicheRaw.name?.toLowerCase()) ||
-    PRIMARY_NICHES[7];
+  // 1. Resilient Sub-Niche Resolution from raw Gemini response
+  const subNicheRaw = profile.subNiche || profile.sub_niche || r.subNiche || r.sub_niche;
+  let resolvedSubNiche: typeof SUB_NICHES[0] | undefined = undefined;
+
+  if (subNicheRaw) {
+    const rawSubId =
+      typeof subNicheRaw === 'object' && subNicheRaw !== null
+        ? Number(subNicheRaw.id)
+        : typeof subNicheRaw === 'number'
+        ? subNicheRaw
+        : !isNaN(Number(subNicheRaw))
+        ? Number(subNicheRaw)
+        : NaN;
+
+    const rawSubName =
+      typeof subNicheRaw === 'object' && subNicheRaw !== null
+        ? String(subNicheRaw.name || '').trim().toLowerCase()
+        : typeof subNicheRaw === 'string'
+        ? subNicheRaw.trim().toLowerCase()
+        : '';
+
+    if (!isNaN(rawSubId) && rawSubId > 0) {
+      resolvedSubNiche = SUB_NICHES.find((s) => s.id === rawSubId);
+    }
+
+    if (!resolvedSubNiche && rawSubName) {
+      resolvedSubNiche =
+        SUB_NICHES.find((s) => s.name.toLowerCase() === rawSubName) ||
+        SUB_NICHES.find((s) => s.name.toLowerCase().includes(rawSubName) || rawSubName.includes(s.name.toLowerCase())) ||
+        SUB_NICHES.find((s) => s.keywords.some((kw) => rawSubName.includes(kw.toLowerCase())));
+    }
+  }
+
+  // 2. Resilient Primary Niche Resolution from raw Gemini response
+  const primaryNicheRaw = profile.primaryNiche || profile.primary_niche || r.primaryNiche || r.primary_niche;
+  let resolvedPrimary: typeof PRIMARY_NICHES[0] | undefined = undefined;
+
+  if (primaryNicheRaw) {
+    const rawId =
+      typeof primaryNicheRaw === 'object' && primaryNicheRaw !== null
+        ? Number(primaryNicheRaw.id)
+        : typeof primaryNicheRaw === 'number'
+        ? primaryNicheRaw
+        : !isNaN(Number(primaryNicheRaw))
+        ? Number(primaryNicheRaw)
+        : NaN;
+
+    const rawName =
+      typeof primaryNicheRaw === 'object' && primaryNicheRaw !== null
+        ? String(primaryNicheRaw.name || '').trim().toLowerCase()
+        : typeof primaryNicheRaw === 'string'
+        ? primaryNicheRaw.trim().toLowerCase()
+        : '';
+
+    if (!isNaN(rawId) && rawId > 0) {
+      resolvedPrimary = PRIMARY_NICHES.find((p) => p.id === rawId);
+    }
+
+    if (!resolvedPrimary && rawName) {
+      resolvedPrimary =
+        PRIMARY_NICHES.find((p) => p.name.toLowerCase() === rawName) ||
+        PRIMARY_NICHES.find((p) => p.name.toLowerCase().includes(rawName) || rawName.includes(p.name.toLowerCase())) ||
+        PRIMARY_NICHES.find((p) => {
+          const cleanP = p.name.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/);
+          const cleanRaw = rawName.replace(/[^a-z0-9 ]/g, ' ').split(/\s+/);
+          return cleanRaw.some((token) => token.length >= 4 && cleanP.some((pt) => pt.startsWith(token) || token.startsWith(pt)));
+        });
+    }
+  }
+
+  // If primary niche wasn't resolved directly, but sub-niche was, infer primary from sub-niche
+  if (!resolvedPrimary && resolvedSubNiche) {
+    resolvedPrimary = PRIMARY_NICHES.find((p) => p.id === resolvedSubNiche!.primaryNicheId);
+  }
+
+  // If still not resolved, check text content signals (creatorType, microNiches, bio)
+  if (!resolvedPrimary) {
+    const combinedSignals = [
+      profile.creatorType,
+      profile.profilePositioning,
+      Array.isArray(profile.microNiches) ? profile.microNiches.join(' ') : '',
+      profile.creatorDescription,
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    if (combinedSignals) {
+      const matchedSub = SUB_NICHES.find((s) => s.keywords.some((kw) => combinedSignals.includes(kw.toLowerCase())));
+      if (matchedSub) {
+        resolvedSubNiche = matchedSub;
+        resolvedPrimary = PRIMARY_NICHES.find((p) => p.id === matchedSub.primaryNicheId);
+      }
+    }
+  }
+
+  // Default fallback: ID 8 (Lifestyle & Daily Vlogs, 1.00x)
+  const primaryDef = resolvedPrimary || PRIMARY_NICHES.find((p) => p.id === 8) || PRIMARY_NICHES[7];
+
+  // If sub-niche is missing or belongs to a different primary niche, ensure sub-niche matches primary
+  if (!resolvedSubNiche || resolvedSubNiche.primaryNicheId !== primaryDef.id) {
+    const primarySubs = SUB_NICHES.filter((s) => s.primaryNicheId === primaryDef.id);
+    const combinedSignals = [
+      profile.creatorType,
+      Array.isArray(profile.microNiches) ? profile.microNiches.join(' ') : '',
+      profile.profilePositioning,
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    resolvedSubNiche =
+      primarySubs.find((s) => s.keywords.some((kw) => combinedSignals.includes(kw.toLowerCase()))) ||
+      primarySubs[0];
+  }
 
   // Secondary niches resolution
   const secondaryList: Array<{ id: number; name: string; multiplier: number }> = [];
   if (Array.isArray(profile.secondaryNiches)) {
     for (const s of profile.secondaryNiches) {
+      const sId = typeof s === 'object' && s !== null ? Number(s.id) : Number(s);
+      const sName = typeof s === 'object' && s !== null ? String(s.name || '').toLowerCase() : typeof s === 'string' ? s.toLowerCase() : '';
       const match =
-        PRIMARY_NICHES.find((p) => p.id === s.id) ||
-        PRIMARY_NICHES.find((p) => p.name?.toLowerCase() === s.name?.toLowerCase());
-      if (match && match.id !== primaryDef.id && secondaryList.length < 3) {
+        (!isNaN(sId) && PRIMARY_NICHES.find((p) => p.id === sId)) ||
+        (sName && PRIMARY_NICHES.find((p) => p.name.toLowerCase() === sName || p.name.toLowerCase().includes(sName)));
+      if (match && match.id !== primaryDef.id && !secondaryList.some((existing) => existing.id === match.id) && secondaryList.length < 3) {
         secondaryList.push({ id: match.id, name: match.name, multiplier: match.multiplier });
       }
     }
@@ -543,6 +658,13 @@ export function normalizeCompleteIntelligence(raw: unknown, input?: MultiPlatfor
         name: primaryDef.name,
         multiplier: primaryDef.multiplier,
       },
+      subNiche: resolvedSubNiche
+        ? {
+            id: resolvedSubNiche.id,
+            name: resolvedSubNiche.name,
+            multiplier: resolvedSubNiche.multiplier,
+          }
+        : undefined,
       secondaryNiches: secondaryList,
       microNiches: Array.isArray(profile.microNiches) ? profile.microNiches : [],
       creatorDescription: profile.creatorDescription || '',
@@ -653,6 +775,13 @@ export async function enrichMultiPlatformCreatorWithAI(
       multiplier: completeIntel.profile.primaryNiche.multiplier,
       confidence: completeIntel.profile.confidence || 0.95,
     },
+    subNiche: completeIntel.profile.subNiche
+      ? {
+          id: completeIntel.profile.subNiche.id,
+          name: completeIntel.profile.subNiche.name,
+          multiplier: completeIntel.profile.subNiche.multiplier,
+        }
+      : undefined,
     secondaryNiches: completeIntel.profile.secondaryNiches,
     detectedCountry: completeIntel.geography?.countryCode || 'US',
     creatorSummary: completeIntel.summary?.brandSummary || completeIntel.summary?.oneLine || '',

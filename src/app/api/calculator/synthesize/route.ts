@@ -31,6 +31,13 @@ export async function POST(req: NextRequest) {
         multiplier: completeIntel.profile.primaryNiche.multiplier,
         confidence: completeIntel.profile.confidence || 0.95,
       },
+      subNiche: completeIntel.profile.subNiche
+        ? {
+            id: completeIntel.profile.subNiche.id,
+            name: completeIntel.profile.subNiche.name,
+            multiplier: completeIntel.profile.subNiche.multiplier,
+          }
+        : undefined,
       secondaryNiches: completeIntel.profile.secondaryNiches,
       detectedCountry: completeIntel.geography?.countryCode || 'US',
       creatorSummary: completeIntel.summary?.brandSummary || completeIntel.summary?.oneLine || '',
