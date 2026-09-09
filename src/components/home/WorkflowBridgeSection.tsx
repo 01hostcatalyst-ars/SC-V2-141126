@@ -20,7 +20,7 @@ export function WorkflowBridgeSection() {
         "Input any public Instagram, YouTube, or TikTok profile. Our 16-knot engine strips pinned media outliers, calculates view velocity, and calibrates deliverable rates against regional GDP PPP.",
       icon: Activity,
       accentColor: "text-amber-600 bg-amber-50 border-amber-200/80",
-      cta: "Try Calculator ➔",
+      cta: "Try Calculator",
       ctaLink: "/influencer-rate-calculator",
     },
     {
@@ -31,7 +31,7 @@ export function WorkflowBridgeSection() {
         "Select your commercial relationship (Creator ↔ Brand or Agency). Lock deliverable scope, exclusivity embargoes, paid ad whitelisting rights, and 48-hour deemed approval protections.",
       icon: FileText,
       accentColor: "text-emerald-600 bg-emerald-50 border-emerald-200/80",
-      cta: "Create Free Contract ➔",
+      cta: "Create Free Contract",
       ctaLink: "/instant",
     },
     {
@@ -42,7 +42,7 @@ export function WorkflowBridgeSection() {
         "Both parties authenticate via mandatory 6-digit email OTP and execute digital signatures. Instant tamper-proof PDF audit certificates are minted with microsecond UTC timestamps and device hashes.",
       icon: ShieldCheck,
       accentColor: "text-zinc-950 bg-zinc-100 border-zinc-200",
-      cta: "Verify a Document ➔",
+      cta: "Verify a Document",
       ctaLink: "/verify",
     },
   ];
@@ -101,9 +101,10 @@ export function WorkflowBridgeSection() {
               <div className="pt-4 border-t border-zinc-100">
                 <Link
                   href={step.ctaLink}
-                  className="text-xs font-bold text-zinc-950 hover:text-emerald-700 transition-colors inline-flex items-center gap-1.5"
+                  className="text-xs font-bold text-zinc-950 hover:text-emerald-700 transition-colors inline-flex items-center gap-1.5 group cursor-pointer"
                 >
                   <span>{step.cta}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-700 transition-colors" strokeWidth={2} />
                 </Link>
               </div>
             </div>

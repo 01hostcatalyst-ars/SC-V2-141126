@@ -134,23 +134,17 @@ export function PublicHeader({
         {/* LEFT: BRAND IDENTITY & SUITE TOOLS SWITCHER             */}
         {/* ========================================================= */}
         <div className="flex items-center gap-3 shrink-0">
-          <Link href="/" className="flex items-center gap-2 group cursor-pointer select-none">
-            {/* Architectural Monogram Emblem */}
-            <div className="w-8 h-8 rounded-lg bg-zinc-950 text-white flex items-center justify-center font-bold text-xs tracking-wider shadow-sm group-hover:bg-zinc-900 transition-colors">
-              SC
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-black text-base tracking-tight text-zinc-950 uppercase font-display">
-                SignCollab
-              </span>
-            </div>
+          <Link href="/" className="flex items-center group cursor-pointer select-none">
+            <span className="font-black text-base sm:text-lg tracking-tight text-zinc-950 uppercase font-display hover:opacity-85 transition-opacity">
+              SIGNCOLLAB
+            </span>
           </Link>
 
           {/* Slash Separator */}
-          <span className="text-zinc-300 font-light text-base select-none hidden sm:inline">/</span>
+          <span className="text-zinc-300 font-light text-base select-none hidden md:inline">/</span>
 
           {/* Suite Tools Switcher Dropdown */}
-          <div className="relative hidden sm:block" ref={dropdownRef}>
+          <div className="relative hidden md:block" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setIsToolsOpen(!isToolsOpen)}
@@ -296,17 +290,17 @@ export function PublicHeader({
             authButton
           ) : (
             <Link
-              href="/dashboard"
+              href="/login"
               className="text-xs font-semibold px-3 py-2 rounded-lg text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 transition-colors whitespace-nowrap hidden sm:inline-block"
             >
               Sign In
             </Link>
           )}
 
-          {/* Primary Action Button */}
+          {/* Primary Action Button (Desktop & Tablet only, cleanly hidden on mobile) */}
           <Link
             href="/instant"
-            className="px-3.5 py-2 text-xs font-bold rounded-lg bg-zinc-950 text-white hover:bg-zinc-900 transition-all shadow-sm hover:shadow whitespace-nowrap inline-flex items-center gap-1.5 cursor-pointer"
+            className="hidden sm:inline-flex px-3.5 py-2 text-xs font-bold rounded-lg bg-zinc-950 text-white hover:bg-zinc-900 transition-all shadow-sm hover:shadow whitespace-nowrap items-center gap-1.5 cursor-pointer"
           >
             <span>Create Free Contract</span>
             <ArrowRight className="w-3.5 h-3.5 text-zinc-400" strokeWidth={2} />
@@ -316,13 +310,13 @@ export function PublicHeader({
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2.5 rounded-lg text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors focus:outline-none cursor-pointer flex items-center justify-center"
+            className="lg:hidden p-2 rounded-lg text-zinc-800 hover:text-zinc-950 hover:bg-zinc-100 transition-colors focus:outline-none cursor-pointer flex items-center justify-center min-w-[44px] min-h-[44px]"
             aria-label={isMobileMenuOpen ? "Close menu" : "Open navigation menu"}
           >
             {isMobileMenuOpen ? (
-              <X className="w-5 h-5" strokeWidth={2} />
+              <X className="w-5 h-5 text-zinc-900" strokeWidth={2.5} />
             ) : (
-              <Menu className="w-5 h-5" strokeWidth={2} />
+              <Menu className="w-5 h-5 text-zinc-900" strokeWidth={2.5} />
             )}
           </button>
         </div>
@@ -332,7 +326,16 @@ export function PublicHeader({
       {/* MOBILE DRAWER (Touch Targets >= 44px)                      */}
       {/* ========================================================= */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t border-zinc-200/80 bg-white/98 backdrop-blur-md px-4 py-5 shadow-2xl space-y-5 animate-fadeIn">
+        <div className="lg:hidden border-t border-zinc-200/80 bg-white/98 backdrop-blur-md px-4 py-5 shadow-2xl space-y-4 animate-fadeIn">
+          {/* Mobile Top Primary Action Button */}
+          <Link
+            href="/instant"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="w-full py-3 px-4 rounded-xl bg-zinc-950 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 min-h-[44px] cursor-pointer"
+          >
+            <span>Create Free Contract</span>
+            <ArrowRight className="w-4 h-4 text-zinc-400" strokeWidth={2} />
+          </Link>
           {/* Suite Tools Section */}
           <div className="space-y-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block px-1">

@@ -42,11 +42,11 @@ export function HomeHero() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center">
         
         {/* Eyebrow Trust Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900 text-white text-xs font-semibold shadow-sm border border-zinc-800 mb-6 animate-fadeIn">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-mono text-[11px] text-emerald-400 font-bold uppercase tracking-wider">v2.0 Active</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-zinc-900 text-white text-xs font-semibold shadow-sm border border-zinc-800 mb-6 animate-fadeIn max-w-[92vw]">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="font-mono text-[10px] sm:text-[11px] text-emerald-400 font-bold uppercase tracking-wider shrink-0">v2.0 Active</span>
           <span className="text-zinc-400 font-light">•</span>
-          <span className="text-zinc-200">The Commercial Operating System for Creators &amp; Brands</span>
+          <span className="text-zinc-200 truncate text-[11px] sm:text-xs">The Commercial Operating System for Creators &amp; Brands</span>
         </div>
 
         {/* Master Display Headline */}
@@ -146,7 +146,8 @@ export function HomeHero() {
               className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:text-emerald-900 hover:underline cursor-pointer"
             >
               <FileText className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2} />
-              <span>Or Draft 1-Page Contract (Guest Mode) ➔</span>
+              <span>Or Draft 1-Page Contract (Guest Mode)</span>
+              <ArrowRight className="w-3 h-3 text-emerald-600 inline" strokeWidth={2} />
             </Link>
           </div>
         </div>
