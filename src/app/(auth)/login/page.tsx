@@ -130,7 +130,7 @@ export default function LoginPage() {
 
   const countryOptions = Object.values(JURISDICTIONS).map((j) => ({
     value: j.countryCode,
-    label: `${j.countryName} (${j.currencySymbol} ${j.defaultCurrency})`,
+    label: `${j.countryName} (${j.defaultCurrency})`,
   }));
 
   return (
@@ -376,8 +376,9 @@ export default function LoginPage() {
           <div className="mt-6 pt-4 border-t border-zinc-100 text-center">
             <p className="text-[11px] text-zinc-500 font-medium">
               Want to draft an agreement without an account?{" "}
-              <Link href="/instant" className="font-bold text-emerald-700 hover:underline">
-                Use Guest Mode (2/Day) ➔
+              <Link href="/instant" className="font-bold text-emerald-700 hover:underline inline-flex items-center gap-1">
+                <span>Use Guest Mode (2/Day)</span>
+                <ArrowRight className="w-3 h-3 inline" />
               </Link>
             </p>
           </div>
