@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -15,6 +15,12 @@ const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-jakarta",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-mono",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -286,7 +292,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.className} ${plusJakarta.variable} font-sans antialiased min-h-screen bg-theme-gradient`}>
+      <body className={`${inter.className} ${plusJakarta.variable} ${jetbrainsMono.variable} font-sans antialiased min-h-screen bg-canvas text-primary selection:bg-zinc-950 selection:text-white`}>
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

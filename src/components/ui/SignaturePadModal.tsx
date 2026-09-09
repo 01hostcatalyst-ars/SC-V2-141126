@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import SignaturePad from "signature_pad";
+import { X, ShieldCheck, RotateCcw } from "lucide-react";
 import { getJurisdiction } from "@/lib/config/jurisdictions";
 
 interface SignaturePadModalProps {
@@ -38,7 +39,6 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
 
     const context = canvas.getContext("2d");
     if (context) {
-      // Reset matrix before applying scale so ratio isn't cumulative!
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
 
@@ -48,7 +48,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
 
     padRef.current = new SignaturePad(canvas, {
       backgroundColor: "rgb(250, 250, 250)",
-      penColor: "rgb(0, 0, 0)",
+      penColor: "rgb(9, 9, 11)",
       minWidth: 1.5,
       maxWidth: 3.5,
     });
@@ -56,7 +56,6 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Small timeout to allow Modal transition / display block first
       const timer = setTimeout(() => {
         initPad();
       }, 150);
@@ -92,7 +91,6 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
     }
 
     const dataUrl = padRef.current.toDataURL("image/png");
-    // Capture user fingerprint using client specifications
     const fingerprint = `UA-${navigator.userAgent.slice(0, 150)}-${screen.width}x${screen.height}`;
     
     onConfirm(dataUrl, fingerprint);
@@ -104,46 +102,58 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity" onClick={onClose} />
 
       {/* Modal Card */}
-      <div className="relative bg-white w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl overflow-hidden z-10 border border-gray-200 animate-slide-in p-5 md:p-7 text-left">
+      <div className="relative bg-white w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden z-10 border border-zinc-200/90 surface-elevated animate-fadeIn p-5 md:p-6 text-left">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3 shrink-0">
-          <h3 className="text-sm md:text-base font-black text-black uppercase tracking-wider">Execute Digital Signature</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-black font-bold text-xl focus:outline-none">
-            ×
+        <div className="flex items-center justify-between border-b border-zinc-100 pb-3 mb-3 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
+              <ShieldCheck className="w-4 h-4" strokeWidth={2} />
+            </div>
+            <h3 className="text-sm font-bold text-zinc-950 uppercase tracking-wide">Execute Digital Signature</h3>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="text-zinc-400 hover:text-zinc-950 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors focus:outline-none"
+            aria-label="Close dialog"
+          >
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
 
         {/* Scrollable Container */}
-        <div className="overflow-y-auto space-y-4 pr-1.5 flex-1 custom-scrollbar">
-          {/* Dynamic Legal Consent Warning */}
-          <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed font-semibold">
-            <strong>Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by <strong>{jur.governingLawName}</strong> and SignCollab&apos;s <a href="/terms" target="_blank" className="underline font-bold text-blue-950 hover:text-black">Terms of Service &amp; Privacy Notice</a>.
+        <div className="overflow-y-auto space-y-4 pr-1 flex-1">
+          {/* Legal Consent Banner */}
+          <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-xs text-zinc-800 leading-relaxed font-medium">
+            <strong className="text-zinc-950 font-bold">Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by <strong className="text-zinc-950 font-semibold">{jur.governingLawName}</strong> and SignCollab&apos;s <a href="/terms" target="_blank" className="underline font-semibold text-zinc-950 hover:text-black">Terms of Service &amp; Privacy Notice</a>.
           </div>
 
           {/* Consent Checkbox */}
-          <label className="flex items-start gap-3 p-3.5 rounded-2xl border border-gray-200 cursor-pointer hover:bg-gray-50 select-none transition-all">
+          <label className="flex items-start gap-3 p-3 rounded-xl border border-zinc-200 cursor-pointer hover:bg-zinc-50/70 select-none transition-all">
             <input
               type="checkbox"
               checked={consent}
               onChange={(e) => setConsent(e.target.checked)}
-              className="w-4 h-4 accent-black mt-0.5"
+              className="w-4 h-4 accent-zinc-950 mt-0.5"
             />
             <div className="flex flex-col text-left">
-              <span className="text-xs font-bold text-black leading-tight">
-                I agree to execute this agreement electronically and verify the details.
+              <span className="text-xs font-semibold text-zinc-900 leading-tight">
+                I agree to execute this commercial agreement electronically and certify the audit details.
               </span>
             </div>
           </label>
 
           {/* Drawing Canvas */}
           <div className="flex flex-col gap-1.5 mt-1">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
-              Draw Signature Inside Box
-            </label>
-            <div className="w-full h-44 sm:h-52 md:h-60 border-2 border-gray-200 hover:border-gray-400 transition-all rounded-2xl bg-gray-50/50 overflow-hidden relative touch-none shadow-inner">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+                Draw Signature Inside Box
+              </label>
+              <span className="text-[10px] text-zinc-400 font-medium">Finger / Stylus / Mouse</span>
+            </div>
+            <div className="w-full h-44 sm:h-52 md:h-56 border border-zinc-300 hover:border-zinc-400 transition-all rounded-xl bg-zinc-50/50 overflow-hidden relative touch-none shadow-2xs">
               <canvas
                 ref={canvasRef}
                 className="w-full h-full block cursor-crosshair"
@@ -152,9 +162,10 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
               <button
                 type="button"
                 onClick={handleClear}
-                className="absolute bottom-2.5 right-2.5 px-3.5 py-1 bg-white hover:bg-gray-100 border border-gray-300 text-xs font-bold text-gray-700 rounded-xl shadow-md focus:outline-none transition-all"
+                className="absolute bottom-2.5 right-2.5 px-3 py-1 bg-white hover:bg-zinc-100 border border-zinc-200 text-xs font-semibold text-zinc-700 rounded-lg shadow-sm focus:outline-none transition-all flex items-center gap-1.5 cursor-pointer"
               >
-                Clear Drawing
+                <RotateCcw className="w-3 h-3" strokeWidth={2} />
+                <span>Clear</span>
               </button>
             </div>
           </div>
@@ -164,7 +175,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             type="button"
             disabled={loading}
             onClick={handleSave}
-            className="w-full bg-black text-white hover:bg-black/90 font-bold text-xs uppercase py-3 rounded-xl transition-all shadow-md mt-4"
+            className="w-full bg-zinc-950 text-white hover:bg-zinc-900 font-bold text-xs uppercase py-3 rounded-lg transition-all shadow-sm mt-3 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {loading ? "Processing..." : "Confirm & Apply Signature"}
           </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 
 export interface ModernSelectOption {
   value: string;
@@ -44,38 +45,34 @@ export function ModernSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const pyClass = "py-2.5 px-3.5 text-sm font-medium";
+  const pyClass = "py-2.5 px-3.5 text-xs font-semibold";
 
   return (
     <div className="flex flex-col text-left gap-1 relative" ref={dropdownRef}>
-      {label && <label className="text-xs font-bold text-gray-800">{label}</label>}
+      {label && <label className="text-xs font-bold text-zinc-900">{label}</label>}
       <button
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full ${pyClass} rounded-xl border text-left flex items-center justify-between transition-all bg-white shadow-2xs hover:border-black focus:outline-none ${
+        className={`w-full ${pyClass} rounded-lg border text-left flex items-center justify-between transition-all bg-white shadow-2xs hover:border-zinc-950 focus:outline-none ${
           disabled
-            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+            ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border-zinc-200"
             : isOpen
-            ? "border-black text-black bg-white ring-1 ring-black"
-            : "border-gray-300 text-black hover:bg-gray-50/50 cursor-pointer"
+            ? "border-zinc-950 text-zinc-950 bg-white ring-1 ring-zinc-950/10"
+            : "border-zinc-300 text-zinc-950 hover:bg-zinc-50/50 cursor-pointer"
         } ${className}`}
       >
         <span className="truncate">{selectedOpt ? selectedOpt.label : placeholder}</span>
-        <svg
-          className={`w-4 h-4 text-gray-600 shrink-0 ml-2 transition-transform duration-200 ${
-            isOpen ? "rotate-180 text-black" : ""
+        <ChevronDown
+          className={`w-4 h-4 text-zinc-500 shrink-0 ml-2 transition-transform duration-150 ${
+            isOpen ? "rotate-180 text-zinc-950" : ""
           }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-        </svg>
+          strokeWidth={2}
+        />
       </button>
 
       {isOpen && !disabled && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto py-1 animate-fadeIn">
+        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-zinc-200/80 rounded-xl shadow-xl overflow-hidden max-h-64 overflow-y-auto py-1 surface-elevated animate-fadeIn">
           {options.map((opt) => (
             <button
               key={opt.value}

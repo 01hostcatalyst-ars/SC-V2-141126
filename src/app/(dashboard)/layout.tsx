@@ -3,6 +3,16 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  FileText,
+  PlusCircle,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  Plus,
+} from "lucide-react";
 import { ProtectedRoute, useAuth } from "@/components/layout/ProtectedRoute";
 import { getCompanyConfig } from "@/lib/config";
 
@@ -10,39 +20,22 @@ const NAV_LINKS = [
   {
     name: "Dashboard",
     href: "/dashboard",
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
-      </svg>
-    ),
+    icon: <LayoutDashboard className="w-4 h-4" strokeWidth={2} />,
   },
   {
     name: "My Contracts",
     href: "/contracts",
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
+    icon: <FileText className="w-4 h-4" strokeWidth={2} />,
   },
   {
     name: "Create Contract",
     href: "/contracts/new",
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-      </svg>
-    ),
+    icon: <PlusCircle className="w-4 h-4" strokeWidth={2} />,
   },
   {
     name: "Profile & Settings",
     href: "/profile",
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
+    icon: <Settings className="w-4 h-4" strokeWidth={2} />,
   },
 ];
 
@@ -146,11 +139,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
         <button
           onClick={logout}
-          className="flex w-full items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200/60 transition-colors"
+          className="flex w-full items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200/60 transition-colors"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
+          <LogOut className="w-4 h-4" strokeWidth={2} />
           <span>Sign Out</span>
         </button>
       </div>
@@ -158,33 +149,30 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col md:flex-row relative text-left">
-      {/* Ambient background glow shapes */}
-      <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0 opacity-40 blur-3xl" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0 opacity-30 blur-3xl" />
-
+    <div className="min-h-screen bg-canvas flex flex-col md:flex-row relative text-left">
       {/* Mobile Top Header */}
-      <header className="md:hidden w-full h-16 border-b border-gray-200/80 bg-white/80 backdrop-blur-md flex items-center justify-between px-6 z-30 sticky top-0">
+      <header className="md:hidden w-full h-16 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md flex items-center justify-between px-5 z-30 sticky top-0">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="font-bold text-xl tracking-tight text-black uppercase font-display">
+          <div className="w-7 h-7 rounded-lg bg-zinc-950 text-white flex items-center justify-center font-bold text-xs">
+            BB
+          </div>
+          <span className="font-bold text-base tracking-tight text-zinc-950 uppercase font-display">
             {company.name}
           </span>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200 uppercase">
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-800 border border-zinc-200 uppercase">
             Workspace
           </span>
         </Link>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-xl border border-gray-200 text-black hover:bg-gray-100 focus:outline-none"
+          className="p-2 rounded-lg border border-zinc-200 text-zinc-950 hover:bg-zinc-100 focus:outline-none cursor-pointer"
           aria-label="Toggle Navigation Menu"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            {mobileMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
+          {mobileMenuOpen ? (
+            <X className="w-5 h-5" strokeWidth={2} />
+          ) : (
+            <Menu className="w-5 h-5" strokeWidth={2} />
+          )}
         </button>
       </header>
 

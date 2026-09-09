@@ -9,6 +9,7 @@ import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
 import { CURRENCY_MAP } from "@/lib/currency";
 import { ModernSelect } from "@/components/ui/ModernSelect";
 import { AutocompleteInput } from "@/components/ui/AutocompleteInput";
+import { SuiteHeader } from "@/components/layout/PublicHeader";
 
 interface DeliverableItem {
   type: string;
@@ -594,34 +595,20 @@ function InstantContractForm() {
   };
 
   return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden">
-      {/* Glow shapes */}
-      <div className="absolute top-[5%] left-[-5%] w-[70%] h-[40%] rounded-full ambient-glow-purple pointer-events-none z-0" />
-      <div className="absolute bottom-[5%] right-[-5%] w-[70%] h-[40%] rounded-full ambient-glow-blue pointer-events-none z-0" />
+    <div className="min-h-screen bg-canvas flex flex-col relative overflow-hidden">
+      {/* Subtle ambient illumination */}
+      <div className="absolute top-0 inset-x-0 h-96 ambient-spotlight-emerald pointer-events-none z-0" />
 
-      {/* Header */}
-      <header className="w-full h-16 border-b border-gray-200/60 bg-white/70 backdrop-blur-md flex items-center justify-between px-6 z-10 sticky top-0">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base">
-            {company.name[0]}
-          </span>
-          <span className="font-bold text-lg text-black tracking-tight uppercase">
-            {company.name}
-          </span>
-        </Link>
-        <div className="flex items-center gap-3">
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+      {/* Universal Suite Header */}
+      <SuiteHeader
+        activeRoute="/instant"
+        rightBadge={
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Guest Mode (2 / Day)
           </span>
-          <Link
-            href="/"
-            className="text-xs font-semibold px-4 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors"
-          >
-            Sign In / Register
-          </Link>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Form Body */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-8 lg:p-12 z-10">

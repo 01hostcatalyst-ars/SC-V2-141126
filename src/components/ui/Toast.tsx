@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback } from "react";
+import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 
 type ToastType = "success" | "error" | "info";
 
@@ -38,27 +39,26 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`px-4 py-3 rounded-lg shadow-lg border text-sm font-semibold flex items-center justify-between gap-3 animate-slide-in transition-all duration-300 ${
+            className={`px-3.5 py-2.5 rounded-lg shadow-lg border text-xs font-semibold flex items-center justify-between gap-3 transition-all duration-200 ${
               toast.type === "success"
-                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                ? "bg-emerald-50/95 border-emerald-200/80 text-emerald-900"
                 : toast.type === "error"
-                ? "bg-rose-50 border-rose-200 text-rose-800"
-                : "bg-blue-50 border-blue-200 text-blue-800"
+                ? "bg-rose-50/95 border-rose-200/80 text-rose-900"
+                : "bg-zinc-900 text-white border-zinc-800"
             }`}
           >
             <div className="flex items-center gap-2">
-              <span className="text-base">
-                {toast.type === "success" && "✓"}
-                {toast.type === "error" && "✗"}
-                {toast.type === "info" && "ℹ"}
-              </span>
+              {toast.type === "success" && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" strokeWidth={2} />}
+              {toast.type === "error" && <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" strokeWidth={2} />}
+              {toast.type === "info" && <Info className="w-4 h-4 text-zinc-400 shrink-0" strokeWidth={2} />}
               <span>{toast.message}</span>
             </div>
             <button
               onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
-              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              className="text-zinc-400 hover:text-zinc-600 focus:outline-none p-1 rounded-md transition-colors"
+              aria-label="Dismiss toast"
             >
-              ×
+              <X className="w-3.5 h-3.5" strokeWidth={2} />
             </button>
           </div>
         ))}

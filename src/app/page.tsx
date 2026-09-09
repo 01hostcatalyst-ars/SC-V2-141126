@@ -1,31 +1,34 @@
 import React from "react";
-import Link from "next/link";
 import type { Metadata } from "next";
 import { getCompanyConfig } from "@/lib/config";
-import { HomeAuthCard } from "@/components/home/HomeAuthCard";
+import { SuiteHeader } from "@/components/layout/PublicHeader";
+import { HomeHero } from "@/components/home/HomeHero";
+import { InteractiveBentoShowcase } from "@/components/home/InteractiveBentoShowcase";
+import { CreatorProofGrid } from "@/components/home/CreatorProofGrid";
+import { WorkflowBridgeSection } from "@/components/home/WorkflowBridgeSection";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
 
 export const metadata: Metadata = {
-  title: "SignCollab | Creator Agreement & e-Signature Proof Layer",
+  title: "BrandBridge | The Commercial Operating System for the Creator Economy",
   description:
-    "SignCollab is the commercial agreement proof layer for creators, brands, and agencies. Generate bilaterally signed digital contracts, enforce campaign terms, and secure audit trails with global e-signature compliance.",
+    "BrandBridge (SignCollab) is the commercial agreement & rate valuation infrastructure for creators, brands, and agencies. Audit empirical rates, enforce bilateral contract terms, and secure audit trails with global e-signature compliance.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "SignCollab | Creator Agreement & e-Signature Proof Layer",
+    title: "BrandBridge | Commercial Operating System for Creators & Brands",
     description:
-      "Formalize creator-brand partnerships and secure bilaterally signed audit trails with global electronic signature compliance.",
+      "Audit empirical influencer deliverable rates, enforce commercial terms, and secure bilaterally signed audit trails with global electronic signature compliance.",
     url: baseUrl,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SignCollab | Creator Agreement & e-Signature Proof Layer",
+    title: "BrandBridge | Commercial Operating System for Creators & Brands",
     description:
-      "Formalize creator-brand partnerships and secure bilaterally signed audit trails with global electronic signature compliance.",
+      "Audit empirical influencer deliverable rates, enforce commercial terms, and secure bilaterally signed audit trails with global electronic signature compliance.",
   },
 };
 
@@ -33,59 +36,23 @@ export default function Home() {
   const company = getCompanyConfig();
 
   return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden">
-      {/* Background ambient glow shapes */}
-      <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
+    <div className="min-h-screen bg-canvas flex flex-col relative selection:bg-zinc-950 selection:text-white">
+      {/* Master Universal Suite Header */}
+      <SuiteHeader activeRoute="/" />
 
-      {/* Header + Auth Card — client component (needs shared auth tab state) */}
-      <HomeAuthCard company={company}>
-        {/* Column 1: Info Column — server-rendered, passed as children */}
-        <div className="flex flex-col text-left space-y-6">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100/80 text-emerald-900 border border-emerald-300 w-fit">
-            Instant 1-Page Contracts Now Available • No Signup Required
-          </span>
-          <h1 className="text-4xl md:text-5xl font-black text-black leading-tight tracking-tight">
-            Stop Sealing Deals in DMs.<br />
-            <span className="text-accent-gradient">Start Signing Them.</span>
-          </h1>
-          <p className="text-sm md:text-base text-gray-700 leading-relaxed max-w-xl">
-            Brand deals shouldn&apos;t live in a screenshot. <strong>{company.name}</strong> gives creators, brands, and agencies a real, signed agreement — with proof that holds up if something goes wrong.
-          </p>
+      {/* 1. Hero Section with Collabstr-style Omni-Search */}
+      <HomeHero />
 
-          {/* Badges system */}
-          <div className="flex flex-wrap gap-2 pt-2">
-            <span className="px-3 py-1 rounded-md text-xs font-bold border bg-blue-50 border-blue-200 text-blue-800">
-              #Creator
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-bold border bg-emerald-50 border-emerald-200 text-emerald-800">
-              #Brand
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-bold border bg-orange-50 border-orange-200 text-orange-800">
-              #Agency
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-bold border bg-amber-50 border-amber-200 text-amber-800">
-              #GlobalCompliance
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-bold border bg-rose-50 border-rose-200 text-rose-800">
-              #SignedPDF
-            </span>
-          </div>
+      {/* 2. Interactive Live Bento Showcase (Radar + Contract + SHA-256) */}
+      <InteractiveBentoShowcase />
 
-          <div className="grid grid-cols-2 gap-4 border-t border-gray-200/80 pt-6 mt-2">
-            <div>
-              <h4 className="text-xl font-bold text-black">Guest Mode</h4>
-              <p className="text-xs text-gray-500 mt-1">2 free instant contracts per day per email without signing up.</p>
-            </div>
-            <div>
-              <h4 className="text-xl font-bold text-black">Audit Trails</h4>
-              <p className="text-xs text-gray-500 mt-1">Includes SHA-256 integrity check and device identifiers.</p>
-            </div>
-          </div>
-        </div>
-      </HomeAuthCard>
+      {/* 3. Multi-Tier Creator Proof Grid */}
+      <CreatorProofGrid />
 
-      {/* Footer */}
+      {/* 4. The 3-Step Bilateral Workflow Bridge */}
+      <WorkflowBridgeSection />
+
+      {/* Master Public Footer */}
       <PublicFooter />
     </div>
   );
