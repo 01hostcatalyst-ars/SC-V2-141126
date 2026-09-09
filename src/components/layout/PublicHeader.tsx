@@ -137,11 +137,11 @@ export function PublicHeader({
           <Link href="/" className="flex items-center gap-2 group cursor-pointer select-none">
             {/* Architectural Monogram Emblem */}
             <div className="w-8 h-8 rounded-lg bg-zinc-950 text-white flex items-center justify-center font-bold text-xs tracking-wider shadow-sm group-hover:bg-zinc-900 transition-colors">
-              BB
+              SC
             </div>
             <div className="flex items-center gap-1.5">
               <span className="font-black text-base tracking-tight text-zinc-950 uppercase font-display">
-                BrandBridge
+                SignCollab
               </span>
             </div>
           </Link>

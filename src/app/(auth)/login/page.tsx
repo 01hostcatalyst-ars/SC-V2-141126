@@ -143,7 +143,7 @@ export default function LoginPage() {
           {/* Top Logo & Title */}
           <div className="text-center mb-6 space-y-1.5">
             <div className="w-10 h-10 rounded-xl bg-zinc-950 text-white font-bold text-sm flex items-center justify-center mx-auto shadow-sm">
-              BB
+              SC
             </div>
             <h2 className="text-xl font-bold font-display text-zinc-950">
               {authTab === "signin" ? "Welcome Back" : "Create Your Account"}

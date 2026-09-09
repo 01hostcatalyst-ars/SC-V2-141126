@@ -11,14 +11,14 @@ import { PublicFooter } from "@/components/layout/PublicFooter";
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
 
 export const metadata: Metadata = {
-  title: "BrandBridge | The Commercial Operating System for the Creator Economy",
+  title: "SignCollab | The Commercial Operating System for the Creator Economy",
   description:
-    "BrandBridge (SignCollab) is the commercial agreement & rate valuation infrastructure for creators, brands, and agencies. Audit empirical rates, enforce bilateral contract terms, and secure audit trails with global e-signature compliance.",
+    "SignCollab is the commercial agreement & rate valuation infrastructure for creators, brands, and agencies. Audit empirical rates, enforce bilateral contract terms, and secure audit trails with global e-signature compliance.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "BrandBridge | Commercial Operating System for Creators & Brands",
+    title: "SignCollab | Commercial Operating System for Creators & Brands",
     description:
       "Audit empirical influencer deliverable rates, enforce commercial terms, and secure bilaterally signed audit trails with global electronic signature compliance.",
     url: baseUrl,
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "BrandBridge | Commercial Operating System for Creators & Brands",
+    title: "SignCollab | Commercial Operating System for Creators & Brands",
     description:
       "Audit empirical influencer deliverable rates, enforce commercial terms, and secure bilaterally signed audit trails with global electronic signature compliance.",
   },

@@ -25,13 +25,13 @@ export function PublicFooter() {
         <div className="flex flex-col items-center md:items-start gap-1 text-center md:text-left">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-zinc-950 text-white flex items-center justify-center font-bold text-[10px]">
-              BB
+              SC
             </div>
             <span className="font-black text-sm tracking-tight text-zinc-950 uppercase font-display">
-              BrandBridge
+              SignCollab
             </span>
             <span className="text-zinc-300 font-light">•</span>
-            <span className="text-xs text-zinc-500 font-semibold">SignCollab Proof Layer</span>
+            <span className="text-xs text-zinc-500 font-semibold">Creator Agreement &amp; Valuation Suite</span>
           </div>
           <p className="text-xs text-zinc-500 font-medium mt-0.5">
             The Commercial Operating System for Creators, Brands &amp; Agencies.
@@ -56,7 +56,7 @@ export function PublicFooter() {
 
       <div className="max-w-7xl mx-auto border-t border-zinc-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 gap-2 text-center sm:text-left">
         <span>
-          © {new Date().getFullYear()} BrandBridge (SignCollab). All rights reserved.
+          © {new Date().getFullYear()} SignCollab. All rights reserved.
         </span>
         <span className="text-zinc-400 font-mono text-[11px]">
           {company.supportEmail}

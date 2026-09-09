@@ -1,4 +1,4 @@
-# BrandBridge (SignCollab) — Creator Suite Design Strategy, Audit & Architectural Blueprint
+# SignCollab — Creator Suite Design Strategy, Audit & Architectural Blueprint
 
 > **Date:** September 2026  
 > **Author & Role:** High-Quality SaaS Frontend Designer & Senior Systems Architect  
@@ -71,11 +71,11 @@
 
 ## 3. The Platform Evolution: Multi-Tool Creator Suite
 
-BrandBridge is not merely a single-purpose contract generator; it is the **Commercial Operating System for the Creator Economy**.
+SignCollab is not merely a single-purpose contract generator; it is the **Commercial Operating System for the Creator Economy**.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
-│                       BRANDBRIDGE SUITE CORE                               │
+│                        SIGNCOLLAB SUITE CORE                               │
 │              Neutral Obsidian (#09090B) + Zinc Token Scale                 │
 │              Universal Suite Navigation & Perspective Switcher             │
 └─────────────────────────────────────┬──────────────────────────────────────┘
@@ -92,7 +92,7 @@ BrandBridge is not merely a single-purpose contract generator; it is the **Comme
 ```
 
 ### The Integrated "Workflow Bridge" (The Secret Weapon)
-Isolated tools lose to unified suites. The true power of BrandBridge is the frictionless pipeline:
+Isolated tools lose to unified suites. The true power of SignCollab is the frictionless pipeline:
 1. **Discover & Value:** Paste any creator handle into the Radar $\rightarrow$ live telemetry calculates defensible rate cards.
 2. **Bridge to Contract:** 1-click action: *"Generate Contract with this Rate"* $\rightarrow$ pre-populates Party details, agreed deliverables, and payment terms.
 3. **Execute & Protect:** Both parties sign with 6-digit OTP verification $\rightarrow$ immutable SHA-256 audit certificate generated.
@@ -160,9 +160,9 @@ Isolated tools lose to unified suites. The true power of BrandBridge is the fric
 * **Free Tools as the Primary SEO Growth Engine:** Calculators rank #1 on search engines, driving massive top-of-funnel traffic.
 * **Transparent Creator Media Kits:** Upfront pricing, packages, and social proof.
 
-### 6.2 Collabstr's Vulnerabilities & BrandBridge's Moat
+### 6.2 Collabstr's Vulnerabilities & SignCollab's Moat
 
-| Feature | Collabstr | BrandBridge (SignCollab Suite) |
+| Feature | Collabstr | SignCollab Suite |
 | :--- | :--- | :--- |
 | **Creator Coverage** | Closed directory only (must be registered on Collabstr). | **Open Infrastructure:** Telemetry audits *any* public account on Instagram, YouTube, or TikTok in real time. |
 | **Valuation Engine** | Basic follower $\times$ fixed CPM formula (black box). | **16-Knot Empirical Engine:** Audits recent unpinned Reels, view velocity, engagement rates, and regional GDP PPP in 20+ countries. |
@@ -190,7 +190,7 @@ Isolated tools lose to unified suites. The true power of BrandBridge is the fric
 1. **Phase 1: Design Tokens & CSS Cleanup**
    * Overhaul `src/app/globals.css`: Replace ambient glow blobs with Obsidian/Zinc foundations, refined typography, and semantic tool tokens.
 2. **Phase 2: Universal Suite Navigation & Header**
-   * Replace duplicated headers with a unified `SuiteHeader` featuring the tool switcher (`BrandBridge / [Contracts ▾] [Rate Radar]`), role indicators, and mobile drawer.
+   * Replace duplicated headers with a unified `SuiteHeader` featuring the tool switcher (`SignCollab / [Contracts ▾] [Rate Radar]`), role indicators, and mobile drawer.
 3. **Phase 3: High-Converting Homepage Redesign**
    * Move the auth form to a dedicated modal/route.
    * Implement Collabstr-style Omni-Search bar + live interactive tool showcase Bento grid.

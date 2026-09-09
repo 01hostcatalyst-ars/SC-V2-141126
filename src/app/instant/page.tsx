@@ -541,7 +541,7 @@ function InstantContractForm() {
       setCreatedResult({
         shareUrl,
         shareToken,
-        contractNumber: data.contract?.contractNumber || "BB-INSTANT",
+        contractNumber: data.contract?.contractNumber || "SC-INSTANT",
       });
     } catch (err: any) {
       setErrorMsg(err.message || "An error occurred while generating the contract.");

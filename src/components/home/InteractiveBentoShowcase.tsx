@@ -157,7 +157,7 @@ export function InteractiveBentoShowcase() {
               {/* Contract Header Strip */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 pb-5">
                 <div>
-                  <span className="font-mono text-xs font-bold text-zinc-950 block">BB-2026-INSTANT-0842</span>
+                  <span className="font-mono text-xs font-bold text-zinc-950 block">SC-2026-INSTANT-0842</span>
                   <span className="text-xs text-zinc-500 font-medium">Commercial Partnership &amp; Content Licensing</span>
                 </div>
                 <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wider shrink-0">

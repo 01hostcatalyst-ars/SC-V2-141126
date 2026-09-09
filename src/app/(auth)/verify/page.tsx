@@ -300,7 +300,7 @@ function VerifyContent() {
             <div className="flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
-                placeholder="e.g. v_7f9a2b8e... or BB-770712-7804"
+                placeholder="e.g. v_7f9a2b8e... or SC-770712-7804"
                 value={lookupToken}
                 onChange={(e) => setLookupToken(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleTokenLookup()}
