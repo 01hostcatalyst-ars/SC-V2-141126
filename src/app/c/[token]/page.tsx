@@ -10,6 +10,35 @@ import { getJurisdiction } from "@/lib/config/jurisdictions";
 import { formatCurrencyAmount } from "@/lib/currency";
 import { AutocompleteInput } from "@/components/ui/AutocompleteInput";
 import { ModernSelect } from "@/components/ui/ModernSelect";
+import { SuiteHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
+import {
+  ShieldCheck,
+  CheckCircle2,
+  Download,
+  AlertCircle,
+  FileText,
+  Check,
+  RotateCcw,
+  Lock,
+  PenLine,
+  ArrowRight,
+  Clock,
+  Layers,
+  DollarSign,
+  ExternalLink,
+  QrCode,
+  Info,
+  Sparkles,
+  Building,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Hash,
+  Scale,
+  Share2,
+} from "lucide-react";
 
 const RESPONDENT_TITLE_SUGGESTIONS = [
   "Marketing Director",
@@ -91,7 +120,7 @@ export default function PublicSigningPage({ params }: PageProps) {
         } else {
           showToast(data.error || "Agreement link invalid or expired.", "error");
         }
-      } catch (err) {
+      } catch {
         showToast("Error retrieving campaign details.", "error");
       } finally {
         setLoading(false);
@@ -110,7 +139,7 @@ export default function PublicSigningPage({ params }: PageProps) {
       } else {
         showToast(data.error || "Failed to retrieve Contract PDF.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Error downloading Contract PDF.", "error");
     } finally {
       setDownloadingPdf(false);
@@ -127,7 +156,7 @@ export default function PublicSigningPage({ params }: PageProps) {
       } else {
         showToast(data.error || "Failed to retrieve Audit Certificate PDF.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Error downloading Audit Certificate.", "error");
     } finally {
       setDownloadingCert(false);
@@ -201,7 +230,7 @@ export default function PublicSigningPage({ params }: PageProps) {
       } else {
         showToast(data.error || "Failed to dispatch verification code.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Error dispatching verification email.", "error");
     } finally {
       setOtpLoading(false);
@@ -240,7 +269,7 @@ export default function PublicSigningPage({ params }: PageProps) {
         showToast(data.error || "Invalid or expired OTP code.", "error");
         setOtpLoading(false);
       }
-    } catch (err) {
+    } catch {
       showToast("Error verifying identity code.", "error");
       setOtpLoading(false);
     }
@@ -291,7 +320,7 @@ export default function PublicSigningPage({ params }: PageProps) {
       } else {
         showToast(data.error || "Failed to execute signature transaction.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Error processing signature transaction.", "error");
     } finally {
       setSigning(false);
@@ -300,9 +329,9 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-theme-gradient text-slate-700 font-medium text-sm">
-        <div className="flex items-center gap-3 bg-white/90 backdrop-blur-md p-6 rounded-2xl border border-gray-200 shadow-xl">
-          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-theme-gradient text-zinc-700 font-medium text-sm">
+        <div className="flex items-center gap-3 bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm surface-elevated">
+          <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
           <span>Retrieving campaign agreement details...</span>
         </div>
       </div>
@@ -311,13 +340,11 @@ export default function PublicSigningPage({ params }: PageProps) {
 
   if (!contract) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-theme-gradient text-rose-600 font-medium text-sm">
-        <div className="bg-white/90 backdrop-blur-md p-8 rounded-2xl border border-rose-200 shadow-xl text-center space-y-3 max-w-md">
-          <svg className="w-8 h-8 text-rose-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <div className="text-base font-bold text-slate-900">Agreement Unavailable</div>
-          <p className="text-xs text-slate-600 leading-relaxed">
+      <div className="min-h-screen flex items-center justify-center bg-theme-gradient text-rose-600 font-medium text-sm p-4">
+        <div className="bg-white p-8 rounded-2xl border border-rose-200 shadow-sm text-center space-y-3 max-w-md surface-elevated">
+          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
+          <div className="text-base font-semibold text-zinc-900">Agreement Unavailable</div>
+          <p className="text-xs text-zinc-600 leading-relaxed">
             This agreement link may have expired or is no longer accessible. Please contact the initiator for an updated link.
           </p>
         </div>
@@ -326,47 +353,38 @@ export default function PublicSigningPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col justify-between font-sans antialiased text-left selection:bg-black selection:text-white">
-      {/* Background ambient glow shapes */}
-      <div className="absolute top-[5%] left-[-5%] w-[80%] h-[40%] rounded-full ambient-glow-purple pointer-events-none z-0" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[40%] rounded-full ambient-glow-blue pointer-events-none z-0" />
+    <div className="min-h-screen bg-theme-gradient flex flex-col justify-between font-sans antialiased text-left relative overflow-hidden selection:bg-zinc-950 selection:text-white">
+      {/* Directional Ambient Spotlight matching Home Page & Instant Studio */}
+      <div className="absolute top-0 inset-x-0 h-[480px] ambient-spotlight-emerald pointer-events-none z-0" />
 
-      {/* Navbar Header */}
-      <header className="w-full border-b border-gray-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-20 px-6 sm:px-12 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="w-8 h-8 rounded-lg bg-black flex items-center justify-center font-bold text-white text-base shadow-sm">
-            {company.name[0]}
-          </span>
-          <span className="font-bold text-lg tracking-tight text-black uppercase">{company.name}</span>
-        </Link>
-
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full tracking-wider uppercase">
+      {/* Universal Suite Header */}
+      <SuiteHeader
+        activeRoute="/c"
+        rightBadge={
+          <span className="font-mono text-xs font-semibold text-zinc-700 bg-zinc-100 border border-zinc-200 px-3 py-1 rounded-full uppercase">
             Ref: {contract.contractNumber}
           </span>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-8 md:p-10 space-y-8 z-10">
+      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 md:p-8 space-y-6 z-10">
         
         {/* Banner Welcome */}
         {isExecuted ? (
-          <div className="bg-emerald-50/90 border border-emerald-200 rounded-3xl p-6 sm:p-8 shadow-md space-y-6">
+          <div className="bg-emerald-50/90 border border-emerald-200/90 rounded-3xl p-6 sm:p-8 shadow-xs surface-card space-y-6 text-left">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2">
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white uppercase tracking-wider w-fit">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white uppercase tracking-wider w-fit shadow-xs">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Bilaterally Executed &amp; Activated</span>
                 </span>
 
-                <h1 className="text-2xl sm:text-3xl font-bold text-emerald-950 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-semibold text-emerald-950 tracking-tight font-display">
                   Campaign Agreement Executed &amp; Locked
                 </h1>
 
-                <p className="text-xs sm:text-sm text-emerald-900 leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-sm text-emerald-900/90 leading-relaxed max-w-xl font-normal">
                   This agreement was executed under {jur.lawAbbreviation} on {formatLegalDate(contract.activatedAt || contract.updatedAt, contract?.jurisdictionCountryCode)}. The deal terms below are read-only and cryptographically locked.
                 </p>
               </div>
@@ -376,113 +394,115 @@ export default function PublicSigningPage({ params }: PageProps) {
                   type="button"
                   onClick={handleDownloadPdf}
                   disabled={downloadingPdf}
-                  className="px-5 py-3 rounded-2xl bg-black hover:bg-slate-900 text-white font-bold text-xs uppercase transition-all shadow-md flex items-center justify-center gap-2"
+                  className="px-5 py-3 rounded-xl bg-zinc-950 hover:bg-zinc-900 text-white font-semibold text-xs uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
+                  <Download className="w-4 h-4" />
                   <span>{downloadingPdf ? "Generating PDF..." : "Download Contract PDF"}</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadCertificate}
                   disabled={downloadingCert}
-                  className="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase transition-all shadow-md flex items-center justify-center gap-2"
+                  className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
+                  <ShieldCheck className="w-4 h-4" />
                   <span>{downloadingCert ? "Generating Certificate..." : "Audit Certificate"}</span>
                 </button>
               </div>
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-900 uppercase tracking-wider w-fit">
-              <svg className="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+          <div className="space-y-2 text-left">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-900 uppercase tracking-wider w-fit">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
               <span>Mutual Legal Agreement Execution ({jur.lawAbbreviation})</span>
             </span>
 
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tight font-display">
               Review &amp; Sign Collaboration Agreement
             </h1>
 
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
-              Agreement requested by <strong className="text-slate-900 font-bold">{(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.companyName || (contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.name || (contract as any).initiatorCompanyName || contract.initiator?.name}</strong> ({(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.email || contract.initiator?.email}). Complete the verification below, review all campaign terms, and execute your digital signature.
+            <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-2xl font-normal">
+              Agreement requested by <strong className="text-zinc-950 font-semibold">{(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.companyName || (contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.name || (contract as any).initiatorCompanyName || contract.initiator?.name}</strong> ({(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.email || contract.initiator?.email}). Complete the verification below, review all campaign terms, and execute your digital signature.
             </p>
           </div>
         )}
 
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
           
-          {/* SECTION 1: REVIEW CAMPAIGN TERMS (Card after Card Layout) */}
-          <div className="space-y-6">
+          {/* SECTION 1: REVIEW CAMPAIGN TERMS */}
+          <div className="space-y-5">
             
             {/* Header Section Title */}
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wider">
-                1. Campaign &amp; Legal Terms
+            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card text-left">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                Verification Review
+              </span>
+              <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
+                <FileText className="w-4 h-4 text-zinc-600" />
+                <span>1. Campaign &amp; Legal Terms</span>
               </h2>
-              <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                Please review all campaign parameters below. If terms match your negotiated values, complete your profile details and execute your digital signature in section 2 below.
+              <p className="text-xs text-zinc-500 font-normal mt-1 leading-relaxed">
+                Please review all campaign parameters below. If terms match your negotiated values, complete your profile details and execute your digital signature in Section 2 below.
               </p>
             </div>
 
             {/* CARD A: Campaign & Parties Overview */}
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Campaign &amp; Parties Overview</span>
+            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                Campaign &amp; Parties Overview
+              </span>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="space-y-1">
-                  <span className="text-xs font-medium text-slate-500 block">Direction</span>
-                  <span className="font-bold text-slate-900 uppercase text-sm block">{contract.contractType.replace(/_/g, " ")}</span>
+                  <span className="text-xs font-medium text-zinc-500 block">Direction</span>
+                  <span className="font-semibold text-zinc-900 uppercase text-sm block">{contract.contractType.replace(/_/g, " ")}</span>
                 </div>
 
                 {contract.brandName && (
                   <div className="space-y-1">
-                    <span className="text-xs font-medium text-slate-500 block">Client Brand</span>
-                    <span className="font-bold text-slate-900 text-sm block">{contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</span>
-                    {contract.campaignName && <span className="text-xs text-slate-500 block">Campaign: {contract.campaignName}</span>}
+                    <span className="text-xs font-medium text-zinc-500 block">Client Brand</span>
+                    <span className="font-semibold text-zinc-900 text-sm block">{contract.brandName} {contract.brandHandle ? `(${contract.brandHandle})` : ""}</span>
+                    {contract.campaignName && <span className="text-xs text-zinc-500 block">Campaign: {contract.campaignName}</span>}
                   </div>
                 )}
 
                 {contract.creatorName && (
                   <div className="space-y-1">
-                    <span className="text-xs font-medium text-slate-500 block">Creator</span>
-                    <span className="font-bold text-slate-900 text-sm block">{contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}</span>
+                    <span className="text-xs font-medium text-zinc-500 block">Creator</span>
+                    <span className="font-semibold text-zinc-900 text-sm block">{contract.creatorName} {contract.creatorHandle ? `(${contract.creatorHandle})` : ""}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* CARD B: Financial Compensation & Payout Terms (Full Width Rows - No side-by-side squishing) */}
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Financial Compensation &amp; Payout Terms</span>
+            {/* CARD B: Financial Compensation & Payout Terms */}
+            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                Financial Compensation &amp; Payout Terms
+              </span>
               
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {/* Row 1: Total Valuation */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-600">Total Valuation</span>
-                  <span className="text-base font-bold text-slate-900">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-zinc-600">Total Valuation</span>
+                  <span className="text-base font-semibold font-mono text-zinc-900">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
                 </div>
 
                 {/* Row 2: Advance Payment */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <span className="text-xs font-semibold text-slate-600 block">Advance Payment</span>
+                    <span className="text-xs font-medium text-zinc-600 block">Advance Deposit</span>
                     {contract.advancePaymentDate && (
-                      <span className="text-xs text-slate-500 block">Due: {formatLegalDate(contract.advancePaymentDate, contract?.jurisdictionCountryCode)}</span>
+                      <span className="text-xs text-zinc-500 block">Due: {formatLegalDate(contract.advancePaymentDate, contract?.jurisdictionCountryCode)}</span>
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-slate-900">
+                    <span className="text-sm font-semibold font-mono text-zinc-900">
                       {contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : "No Advance"}
                     </span>
                     {contract.advancePayment && (
-                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                      <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${
                         contract.advanceReceived 
                           ? "bg-emerald-50 border-emerald-200 text-emerald-800 uppercase" 
                           : "bg-amber-50 border-amber-200 text-amber-800 uppercase"
@@ -494,202 +514,214 @@ export default function PublicSigningPage({ params }: PageProps) {
                 </div>
 
                 {/* Row 3: Remaining Payout */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <span className="text-xs font-semibold text-slate-600 block">Remaining Payout</span>
+                    <span className="text-xs font-medium text-zinc-600 block">Remaining Settlement</span>
                     {contract.remainingPaymentDate && (
-                      <span className="text-xs text-slate-500 block">Due: {formatLegalDate(contract.remainingPaymentDate, contract?.jurisdictionCountryCode)}</span>
+                      <span className="text-xs text-zinc-500 block">Due: {formatLegalDate(contract.remainingPaymentDate, contract?.jurisdictionCountryCode)}</span>
                     )}
                   </div>
-                  <span className="text-sm font-bold text-slate-900">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
+                  <span className="text-sm font-semibold font-mono text-zinc-900">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
                 </div>
 
                 {/* Row 4: Route Method & Account */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-600">Payment Route Method</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-zinc-600">Payment Channel</span>
                   <div className="text-left sm:text-right">
-                    <span className="text-sm font-bold text-slate-900 uppercase block">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
-                    <span className="text-xs text-slate-600 block">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
+                    <span className="text-sm font-semibold text-zinc-900 uppercase block">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
+                    <span className="text-xs font-mono text-zinc-600 block">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* CARD C: Campaign Deliverables, Platforms & Usage Scope */}
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Required Campaign Deliverables &amp; Usage Scope</span>
+            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-5 text-left">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                Deliverables &amp; Licensing Scope
+              </span>
               
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
-                      <th className="py-3 px-3">Platform Format</th>
-                      <th className="py-3 px-3 text-center">Quantity</th>
-                      <th className="py-3 px-3 text-center">Stay Published</th>
-                      <th className="py-3 px-3">Instructions / Brief</th>
+                    <tr className="border-b border-zinc-200 text-zinc-500 font-semibold uppercase tracking-wider">
+                      <th className="py-2.5 px-3">Asset Format</th>
+                      <th className="py-2.5 px-3 text-center">Quantity</th>
+                      <th className="py-2.5 px-3 text-center">Stay Published</th>
+                      <th className="py-2.5 px-3">Production Notes</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-zinc-100">
                     {contract.deliverables?.map((d: any) => (
-                      <tr key={d.id} className="text-slate-900">
-                        <td className="py-3.5 px-3 font-bold text-xs sm:text-sm">{formatDeliverableTypeName(d.type)}</td>
-                        <td className="py-3.5 px-3 font-bold text-center text-xs sm:text-sm">{d.quantity}</td>
-                        <td className="py-3.5 px-3 text-slate-600 font-medium text-center">{d.duration || "Permanent"}</td>
-                        <td className="py-3.5 px-3 text-slate-600 max-w-xs">{d.notes || "No notes"}</td>
+                      <tr key={d.id} className="text-zinc-900">
+                        <td className="py-3 px-3 font-semibold text-xs sm:text-sm">{formatDeliverableTypeName(d.type)}</td>
+                        <td className="py-3 px-3 font-mono font-semibold text-center text-xs sm:text-sm">{d.quantity}</td>
+                        <td className="py-3 px-3 text-zinc-600 font-medium text-center">{d.duration || "Permanent"}</td>
+                        <td className="py-3 px-3 text-zinc-600 max-w-xs">{d.notes || "Standard specifications"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
 
-              <div className="space-y-3 pt-2">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-600">Platforms Allowed</span>
+              <div className="space-y-2.5 pt-1">
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-zinc-600">Platforms Permitted</span>
                   <div className="flex flex-wrap gap-1.5">
                     {contract.platformsAllowed?.map((p: string) => (
-                      <span key={p} className="px-3 py-1 rounded-lg bg-black text-white text-xs font-bold">{p}</span>
+                      <span key={p} className="px-2.5 py-1 rounded-lg bg-zinc-900 text-white text-xs font-semibold">{p}</span>
                     ))}
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-600">Granted License</span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-900">{formatUsageLicenseText(contract.usageType)}</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-zinc-600">Commercial Scope</span>
+                  <span className="text-xs sm:text-sm font-semibold text-zinc-900">{formatUsageLicenseText(contract.usageType)}</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-600">Rights Duration</span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-900">{contract.usageRightsDuration}</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-zinc-600">License Duration</span>
+                  <span className="text-xs sm:text-sm font-semibold text-zinc-900">{contract.usageRightsDuration}</span>
                 </div>
               </div>
             </div>
 
-            {/* CARD E: Delivery Timeline & Pre-Approval Protocol */}
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Delivery Window &amp; Pre-Approval Protocol</span>
+            {/* CARD D: Delivery Timeline & Pre-Approval Protocol */}
+            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                Production Timelines &amp; Review Conditions
+              </span>
               
-              <div className="space-y-3 text-xs">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-600">Delivery Deadline</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.deliveryTimeframeDays} Days (post product/advance)</span>
+              <div className="space-y-2.5 text-xs">
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-medium text-zinc-600">Delivery Deadline</span>
+                  <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{contract.deliveryTimeframeDays} Days (post product/advance)</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-600">Revision Rounds</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.revisionRounds} Rounds ({contract.revisionTurnaroundDays || 5} days/round)</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-medium text-zinc-600">Revision Rounds</span>
+                  <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{contract.revisionRounds} Rounds ({contract.revisionTurnaroundDays || 5} days/round)</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-600">Pre-Approval Protocol</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.brandApprovalRequired ? "Required (48-hr Deemed Approval)" : "Not Required"}</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-medium text-zinc-600">Pre-Approval Protocol</span>
+                  <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{contract.brandApprovalRequired ? "Required (48-hr Deemed Approval)" : "Not Required"}</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-600">Exclusivity Clause</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "No"}</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-medium text-zinc-600">Category Exclusivity</span>
+                  <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{contract.exclusivityClause ? `Active (${contract.exclusivityDuration || "Yes"})` : "None"}</span>
                 </div>
 
                 {contract.exclusivityClause && contract.exclusivityCompetitors && (
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span className="font-semibold text-slate-600">Prohibited Competitors</span>
-                    <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.exclusivityCompetitors}</span>
+                  <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-medium text-zinc-600">Excluded Competitors</span>
+                    <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{contract.exclusivityCompetitors}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* CARD F: Confidentiality / Pre-Launch NDA (if required) */}
+            {/* CARD E: Confidentiality / Pre-Launch NDA (if required) */}
             {contract.confidentialityRequired && (
-              <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Confidentiality / Pre-Launch NDA</span>
+              <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                  Confidentiality &amp; NDA
+                </span>
                 
-                <div className="space-y-3 text-xs">
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span className="font-semibold text-slate-600">NDA Embargo Status</span>
-                    <span className="font-bold text-slate-900">Strict NDA Active</span>
+                <div className="space-y-2.5 text-xs">
+                  <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-medium text-zinc-600">NDA Embargo Status</span>
+                    <span className="font-semibold text-zinc-900">Strict Embargo Active</span>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span className="font-semibold text-slate-600">Embargo Launch Date</span>
-                    <span className="font-bold text-slate-900">{contract.embargoDate ? formatLegalDate(contract.embargoDate, contract?.jurisdictionCountryCode) : "Required until official launch"}</span>
+                  <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-medium text-zinc-600">Embargo Launch Date</span>
+                    <span className="font-semibold text-zinc-900">{contract.embargoDate ? formatLegalDate(contract.embargoDate, contract?.jurisdictionCountryCode) : "Required until official launch"}</span>
                   </div>
 
                   {contract.earlyDisclosurePenalty && (
-                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <span className="font-semibold text-slate-600">Early Leak Penalty</span>
-                      <span className="font-bold text-rose-600 text-xs sm:text-sm">{formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}</span>
+                    <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <span className="font-medium text-zinc-600">Early Leak Penalty</span>
+                      <span className="font-semibold font-mono text-rose-600 text-xs sm:text-sm">{formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}</span>
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {/* CARD G: Collaboration Product Shipment & Return Terms (if present) */}
+            {/* CARD F: Collaboration Product Shipment & Return Terms (if present) */}
             {contract.collabProduct && (
-              <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Collaboration Product Shipment &amp; Return Terms</span>
+              <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                  Product Logistics &amp; Provisioning
+                </span>
                 
-                <div className="space-y-3 text-xs">
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span className="font-semibold text-slate-600">Product Details</span>
-                    <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.collabProduct} ({contract.collabProductProvisionType})</span>
+                <div className="space-y-2.5 text-xs">
+                  <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-medium text-zinc-600">Product Details</span>
+                    <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{contract.collabProduct} ({contract.collabProductProvisionType})</span>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span className="font-semibold text-slate-600">Expected Arrival Date</span>
-                    <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate, contract?.jurisdictionCountryCode) : "Not Specified"}</span>
+                  <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="font-medium text-zinc-600">Expected Arrival Date</span>
+                    <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{contract.collabDeliveryDate ? formatLegalDate(contract.collabDeliveryDate, contract?.jurisdictionCountryCode) : "Not Specified"}</span>
                   </div>
 
                   {contract.collabDeliveryAddress && (
-                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
-                      <span className="font-semibold text-slate-600 block">Delivery Address</span>
-                      <span className="font-bold text-slate-900 text-xs sm:text-sm block">{contract.collabDeliveryAddress}</span>
+                    <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 space-y-1">
+                      <span className="font-medium text-zinc-600 block">Delivery Address</span>
+                      <span className="font-semibold text-zinc-900 text-xs sm:text-sm block">{contract.collabDeliveryAddress}</span>
                     </div>
                   )}
 
                   {contract.collabProductProvisionType === "Product Loan" && (
-                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1.5 leading-relaxed">
-                      <div>Product Loan Return Deadline: Within <strong className="font-bold">{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
-                      <div>Return Shipping Paid By: <strong className="font-bold">{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
-                      {contract.collabProductNonReturnFee && <div>Loss / Non-Return Fee: <strong className="font-bold">{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
+                    <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 space-y-1.5 leading-relaxed">
+                      <div>Product Loan Return Window: Within <strong className="font-semibold">{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
+                      <div>Return Shipping Paid By: <strong className="font-semibold">{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
+                      {contract.collabProductNonReturnFee && <div>Loss / Non-Return Fee: <strong className="font-semibold font-mono">{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {/* CARD H: Bilateral Safeguard Penalties */}
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Bilateral Safeguard Penalties &amp; Caps</span>
+            {/* CARD G: Bilateral Safeguard Penalties */}
+            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                Bilateral Safeguard Penalties &amp; Caps
+              </span>
               
-              <div className="space-y-3 text-xs">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-600">Late Payment / Delivery</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
+              <div className="space-y-2.5 text-xs">
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-medium text-zinc-600">Late Payment / Delivery</span>
+                  <span className="font-semibold font-mono text-zinc-900 text-xs sm:text-sm">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-600">Unauthorized Brand Re-Use</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of fee</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-medium text-zinc-600">Unauthorized Brand Ad Usage</span>
+                  <span className="font-semibold font-mono text-zinc-900 text-xs sm:text-sm">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of fee</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-600">Non-Delivery Advance Refund</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-medium text-zinc-600">Non-Delivery Advance Refund</span>
+                  <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{contract.advanceRefundable !== false ? `Yes (within ${contract.advanceRefundTimeframeDays || 7} days)` : "No"}</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-600">Non-Delivery Cutoff</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{contract.nonDeliveryCutoffDays || 7} Days post-deadline</span>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="font-medium text-zinc-600">Non-Delivery Termination Cutoff</span>
+                  <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{contract.nonDeliveryCutoffDays || 7} Days post-deadline</span>
                 </div>
               </div>
             </div>
 
-            {/* CARD I: Section 11 - Governing Law & Dispute Resolution (ADR) */}
-            <div className="bg-blue-50/60 border border-blue-200 rounded-3xl p-6 sm:p-8 space-y-2 text-xs text-blue-950">
-              <span className="font-bold uppercase tracking-wider block text-blue-900 text-xs">Section 11: Governing Law &amp; Dispute Resolution</span>
+            {/* CARD H: Dispute Resolution Clause */}
+            <div className="bg-blue-50/70 border border-blue-200/80 rounded-3xl p-5 sm:p-7 space-y-1.5 text-xs text-blue-950 text-left">
+              <span className="font-semibold uppercase tracking-wider block text-blue-900 text-xs">
+                Governing Law &amp; Dispute Resolution
+              </span>
               <p className="leading-relaxed">
-                {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong>{jur.arbitrationAct}</strong>.
+                {jur.disputeClause} Legal recourse and dispute determination shall be administered under the <strong className="font-semibold">{jur.arbitrationAct}</strong>.
               </p>
             </div>
 
@@ -697,79 +729,78 @@ export default function PublicSigningPage({ params }: PageProps) {
 
           {/* SECTION 2: VERIFICATION & DIGITAL SIGNATURE EXECUTION / PDF DOWNLOAD CENTER */}
           {isExecuted ? (
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 text-left">
-              <div className="border-b border-slate-100 pb-4">
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wider">
-                  2. Bilateral Execution &amp; PDF Download Center
+            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-6 text-left">
+              <div className="border-b border-zinc-100 pb-3">
+                <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
+                  <Download className="w-4 h-4 text-zinc-600" />
+                  <span>2. Bilateral Execution &amp; PDF Download Center</span>
                 </h2>
-                <p className="text-xs text-slate-500 font-medium mt-1">
+                <p className="text-xs text-zinc-500 font-normal mt-1">
                   This agreement is fully signed and active. Below are your persistent legal PDF transaction documents.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="p-6 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-4">
-                  <div className="font-bold text-slate-900 text-sm sm:text-base">Bilateral Executed Contract PDF</div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Contains the full A4 legal agreement with all 11 standardized clauses, party signatures, and payment details.
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-5 rounded-2xl border border-zinc-200 bg-zinc-50/70 space-y-3">
+                  <div className="font-semibold text-zinc-900 text-sm">Bilateral Executed Contract PDF</div>
+                  <p className="text-xs text-zinc-600 leading-relaxed font-normal">
+                    Contains the full A4 legal agreement with all standardized clauses, dual electronic signatures, and payout routing.
                   </p>
                   <button
                     type="button"
                     onClick={handleDownloadPdf}
                     disabled={downloadingPdf}
-                    className="w-full py-3.5 rounded-2xl bg-black text-white font-bold text-xs uppercase hover:bg-slate-900 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3 rounded-xl bg-zinc-950 text-white font-semibold text-xs uppercase hover:bg-zinc-900 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
+                    <Download className="w-4 h-4" />
                     <span>{downloadingPdf ? "Retrieving PDF..." : "Download Contract PDF"}</span>
                   </button>
                 </div>
 
-                <div className="p-6 rounded-2xl border border-blue-200 bg-blue-50/40 space-y-4">
-                  <div className="font-bold text-blue-950 text-sm sm:text-base">Standalone Legal Audit Certificate PDF</div>
-                  <p className="text-xs text-blue-900/70 leading-relaxed">
-                    Contains verification QR code, SHA-256 document checksums, IP addresses, device fingerprints, and time logs.
+                <div className="p-5 rounded-2xl border border-blue-200 bg-blue-50/40 space-y-3">
+                  <div className="font-semibold text-blue-950 text-sm">Cryptographic Audit Certificate PDF</div>
+                  <p className="text-xs text-blue-900/80 leading-relaxed font-normal">
+                    Contains verification QR code, SHA-256 document checksums, IP audit logs, and hardware device fingerprints.
                   </p>
                   <button
                     type="button"
                     onClick={handleDownloadCertificate}
                     disabled={downloadingCert}
-                    className="w-full py-3.5 rounded-2xl bg-blue-600 text-white font-bold text-xs uppercase hover:bg-blue-700 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-xs uppercase hover:bg-blue-700 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
+                    <ShieldCheck className="w-4 h-4" />
                     <span>{downloadingCert ? "Retrieving Certificate..." : "Download Audit Certificate"}</span>
                   </button>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-2">
+            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-6 text-left">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-100 pb-3 gap-2">
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wider">
-                    2. Counterparty Verification &amp; Digital Signature Execution
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                    Party 2 Execution
+                  </span>
+                  <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
+                    <PenLine className="w-4 h-4 text-zinc-600" />
+                    <span>2. Counterparty Identity Intake &amp; Digital Signature</span>
                   </h2>
-                  <p className="text-xs text-slate-500 font-medium mt-1">
+                  <p className="text-xs text-zinc-500 font-normal mt-1">
                     Complete your profile details, verify your email identity via OTP, and execute your digital signature.
                   </p>
                 </div>
                 {otpVerified && (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-3.5 py-1.5 rounded-full uppercase tracking-wider w-fit">
-                    <svg className="w-3.5 h-3.5 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-wider w-fit">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Identity Verified</span>
                   </span>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* 1. Your Email Address * */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-zinc-700">
                     Your Email Address <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -779,13 +810,13 @@ export default function PublicSigningPage({ params }: PageProps) {
                     value={respondentEmail}
                     onChange={(e) => setRespondentEmail(e.target.value)}
                     disabled={otpDispatched || otpVerified}
-                    className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                    className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 {/* 2. Your Phone Number * */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-zinc-700">
                     Your Phone Number <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -795,7 +826,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     value={respondentPhone}
                     onChange={(e) => setRespondentPhone(e.target.value)}
                     disabled={otpDispatched || otpVerified}
-                    className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                    className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -805,6 +836,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <ModernSelect
                       label="Signing Capacity *"
                       value={respondentCapacity}
+                      disabled={otpDispatched || otpVerified}
                       onChange={(val: any) => {
                         setRespondentCapacity(val);
                         if (val === "CREATOR_MANAGER") {
@@ -822,8 +854,8 @@ export default function PublicSigningPage({ params }: PageProps) {
                 )}
 
                 {/* Contact Person Name / Signer Name */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-zinc-700">
                     {respondentCapacity === "CREATOR_MANAGER" ? "Signer / Manager Name" : "Signer's Full Legal Name"} <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -833,14 +865,14 @@ export default function PublicSigningPage({ params }: PageProps) {
                     value={respondentName}
                     onChange={(e) => setRespondentName(e.target.value)}
                     disabled={otpDispatched || otpVerified}
-                    className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                    className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 {/* 4. Brand / Company Name OR Creator Handle Checkbox Confirmation */}
                 {isRespondentBrand ? (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-zinc-700">
                       Brand / Company Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -850,12 +882,12 @@ export default function PublicSigningPage({ params }: PageProps) {
                       value={respondentCompany}
                       onChange={(e) => setRespondentCompany(e.target.value)}
                       disabled={otpDispatched || otpVerified}
-                      className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                      className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                     />
                   </div>
                 ) : isRespondentAgency ? (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-zinc-700">
                       Agency Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -865,29 +897,29 @@ export default function PublicSigningPage({ params }: PageProps) {
                       value={respondentCompany}
                       onChange={(e) => setRespondentCompany(e.target.value)}
                       disabled={otpDispatched || otpVerified}
-                      className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                      className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                     />
                   </div>
                 ) : (
-                  <div className="flex items-start gap-3.5 p-4 bg-slate-50 border border-slate-200/80 rounded-xl sm:col-span-2">
+                  <div className="flex items-start gap-3 p-3.5 bg-zinc-50 border border-zinc-200/80 rounded-2xl sm:col-span-2">
                     <input
                       type="checkbox"
                       id="confirmHandle"
                       checked={confirmHandleChecked}
                       onChange={(e) => setConfirmHandleChecked(e.target.checked)}
                       disabled={otpDispatched || otpVerified}
-                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-black focus:ring-black cursor-pointer"
+                      className="mt-0.5 h-4 w-4 rounded accent-zinc-950 cursor-pointer"
                     />
-                    <label htmlFor="confirmHandle" className="text-xs text-slate-700 font-medium cursor-pointer leading-relaxed">
-                      <strong className="text-slate-900 font-bold">Confirm Creator Handle:</strong> I confirm that I am the creator or authorized representative for Instagram account <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{contract?.creatorHandle || "N/A"}</span>. <span className="text-rose-500">*</span>
+                    <label htmlFor="confirmHandle" className="text-xs text-zinc-700 font-medium cursor-pointer leading-relaxed">
+                      <strong className="text-zinc-950 font-semibold">Confirm Creator Handle:</strong> I confirm that I am the creator or authorized representative for Instagram account <span className="font-semibold font-mono text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{contract?.creatorHandle || "N/A"}</span>. <span className="text-rose-500">*</span>
                     </label>
                   </div>
                 )}
 
                 {/* 4b. Conditional Creator Legal Name (if Manager signing) */}
                 {isRespondentCreator && respondentCapacity === "CREATOR_MANAGER" && (
-                  <div className="flex flex-col gap-2 sm:col-span-2">
-                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <label className="text-xs font-semibold text-zinc-700">
                       Creator Full Legal Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -897,15 +929,15 @@ export default function PublicSigningPage({ params }: PageProps) {
                       value={creatorLegalName}
                       onChange={(e) => setCreatorLegalName(e.target.value)}
                       disabled={otpDispatched || otpVerified}
-                      className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                      className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                     />
                   </div>
                 )}
 
                 {/* 5. Address * */}
-                <div className="flex flex-col gap-2 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    {isRespondentAgency ? "Agency Address" : isRespondentBrand ? "Brand / Company Address" : "Residential / Contact Address"} <span className="text-rose-500">*</span>
+                <div className="flex flex-col gap-1 sm:col-span-2">
+                  <label className="text-xs font-semibold text-zinc-700">
+                    {isRespondentAgency ? "Agency Office Address" : isRespondentBrand ? "Brand / Company Registered Address" : "Residential / Contact Address"} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -914,7 +946,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     value={respondentAddress}
                     onChange={(e) => setRespondentAddress(e.target.value)}
                     disabled={otpDispatched || otpVerified}
-                    className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                    className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -931,10 +963,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
                   {(isRespondentBrand || isRespondentAgency) ? (
                     <>
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      <label className="text-xs font-semibold text-zinc-700">
                         {jur.taxIdLabel} <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -944,12 +976,12 @@ export default function PublicSigningPage({ params }: PageProps) {
                         value={respondentNtn}
                         onChange={(e) => setRespondentNtn(e.target.value)}
                         disabled={otpDispatched || otpVerified}
-                        className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                        className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                       />
                     </>
                   ) : (
                     <>
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      <label className="text-xs font-semibold text-zinc-700">
                         {jur.nationalIdLabel} {!jur.nationalIdLabel.toLowerCase().includes("optional") && <span className="text-rose-500">*</span>}
                       </label>
                       <input
@@ -959,7 +991,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                         value={respondentCnic}
                         onChange={(e) => setRespondentCnic(e.target.value)}
                         disabled={otpDispatched || otpVerified}
-                        className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                        className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                       />
                     </>
                   )}
@@ -967,12 +999,12 @@ export default function PublicSigningPage({ params }: PageProps) {
 
                 {/* Payout Account Route Selection for Counterparty Payee (Creator / Agency) */}
                 {isRespondentPayee && (
-                  <div className="sm:col-span-2 border-t border-slate-100 pt-6 mt-2 space-y-4">
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                  <div className="sm:col-span-2 border-t border-zinc-100 pt-5 mt-1 space-y-3">
+                    <span className="text-xs font-semibold text-zinc-800 uppercase tracking-wide block">
                       {isRespondentAgency ? "Agency Payout Account Details" : "Your Payout Account Details"} (Required for Campaign Payouts) <span className="text-rose-500">*</span>
                     </span>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((m) => {
                         const labelMap: Record<string, string> = {
                           BANK_IBAN: "Bank Transfer (IBAN)",
@@ -992,10 +1024,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                             type="button"
                             disabled={otpDispatched || otpVerified}
                             onClick={() => setPaymentMethod(m)}
-                            className={`py-3 px-4 rounded-xl text-xs font-bold border transition-all ${
+                            className={`py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                               paymentMethod === m
-                                ? "bg-black text-white border-black shadow-md"
-                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                                ? "bg-zinc-950 text-white border-zinc-950 shadow-xs"
+                                : "bg-zinc-50 text-zinc-700 border-zinc-200 hover:border-zinc-400"
                             }`}
                           >
                             {labelMap[m] || m.replace(/_/g, " ")}
@@ -1005,8 +1037,8 @@ export default function PublicSigningPage({ params }: PageProps) {
                     </div>
 
                     {paymentMethod === "BANK_IBAN" || paymentMethod === "SEPA" || paymentMethod === "WIRE_TRANSFER" || paymentMethod === "ACH_ROUTING" ? (
-                      <div className="flex flex-col gap-2 pt-2">
-                        <label className="text-xs font-bold uppercase text-slate-600">
+                      <div className="flex flex-col gap-1 pt-1">
+                        <label className="text-xs font-semibold text-zinc-700">
                           {paymentMethod === "ACH_ROUTING"
                             ? "Routing & Account Number *"
                             : paymentMethod === "SEPA"
@@ -1032,53 +1064,53 @@ export default function PublicSigningPage({ params }: PageProps) {
                               ? "GB29 NWBK 6016 1331 9268 19"
                               : "Enter your IBAN or Account details"
                           }
-                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
                       </div>
                     ) : paymentMethod === "PAYPAL" ? (
-                      <div className="flex flex-col gap-2 pt-2">
-                        <label className="text-xs font-bold uppercase text-slate-600">PayPal Registered Email Address *</label>
+                      <div className="flex flex-col gap-1 pt-1">
+                        <label className="text-xs font-semibold text-zinc-700">PayPal Registered Email Address *</label>
                         <input
                           type="email"
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder="e.g. paypal@example.com"
-                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
                       </div>
                     ) : paymentMethod === "WISE" ? (
-                      <div className="flex flex-col gap-2 pt-2">
-                        <label className="text-xs font-bold uppercase text-slate-600">Wise Email or Handle *</label>
+                      <div className="flex flex-col gap-1 pt-1">
+                        <label className="text-xs font-semibold text-zinc-700">Wise Email or Handle *</label>
                         <input
                           type="text"
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder="e.g. name@domain.com or @handle"
-                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
                       </div>
                     ) : paymentMethod === "CREDIT_DEBIT_CARD" ? (
-                      <div className="flex flex-col gap-2 pt-2">
-                        <label className="text-xs font-bold uppercase text-slate-600">Card Reference / Last 4 Digits *</label>
+                      <div className="flex flex-col gap-1 pt-1">
+                        <label className="text-xs font-semibold text-zinc-700">Card Reference / Last 4 Digits *</label>
                         <input
                           type="text"
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder="e.g. Card ending in 4321"
-                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
                       </div>
                     ) : (
-                      <div className="flex flex-col gap-2 pt-2">
-                        <label className="text-xs font-bold uppercase text-slate-600">
+                      <div className="flex flex-col gap-1 pt-1">
+                        <label className="text-xs font-semibold text-zinc-700">
                           {paymentMethod === "JAZZCASH"
                             ? "JazzCash Mobile Account Number *"
                             : paymentMethod === "EASYPAISA"
@@ -1090,7 +1122,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder={jur.phonePlaceholder}
-                          className="px-4 py-3 text-sm font-medium rounded-xl border border-slate-300 focus:border-black focus:ring-1 focus:ring-black bg-slate-50/50 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={mobileWalletNumber}
                           onChange={(e) => setMobileWalletNumber(e.target.value)}
                         />
@@ -1100,10 +1132,12 @@ export default function PublicSigningPage({ params }: PageProps) {
                 )}
 
                 {/* STEP 1: DRAW DIGITAL SIGNATURE FIRST */}
-                <div className="sm:col-span-2 p-6 rounded-2xl border border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="sm:col-span-2 p-5 rounded-2xl border border-zinc-200 bg-zinc-50/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex flex-col text-left space-y-1">
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Step 1: Digital Signature</span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs font-semibold text-zinc-800 uppercase tracking-wide">
+                      Step 1: Digital Signature
+                    </span>
+                    <span className="text-xs text-zinc-500 font-normal">
                       {stagedSignatureB64
                         ? "Digital signature recorded! Now request OTP below to authorize & execute."
                         : isFormValid
@@ -1114,14 +1148,14 @@ export default function PublicSigningPage({ params }: PageProps) {
 
                   {stagedSignatureB64 ? (
                     <div className="flex items-center gap-3">
-                      <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm">
+                      <div className="bg-white border border-zinc-200 rounded-xl p-2 flex items-center gap-2 shadow-2xs">
                         <img src={stagedSignatureB64} alt="Signature Preview" className="h-9 max-w-[140px] object-contain" />
-                        <span className="text-xs font-bold text-emerald-900 bg-emerald-100 px-2.5 py-1 rounded-lg uppercase">Drawn</span>
+                        <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md uppercase">Drawn</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => setIsSignModalOpen(true)}
-                        className="text-xs text-slate-600 hover:text-black font-bold underline uppercase"
+                        className="text-xs text-blue-700 hover:text-blue-900 font-semibold underline cursor-pointer"
                       >
                         Redraw
                       </button>
@@ -1131,10 +1165,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                       type="button"
                       onClick={() => setIsSignModalOpen(true)}
                       disabled={!isFormValid}
-                      className={`font-bold px-7 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
+                      className={`font-semibold px-6 py-2.5 rounded-xl text-xs uppercase transition-all whitespace-nowrap min-h-[40px] ${
                         isFormValid
-                          ? "bg-black text-white hover:bg-slate-900 shadow-md cursor-pointer"
-                          : "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed"
+                          ? "bg-zinc-950 text-white hover:bg-zinc-900 shadow-sm cursor-pointer"
+                          : "bg-zinc-200 text-zinc-400 border border-zinc-300 cursor-not-allowed"
                       }`}
                     >
                       Draw Signature
@@ -1142,12 +1176,14 @@ export default function PublicSigningPage({ params }: PageProps) {
                   )}
                 </div>
 
-                {/* STEP 2: EMAIL OTP IDENTITY AUTHORIZATION & FINAL EXECUTION SECOND */}
-                <div className="sm:col-span-2 p-6 rounded-2xl border border-slate-200 bg-slate-50/70 flex flex-col space-y-4">
+                {/* STEP 2: EMAIL OTP IDENTITY AUTHORIZATION & FINAL EXECUTION */}
+                <div className="sm:col-span-2 p-5 rounded-2xl border border-zinc-200 bg-zinc-50/70 flex flex-col space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex flex-col text-left space-y-1">
-                      <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Step 2: Email OTP Identity Authorization</span>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs font-semibold text-zinc-800 uppercase tracking-wide">
+                        Step 2: Email OTP Identity Authorization
+                      </span>
+                      <span className="text-xs text-zinc-500 font-normal">
                         {!isFormValid || !stagedSignatureB64
                           ? "OTP inactive until complete information and digital signature are done above."
                           : otpDispatched
@@ -1161,10 +1197,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                         type="button"
                         onClick={handleSendOTP}
                         disabled={!isFormValid || !stagedSignatureB64 || otpLoading}
-                        className={`font-bold px-7 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap ${
+                        className={`font-semibold px-6 py-2.5 rounded-xl text-xs uppercase transition-all whitespace-nowrap min-h-[40px] ${
                           isFormValid && stagedSignatureB64 && !otpLoading
-                            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md cursor-pointer"
-                            : "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed"
+                            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm cursor-pointer"
+                            : "bg-zinc-200 text-zinc-400 border border-zinc-300 cursor-not-allowed"
                         }`}
                       >
                         {otpLoading ? "Sending..." : "Send OTP"}
@@ -1173,20 +1209,20 @@ export default function PublicSigningPage({ params }: PageProps) {
                   </div>
 
                   {otpDispatched && (
-                    <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-slate-200">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 pt-3 border-t border-zinc-200">
                       <input
                         type="text"
                         maxLength={6}
-                        placeholder="6-digit OTP"
+                        placeholder="123456"
                         value={otpCode}
                         onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                        className="w-full sm:w-auto bg-white border border-slate-300 focus:border-black text-center font-bold tracking-widest text-base py-2.5 px-4 rounded-xl outline-none"
+                        className="w-full sm:w-36 px-3 py-2 bg-white border-2 border-emerald-500 rounded-xl text-center font-mono font-semibold tracking-[0.2em] text-base text-zinc-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-600 placeholder:text-zinc-300 min-h-[44px]"
                       />
                       <button
                         type="button"
                         onClick={handleVerifyAndExecuteOTP}
                         disabled={otpLoading || otpCode.length !== 6 || signing}
-                        className="w-full sm:w-auto bg-black hover:bg-slate-900 text-white font-bold px-8 py-3 rounded-xl text-xs uppercase shadow-md transition-all whitespace-nowrap cursor-pointer disabled:opacity-50"
+                        className="w-full sm:w-auto bg-zinc-950 hover:bg-zinc-900 text-white font-semibold px-7 py-2.5 rounded-xl text-xs uppercase shadow-sm transition-all whitespace-nowrap cursor-pointer disabled:opacity-50 min-h-[44px]"
                       >
                         {signing ? "Processing Signature..." : otpLoading ? "Verifying..." : "Verify OTP & Execute Contract"}
                       </button>
@@ -1201,29 +1237,8 @@ export default function PublicSigningPage({ params }: PageProps) {
         </form>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-gray-200/60 bg-white/70 backdrop-blur-md py-6 flex flex-col md:flex-row items-center justify-between px-6 sm:px-12 gap-4 z-10 mt-12">
-        <span className="text-xs text-slate-500 font-medium">
-          © {new Date().getFullYear()} {company.name}. Powered by {jur.lawAbbreviation} legal security layer.
-        </span>
-        <div className="flex gap-4 items-center flex-wrap justify-center">
-          <Link href="/features" target="_blank" className="text-xs text-slate-600 hover:text-black font-semibold transition-colors">
-            Features
-          </Link>
-          <span className="text-slate-300">|</span>
-          <Link href="/verify" target="_blank" className="text-xs text-slate-600 hover:text-black font-semibold transition-colors">
-            Verify Document
-          </Link>
-          <span className="text-slate-300">|</span>
-          <Link href="/terms" target="_blank" className="text-xs text-slate-600 hover:text-black font-semibold transition-colors">
-            Terms &amp; Privacy
-          </Link>
-          <span className="text-slate-300">|</span>
-          <a href={`mailto:${company.supportEmail}`} className="text-xs text-slate-500 hover:text-black font-semibold transition-colors">
-            Support: {company.supportEmail}
-          </a>
-        </div>
-      </footer>
+      {/* Modern Public Footer */}
+      <PublicFooter />
 
       {/* Signature Modal */}
       <SignaturePadModal

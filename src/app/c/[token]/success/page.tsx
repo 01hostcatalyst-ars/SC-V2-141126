@@ -5,6 +5,15 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getCompanyConfig } from "@/lib/config";
 import { getJurisdiction } from "@/lib/config/jurisdictions";
+import { SuiteHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
+import {
+  CheckCircle2,
+  ShieldCheck,
+  Download,
+  ArrowRight,
+  FileCheck,
+} from "lucide-react";
 
 export default function SigningSuccessPage() {
   const company = getCompanyConfig();
@@ -66,66 +75,114 @@ export default function SigningSuccessPage() {
   };
 
   return (
-    <div className="min-h-screen bg-theme-gradient flex items-center justify-center p-6 text-center relative overflow-hidden font-sans">
-      {/* Background gradients */}
-      <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
+    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden font-sans text-zinc-900 antialiased selection:bg-emerald-500 selection:text-white">
+      {/* Background ambient spotlight */}
+      <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[850px] h-[450px] rounded-full ambient-spotlight-emerald pointer-events-none z-0" />
 
-      {/* Success Card */}
-      <div className="relative bg-white border border-gray-200 rounded-2xl shadow-xl p-8 max-w-lg w-full z-10 space-y-6 text-center animate-slide-in">
-        {/* Success Icon */}
-        <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-bold text-2xl mx-auto">
-          ✓
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-2xl font-black text-black">Signature Completed!</h2>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 uppercase mx-auto">
-            Executed Under {jur.lawAbbreviation}
+      {/* Global Suite Header */}
+      <SuiteHeader
+        activeRoute="/c"
+        rightBadge={
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Fully Executed</span>
           </span>
-        </div>
+        }
+      />
 
-        <p className="text-xs text-gray-500 leading-relaxed max-w-sm mx-auto">
-          Your electronic signature has been logged and locked. 
-          A fully executed campaign agreement PDF and Audit Certificate have been emailed to you. You can also download them directly below:
-        </p>
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center p-6 sm:p-10 z-10">
+        <div className="surface-card border border-zinc-200/90 rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-10 max-w-lg w-full space-y-6 text-center animate-slide-in">
+          {/* Success Icon */}
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 mx-auto shadow-sm">
+            <CheckCircle2 className="w-8 h-8 text-emerald-600" strokeWidth={2.25} />
+          </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-          <button
-            type="button"
-            onClick={handleDownloadPdf}
-            disabled={downloadingPdf}
-            className="w-full py-3 px-4 rounded-xl bg-black text-white font-bold text-xs uppercase hover:bg-black/90 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            {downloadingPdf ? "Retrieving..." : "Download Contract PDF"}
-          </button>
+          {/* Heading & Badge */}
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 font-display tracking-tight">
+              Contract Successfully Executed
+            </h1>
+            <div className="flex items-center justify-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-emerald-50 border border-emerald-200/80 text-emerald-800 uppercase tracking-wide">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                Executed Under {jur.lawAbbreviation}
+              </span>
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={handleDownloadCertificate}
-            disabled={downloadingCert}
-            className="w-full py-3 px-4 rounded-xl bg-blue-600 text-white font-bold text-xs uppercase hover:bg-blue-700 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            {downloadingCert ? "Retrieving..." : "Download Audit Certificate"}
-          </button>
-        </div>
-
-        <div className="border-t border-gray-100 pt-6 space-y-4">
-          <p className="text-[11px] text-gray-400 font-semibold leading-relaxed">
-            Need to negotiate, manage, or bilaterally sign other campaign partnerships yourself?
+          <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed max-w-md mx-auto">
+            Your electronic signature has been registered and locked on the bilateral audit trail. A signed copy and Audit Certificate have been emailed to both parties. You can also download them directly below:
           </p>
-          <Link href="/">
-            <button className="w-full bg-gray-100 hover:bg-gray-200 text-black font-bold text-xs uppercase py-3 rounded-xl transition-all border border-gray-200">
-              Create Free {company.name} Account
-            </button>
-          </Link>
-        </div>
 
-        <div className="text-[10px] text-gray-400 font-bold">
-          Powered by {company.name}
+          {/* Action Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+              className="w-full py-3.5 px-4 rounded-xl bg-zinc-900 text-white font-medium text-xs hover:bg-zinc-800 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
+            >
+              {downloadingPdf ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+                  <span>Retrieving...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 text-zinc-300 shrink-0" />
+                  <span>Download Agreement</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadCertificate}
+              disabled={downloadingCert}
+              className="w-full py-3.5 px-4 rounded-xl bg-white border border-zinc-200 text-zinc-800 font-medium text-xs hover:bg-zinc-50 hover:border-zinc-300 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
+            >
+              {downloadingCert ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-zinc-400 border-t-zinc-800 rounded-full animate-spin shrink-0" />
+                  <span>Retrieving...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Audit Certificate</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Cross-Sell / Exploration */}
+          <div className="border-t border-zinc-100 pt-6 space-y-4">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-700">
+                Need to negotiate, manage, or bilaterally sign other campaign partnerships?
+              </p>
+              <p className="text-[11px] text-zinc-400">
+                Create commercial agreements in under 60 seconds with automated compliance.
+              </p>
+            </div>
+            <Link href="/" className="block">
+              <button className="w-full bg-zinc-100 hover:bg-zinc-200/80 text-zinc-800 font-medium text-xs py-3 rounded-xl transition-all border border-zinc-200/70 flex items-center justify-center gap-2 min-h-[42px] cursor-pointer">
+                <span>Explore {company.name} Suite</span>
+                <ArrowRight className="w-3.5 h-3.5 text-zinc-500" />
+              </button>
+            </Link>
+          </div>
+
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400 font-medium pt-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Cryptographically Secured by {company.name} Vault</span>
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* Global Public Footer */}
+      <PublicFooter />
     </div>
   );
 }

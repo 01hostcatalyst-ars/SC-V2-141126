@@ -6,6 +6,23 @@ import Link from "next/link";
 import { getCompanyConfig } from "@/lib/config";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
+import {
+  ShieldCheck,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Clock,
+  Search,
+  UploadCloud,
+  FileText,
+  Lock,
+  ArrowRight,
+  Fingerprint,
+  Info,
+  Loader2,
+  FileCheck,
+  Sparkles,
+} from "lucide-react";
 
 function VerifyContent() {
   const router = useRouter();
@@ -157,41 +174,39 @@ function VerifyContent() {
   // If emailParam exists, render Email Verification OTP form
   if (emailParam) {
     return (
-      <div className="w-full max-w-lg bg-white border border-gray-200/80 rounded-3xl shadow-2xl p-8 sm:p-12 text-center space-y-8">
+      <div className="w-full max-w-lg surface-card border border-zinc-200/90 rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 text-center space-y-8">
         <div className="flex flex-col items-center gap-3">
-          <Link href="/" className="inline-flex items-center gap-2.5 outline-none mb-2">
-            <span className="w-10 h-10 rounded-xl bg-black flex items-center justify-center font-black text-white text-xl shadow-md">
+          <Link href="/" className="inline-flex items-center gap-2.5 outline-none mb-1">
+            <span className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center font-semibold text-white text-lg shadow-sm">
               {company.name[0]}
             </span>
-            <span className="font-black text-xl text-black uppercase tracking-tight">
+            <span className="font-semibold text-xl text-zinc-900 tracking-tight font-display">
               {company.name}
             </span>
           </Link>
-          <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 tracking-wide uppercase border border-slate-200">
+          <span className="px-3.5 py-1 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700 tracking-wide uppercase border border-zinc-200/80">
             Account Security
           </span>
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tight font-display">
             Verify Your Email
           </h2>
-          <p className="text-sm text-gray-600 leading-relaxed max-w-sm mx-auto">
-            We sent a 6-digit security code to <strong className="text-black font-bold">{email}</strong>.
+          <p className="text-sm text-zinc-500 leading-relaxed max-w-sm mx-auto">
+            We sent a 6-digit security code to <strong className="text-zinc-800 font-semibold">{email}</strong>.
           </p>
         </div>
 
         {otpSuccess ? (
-          <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center gap-3 text-sm text-emerald-900 font-bold">
-            <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Verification successful! Redirecting to dashboard...</span>
+          <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center gap-3 text-sm text-emerald-900 font-medium">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <span>Verification successful! Redirecting to workspace...</span>
           </div>
         ) : (
           <form onSubmit={handleOtpSubmit} className="space-y-6 text-left">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-black uppercase tracking-wider block text-center">
+              <label className="text-xs font-medium text-zinc-600 uppercase tracking-wider block text-center">
                 Enter 6-Digit Verification Code
               </label>
               <input
@@ -202,15 +217,13 @@ function VerifyContent() {
                 value={otpToken}
                 onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, ""))}
                 disabled={otpLoading}
-                className="w-full bg-slate-50 border border-slate-300 focus:border-black focus:ring-1 focus:ring-black text-center text-2xl font-bold tracking-widest py-4 rounded-2xl outline-none transition-all"
+                className="w-full bg-zinc-50 border border-zinc-300 focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 text-center text-2xl font-semibold tracking-widest py-4 rounded-xl outline-none transition-all"
               />
             </div>
 
             {otpError && (
-              <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-semibold flex items-start gap-3">
-                <svg className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+              <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-medium flex items-start gap-3">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                 <span>{otpError}</span>
               </div>
             )}
@@ -218,9 +231,19 @@ function VerifyContent() {
             <button
               type="submit"
               disabled={otpLoading}
-              className="w-full bg-black hover:bg-slate-900 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg text-sm tracking-wide"
+              className="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-medium py-3.5 px-6 rounded-xl transition-all shadow-sm text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
             >
-              {otpLoading ? "Verifying Code..." : "Verify & Continue"}
+              {otpLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white/70" />
+                  <span>Verifying Code...</span>
+                </>
+              ) : (
+                <>
+                  <span>Verify &amp; Continue</span>
+                  <ArrowRight className="w-4 h-4 text-zinc-400" />
+                </>
+              )}
             </button>
           </form>
         )}
@@ -230,44 +253,40 @@ function VerifyContent() {
 
   // Otherwise, render Public Contract Verification Engine
   return (
-    <div className="w-full max-w-3xl bg-white border border-gray-200/80 rounded-3xl shadow-2xl p-8 sm:p-12 space-y-10">
+    <div className="w-full max-w-3xl surface-card border border-zinc-200/90 rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 space-y-10">
       {/* Header */}
       <div className="text-center space-y-4">
         <div className="flex justify-center">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200/80">
-            <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span>Cryptographic Proof &amp; Audit Layer</span>
           </span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-semibold text-zinc-900 tracking-tight font-display">
           Contract Verification Vault
         </h1>
 
-        <p className="text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
+        <p className="text-sm text-zinc-500 max-w-xl mx-auto leading-relaxed">
           Instantly verify agreement authenticity, SHA-256 document checksums, and bilateral execution audit trails under global electronic signature standards.
         </p>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex bg-slate-100/80 p-2 rounded-2xl border border-slate-200/60">
+      <div className="flex bg-zinc-100/90 p-1.5 rounded-xl border border-zinc-200/70">
         <button
           onClick={() => {
             setActiveTab("lookup");
             setVerifyError("");
             setVerifyResult(null);
           }}
-          className={`flex-1 py-3 px-5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 px-4 text-xs sm:text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === "lookup"
-              ? "bg-white text-slate-900 shadow-md"
-              : "text-slate-500 hover:text-slate-900"
+              ? "bg-white text-zinc-900 shadow-sm border border-zinc-200/60"
+              : "text-zinc-600 hover:text-zinc-900"
           }`}
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Search className="w-4 h-4 text-zinc-500" />
           <span>Token / Reference Lookup</span>
         </button>
 
@@ -277,15 +296,13 @@ function VerifyContent() {
             setVerifyError("");
             setVerifyResult(null);
           }}
-          className={`flex-1 py-3 px-5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 px-4 text-xs sm:text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === "upload"
-              ? "bg-white text-slate-900 shadow-md"
-              : "text-slate-500 hover:text-slate-900"
+              ? "bg-white text-zinc-900 shadow-sm border border-zinc-200/60"
+              : "text-zinc-600 hover:text-zinc-900"
           }`}
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+          <FileCheck className="w-4 h-4 text-zinc-500" />
           <span>PDF File Checksum</span>
         </button>
       </div>
@@ -294,7 +311,7 @@ function VerifyContent() {
       {activeTab === "lookup" && (
         <div className="space-y-6">
           <div className="space-y-3 text-left">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+            <label className="text-xs font-medium text-zinc-700 uppercase tracking-wider block">
               Enter Verification Token or Contract Reference Number
             </label>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -304,20 +321,21 @@ function VerifyContent() {
                 value={lookupToken}
                 onChange={(e) => setLookupToken(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleTokenLookup()}
-                className="flex-1 bg-slate-50 border border-slate-300 focus:border-black focus:ring-1 focus:ring-black px-5 py-4 rounded-2xl text-sm font-bold text-slate-900 placeholder:text-slate-400 placeholder:font-normal outline-none transition-all"
+                className="flex-1 bg-zinc-50 border border-zinc-300 focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 px-4 py-3.5 rounded-xl text-sm font-medium text-zinc-900 placeholder:text-zinc-400 placeholder:font-normal outline-none transition-all"
               />
               <button
                 onClick={() => handleTokenLookup()}
                 disabled={verifyLoading}
-                className="bg-black hover:bg-slate-900 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg text-sm shrink-0 flex items-center justify-center gap-2"
+                className="bg-zinc-900 hover:bg-zinc-800 text-white font-medium py-3.5 px-6 rounded-xl transition-all shadow-sm text-sm shrink-0 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
               >
                 {verifyLoading ? (
-                  <span>Checking Vault...</span>
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white/70" />
+                    <span>Checking Vault...</span>
+                  </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <Search className="w-4 h-4 text-zinc-300" />
                     <span>Verify Agreement</span>
                   </>
                 )}
@@ -325,14 +343,12 @@ function VerifyContent() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-left">
-            <div className="text-xs font-bold text-slate-800 flex items-center gap-2">
-              <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 space-y-1.5 text-left">
+            <div className="text-xs font-medium text-zinc-800 flex items-center gap-2">
+              <Info className="w-4 h-4 text-zinc-500" />
               <span>Where to find your reference code</span>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-zinc-500 leading-relaxed pl-6">
               Your verification token is printed at the footer of any executed SignCollab agreement PDF and included in your execution confirmation email.
             </p>
           </div>
@@ -350,7 +366,7 @@ function VerifyContent() {
                 handleFileUpload(e.dataTransfer.files[0]);
               }
             }}
-            className="border-2 border-dashed border-slate-300 hover:border-black rounded-3xl p-10 sm:p-14 text-center bg-slate-50/60 hover:bg-slate-100/50 transition-all cursor-pointer space-y-4"
+            className="border-2 border-dashed border-zinc-300 hover:border-zinc-900 rounded-2xl p-10 sm:p-14 text-center bg-zinc-50/70 hover:bg-zinc-100/50 transition-all cursor-pointer space-y-4"
           >
             <input
               type="file"
@@ -364,51 +380,45 @@ function VerifyContent() {
               }}
             />
             <label htmlFor="pdf-upload-input" className="cursor-pointer block space-y-4">
-              <div className="w-16 h-16 bg-slate-200/80 text-slate-700 rounded-2xl flex items-center justify-center mx-auto transition-transform hover:scale-105">
-                <svg className="w-8 h-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
+              <div className="w-14 h-14 bg-zinc-200/80 text-zinc-700 rounded-2xl flex items-center justify-center mx-auto transition-transform hover:scale-105">
+                <UploadCloud className="w-7 h-7 text-zinc-700" strokeWidth={1.75} />
               </div>
 
               <div className="space-y-1">
-                <div className="text-base font-extrabold text-slate-900">
+                <div className="text-sm font-semibold text-zinc-900">
                   {uploadedFile ? uploadedFile.name : "Drop contract PDF here, or browse files"}
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-zinc-500">
                   Supports executed contract PDFs (.pdf)
                 </div>
               </div>
             </label>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start gap-3 text-left">
-            <svg className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 flex items-start gap-3 text-left">
+            <Lock className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <div className="text-xs font-bold text-slate-900">Privacy Preserving Local Analysis</div>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <div className="text-xs font-medium text-zinc-900">Privacy Preserving Local Analysis</div>
+              <p className="text-xs text-zinc-500 leading-relaxed">
                 Binary SHA-256 hash calculation is performed 100% locally inside your web browser using Web Crypto API. File contents are never uploaded to our servers.
               </p>
             </div>
           </div>
 
           {computingHash && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-xs font-bold text-blue-900 text-center flex items-center justify-center gap-2 animate-pulse">
-              <svg className="w-4 h-4 animate-spin text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
-                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
-              </svg>
+            <div className="p-4 bg-emerald-50 border border-emerald-200/80 rounded-xl text-xs font-medium text-emerald-900 text-center flex items-center justify-center gap-2 animate-pulse">
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
               <span>Computing Web Crypto binary SHA-256 hash...</span>
             </div>
           )}
 
           {computedHash && (
-            <div className="p-5 bg-slate-100 rounded-2xl text-left space-y-2 border border-slate-200">
-              <div className="text-xs uppercase font-bold text-slate-500 tracking-wider">
-                Calculated Binary SHA-256 Checksum
+            <div className="p-4 bg-zinc-50 rounded-xl text-left space-y-1.5 border border-zinc-200/80">
+              <div className="text-[11px] uppercase font-medium text-zinc-500 tracking-wider flex items-center gap-1.5">
+                <Fingerprint className="w-3.5 h-3.5 text-zinc-500" />
+                <span>Calculated Binary SHA-256 Checksum</span>
               </div>
-              <div className="text-xs font-bold text-slate-900 break-all tracking-wider">
+              <div className="text-xs font-mono font-medium text-zinc-800 break-all">
                 {computedHash}
               </div>
             </div>
@@ -418,28 +428,24 @@ function VerifyContent() {
 
       {/* Error Message */}
       {verifyError && (
-        <div className="p-5 bg-rose-50 border border-rose-200 text-rose-900 rounded-2xl text-xs sm:text-sm font-semibold flex items-start gap-3 text-left">
-          <svg className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-900 rounded-xl text-xs sm:text-sm font-medium flex items-start gap-3 text-left">
+          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
           <span className="leading-relaxed">{verifyError}</span>
         </div>
       )}
 
       {/* Result Display Cards (Handling 4 States) */}
       {verifyResult && (
-        <div className="space-y-8 text-left">
+        <div className="space-y-6 text-left">
           {/* State 1: EXECUTED_VERIFIED */}
           {verifyResult.state === "EXECUTED_VERIFIED" && (
-            <div className="border border-emerald-200/90 bg-emerald-50/50 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+            <div className="border border-emerald-200/90 bg-emerald-50/40 rounded-2xl sm:rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-emerald-200/60">
-                <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-black uppercase tracking-wider w-fit">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-semibold uppercase tracking-wider w-fit">
+                  <CheckCircle2 className="w-4 h-4 text-white" />
                   <span>Cryptographically Verified &amp; Executed</span>
                 </span>
-                <span className={`text-xs font-extrabold uppercase px-3 py-1.5 rounded-xl border w-fit ${
+                <span className={`text-xs font-semibold uppercase px-3 py-1.5 rounded-xl border w-fit ${
                   verifyResult.dealLifecycle === "COMPLETED" ? "bg-blue-100 text-blue-900 border-blue-200" :
                   verifyResult.dealLifecycle === "CANCELLED" ? "bg-rose-100 text-rose-900 border-rose-200" :
                   "bg-emerald-100 text-emerald-900 border-emerald-200"
@@ -448,55 +454,53 @@ function VerifyContent() {
                 </span>
               </div>
 
-              <p className="text-sm text-emerald-950 font-semibold leading-relaxed">
+              <p className="text-sm text-emerald-950 font-medium leading-relaxed">
                 {verifyResult.message}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm space-y-1">
-                  <div className="font-bold text-slate-400 uppercase text-xs tracking-wider">Contract Ref No.</div>
-                  <div className="font-extrabold text-slate-900 text-base">{verifyResult.contractNumber}</div>
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-emerald-100 shadow-sm space-y-1">
+                  <div className="font-medium text-zinc-400 uppercase text-[11px] tracking-wider">Contract Ref No.</div>
+                  <div className="font-semibold text-zinc-900 text-base">{verifyResult.contractNumber}</div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm space-y-1">
-                  <div className="font-bold text-slate-400 uppercase text-xs tracking-wider">Execution Timestamp</div>
-                  <div className="font-extrabold text-slate-900 text-base">
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-emerald-100 shadow-sm space-y-1">
+                  <div className="font-medium text-zinc-400 uppercase text-[11px] tracking-wider">Execution Timestamp</div>
+                  <div className="font-semibold text-zinc-900 text-base">
                     {new Date(verifyResult.executedAt).toLocaleString()}
                   </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm space-y-1">
-                  <div className="font-bold text-slate-400 uppercase text-xs tracking-wider">Party A (Initiator)</div>
-                  <div className="font-bold text-slate-900 text-sm">{verifyResult.partyA}</div>
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-emerald-100 shadow-sm space-y-1">
+                  <div className="font-medium text-zinc-400 uppercase text-[11px] tracking-wider">Party A (Initiator)</div>
+                  <div className="font-medium text-zinc-900 text-sm">{verifyResult.partyA}</div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm space-y-1">
-                  <div className="font-bold text-slate-400 uppercase text-xs tracking-wider">Party B (Respondent)</div>
-                  <div className="font-bold text-slate-900 text-sm">{verifyResult.partyB}</div>
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-emerald-100 shadow-sm space-y-1">
+                  <div className="font-medium text-zinc-400 uppercase text-[11px] tracking-wider">Party B (Respondent)</div>
+                  <div className="font-medium text-zinc-900 text-sm">{verifyResult.partyB}</div>
                 </div>
               </div>
 
               {verifyResult.isEmbargoActive && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-950 font-semibold leading-relaxed flex items-start gap-2.5">
-                  <svg className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-950 font-medium leading-relaxed flex items-start gap-2.5">
+                  <Lock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <span>
                     <strong>Dynamic NDA Protection Active:</strong> Party names are concealed under Section 7 product embargo terms until {new Date(verifyResult.embargoDate).toLocaleDateString()}.
                   </span>
                 </div>
               )}
 
-              <div className="bg-white p-5 rounded-2xl border border-emerald-100 space-y-2 text-xs">
-                <div className="text-slate-500 font-bold tracking-wider">
-                  STRUCTURAL HASH: <span className="text-slate-900 font-extrabold">{verifyResult.finalDocumentHashTruncated}</span>
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-emerald-100 space-y-2 text-xs">
+                <div className="text-zinc-500 font-medium tracking-wider">
+                  STRUCTURAL HASH: <span className="text-zinc-900 font-semibold">{verifyResult.finalDocumentHashTruncated}</span>
                 </div>
-                <div className="text-slate-500 font-bold tracking-wider">
-                  PDF SHA-256: <span className="text-blue-700 font-extrabold break-all">{verifyResult.pdfBinaryHash || "Verified"}</span>
+                <div className="text-zinc-500 font-medium tracking-wider">
+                  PDF SHA-256: <span className="text-emerald-700 font-mono font-medium break-all">{verifyResult.pdfBinaryHash || "Verified"}</span>
                 </div>
               </div>
 
-              <div className="text-xs text-slate-500 font-medium text-center pt-2">
+              <div className="text-xs text-zinc-500 font-medium text-center pt-2">
                 Verified under {verifyResult.complianceStandard}
               </div>
             </div>
@@ -504,35 +508,31 @@ function VerifyContent() {
 
           {/* State 2: IN_PROGRESS */}
           {verifyResult.state === "IN_PROGRESS" && (
-            <div className="border border-amber-200 bg-amber-50/50 rounded-3xl p-6 sm:p-8 space-y-4">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-600 text-white rounded-full text-xs font-black uppercase tracking-wider w-fit">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <div className="border border-amber-200 bg-amber-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 space-y-4">
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-600 text-white rounded-full text-xs font-semibold uppercase tracking-wider w-fit">
+                <Clock className="w-4 h-4 text-white" />
                 <span>Awaiting Countersignature</span>
               </span>
 
-              <p className="text-sm text-amber-950 font-semibold leading-relaxed">
+              <p className="text-sm text-amber-950 font-medium leading-relaxed">
                 {verifyResult.message}
               </p>
 
-              <div className="text-xs bg-white p-4 rounded-2xl border border-amber-200 text-slate-800 font-semibold">
-                Reference Code: <strong className="text-black font-bold">{verifyResult.contractNumber}</strong> | Created: {new Date(verifyResult.createdAt).toLocaleDateString()}
+              <div className="text-xs bg-white p-4 rounded-xl border border-amber-200 text-zinc-800 font-medium">
+                Reference Code: <strong className="text-zinc-900 font-semibold">{verifyResult.contractNumber}</strong> | Created: {new Date(verifyResult.createdAt).toLocaleDateString()}
               </div>
             </div>
           )}
 
           {/* State 3: CHECKSUM_MISMATCH */}
           {verifyResult.state === "CHECKSUM_MISMATCH" && (
-            <div className="border border-orange-200 bg-orange-50/50 rounded-3xl p-6 sm:p-8 space-y-4">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-orange-600 text-white rounded-full text-xs font-black uppercase tracking-wider w-fit">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+            <div className="border border-orange-200 bg-orange-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 space-y-4">
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-orange-600 text-white rounded-full text-xs font-semibold uppercase tracking-wider w-fit">
+                <AlertTriangle className="w-4 h-4 text-white" />
                 <span>Checksum Mismatch</span>
               </span>
 
-              <p className="text-sm text-orange-950 font-semibold leading-relaxed">
+              <p className="text-sm text-orange-950 font-medium leading-relaxed">
                 {verifyResult.message}
               </p>
             </div>
@@ -540,15 +540,13 @@ function VerifyContent() {
 
           {/* State 4: TOKEN_NOT_FOUND */}
           {verifyResult.state === "TOKEN_NOT_FOUND" && (
-            <div className="border border-rose-200 bg-rose-50/50 rounded-3xl p-6 sm:p-8 space-y-4">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose-600 text-white rounded-full text-xs font-black uppercase tracking-wider w-fit">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+            <div className="border border-rose-200 bg-rose-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 space-y-4">
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-rose-600 text-white rounded-full text-xs font-semibold uppercase tracking-wider w-fit">
+                <XCircle className="w-4 h-4 text-white" />
                 <span>Token Not Found</span>
               </span>
 
-              <p className="text-sm text-rose-950 font-semibold leading-relaxed">
+              <p className="text-sm text-rose-950 font-medium leading-relaxed">
                 {verifyResult.message}
               </p>
             </div>
@@ -560,25 +558,22 @@ function VerifyContent() {
 }
 
 export default function VerifyPage() {
-  const company = getCompanyConfig();
-
   return (
     <Suspense
       fallback={
         <div className="min-h-screen bg-theme-gradient flex items-center justify-center flex-col gap-3">
-          <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-bold uppercase tracking-wider text-black">
+          <div className="w-10 h-10 border-3 border-zinc-800 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-medium uppercase tracking-wider text-zinc-700">
             Loading Verification Vault...
           </span>
         </div>
       }
     >
-      <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
-        {/* Background ambient glow shapes */}
-        <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
-        <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
+      <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left font-sans text-zinc-900 antialiased selection:bg-emerald-500 selection:text-white">
+        {/* Background ambient spotlight */}
+        <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[850px] h-[450px] rounded-full ambient-spotlight-emerald pointer-events-none z-0" />
 
-        {/* Header */}
+        {/* Global Public Header */}
         <PublicHeader activeRoute="/verify" />
 
         {/* Main Body */}
@@ -586,7 +581,7 @@ export default function VerifyPage() {
           <VerifyContent />
         </main>
 
-        {/* Footer */}
+        {/* Global Public Footer */}
         <PublicFooter />
       </div>
     </Suspense>
