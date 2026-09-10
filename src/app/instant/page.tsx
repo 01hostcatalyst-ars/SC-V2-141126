@@ -266,9 +266,22 @@ function InstantContractForm() {
     }
   }, [contractType]);
 
+  // Counterparty fields (Reactive based on contractType)
+  const [brandName, setBrandName] = useState("");
+  const [brandHandle, setBrandHandle] = useState("");
+  const [campaignName, setCampaignName] = useState("");
+  const [creatorName, setCreatorName] = useState("");
+  const [creatorHandle, setCreatorHandle] = useState("");
+
   // Pre-fill fields if navigated from the Influencer Rate Calculator
   useEffect(() => {
     if (!searchParams || searchParams.get("from") !== "calculator") return;
+
+    const creatorParam = searchParams.get("creator") || searchParams.get("creatorName");
+    if (creatorParam) setCreatorName(creatorParam);
+
+    const handleParam = searchParams.get("handle") || searchParams.get("creatorHandle");
+    if (handleParam) setCreatorHandle(handleParam);
 
     const amountParam = searchParams.get("amount");
     if (amountParam) setTotalAmount(amountParam);
@@ -315,13 +328,6 @@ function InstantContractForm() {
       setExclusivityClause(true);
     }
   }, [searchParams]);
-
-  // Counterparty fields (Reactive based on contractType)
-  const [brandName, setBrandName] = useState("");
-  const [brandHandle, setBrandHandle] = useState("");
-  const [campaignName, setCampaignName] = useState("");
-  const [creatorName, setCreatorName] = useState("");
-  const [creatorHandle, setCreatorHandle] = useState("");
 
   // Party 1 Initiator Signature states (Captured before OTP)
   const [initiatorSignatureB64, setInitiatorSignatureB64] = useState("");

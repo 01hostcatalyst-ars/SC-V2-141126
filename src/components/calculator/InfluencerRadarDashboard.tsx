@@ -2,6 +2,38 @@
 
 import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
+import {
+  Search,
+  ArrowRight,
+  ArrowUp,
+  Clock,
+  CheckCircle2,
+  Zap,
+  Radio,
+  Sparkles,
+  Package,
+  FileText,
+  Copy,
+  Globe,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  ShieldCheck,
+  Flame,
+  Crown,
+  Users,
+  Video,
+  Camera,
+  Music2,
+  X,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+  TrendingUp,
+  DollarSign,
+  Activity,
+} from "lucide-react";
 import { Platform, DeliverableFormat, PricingInput, RegionCode } from "@/lib/calculator/types";
 import { calculateInfluencerRate } from "@/lib/calculator/engine";
 import { FORMAT_LABELS, REGIONAL_CONFIG, PRIMARY_NICHES, SUB_NICHES, getSubNichesByPrimaryId } from "@/lib/calculator/constants";
@@ -105,6 +137,12 @@ export function InfluencerRadarDashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
+  // Progressive Scroll UX Refs & Sticky Search Bar
+  const heroSectionRef = useRef<HTMLDivElement>(null);
+  const telemetrySectionRef = useRef<HTMLDivElement>(null);
+  const valuationDashboardRef = useRef<HTMLDivElement>(null);
+  const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
+
   // Calibration State (Country & Niche)
   const [selectedRegion, setSelectedRegion] = useState<RegionCode>("US");
   const [activeNicheId, setActiveNicheId] = useState<number>(8);
@@ -146,6 +184,29 @@ export function InfluencerRadarDashboard() {
   useEffect(() => {
     platformsRef.current = platforms;
   }, [platforms]);
+
+  // Track scroll position to reveal sticky search / creator bar when scrolled past hero
+  useEffect(() => {
+    const handleScroll = () => {
+      if (hasSearched && window.scrollY > 280) {
+        setIsStickyBarVisible(true);
+      } else {
+        setIsStickyBarVisible(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasSearched]);
+
+  // Stage 3 Smooth Auto-Scroll down to Valuation Dashboard when calibrated
+  useEffect(() => {
+    if (isValuationCalibrated && valuationDashboardRef.current) {
+      const timer = setTimeout(() => {
+        valuationDashboardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [isValuationCalibrated]);
 
   // Instagram Ticker Step Progression
   useEffect(() => {
@@ -617,7 +678,7 @@ export function InfluencerRadarDashboard() {
         }));
 
         addActivity(
-          `Verified ${targetPlatform.toUpperCase()}: @${username} · ${followerCount.toLocaleString()} ${targetPlatform === "youtube" ? "Subscribers" : "Followers"} (${engagementRate}% ER) ${data.isCached ? "(⚡ 24h DB Cache)" : "(📡 Live Scan)"}`,
+          `Verified ${targetPlatform.toUpperCase()}: @${username} · ${followerCount.toLocaleString()} ${targetPlatform === "youtube" ? "Subscribers" : "Followers"} (${engagementRate}% ER) ${data.isCached ? "(Verified Cache)" : "(Live Scan)"}`,
           "success"
         );
 
@@ -686,6 +747,11 @@ export function InfluencerRadarDashboard() {
       youtube: { status: "idle" },
       tiktok: { status: "idle" },
     });
+
+    // Stage 2 Smooth Auto-Scroll down to Telemetry Station
+    setTimeout(() => {
+      telemetrySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
 
     let initialTargetPlatform: Platform = selectedPlatform;
     if (isUrl) {
@@ -928,6 +994,46 @@ export function InfluencerRadarDashboard() {
     }
   };
 
+  // Build 1-Click Instant Sponsorship Contract Bridge HREF (/instant)
+  const buildContractHref = useCallback(() => {
+    const deliverablesList: Array<{ platform: string; format: string; quantity: number; typicalRate: number; name: string }> = [];
+    let totalTypical = 0;
+
+    (["instagram", "youtube", "tiktok"] as Platform[]).forEach((plat) => {
+      const pData = platforms[plat];
+      if (pData.status === "ready" && pData.rateCardItems && pData.rateCardItems.length > 0) {
+        pData.rateCardItems.forEach((item) => {
+          deliverablesList.push({
+            platform: plat,
+            format: item.format,
+            quantity: 1,
+            typicalRate: item.amount,
+            name: FORMAT_LABELS[item.format]?.label || item.format,
+          });
+          totalTypical += item.amount;
+        });
+      }
+    });
+
+    const primaryDeliverables = deliverablesList.slice(0, 3);
+    const calculatedAmount = primaryDeliverables.reduce((acc, d) => acc + d.typicalRate, 0);
+
+    const queryParams = new URLSearchParams({
+      from: "calculator",
+      creator: creatorMeta?.displayName || "Creator",
+      creatorName: creatorMeta?.displayName || "Creator",
+      handle: creatorMeta?.primaryUsername || "",
+      creatorHandle: creatorMeta?.primaryUsername || "",
+      platform: (creatorMeta?.primaryPlatform || "instagram").toUpperCase(),
+      currency: REGIONAL_CONFIG[selectedRegion]?.currency || "USD",
+      region: selectedRegion,
+      amount: calculatedAmount > 0 ? calculatedAmount.toString() : "500",
+      deliverables: primaryDeliverables.length > 0 ? JSON.stringify(primaryDeliverables) : "",
+      niche: PRIMARY_NICHES.find((n) => n.id === activeNicheId)?.name || "",
+    });
+    return `/instant?${queryParams.toString()}`;
+  }, [platforms, creatorMeta, selectedRegion, activeNicheId]);
+
   // Compute Omnichannel Bundles (Starter & Full Pack)
   // Per spec: each deliverable uses its OWN platform's native metrics (Steps 1-4)
   const bundleOffers = useMemo(() => {
@@ -1097,50 +1203,42 @@ export function InfluencerRadarDashboard() {
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8">
       {/* ========================================================= */}
-      {/* SECTION 1: HERO SECTION (2-COLUMN WITH BG IMAGE)          */}
+      {/* STAGE 1: HERO SEARCH SECTION                              */}
       {/* ========================================================= */}
-      <div className="relative w-full rounded-2xl sm:rounded-3xl border border-gray-200/90 bg-white/70 backdrop-blur-xs overflow-hidden p-4 sm:p-7 lg:p-10 shadow-sm">
-        {/* Background Map Image with high mobile visibility */}
+      {!hasSearched ? (
+        /* INITIAL LANDING: CENTERED HERO IN VIEWPORT */
         <div
-          className="absolute inset-0 pointer-events-none opacity-35 sm:opacity-35 lg:opacity-40 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
-          style={{ backgroundImage: "url('/hero-image-calcuator.webp')" }}
-        />
+          ref={heroSectionRef}
+          className="relative w-full rounded-2xl sm:rounded-3xl border border-zinc-200/90 bg-white/80 backdrop-blur-xs overflow-hidden p-6 sm:p-10 lg:p-14 shadow-sm min-h-[72vh] flex flex-col items-center justify-center text-center transition-all duration-500"
+        >
+          {/* Background Map Image with refined contrast */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-30 sm:opacity-35 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
+            style={{ backgroundImage: "url('/hero-image-calcuator.webp')" }}
+          />
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/90 via-white/80 to-white/95" />
 
-        {/* Soft gradient overlay tuned for mobile & desktop contrast */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/80 via-white/70 to-white/90 sm:bg-gradient-to-r sm:from-white/95 sm:via-white/80 sm:to-white/95" />
-
-        {/* Two-Column Grid: Left Title / Right Search */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center">
-          {/* Left Column: Heading, Subtitle & Badge */}
-          <div className="lg:col-span-6 space-y-2.5 sm:space-y-3 text-left">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gray-900 text-white text-[10px] sm:text-[11px] font-bold tracking-wide shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="relative z-10 max-w-2xl mx-auto space-y-6">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 text-white text-[11px] font-medium tracking-wide shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>2025–2026 Multi-Channel Rate Engine</span>
             </div>
 
-            <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-950 leading-tight">
-              Influencer Rate Calculator
-            </h1>
+            <div className="space-y-2.5">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-zinc-900 leading-tight">
+                Influencer Rate Calculator
+              </h1>
+              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-xl mx-auto">
+                Enter a creator profile link or handle. Our autonomous radar discovers connected channels, audits engagement velocity, and calibrates defended deliverable rates.
+              </p>
+            </div>
 
-            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-lg">
-              Enter a creator profile link or handle. The autonomous radar will evaluate engagement, discover linked channels, and calibrate for local market rates.
-            </p>
-          </div>
-
-          {/* Right Column: Search Card */}
-          <div className="lg:col-span-6">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200 shadow-md p-3 sm:p-4 space-y-2.5 text-left">
+            {/* Centered Search Card */}
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-200 shadow-md p-3 sm:p-4 space-y-3 text-left max-w-xl mx-auto">
               <form onSubmit={handleStart} className="space-y-2.5">
-                <div className="relative flex items-center bg-gray-50/90 rounded-xl border border-gray-200 focus-within:border-gray-900 focus-within:bg-white focus-within:ring-1 focus-within:ring-gray-900 transition-all p-1">
-                  <div className="pl-2.5 sm:pl-3 pr-1 text-gray-400 shrink-0">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.75"
-                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                      />
-                    </svg>
+                <div className="relative flex items-center bg-zinc-50/90 rounded-xl border border-zinc-200 focus-within:border-zinc-900 focus-within:bg-white focus-within:ring-1 focus-within:ring-zinc-900 transition-all p-1">
+                  <div className="pl-2.5 sm:pl-3 pr-1 text-zinc-400 shrink-0">
+                    <Search className="w-4 h-4" />
                   </div>
 
                   <input
@@ -1148,32 +1246,23 @@ export function InfluencerRadarDashboard() {
                     value={inputQuery}
                     onChange={(e) => setInputQuery(e.target.value)}
                     placeholder="Paste URL or handle (@creator)"
-                    className="w-full min-w-0 px-2 py-1.5 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 bg-transparent outline-none font-medium"
+                    className="w-full min-w-0 px-2 py-1.5 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 bg-transparent outline-none font-medium"
                   />
 
                   <button
                     type="submit"
                     disabled={isSearching || !inputQuery.trim()}
-                    className="px-3.5 sm:px-4 py-2 bg-gray-950 hover:bg-black disabled:opacity-40 text-white font-semibold text-xs rounded-lg transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed"
+                    className="px-3.5 sm:px-4 py-2 bg-zinc-900 hover:bg-black disabled:opacity-40 text-white font-medium text-xs rounded-lg transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed"
                   >
                     {isSearching ? (
                       <>
-                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                          />
-                        </svg>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         <span>Scanning</span>
                       </>
                     ) : (
                       <>
                         <span>Start</span>
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                        </svg>
+                        <ArrowRight className="w-3 h-3" />
                       </>
                     )}
                   </button>
@@ -1181,16 +1270,16 @@ export function InfluencerRadarDashboard() {
 
                 {/* Conditional Platform Selector (Only for handle) */}
                 {hasHandleInput && (
-                  <div className="flex flex-wrap items-center justify-between p-2 rounded-xl bg-gray-50/70 border border-gray-150 text-xs gap-1.5 animate-fadeIn">
-                    <span className="text-gray-500 font-medium text-[11px] sm:text-xs">Handle Platform:</span>
+                  <div className="flex flex-wrap items-center justify-between p-2 rounded-xl bg-zinc-50/70 border border-zinc-150 text-xs gap-1.5 animate-fadeIn">
+                    <span className="text-zinc-500 font-medium text-[11px] sm:text-xs">Handle Platform:</span>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => setSelectedPlatform("instagram")}
                         className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
                           selectedPlatform === "instagram"
-                            ? "bg-gray-950 text-white shadow-2xs"
-                            : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
+                            ? "bg-zinc-900 text-white shadow-2xs"
+                            : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
                         }`}
                       >
                         Instagram
@@ -1200,8 +1289,8 @@ export function InfluencerRadarDashboard() {
                         onClick={() => setSelectedPlatform("youtube")}
                         className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
                           selectedPlatform === "youtube"
-                            ? "bg-gray-950 text-white shadow-2xs"
-                            : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
+                            ? "bg-zinc-900 text-white shadow-2xs"
+                            : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
                         }`}
                       >
                         YouTube
@@ -1211,8 +1300,8 @@ export function InfluencerRadarDashboard() {
                         onClick={() => setSelectedPlatform("tiktok")}
                         className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
                           selectedPlatform === "tiktok"
-                            ? "bg-gray-950 text-white shadow-2xs"
-                            : "text-gray-600 hover:text-gray-950 hover:bg-gray-100"
+                            ? "bg-zinc-900 text-white shadow-2xs"
+                            : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
                         }`}
                       >
                         TikTok
@@ -1223,19 +1312,19 @@ export function InfluencerRadarDashboard() {
               </form>
 
               {/* Quick Examples */}
-              <div className="pt-1.5 border-t border-gray-100 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500">
-                <span className="text-gray-400 font-medium">Try:</span>
+              <div className="pt-1.5 border-t border-zinc-100 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-500">
+                <span className="text-zinc-400 font-medium">Try:</span>
                 <button
                   type="button"
                   onClick={() => handleQuickTest("https://www.instagram.com/irfanjunejo/", "instagram")}
-                  className="px-2 py-0.5 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 transition-all border border-gray-200/60 cursor-pointer"
+                  className="px-2 py-0.5 rounded-md bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-all border border-zinc-200/60 cursor-pointer"
                 >
                   @irfanjunejo <span className="hidden sm:inline">(Multi-Channel Bio)</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickTest("https://www.youtube.com/@mkbhd", "youtube")}
-                  className="px-2 py-0.5 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 transition-all border border-gray-200/60 cursor-pointer"
+                  className="px-2 py-0.5 rounded-md bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-all border border-zinc-200/60 cursor-pointer"
                 >
                   @mkbhd <span className="hidden sm:inline">(YouTube)</span>
                 </button>
@@ -1243,530 +1332,735 @@ export function InfluencerRadarDashboard() {
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* STAGES 2 & 3: HERO AT TOP + PROGRESSIVE SCROLL FLOW */
+        <>
+          {/* Top Hero Section (Scrollable Back Up) */}
+          <div
+            ref={heroSectionRef}
+            className="relative w-full rounded-2xl sm:rounded-3xl border border-zinc-200/90 bg-white/70 backdrop-blur-xs overflow-hidden p-4 sm:p-6 lg:p-8 shadow-sm transition-all duration-500"
+          >
+            <div
+              className="absolute inset-0 pointer-events-none opacity-30 sm:opacity-35 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
+              style={{ backgroundImage: "url('/hero-image-calcuator.webp')" }}
+            />
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/80 via-white/70 to-white/90 sm:bg-gradient-to-r sm:from-white/95 sm:via-white/80 sm:to-white/95" />
 
-      {/* ========================================================= */}
-      {/* SECTION 2: DYNAMIC COMMAND ISLAND (1-LINE TELEMETRY)      */}
-      {/* ========================================================= */}
-      {hasSearched && (
-        <div className="space-y-8 animate-fadeIn">
-          <DynamicCommandIslandTicker
-            platforms={platforms}
-            igStepIdx={igStepIdx}
-            ytStepIdx={ytStepIdx}
-            ttStepIdx={ttStepIdx}
-            verifiedChannelsCount={verifiedChannelsCount}
-            onOpenMissingModal={() => setIsMissingModalOpen(true)}
-            selectedRegion={selectedRegion}
-            completeIntelligence={completeIntelligence}
-            isSynthesizing={isSynthesizing}
-            isValuationCalibrated={isValuationCalibrated}
-          />
-
-          {/* ========================================================= */}
-          {/* SECTION 3: CREATOR UNIFIED IDENTITY & COMBINED REACH      */}
-          {/* ========================================================= */}
-          {creatorMeta && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeIn">
-              <div className="flex items-center gap-3.5">
-                {creatorMeta.avatarUrl ? (
-                  <img
-                    src={creatorMeta.avatarUrl}
-                    alt={creatorMeta.displayName}
-                    className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-gray-950 text-white font-bold text-sm flex items-center justify-center shrink-0">
-                    {creatorMeta.displayName.slice(0, 2).toUpperCase()}
-                  </div>
-                )}
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-sm sm:text-base font-bold text-gray-950">{creatorMeta.displayName}</h2>
-                    <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[10px] font-semibold">
-                      Multi-Channel Profile
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-400 font-mono">@{creatorMeta.primaryUsername}</div>
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center">
+              <div className="lg:col-span-6 space-y-2 text-left">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-900 text-white text-[10px] sm:text-[11px] font-medium tracking-wide shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Live Radar Station Active</span>
                 </div>
+
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-zinc-900 leading-tight">
+                  Influencer Rate Calculator
+                </h1>
+
+                <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-lg">
+                  Auditing live engagement velocity, cross-platform bio links, and regional economic purchasing power parity.
+                </p>
               </div>
 
-              {/* Combined Audience Badge */}
-              <div className="flex items-center gap-4 text-xs bg-gray-50 p-2.5 rounded-xl border border-gray-200/70 shrink-0">
-                <div>
-                  <div className="text-[10px] text-gray-400 font-medium uppercase">Combined Reach</div>
-                  <div className="text-sm font-bold font-mono text-gray-950">
-                    {formatShortNumber(totalAudienceCount)}
+              <div className="lg:col-span-6">
+                <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-200 shadow-md p-3 sm:p-4 space-y-2.5 text-left">
+                  <form onSubmit={handleStart} className="space-y-2.5">
+                    <div className="relative flex items-center bg-zinc-50/90 rounded-xl border border-zinc-200 focus-within:border-zinc-900 focus-within:bg-white focus-within:ring-1 focus-within:ring-zinc-900 transition-all p-1">
+                      <div className="pl-2.5 sm:pl-3 pr-1 text-zinc-400 shrink-0">
+                        <Search className="w-4 h-4" />
+                      </div>
+
+                      <input
+                        type="text"
+                        value={inputQuery}
+                        onChange={(e) => setInputQuery(e.target.value)}
+                        placeholder="Paste URL or handle (@creator)"
+                        className="w-full min-w-0 px-2 py-1.5 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 bg-transparent outline-none font-medium"
+                      />
+
+                      <button
+                        type="submit"
+                        disabled={isSearching || !inputQuery.trim()}
+                        className="px-3.5 sm:px-4 py-2 bg-zinc-900 hover:bg-black disabled:opacity-40 text-white font-medium text-xs rounded-lg transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed"
+                      >
+                        {isSearching ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Scanning</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Start</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {hasHandleInput && (
+                      <div className="flex flex-wrap items-center justify-between p-2 rounded-xl bg-zinc-50/70 border border-zinc-150 text-xs gap-1.5 animate-fadeIn">
+                        <span className="text-zinc-500 font-medium text-[11px] sm:text-xs">Handle Platform:</span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPlatform("instagram")}
+                            className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+                              selectedPlatform === "instagram"
+                                ? "bg-zinc-900 text-white shadow-2xs"
+                                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                            }`}
+                          >
+                            Instagram
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPlatform("youtube")}
+                            className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+                              selectedPlatform === "youtube"
+                                ? "bg-zinc-900 text-white shadow-2xs"
+                                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                            }`}
+                          >
+                            YouTube
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPlatform("tiktok")}
+                            className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+                              selectedPlatform === "tiktok"
+                                ? "bg-zinc-900 text-white shadow-2xs"
+                                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                            }`}
+                          >
+                            TikTok
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </form>
+
+                  <div className="pt-1.5 border-t border-zinc-100 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-500">
+                    <span className="text-zinc-400 font-medium">Try:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickTest("https://www.instagram.com/irfanjunejo/", "instagram")}
+                      className="px-2 py-0.5 rounded-md bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-all border border-zinc-200/60 cursor-pointer"
+                    >
+                      @irfanjunejo <span className="hidden sm:inline">(Multi-Channel Bio)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickTest("https://www.youtube.com/@mkbhd", "youtube")}
+                      className="px-2 py-0.5 rounded-md bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-all border border-zinc-200/60 cursor-pointer"
+                    >
+                      @mkbhd <span className="hidden sm:inline">(YouTube)</span>
+                    </button>
                   </div>
                 </div>
-                <div className="w-px h-6 bg-gray-200" />
-                <div>
-                  <div className="text-[10px] text-gray-400 font-medium uppercase">Active Channels</div>
-                  <div className="text-sm font-bold font-mono text-gray-950">
-                    {verifiedChannelsCount} Platforms
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================= */}
-          {/* COUNTRY & GDP PPP CALIBRATION CONTROLLER                  */}
-          {/* ========================================================= */}
-          {verifiedChannelsCount > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-gray-50 border border-gray-200 text-xs animate-fadeIn">
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                      <path strokeWidth="2" d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                    </svg>
-                    Country:
-                  </span>
-                  <select
-                    value={selectedRegion}
-                    onChange={(e) => {
-                      const newReg = e.target.value as RegionCode;
-                      hasUserManuallySelectedRegion.current = true;
-                      setSelectedRegion(newReg);
-                      recomputeAllPlatformRates(newReg, activeNicheId, activeSubNicheId);
-                    }}
-                    className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs"
-                  >
-                    <option value="PK">Pakistan (PKR · 0.18x PPP)</option>
-                    <option value="US">United States (USD · 1.00x)</option>
-                    <option value="GB">United Kingdom (GBP · 0.85x PPP)</option>
-                    <option value="IN">India (INR · 0.24x PPP)</option>
-                    <option value="CA">Canada (CAD · 0.90x PPP)</option>
-                    <option value="AU">Australia (AUD · 0.88x PPP)</option>
-                    <option value="AE">United Arab Emirates (AED · 0.68x PPP)</option>
-                    <option value="SA">Saudi Arabia (SAR · 0.62x PPP)</option>
-                    <option value="DE">Germany (EUR · 0.85x PPP)</option>
-                    <option value="FR">France (EUR · 0.84x PPP)</option>
-                    <option value="SG">Singapore (SGD · 0.82x PPP)</option>
-                    <option value="BR">Brazil (BRL · 0.36x PPP)</option>
-                    <option value="BD">Bangladesh (BDT · 0.20x PPP)</option>
-                    <option value="NG">Nigeria (NGN · 0.16x PPP)</option>
-                    <option value="EG">Egypt (EGP · 0.17x PPP)</option>
-                    <option value="TR">Turkey (TRY · 0.32x PPP)</option>
-                    <option value="ZA">South Africa (ZAR · 0.38x PPP)</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
-                    Sector:
-                  </span>
-                  <select
-                    value={activeNicheId}
-                    onChange={(e) => {
-                      const newNiche = Number(e.target.value);
-                      const availableSubs = getSubNichesByPrimaryId(newNiche);
-                      const defaultSub = availableSubs[0]?.id;
-                      setActiveNicheId(newNiche);
-                      setActiveSubNicheId(defaultSub);
-                      recomputeAllPlatformRates(selectedRegion, newNiche, defaultSub);
-                    }}
-                    className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs max-w-[210px] truncate"
-                  >
-                    {PRIMARY_NICHES.map((n) => (
-                      <option key={n.id} value={n.id}>
-                        {n.name} ({n.multiplier}x)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
-                    Sub-Niche:
-                  </span>
-                  <select
-                    value={activeSubNicheId || ""}
-                    onChange={(e) => {
-                      const newSub = Number(e.target.value);
-                      setActiveSubNicheId(newSub);
-                      recomputeAllPlatformRates(selectedRegion, activeNicheId, newSub);
-                    }}
-                    className="bg-white border border-gray-300 rounded-lg px-2.5 py-1 font-bold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer text-xs shadow-2xs max-w-[240px] truncate"
-                  >
-                    {getSubNichesByPrimaryId(activeNicheId).map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} ({s.multiplier}x)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="text-[11px] text-gray-500 font-medium">
-                Applied: <span className="font-bold text-gray-950">{REGIONAL_CONFIG[selectedRegion]?.name || selectedRegion}</span> ({REGIONAL_CONFIG[selectedRegion]?.pppIndex}x GDP PPP · {REGIONAL_CONFIG[selectedRegion]?.currency})
               </div>
             </div>
-          )}
+          </div>
 
-          {/* ========================================================= */}
-          {/* SECTION 3.5: COMPLETE 19-POINT CREATOR INTELLIGENCE DOSSIER */}
-          {/* ========================================================= */}
-          {completeIntelligence ? (
-            <div className="p-5 sm:p-6 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-4 animate-fadeIn">
-              {/* Header with Positioning & Refresh */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-black uppercase tracking-wider bg-gray-950 text-white px-3 py-1 rounded-lg">
-                    {completeIntelligence.profile?.creatorType || "Creator"}
-                  </span>
-                  {completeIntelligence.profile?.primaryNiche && (
-                    <span className="text-xs font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded-lg border border-gray-200">
-                      {completeIntelligence.profile.primaryNiche.name} ({completeIntelligence.profile.primaryNiche.multiplier}x)
-                    </span>
-                  )}
-                  {completeIntelligence.profile?.subNiche && (
-                    <span className="text-xs font-bold text-indigo-950 bg-indigo-50/90 px-3 py-1 rounded-lg border border-indigo-200/90">
-                      {completeIntelligence.profile.subNiche.name} ({completeIntelligence.profile.subNiche.multiplier}x)
-                    </span>
-                  )}
-                  {completeIntelligence.geography?.countryCode && (
-                    <span className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-                      <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span>{completeIntelligence.geography.countryName || completeIntelligence.geography.countryCode} {completeIntelligence.geography.city ? `(${completeIntelligence.geography.city})` : ""}</span>
-                    </span>
-                  )}
-                  {completeIntelligence.brandSafety?.overallRisk && (
-                    <span className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-                      <span className={`w-2 h-2 rounded-full ${completeIntelligence.brandSafety.overallRisk === "Low" ? "bg-emerald-500" : "bg-amber-500"}`} />
-                      <span>Safety: {completeIntelligence.brandSafety.overallRisk} Risk</span>
-                    </span>
-                  )}
+          {/* DOCKED STICKY BAR WHEN SCROLLED PAST HERO */}
+          {isStickyBarVisible && (
+            <div className="sticky top-16 sm:top-20 z-30 w-full transition-all duration-300 animate-slideDown">
+              <div className="surface-card p-2 sm:p-2.5 rounded-2xl shadow-lg border border-zinc-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shrink-0">
+                    {selectedPlatform === "youtube" ? (
+                      <Video className="w-4 h-4 text-red-500" />
+                    ) : selectedPlatform === "tiktok" ? (
+                      <Music2 className="w-4 h-4 text-cyan-400" />
+                    ) : (
+                      <Camera className="w-4 h-4 text-pink-500" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-semibold text-zinc-900 truncate">
+                        {creatorMeta?.displayName || inputQuery}
+                      </span>
+                      {creatorMeta?.primaryUsername && (
+                        <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">
+                          @{creatorMeta.primaryUsername}
+                        </span>
+                      )}
+                      {isValuationCalibrated ? (
+                        <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-medium border border-emerald-200/60 hidden md:inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Calibrated
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 rounded-md bg-cyan-50 text-cyan-700 text-[10px] font-mono hidden md:inline-flex items-center gap-1">
+                          <Loader2 className="w-3 h-3 animate-spin text-cyan-500" /> Radar In Progress
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-gray-500 font-medium flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 24h Verified Cache
-                  </span>
+                <div className="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
-                    onClick={() => triggerOmnichannelSynthesis(true)}
-                    disabled={isSynthesizing}
-                    className="px-3 py-1 text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg transition-all border border-gray-200 cursor-pointer"
+                    onClick={() => {
+                      heroSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    className="px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                   >
-                    {isSynthesizing ? "Analyzing..." : "↻ Refresh AI"}
+                    <ArrowUp className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">New Search</span>
                   </button>
+
+                  {isValuationCalibrated && (
+                    <Link
+                      href={buildContractHref()}
+                      className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Create Contract</span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* SECTION 2: TELEMETRY & PROCESSING STATION                 */}
+          {/* ========================================================= */}
+          <div
+            ref={telemetrySectionRef}
+            className="space-y-4 scroll-mt-24 transition-all duration-500 animate-fadeIn"
+          >
+            {/* Reassuring Radar Process Banner with 2-4 Min Timing Callout */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 text-white shadow-xl border border-zinc-800 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0">
+                    <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm font-semibold tracking-tight text-white">
+                        Autonomous Telemetry Radar
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-mono border border-emerald-500/30">
+                        {isValuationCalibrated ? "Calibrated" : "Live Processing"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400">
+                      Target: <span className="text-white font-medium">{inputQuery}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-300">
+                  <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>Complete analysis takes <strong>~2–4 minutes</strong></span>
                 </div>
               </div>
 
-              {/* Brand Summary */}
-              {(completeIntelligence.summary?.brandSummary || completeIntelligence.summary?.oneLine) && (
-                <p className="text-xs sm:text-sm text-gray-800 leading-relaxed font-normal bg-gray-50/50 p-3.5 rounded-xl border border-gray-100">
-                  &ldquo;{completeIntelligence.summary.brandSummary || completeIntelligence.summary.oneLine}&rdquo;
+              {/* Reassuring Process Description */}
+              <div className="text-xs text-zinc-300 leading-relaxed flex items-start gap-2 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/60">
+                <Clock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <p>
+                  Our autonomous radar performs live cross-platform entity resolution &amp; neural LLM indexing. Complete analysis takes ~2–4 minutes depending on channel velocity. Rates and intelligence dossier calibrate automatically below.
                 </p>
-              )}
-
-              {/* Micro-Niches Tags */}
-              {(completeIntelligence.profile?.microNiches?.length ?? 0) > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                  <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Micro-Niches:</span>
-                  {completeIntelligence.profile.microNiches.map((mn, i) => (
-                    <span key={i} className="text-xs font-medium bg-gray-50 text-gray-800 px-2.5 py-1 rounded-lg border border-gray-200">
-                      {mn}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* 2x2 High-End Intelligence Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
-                {/* Card 1: Inferred Audience */}
-                <div className="p-4 rounded-xl bg-gray-50/70 border border-gray-200 space-y-2.5">
-                  <div className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-1.5 pb-1 border-b border-gray-200/60">
-                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <span>Inferred Audience</span>
-                  </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
-                      <span className="text-gray-500">Demographic Profile</span>
-                      <span className="font-semibold text-gray-950">{completeIntelligence.audience?.genderSkew || "Balanced"}, {completeIntelligence.audience?.likelyAgeRange || "18-34"}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
-                      <span className="text-gray-500">Commercial Buyer Intent</span>
-                      <span className="font-bold text-gray-900 bg-gray-200/70 px-2 py-0.5 rounded-md text-[11px]">{completeIntelligence.audience?.purchaseIntent || "Moderate"} Intent</span>
-                    </div>
-                    <div className={`flex justify-between items-center py-0.5 ${secondaryMarketsList.length > 0 ? "border-b border-gray-100" : ""}`}>
-                      <span className="text-gray-500">Primary Regional Market</span>
-                      <span className="font-semibold text-gray-950">{cleanPrimaryMarket}</span>
-                    </div>
-                    {secondaryMarketsList.length > 0 && (
-                      <div className="flex justify-between items-start py-0.5 gap-2">
-                        <span className="text-gray-500 shrink-0">Secondary Regional Markets</span>
-                        <span className="font-medium text-gray-800 text-right">{secondaryMarketsList.join(", ")}</span>
-                      </div>
-                    )}
-                  </div>
-                  {(completeIntelligence.audience?.interests?.length ?? 0) > 0 && (
-                    <div className="pt-2 border-t border-gray-200/60 space-y-1">
-                      <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Audience Interests</div>
-                      <div className="flex flex-wrap gap-1">
-                        {completeIntelligence.audience.interests.map((interest, idx) => (
-                          <span key={idx} className="text-[11px] bg-white text-gray-800 px-2 py-0.5 rounded-md border border-gray-200">
-                            {interest}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card 2: Content DNA */}
-                <div className="p-4 rounded-xl bg-gray-50/70 border border-gray-200 space-y-2.5">
-                  <div className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-1.5 pb-1 border-b border-gray-200/60">
-                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                    <span>Content DNA &amp; Format</span>
-                  </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
-                      <span className="text-gray-500">Dominant Format</span>
-                      <span className="font-semibold text-gray-950">{completeIntelligence.content?.dominantFormat || "Video"}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
-                      <span className="text-gray-500">Production Standard</span>
-                      <span className="font-semibold text-gray-950">{completeIntelligence.content?.productionLevel || "High"}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-0.5">
-                      <span className="text-gray-500">Publishing Consistency</span>
-                      <span className="font-semibold text-gray-950">{completeIntelligence.content?.contentConsistency || "High"}</span>
-                    </div>
-                  </div>
-                  {(completeIntelligence.contentThemes?.length ?? 0) > 0 && (
-                    <div className="pt-2 border-t border-gray-200/60 space-y-1">
-                      <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Top Content Themes</div>
-                      <div className="flex flex-wrap gap-1">
-                        {completeIntelligence.contentThemes.map((t, idx) => (
-                          <span key={idx} className="text-[11px] bg-white text-gray-800 px-2 py-0.5 rounded-md border border-gray-200">
-                            {t.theme} {t.strength ? `(${Math.round(t.strength * 100)}%)` : ""}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card 3: Brand Fit & Commercial Profile */}
-                <div className="p-4 rounded-xl bg-gray-50/70 border border-gray-200 space-y-2.5">
-                  <div className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-1.5 pb-1 border-b border-gray-200/60">
-                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Brand Fit &amp; Sponsorships</span>
-                  </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between items-center py-0.5 border-b border-gray-100">
-                      <span className="text-gray-500">Commercial Intent</span>
-                      <span className="font-semibold text-gray-950">{completeIntelligence.commercialIntelligence?.commercialIntent || "High"}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-0.5">
-                      <span className="text-gray-500">Brand Suitability</span>
-                      <span className="font-bold text-gray-900 bg-gray-200/70 px-2 py-0.5 rounded-md text-[11px]">{completeIntelligence.brandFit?.brandSuitability || "High"}</span>
-                    </div>
-                  </div>
-                  {(completeIntelligence.brandFit?.bestFitCategories?.length ?? 0) > 0 && (
-                    <div className="pt-2 border-t border-gray-200/60 space-y-1">
-                      <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Best Fit Categories</div>
-                      <div className="flex flex-wrap gap-1">
-                        {completeIntelligence.brandFit.bestFitCategories.map((cat, idx) => (
-                          <span key={idx} className="text-[11px] bg-white text-gray-800 px-2 py-0.5 rounded-md border border-gray-200">
-                            {cat}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card 4: Key Strategic Strengths */}
-                <div className="p-4 rounded-xl bg-gray-50/70 border border-gray-200 space-y-2.5">
-                  <div className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-1.5 pb-1 border-b border-gray-200/60">
-                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    <span>Key Strategic Strengths</span>
-                  </div>
-                  <div className="space-y-2 text-xs">
-                    {(completeIntelligence.strengths?.length ?? 0) > 0 ? (
-                      completeIntelligence.strengths.map((s, i) => (
-                        <div key={i} className="space-y-0.5">
-                          <div className="font-bold text-gray-950">• {s.area}</div>
-                          <div className="text-gray-600 text-[11px] leading-relaxed pl-3">{s.description}</div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-gray-500 text-xs">High organic retention and consistent performance.</div>
-                    )}
-                  </div>
-                </div>
               </div>
+
+              {/* Dynamic Island Ticker */}
+              <DynamicCommandIslandTicker
+                platforms={platforms}
+                igStepIdx={igStepIdx}
+                ytStepIdx={ytStepIdx}
+                ttStepIdx={ttStepIdx}
+                verifiedChannelsCount={verifiedChannelsCount}
+                onOpenMissingModal={() => setIsMissingModalOpen(true)}
+                selectedRegion={selectedRegion}
+                completeIntelligence={completeIntelligence}
+                isSynthesizing={isSynthesizing}
+                isValuationCalibrated={isValuationCalibrated}
+              />
             </div>
-          ) : isSynthesizing ? (
-            <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 animate-pulse flex items-center justify-center gap-2 text-xs font-semibold text-gray-600">
-              <div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-black rounded-full animate-spin" />
-              <span>SignCollab LLM Engine: Synthesizing 19-point Creator Intelligence Dossier...</span>
-            </div>
-          ) : null}
-
-          {/* ========================================================= */}
-          {/* SECTION 4: THE 3-PLATFORM EMPIRICAL RATE SHEETS           */}
-          {/* ========================================================= */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
-            {/* 1. Instagram Card */}
-            <PlatformRateCardItem
-              platform="instagram"
-              platformName="Instagram"
-              icon={
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                </svg>
-              }
-              data={platforms.instagram}
-              metricLabel="Followers"
-              onManualSearch={(handle) => scrapePlatform(handle, "instagram")}
-              isValuationCalibrated={isValuationCalibrated}
-            />
-
-            {/* 2. YouTube Card */}
-            <PlatformRateCardItem
-              platform="youtube"
-              platformName="YouTube"
-              icon={
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-              }
-              data={platforms.youtube}
-              metricLabel="Subscribers"
-              onManualSearch={(handle) => scrapePlatform(handle, "youtube")}
-              isValuationCalibrated={isValuationCalibrated}
-            />
-
-            {/* 3. TikTok Card */}
-            <PlatformRateCardItem
-              platform="tiktok"
-              platformName="TikTok"
-              icon={
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
-                </svg>
-              }
-              data={platforms.tiktok}
-              metricLabel="Followers"
-              onManualSearch={(handle) => scrapePlatform(handle, "tiktok")}
-              isValuationCalibrated={isValuationCalibrated}
-            />
           </div>
 
           {/* ========================================================= */}
-          {/* SECTION 5: OMNICHANNEL BUNDLE OPTIMIZER                   */}
-          {/* ========================================================= */}
-          {bundleOffers && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-gray-950 text-white shadow-xl space-y-4 animate-fadeIn">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <h3 className="text-xs sm:text-sm font-bold tracking-tight text-white">
-                    Automated Omnichannel Package Discounts
-                  </h3>
-                </div>
-                <div className="text-[11px] font-mono text-gray-400">
-                  Target: {creatorMeta?.displayName || "Creator"}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {/* 2-Platform Starter Pack */}
-                <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="text-xs font-bold text-white">{bundleOffers.starter.title}</div>
-                      <div className="text-[11px] text-gray-400 font-mono">{bundleOffers.starter.subtitle}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-bold font-mono text-white">
-                        {bundleOffers.starter.typicalFormatted}
-                      </div>
-                      <div className="text-[10px] text-emerald-400 font-mono">
-                        Save {bundleOffers.starter.savings}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-[10px] text-gray-500 font-mono">
-                    Range: {bundleOffers.starter.lowFormatted} – {bundleOffers.starter.highFormatted}
-                  </div>
-                </div>
-
-                {/* 360 Authority Pack */}
-                <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="text-xs font-bold text-white">{bundleOffers.authority.title}</div>
-                      <div className="text-[11px] text-gray-400 font-mono">{bundleOffers.authority.subtitle}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-bold font-mono text-white">
-                        {bundleOffers.authority.typicalFormatted}
-                      </div>
-                      <div className="text-[10px] text-emerald-400 font-mono">
-                        Save {bundleOffers.authority.savings}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-[10px] text-gray-500 font-mono">
-                    Range: {bundleOffers.authority.lowFormatted} – {bundleOffers.authority.highFormatted}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================= */}
-          {/* SECTION 5.5: INSTANT SPONSORSHIP CONTRACT WORKFLOW CTA    */}
+          {/* SECTION 3+: FULL VALUATION DASHBOARD (MOUNTS ON CALIBRATION) */}
           {/* ========================================================= */}
           {isValuationCalibrated && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/90 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 animate-fadeIn">
-              <div className="space-y-1 text-left">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <h3 className="text-xs sm:text-sm font-bold text-gray-950">
-                    Lock in this valuation with a legal sponsorship agreement
-                  </h3>
+            <div
+              ref={valuationDashboardRef}
+              className="space-y-8 scroll-mt-24 transition-all duration-500 animate-fadeIn"
+            >
+              {/* SECTION 3: CREATOR UNIFIED IDENTITY & COMBINED REACH */}
+              {creatorMeta && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-zinc-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeIn">
+                  <div className="flex items-center gap-3.5">
+                    {creatorMeta.avatarUrl ? (
+                      <img
+                        src={creatorMeta.avatarUrl}
+                        alt={creatorMeta.displayName}
+                        className="w-12 h-12 rounded-full object-cover border border-zinc-200 shadow-2xs shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-zinc-950 text-white font-semibold text-sm flex items-center justify-center shrink-0">
+                        {creatorMeta.displayName.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-sm sm:text-base font-semibold text-zinc-950">{creatorMeta.displayName}</h2>
+                        <span className="px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 text-[10px] font-medium flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Multi-Channel Profile
+                        </span>
+                      </div>
+                      <div className="text-xs text-zinc-400 font-mono">@{creatorMeta.primaryUsername}</div>
+                    </div>
+                  </div>
+
+                  {/* Combined Audience Badge */}
+                  <div className="flex items-center gap-4 text-xs bg-zinc-50 p-2.5 rounded-xl border border-zinc-200/70 shrink-0">
+                    <div>
+                      <div className="text-[10px] text-zinc-400 font-medium uppercase">Combined Reach</div>
+                      <div className="text-sm font-semibold font-mono text-zinc-950">
+                        {formatShortNumber(totalAudienceCount)}
+                      </div>
+                    </div>
+                    <div className="w-px h-6 bg-zinc-200" />
+                    <div>
+                      <div className="text-[10px] text-zinc-400 font-medium uppercase">Active Channels</div>
+                      <div className="text-sm font-semibold font-mono text-zinc-950">
+                        {verifiedChannelsCount} Platforms
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-[11px] text-gray-500 max-w-xl">
-                  Generate an Instant Creator Sponsorship Agreement pre-filled with verified deliverables, usage rights, and calibrated pricing.
-                </p>
+              )}
+
+              {/* COUNTRY & GDP PPP CALIBRATION CONTROLLER */}
+              {verifiedChannelsCount > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs animate-fadeIn">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-zinc-700" />
+                        Country:
+                      </span>
+                      <select
+                        value={selectedRegion}
+                        onChange={(e) => {
+                          const newReg = e.target.value as RegionCode;
+                          hasUserManuallySelectedRegion.current = true;
+                          setSelectedRegion(newReg);
+                          recomputeAllPlatformRates(newReg, activeNicheId, activeSubNicheId);
+                        }}
+                        className="bg-white border border-zinc-300 rounded-lg px-2.5 py-1 font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900 cursor-pointer text-xs shadow-2xs"
+                      >
+                        <option value="PK">Pakistan (PKR · 0.18x PPP)</option>
+                        <option value="US">United States (USD · 1.00x)</option>
+                        <option value="GB">United Kingdom (GBP · 0.85x PPP)</option>
+                        <option value="IN">India (INR · 0.24x PPP)</option>
+                        <option value="CA">Canada (CAD · 0.90x PPP)</option>
+                        <option value="AU">Australia (AUD · 0.88x PPP)</option>
+                        <option value="AE">United Arab Emirates (AED · 0.68x PPP)</option>
+                        <option value="SA">Saudi Arabia (SAR · 0.62x PPP)</option>
+                        <option value="DE">Germany (EUR · 0.85x PPP)</option>
+                        <option value="FR">France (EUR · 0.84x PPP)</option>
+                        <option value="SG">Singapore (SGD · 0.82x PPP)</option>
+                        <option value="BR">Brazil (BRL · 0.36x PPP)</option>
+                        <option value="BD">Bangladesh (BDT · 0.20x PPP)</option>
+                        <option value="NG">Nigeria (NGN · 0.16x PPP)</option>
+                        <option value="EG">Egypt (EGP · 0.17x PPP)</option>
+                        <option value="TR">Turkey (TRY · 0.32x PPP)</option>
+                        <option value="ZA">South Africa (ZAR · 0.38x PPP)</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">
+                        Sector:
+                      </span>
+                      <select
+                        value={activeNicheId}
+                        onChange={(e) => {
+                          const newNiche = Number(e.target.value);
+                          const availableSubs = getSubNichesByPrimaryId(newNiche);
+                          const defaultSub = availableSubs[0]?.id;
+                          setActiveNicheId(newNiche);
+                          setActiveSubNicheId(defaultSub);
+                          recomputeAllPlatformRates(selectedRegion, newNiche, defaultSub);
+                        }}
+                        className="bg-white border border-zinc-300 rounded-lg px-2.5 py-1 font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900 cursor-pointer text-xs shadow-2xs max-w-[210px] truncate"
+                      >
+                        {PRIMARY_NICHES.map((n) => (
+                          <option key={n.id} value={n.id}>
+                            {n.name} ({n.multiplier}x)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">
+                        Sub-Niche:
+                      </span>
+                      <select
+                        value={activeSubNicheId || ""}
+                        onChange={(e) => {
+                          const newSub = Number(e.target.value);
+                          setActiveSubNicheId(newSub);
+                          recomputeAllPlatformRates(selectedRegion, activeNicheId, newSub);
+                        }}
+                        className="bg-white border border-zinc-300 rounded-lg px-2.5 py-1 font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900 cursor-pointer text-xs shadow-2xs max-w-[240px] truncate"
+                      >
+                        {getSubNichesByPrimaryId(activeNicheId).map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name} ({s.multiplier}x)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] text-zinc-500 font-medium">
+                    Applied: <span className="font-semibold text-zinc-950">{REGIONAL_CONFIG[selectedRegion]?.name || selectedRegion}</span> ({REGIONAL_CONFIG[selectedRegion]?.pppIndex}x GDP PPP · {REGIONAL_CONFIG[selectedRegion]?.currency})
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 3.5: COMPLETE 19-POINT CREATOR INTELLIGENCE DOSSIER */}
+              {completeIntelligence ? (
+                <div className="p-5 sm:p-6 rounded-2xl bg-white border border-zinc-200 shadow-sm space-y-4 animate-fadeIn">
+                  {/* Header with Positioning & Refresh */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-semibold uppercase tracking-wider bg-zinc-950 text-white px-3 py-1 rounded-lg">
+                        {completeIntelligence.profile?.creatorType || "Creator"}
+                      </span>
+                      {completeIntelligence.profile?.primaryNiche && (
+                        <span className="text-xs font-medium text-zinc-900 bg-zinc-100 px-3 py-1 rounded-lg border border-zinc-200">
+                          {completeIntelligence.profile.primaryNiche.name} ({completeIntelligence.profile.primaryNiche.multiplier}x)
+                        </span>
+                      )}
+                      {completeIntelligence.profile?.subNiche && (
+                        <span className="text-xs font-medium text-indigo-950 bg-indigo-50/90 px-3 py-1 rounded-lg border border-indigo-200/90">
+                          {completeIntelligence.profile.subNiche.name} ({completeIntelligence.profile.subNiche.multiplier}x)
+                        </span>
+                      )}
+                      {completeIntelligence.geography?.countryCode && (
+                        <span className="text-xs font-medium text-zinc-800 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                          <Globe className="w-3 h-3 text-zinc-500" />
+                          <span>{completeIntelligence.geography.countryName || completeIntelligence.geography.countryCode} {completeIntelligence.geography.city ? `(${completeIntelligence.geography.city})` : ""}</span>
+                        </span>
+                      )}
+                      {completeIntelligence.brandSafety?.overallRisk && (
+                        <span className="text-xs font-medium text-zinc-800 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${completeIntelligence.brandSafety.overallRisk === "Low" ? "bg-emerald-500" : "bg-amber-500"}`} />
+                          <span>Safety: {completeIntelligence.brandSafety.overallRisk} Risk</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-zinc-500 font-medium flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 24h Verified Cache
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => triggerOmnichannelSynthesis(true)}
+                        disabled={isSynthesizing}
+                        className="px-3 py-1 text-xs font-medium bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-lg transition-all border border-zinc-200 cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isSynthesizing ? "animate-spin" : ""}`} />
+                        <span>{isSynthesizing ? "Analyzing..." : "Refresh AI"}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Brand Summary */}
+                  {(completeIntelligence.summary?.brandSummary || completeIntelligence.summary?.oneLine) && (
+                    <p className="text-xs sm:text-sm text-zinc-800 leading-relaxed font-normal bg-zinc-50/50 p-3.5 rounded-xl border border-zinc-100">
+                      &ldquo;{completeIntelligence.summary.brandSummary || completeIntelligence.summary.oneLine}&rdquo;
+                    </p>
+                  )}
+
+                  {/* Micro-Niches Tags */}
+                  {(completeIntelligence.profile?.microNiches?.length ?? 0) > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <span className="text-[11px] text-zinc-400 font-medium uppercase tracking-wider">Micro-Niches:</span>
+                      {completeIntelligence.profile.microNiches.map((mn, i) => (
+                        <span key={i} className="text-xs font-medium bg-zinc-50 text-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-200">
+                          {mn}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 2x2 High-End Intelligence Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
+                    {/* Card 1: Inferred Audience */}
+                    <div className="p-4 rounded-xl bg-zinc-50/70 border border-zinc-200 space-y-2.5">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5 pb-1 border-b border-zinc-200/60">
+                        <Users className="w-4 h-4 text-zinc-700" />
+                        <span>Inferred Audience</span>
+                      </div>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between items-center py-0.5 border-b border-zinc-100">
+                          <span className="text-zinc-500">Demographic Profile</span>
+                          <span className="font-semibold text-zinc-950">{completeIntelligence.audience?.genderSkew || "Balanced"}, {completeIntelligence.audience?.likelyAgeRange || "18-34"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5 border-b border-zinc-100">
+                          <span className="text-zinc-500">Commercial Buyer Intent</span>
+                          <span className="font-medium text-zinc-900 bg-zinc-200/70 px-2 py-0.5 rounded-md text-[11px]">{completeIntelligence.audience?.purchaseIntent || "Moderate"} Intent</span>
+                        </div>
+                        <div className={`flex justify-between items-center py-0.5 ${secondaryMarketsList.length > 0 ? "border-b border-zinc-100" : ""}`}>
+                          <span className="text-zinc-500">Primary Regional Market</span>
+                          <span className="font-semibold text-zinc-950">{cleanPrimaryMarket}</span>
+                        </div>
+                        {secondaryMarketsList.length > 0 && (
+                          <div className="flex justify-between items-start py-0.5 gap-2">
+                            <span className="text-zinc-500 shrink-0">Secondary Regional Markets</span>
+                            <span className="font-medium text-zinc-800 text-right">{secondaryMarketsList.join(", ")}</span>
+                          </div>
+                        )}
+                      </div>
+                      {(completeIntelligence.audience?.interests?.length ?? 0) > 0 && (
+                        <div className="pt-2 border-t border-zinc-200/60 space-y-1">
+                          <div className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider">Audience Interests</div>
+                          <div className="flex flex-wrap gap-1">
+                            {completeIntelligence.audience.interests.map((interest, idx) => (
+                              <span key={idx} className="text-[11px] bg-white text-zinc-800 px-2 py-0.5 rounded-md border border-zinc-200">
+                                {interest}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card 2: Content DNA */}
+                    <div className="p-4 rounded-xl bg-zinc-50/70 border border-zinc-200 space-y-2.5">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5 pb-1 border-b border-zinc-200/60">
+                        <Video className="w-4 h-4 text-zinc-700" />
+                        <span>Content DNA &amp; Format</span>
+                      </div>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between items-center py-0.5 border-b border-zinc-100">
+                          <span className="text-zinc-500">Dominant Format</span>
+                          <span className="font-semibold text-zinc-950">{completeIntelligence.content?.dominantFormat || "Video"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5 border-b border-zinc-100">
+                          <span className="text-zinc-500">Production Standard</span>
+                          <span className="font-semibold text-zinc-950">{completeIntelligence.content?.productionLevel || "High"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-zinc-500">Publishing Consistency</span>
+                          <span className="font-semibold text-zinc-950">{completeIntelligence.content?.contentConsistency || "High"}</span>
+                        </div>
+                      </div>
+                      {(completeIntelligence.contentThemes?.length ?? 0) > 0 && (
+                        <div className="pt-2 border-t border-zinc-200/60 space-y-1">
+                          <div className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider">Top Content Themes</div>
+                          <div className="flex flex-wrap gap-1">
+                            {completeIntelligence.contentThemes.map((t, idx) => (
+                              <span key={idx} className="text-[11px] bg-white text-zinc-800 px-2 py-0.5 rounded-md border border-zinc-200">
+                                {t.theme} {t.strength ? `(${Math.round(t.strength * 100)}%)` : ""}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card 3: Brand Fit & Commercial Profile */}
+                    <div className="p-4 rounded-xl bg-zinc-50/70 border border-zinc-200 space-y-2.5">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5 pb-1 border-b border-zinc-200/60">
+                        <ShieldCheck className="w-4 h-4 text-zinc-700" />
+                        <span>Brand Fit &amp; Sponsorships</span>
+                      </div>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between items-center py-0.5 border-b border-zinc-100">
+                          <span className="text-zinc-500">Commercial Intent</span>
+                          <span className="font-semibold text-zinc-950">{completeIntelligence.commercialIntelligence?.commercialIntent || "High"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-zinc-500">Brand Suitability</span>
+                          <span className="font-medium text-zinc-900 bg-zinc-200/70 px-2 py-0.5 rounded-md text-[11px]">{completeIntelligence.brandFit?.brandSuitability || "High"}</span>
+                        </div>
+                      </div>
+                      {(completeIntelligence.brandFit?.bestFitCategories?.length ?? 0) > 0 && (
+                        <div className="pt-2 border-t border-zinc-200/60 space-y-1">
+                          <div className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider">Best Fit Categories</div>
+                          <div className="flex flex-wrap gap-1">
+                            {completeIntelligence.brandFit.bestFitCategories.map((cat, idx) => (
+                              <span key={idx} className="text-[11px] bg-white text-zinc-800 px-2 py-0.5 rounded-md border border-zinc-200">
+                                {cat}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card 4: Key Strategic Strengths */}
+                    <div className="p-4 rounded-xl bg-zinc-50/70 border border-zinc-200 space-y-2.5">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5 pb-1 border-b border-zinc-200/60">
+                        <Zap className="w-4 h-4 text-zinc-700" />
+                        <span>Key Strategic Strengths</span>
+                      </div>
+                      <div className="space-y-2 text-xs">
+                        {(completeIntelligence.strengths?.length ?? 0) > 0 ? (
+                          completeIntelligence.strengths.map((s, i) => (
+                            <div key={i} className="space-y-0.5">
+                              <div className="font-semibold text-zinc-950">• {s.area}</div>
+                              <div className="text-zinc-600 text-[11px] leading-relaxed pl-3">{s.description}</div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-zinc-500 text-xs">High organic retention and consistent performance.</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : isSynthesizing ? (
+                <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 animate-pulse flex items-center justify-center gap-2 text-xs font-semibold text-zinc-600">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900" />
+                  <span>SignCollab LLM Engine: Synthesizing 19-point Creator Intelligence Dossier...</span>
+                </div>
+              ) : null}
+
+              {/* SECTION 4: THE 3-PLATFORM EMPIRICAL RATE SHEETS */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+                {/* 1. Instagram Card */}
+                <PlatformRateCardItem
+                  platform="instagram"
+                  platformName="Instagram"
+                  icon={<Camera className="w-4 h-4 text-pink-500" />}
+                  data={platforms.instagram}
+                  metricLabel="Followers"
+                  onManualSearch={(handle) => scrapePlatform(handle, "instagram")}
+                  isValuationCalibrated={isValuationCalibrated}
+                />
+
+                {/* 2. YouTube Card */}
+                <PlatformRateCardItem
+                  platform="youtube"
+                  platformName="YouTube"
+                  icon={<Video className="w-4 h-4 text-red-500" />}
+                  data={platforms.youtube}
+                  metricLabel="Subscribers"
+                  onManualSearch={(handle) => scrapePlatform(handle, "youtube")}
+                  isValuationCalibrated={isValuationCalibrated}
+                />
+
+                {/* 3. TikTok Card */}
+                <PlatformRateCardItem
+                  platform="tiktok"
+                  platformName="TikTok"
+                  icon={<Music2 className="w-3.5 h-3.5 text-cyan-500" />}
+                  data={platforms.tiktok}
+                  metricLabel="Followers"
+                  onManualSearch={(handle) => scrapePlatform(handle, "tiktok")}
+                  isValuationCalibrated={isValuationCalibrated}
+                />
               </div>
 
-              <Link
-                href={`/instant?creator=${encodeURIComponent(creatorMeta?.displayName || creatorMeta?.primaryUsername || "Creator")}&platform=${creatorMeta?.primaryPlatform || "instagram"}`}
-                className="px-4 py-2.5 bg-gray-950 hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>Generate Instant Contract</span>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </Link>
+              {/* SECTION 5: OMNICHANNEL BUNDLE OPTIMIZER */}
+              {bundleOffers && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 text-white shadow-xl space-y-4 animate-fadeIn">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <h3 className="text-xs sm:text-sm font-semibold tracking-tight text-white">
+                        Automated Omnichannel Package Discounts
+                      </h3>
+                    </div>
+                    <div className="text-[11px] font-mono text-zinc-400">
+                      Target: {creatorMeta?.displayName || "Creator"}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* 2-Platform Starter Pack */}
+                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+                            <Flame className="w-3.5 h-3.5 text-amber-400" />
+                            <span>{bundleOffers.starter.title}</span>
+                          </div>
+                          <div className="text-[11px] text-zinc-400 font-mono">{bundleOffers.starter.subtitle}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold font-mono text-white">
+                            {bundleOffers.starter.typicalFormatted}
+                          </div>
+                          <div className="text-[10px] text-emerald-400 font-mono">
+                            Save {bundleOffers.starter.savings}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-[10px] text-zinc-500 font-mono">
+                        Range: {bundleOffers.starter.lowFormatted} – {bundleOffers.starter.highFormatted}
+                      </div>
+                    </div>
+
+                    {/* 360 Authority Pack */}
+                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+                            <Crown className="w-3.5 h-3.5 text-yellow-400" />
+                            <span>{bundleOffers.authority.title}</span>
+                          </div>
+                          <div className="text-[11px] text-zinc-400 font-mono">{bundleOffers.authority.subtitle}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold font-mono text-white">
+                            {bundleOffers.authority.typicalFormatted}
+                          </div>
+                          <div className="text-[10px] text-emerald-400 font-mono">
+                            Save {bundleOffers.authority.savings}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-[10px] text-zinc-500 font-mono">
+                        Range: {bundleOffers.authority.lowFormatted} – {bundleOffers.authority.highFormatted}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 5.5: INSTANT SPONSORSHIP CONTRACT WORKFLOW CTA */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-zinc-200/90 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 animate-fadeIn">
+                <div className="space-y-1 text-left">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <h3 className="text-xs sm:text-sm font-semibold text-zinc-950">
+                      Lock in this valuation with a legal sponsorship agreement
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 max-w-xl">
+                    Generate an Instant Creator Sponsorship Agreement pre-filled with verified deliverables, usage rights, and calibrated pricing.
+                  </p>
+                </div>
+
+                <Link
+                  href={buildContractHref()}
+                  className="px-4 py-2.5 bg-zinc-900 hover:bg-black text-white text-xs font-semibold rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Generate Instant Contract</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              {/* SECTION 6: RECENT MEDIA & EMPIRICAL POST AUDITS */}
+              <RecentMediaAuditFeed platforms={platforms} />
             </div>
           )}
-
-          {/* ========================================================= */}
-          {/* SECTION 6: RECENT MEDIA & EMPIRICAL POST AUDITS          */}
-          {/* ========================================================= */}
-          <RecentMediaAuditFeed platforms={platforms} />
-        </div>
+        </>
       )}
 
       {/* ========================================================= */}
@@ -1793,27 +2087,27 @@ export function InfluencerRadarDashboard() {
               {/* Modal Content */}
               <div className="relative z-10">
                 {/* Modal Header Banner */}
-                <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-100 space-y-2">
+                <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-zinc-100 space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-gray-950 text-white text-[10px] sm:text-[11px] font-bold shadow-2xs">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-zinc-950 text-white text-[10px] sm:text-[11px] font-medium shadow-2xs">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                       <span>Omnichannel Radar Discovery</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsMissingModalOpen(false)}
-                      className="text-gray-400 hover:text-gray-900 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-xs cursor-pointer"
+                      className="text-zinc-400 hover:text-zinc-900 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 transition-colors flex items-center justify-center font-medium text-xs cursor-pointer"
                       aria-label="Close modal"
                     >
-                      ✕
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <h3 className="text-base sm:text-xl font-extrabold text-gray-950 tracking-tight pt-1">
+                  <h3 className="text-base sm:text-lg font-semibold text-zinc-950 tracking-tight pt-1">
                     Unlock Complete 360° Report
                   </h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    We verified <strong className="text-gray-900 font-semibold">{verifiedChannelsCount} channel(s)</strong> for @{creatorMeta?.displayName || "Creator"}, but couldn&apos;t automatically discover all 3 channels in the bio. Add unfound handles to calculate multi-platform bundle rates &amp; full intelligence.
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    We verified <strong className="text-zinc-900 font-semibold">{verifiedChannelsCount} channel(s)</strong> for @{creatorMeta?.displayName || "Creator"}, but couldn&apos;t automatically discover all 3 channels in the bio. Add unfound handles to calculate multi-platform bundle rates &amp; full intelligence.
                   </p>
                 </div>
 
@@ -1821,58 +2115,55 @@ export function InfluencerRadarDashboard() {
                 <div className="px-4 sm:px-6 py-3.5 sm:py-4 space-y-3.5 sm:space-y-4">
                   {/* Verified Accounts Section */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                    <div className="flex items-center justify-between text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
                       <span>Verified Connected Channels</span>
-                      <span className="text-emerald-600 font-semibold lowercase tracking-normal">({verifiedChannelsCount}/3 connected)</span>
+                      <span className="text-emerald-600 font-medium lowercase tracking-normal">({verifiedChannelsCount}/3 connected)</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {platforms.youtube.status === "ready" && (
-                        <div className="px-3 py-2 rounded-xl bg-white/90 border border-gray-200 shadow-2xs flex items-center justify-between gap-2">
+                        <div className="px-3 py-2 rounded-xl bg-white/90 border border-zinc-200 shadow-2xs flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 min-w-0">
-                            <svg className="w-4 h-4 text-red-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                            </svg>
+                            <Video className="w-4 h-4 text-red-600 shrink-0" />
                             <div className="truncate">
-                              <div className="text-xs font-bold text-gray-900 truncate">YouTube</div>
-                              <div className="text-[10px] font-mono text-gray-500 truncate">@{platforms.youtube.username?.replace(/^@/, "")}</div>
+                              <div className="text-xs font-semibold text-zinc-900 truncate">YouTube</div>
+                              <div className="text-[10px] font-mono text-zinc-500 truncate">@{platforms.youtube.username?.replace(/^@/, "")}</div>
                             </div>
                           </div>
-                          <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                            ✓ Verified
+                          <span className="shrink-0 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>Verified</span>
                           </span>
                         </div>
                       )}
 
                       {platforms.instagram.status === "ready" && (
-                        <div className="px-3 py-2 rounded-xl bg-white/90 border border-gray-200 shadow-2xs flex items-center justify-between gap-2">
+                        <div className="px-3 py-2 rounded-xl bg-white/90 border border-zinc-200 shadow-2xs flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 min-w-0">
-                            <svg className="w-4 h-4 text-pink-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                            </svg>
+                            <Camera className="w-4 h-4 text-pink-600 shrink-0" />
                             <div className="truncate">
-                              <div className="text-xs font-bold text-gray-900 truncate">Instagram</div>
-                              <div className="text-[10px] font-mono text-gray-500 truncate">@{platforms.instagram.username?.replace(/^@/, "")}</div>
+                              <div className="text-xs font-semibold text-zinc-900 truncate">Instagram</div>
+                              <div className="text-[10px] font-mono text-zinc-500 truncate">@{platforms.instagram.username?.replace(/^@/, "")}</div>
                             </div>
                           </div>
-                          <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                            ✓ Verified
+                          <span className="shrink-0 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>Verified</span>
                           </span>
                         </div>
                       )}
 
                       {platforms.tiktok.status === "ready" && (
-                        <div className="px-3 py-2 rounded-xl bg-white/90 border border-gray-200 shadow-2xs flex items-center justify-between gap-2">
+                        <div className="px-3 py-2 rounded-xl bg-white/90 border border-zinc-200 shadow-2xs flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 min-w-0">
-                            <svg className="w-4 h-4 text-gray-950 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01v8.08c0 2.15-.65 4.35-1.95 6.07-1.4 1.83-3.52 3.03-5.8 3.34-2.3.31-4.72-.25-6.6-1.57-2.02-1.41-3.37-3.66-3.69-6.08-.34-2.52.41-5.14 2.05-7.07 1.67-1.97 4.16-3.08 6.72-2.98.02 1.42.01 2.84.01 4.26-1.52-.08-3.1.44-4.08 1.62-.97 1.16-1.22 2.81-.66 4.24.54 1.42 1.85 2.45 3.36 2.6 1.47.16 3-.47 3.8-1.7.53-.8.76-1.77.74-2.73V.02h.07z"/>
-                            </svg>
+                            <Music2 className="w-4 h-4 text-zinc-950 shrink-0" />
                             <div className="truncate">
-                              <div className="text-xs font-bold text-gray-900 truncate">TikTok</div>
-                              <div className="text-[10px] font-mono text-gray-500 truncate">@{platforms.tiktok.username?.replace(/^@/, "")}</div>
+                              <div className="text-xs font-semibold text-zinc-900 truncate">TikTok</div>
+                              <div className="text-[10px] font-mono text-zinc-500 truncate">@{platforms.tiktok.username?.replace(/^@/, "")}</div>
                             </div>
                           </div>
-                          <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                            ✓ Verified
+                          <span className="shrink-0 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>Verified</span>
                           </span>
                         </div>
                       )}
@@ -1880,17 +2171,15 @@ export function InfluencerRadarDashboard() {
                   </div>
 
                   {/* Missing Accounts Input Fields */}
-                  <div className="space-y-3 pt-3 border-t border-gray-100">
-                    <div className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+                  <div className="space-y-3 pt-3 border-t border-zinc-100">
+                    <div className="text-[11px] font-medium text-zinc-700 uppercase tracking-wider">
                       Add Unfound Channel(s)
                     </div>
 
                     {platforms.youtube.status !== "ready" && (
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          <svg className="w-3.5 h-3.5 text-red-600" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                          </svg>
+                        <label className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5">
+                          <Video className="w-3.5 h-3.5 text-red-600" />
                           <span>YouTube Channel Link or @Handle</span>
                         </label>
                         <div className="relative flex items-center">
@@ -1899,7 +2188,7 @@ export function InfluencerRadarDashboard() {
                             value={missingInputs.youtube}
                             onChange={(e) => setMissingInputs((prev) => ({ ...prev, youtube: e.target.value }))}
                             placeholder="https://youtube.com/@channel or @handle"
-                            className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-white/90 focus:bg-white focus:outline-none focus:border-gray-950 focus:ring-2 focus:ring-gray-950/10 font-medium transition-all shadow-2xs"
+                            className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-zinc-200 bg-white/90 focus:bg-white focus:outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 font-medium transition-all shadow-2xs"
                           />
                         </div>
                       </div>
@@ -1907,10 +2196,8 @@ export function InfluencerRadarDashboard() {
 
                     {platforms.instagram.status !== "ready" && (
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          <svg className="w-3.5 h-3.5 text-pink-600" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                          </svg>
+                        <label className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5">
+                          <Camera className="w-3.5 h-3.5 text-pink-600" />
                           <span>Instagram Profile Link or @Handle</span>
                         </label>
                         <div className="relative flex items-center">
@@ -1919,7 +2206,7 @@ export function InfluencerRadarDashboard() {
                             value={missingInputs.instagram}
                             onChange={(e) => setMissingInputs((prev) => ({ ...prev, instagram: e.target.value }))}
                             placeholder="https://instagram.com/username or @handle"
-                            className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-white/90 focus:bg-white focus:outline-none focus:border-gray-950 focus:ring-2 focus:ring-gray-950/10 font-medium transition-all shadow-2xs"
+                            className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-zinc-200 bg-white/90 focus:bg-white focus:outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 font-medium transition-all shadow-2xs"
                           />
                         </div>
                       </div>
@@ -1927,10 +2214,8 @@ export function InfluencerRadarDashboard() {
 
                     {platforms.tiktok.status !== "ready" && (
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          <svg className="w-3.5 h-3.5 text-gray-950" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01v8.08c0 2.15-.65 4.35-1.95 6.07-1.4 1.83-3.52 3.03-5.8 3.34-2.3.31-4.72-.25-6.6-1.57-2.02-1.41-3.37-3.66-3.69-6.08-.34-2.52.41-5.14 2.05-7.07 1.67-1.97 4.16-3.08 6.72-2.98.02 1.42.01 2.84.01 4.26-1.52-.08-3.1.44-4.08 1.62-.97 1.16-1.22 2.81-.66 4.24.54 1.42 1.85 2.45 3.36 2.6 1.47.16 3-.47 3.8-1.7.53-.8.76-1.77.74-2.73V.02h.07z"/>
-                          </svg>
+                        <label className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5">
+                          <Music2 className="w-3.5 h-3.5 text-zinc-950" />
                           <span>TikTok Profile Link or @Handle</span>
                         </label>
                         <div className="relative flex items-center">
@@ -1939,7 +2224,7 @@ export function InfluencerRadarDashboard() {
                             value={missingInputs.tiktok}
                             onChange={(e) => setMissingInputs((prev) => ({ ...prev, tiktok: e.target.value }))}
                             placeholder="https://tiktok.com/@username or @handle"
-                            className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 bg-white/90 focus:bg-white focus:outline-none focus:border-gray-950 focus:ring-2 focus:ring-gray-950/10 font-medium transition-all shadow-2xs"
+                            className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-zinc-200 bg-white/90 focus:bg-white focus:outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 font-medium transition-all shadow-2xs"
                           />
                         </div>
                       </div>
@@ -1947,26 +2232,24 @@ export function InfluencerRadarDashboard() {
                   </div>
 
                   {/* Benefit Card */}
-                  <div className="p-3 rounded-2xl bg-white/80 border border-gray-200/90 shadow-2xs flex items-start gap-2.5 text-xs">
-                    <div className="w-5 h-5 rounded-md bg-gray-950 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
-                      <svg className="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+                  <div className="p-3 rounded-2xl bg-white/80 border border-zinc-200/90 shadow-2xs flex items-start gap-2.5 text-xs">
+                    <div className="w-5 h-5 rounded-md bg-zinc-950 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                      <Zap className="w-3 h-3 text-amber-400" />
                     </div>
-                    <div className="text-gray-600 leading-relaxed text-[11px]">
-                      Connecting all 3 channels unlocks the <strong className="text-gray-950 font-bold">Omnichannel 360 Authority Package</strong> with automatic multi-platform bundle discounts.
+                    <div className="text-zinc-600 leading-relaxed text-[11px]">
+                      Connecting all 3 channels unlocks the <strong className="text-zinc-950 font-semibold">Omnichannel 360 Authority Package</strong> with automatic multi-platform bundle discounts.
                     </div>
                   </div>
                 </div>
 
                 {/* Modal Actions Footer */}
-                <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-gray-50/90 border-t border-gray-100 flex items-center justify-end gap-2">
+                <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-zinc-50/90 border-t border-zinc-100 flex items-center justify-end gap-2">
                   {hasAnyMissingInput ? (
                     <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 w-full">
                       <button
                         type="button"
                         onClick={() => setIsMissingModalOpen(false)}
-                        className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-gray-600 hover:text-gray-950 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl transition-all cursor-pointer text-center shadow-2xs"
+                        className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-zinc-600 hover:text-zinc-900 bg-white hover:bg-zinc-100 border border-zinc-200 rounded-xl transition-all cursor-pointer text-center shadow-2xs"
                       >
                         Skip &amp; View {verifiedChannelsCount}-Platform Report
                       </button>
@@ -1974,24 +2257,20 @@ export function InfluencerRadarDashboard() {
                       <button
                         type="button"
                         onClick={handleSubmitMissingPlatforms}
-                        className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-white bg-gray-950 hover:bg-black rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 text-center animate-fadeIn"
+                        className="w-full sm:w-auto px-5 py-2.5 text-xs font-medium text-white bg-zinc-900 hover:bg-black rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 text-center animate-fadeIn"
                       >
                         <span>Sync &amp; Complete 360° Report</span>
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ) : (
                     <button
                       type="button"
                       onClick={() => setIsMissingModalOpen(false)}
-                      className="w-full px-5 py-3 text-xs font-bold text-white bg-gray-950 hover:bg-black rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 text-center"
+                      className="w-full px-5 py-3 text-xs font-medium text-white bg-zinc-900 hover:bg-black rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 text-center"
                     >
                       <span>Continue &amp; View {verifiedChannelsCount}-Platform Report</span>
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>

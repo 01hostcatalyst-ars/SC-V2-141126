@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { ProductionAddons, TurnaroundSpeed } from "@/lib/calculator/types";
+import { ChevronUp, ChevronDown, SlidersHorizontal } from "lucide-react";
 
 interface ProductionAddonsFormProps {
   addons?: ProductionAddons;
@@ -28,18 +29,18 @@ export function ProductionAddonsForm({ addons, onChange }: ProductionAddonsFormP
   };
 
   return (
-    <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-gray-200/90 shadow-sm p-6 sm:p-8 space-y-7 transition-all">
+    <div className="surface-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-200/90 shadow-sm space-y-4">
       {/* Step Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
-        <div className="flex items-center gap-3.5">
-          <div className="w-9 h-9 rounded-2xl bg-black text-white flex items-center justify-center font-black text-xs shadow-sm tracking-wider">
-            04
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
+            <SlidersHorizontal className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-black text-gray-950 uppercase tracking-tight font-display">
+            <h2 className="text-sm sm:text-base font-semibold text-zinc-900 tracking-tight">
               Production Add-ons &amp; Turnaround
             </h2>
-            <p className="text-xs text-gray-500 font-medium">
+            <p className="text-xs text-zinc-500 font-medium">
               Rush turnaround speeds, raw B-roll footage buyout, extra revisions, and link-in-bio
             </p>
           </div>
@@ -48,9 +49,10 @@ export function ProductionAddonsForm({ addons, onChange }: ProductionAddonsFormP
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="text-xs font-bold text-gray-600 hover:text-black self-start sm:self-auto transition-colors cursor-pointer px-3 py-1.5 rounded-xl hover:bg-gray-100 border border-gray-200/70"
+          className="text-xs font-medium text-zinc-600 hover:text-zinc-900 self-start sm:self-auto transition-colors cursor-pointer px-3 py-1.5 rounded-xl hover:bg-zinc-100 border border-zinc-200/80 flex items-center gap-1.5"
         >
-          {isOpen ? "Collapse ▲" : "Expand ▼"}
+          <span>{isOpen ? "Collapse" : "Expand"}</span>
+          {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
       </div>
 
@@ -58,13 +60,13 @@ export function ProductionAddonsForm({ addons, onChange }: ProductionAddonsFormP
         <div className="space-y-5 animate-fadeIn">
           {/* Turnaround Speed */}
           <div>
-            <label className="text-xs font-black uppercase tracking-wider text-gray-900 block mb-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-800 block mb-1.5">
               Production Turnaround &amp; Delivery Timeline
             </label>
             <select
               value={activeTurnaround}
               onChange={(e) => handleUpdate({ turnaround: e.target.value as TurnaroundSpeed })}
-              className="w-full text-xs font-bold bg-white border border-gray-300 rounded-xl px-3.5 py-2.5 text-gray-900 focus:outline-none focus:border-black focus:ring-1 focus:ring-black cursor-pointer shadow-2xs"
+              className="w-full text-xs font-bold bg-white border border-zinc-300 rounded-xl px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 cursor-pointer shadow-2xs"
             >
               {TURNAROUND_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

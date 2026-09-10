@@ -4,6 +4,15 @@ import Link from "next/link";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 import { InfluencerRadarDashboard } from "@/components/calculator/InfluencerRadarDashboard";
+import {
+  ChevronRight,
+  Radio,
+  Tag,
+  Sparkles,
+  Globe,
+  HelpCircle,
+  ShieldCheck,
+} from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Influencer Rate Calculator – Creator Pricing & Intelligence | SignCollab",
@@ -44,72 +53,38 @@ const jsonLd = {
         "@type": "WebSite",
         "@id": "https://www.signcollab.com/#website",
         "name": "SignCollab",
-        "url": "https://www.signcollab.com"
+        "url": "https://www.signcollab.com",
       },
       "breadcrumb": {
-        "@id": "https://www.signcollab.com/influencer-rate-calculator#breadcrumbs"
+        "@id": "https://www.signcollab.com/influencer-rate-calculator#breadcrumbs",
       },
       "mainEntity": {
-        "@id": "https://www.signcollab.com/influencer-rate-calculator#webapp"
+        "@id": "https://www.signcollab.com/influencer-rate-calculator#webapp",
       },
       "publisher": {
-        "@id": "https://www.signcollab.com/#organization"
-      }
+        "@id": "https://www.signcollab.com/#organization",
+      },
     },
     {
       "@type": "WebApplication",
       "@id": "https://www.signcollab.com/influencer-rate-calculator#webapp",
-      "name": "SignCollab Influencer Rate Calculator & Creator Intelligence Engine",
-      "alternateName": "SignCollab Influencer Rate Calculator",
+      "name": "SignCollab Influencer Rate Radar",
       "url": "https://www.signcollab.com/influencer-rate-calculator",
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "All",
-      "browserRequirements": "Requires JavaScript. Requires HTML5.",
-      "description":
-        "AI-powered creator valuation and intelligence tool that analyzes creator profiles across Instagram, TikTok, and YouTube to provide deliverable pricing, multi-platform bundle rates, and 19-point creator intelligence dossiers.",
       "offers": {
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "USD",
-        "availability": "https://schema.org/InStock"
       },
       "featureList": [
-        "Automatic creator profile discovery across Instagram, TikTok, and YouTube",
-        "Unified cross-platform sponsorship valuation from a single creator link or username",
-        "Itemized deliverable pricing for Instagram Reels, Carousels, Static Posts, and Stories",
-        "Itemized deliverable pricing for YouTube Dedicated Videos, Integrated Sponsorships, and Shorts",
-        "Itemized deliverable pricing for TikTok Videos and Series",
-        "Multi-channel campaign bundle pricing (2-Platform Starter Packs & 360° Authority Bundles)",
-        "19-point Creator Intelligence Dossier (Audience Demographics, Buyer Intent, Content DNA, Brand Safety)",
-        "Regional economic and purchasing-power currency adjustment across 17 regional markets",
-        "Recent media content audit analyzing baseline interaction trends"
+        "Cross-platform profile scanning (Instagram, YouTube, TikTok)",
+        "16-knot empirical cubic Bézier rate valuation",
+        "19-point AI creator intelligence dossier",
+        "17-region purchasing power parity (PPP) calibration",
+        "Omnichannel multi-platform bundle discounting",
+        "1-click legal contract export",
       ],
-      "areaServed": [
-        { "@type": "Country", "name": "United States", "identifier": "US" },
-        { "@type": "Country", "name": "Pakistan", "identifier": "PK" },
-        { "@type": "Country", "name": "United Kingdom", "identifier": "GB" },
-        { "@type": "Country", "name": "India", "identifier": "IN" },
-        { "@type": "Country", "name": "Canada", "identifier": "CA" },
-        { "@type": "Country", "name": "Australia", "identifier": "AU" },
-        { "@type": "Country", "name": "United Arab Emirates", "identifier": "AE" },
-        { "@type": "Country", "name": "Saudi Arabia", "identifier": "SA" },
-        { "@type": "Country", "name": "Germany", "identifier": "DE" },
-        { "@type": "Country", "name": "France", "identifier": "FR" },
-        { "@type": "Country", "name": "Singapore", "identifier": "SG" },
-        { "@type": "Country", "name": "Brazil", "identifier": "BR" },
-        { "@type": "Country", "name": "Bangladesh", "identifier": "BD" },
-        { "@type": "Country", "name": "Nigeria", "identifier": "NG" },
-        { "@type": "Country", "name": "Egypt", "identifier": "EG" },
-        { "@type": "Country", "name": "Turkey", "identifier": "TR" },
-        { "@type": "Country", "name": "South Africa", "identifier": "ZA" }
-      ],
-      "author": {
-        "@type": "Organization",
-        "@id": "https://www.signcollab.com/#organization",
-        "name": "SignCollab",
-        "url": "https://www.signcollab.com",
-        "logo": "https://www.signcollab.com/icon.png"
-      }
     },
     {
       "@type": "FAQPage",
@@ -120,42 +95,42 @@ const jsonLd = {
           "name": "What is the SignCollab Influencer Rate Calculator & Creator Intelligence Engine?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The SignCollab Influencer Rate Calculator is an AI-powered creator valuation system that analyzes creator footprints across Instagram, YouTube, and TikTok to provide methodology-based sponsorship rate ranges, itemized deliverable pricing, and strategic creator intelligence dossiers."
-          }
+            "text": "The SignCollab Influencer Rate Calculator is an AI-powered creator valuation system that analyzes creator footprints across Instagram, YouTube, and TikTok to provide methodology-based sponsorship rate ranges, itemized deliverable pricing, and strategic creator intelligence dossiers.",
+          },
         },
         {
           "@type": "Question",
           "name": "How does automatic cross-platform creator discovery work?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "When you enter a single creator handle or profile link from Instagram, YouTube, or TikTok, the engine scans public profile footprints and bio links to automatically discover and connect the creator's secondary channels into a unified report."
-          }
+            "text": "When you enter a single creator handle or profile link from Instagram, YouTube, or TikTok, the engine scans public profile footprints and bio links to automatically discover and connect the creator's secondary channels into a unified report.",
+          },
         },
         {
           "@type": "Question",
           "name": "What deliverable formats and rates are calculated?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The calculator produces estimated market rate ranges for Instagram Reels, Feed Carousels, Static Posts, and Story Sets; YouTube Dedicated Videos, 60s Integrated Sponsorships, and Shorts; TikTok Videos; and multi-platform campaign packages."
-          }
+            "text": "The calculator produces estimated market rate ranges for Instagram Reels, Feed Carousels, Static Posts, and Story Sets; YouTube Dedicated Videos, 60s Integrated Sponsorships, and Shorts; TikTok Videos; and multi-platform campaign packages.",
+          },
         },
         {
           "@type": "Question",
           "name": "What is included in the 19-point Creator Intelligence Dossier?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The dossier provides an AI-synthesized analysis structured around four key pillars: Audience Demographics & Purchasing Intent, Content DNA & Production Standards, Brand Fit & Sponsorship Safety, and Strategic Strengths with partnership recommendations."
-          }
+            "text": "The dossier provides an AI-synthesized analysis structured around four key pillars: Audience Demographics & Purchasing Intent, Content DNA & Production Standards, Brand Fit & Sponsorship Safety, and Strategic Strengths with partnership recommendations.",
+          },
         },
         {
           "@type": "Question",
           "name": "Does the calculator support international currencies and regional pricing?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. The calculator applies regional economic purchasing-power adjustments across 17 regional markets, showing estimated pricing in local currencies (including PKR, USD, GBP, EUR, INR, AED, SAR, CAD, AUD) alongside USD conversions."
-          }
-        }
-      ]
+            "text": "Yes. The calculator applies regional economic purchasing-power adjustments across 17 regional markets, showing estimated pricing in local currencies (including PKR, USD, GBP, EUR, INR, AED, SAR, CAD, AUD) alongside USD conversions.",
+          },
+        },
+      ],
     },
     {
       "@type": "BreadcrumbList",
@@ -165,143 +140,178 @@ const jsonLd = {
           "@type": "ListItem",
           "position": 1,
           "name": "Home",
-          "item": "https://www.signcollab.com"
+          "item": "https://www.signcollab.com",
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Influencer Rate Calculator",
-          "item": "https://www.signcollab.com/influencer-rate-calculator"
-        }
-      ]
+          "item": "https://www.signcollab.com/influencer-rate-calculator",
+        },
+      ],
     },
     {
       "@type": "Organization",
       "@id": "https://www.signcollab.com/#organization",
       "name": "SignCollab",
       "url": "https://www.signcollab.com",
-      "logo": "https://www.signcollab.com/icon.png"
-    }
-  ]
+      "logo": "https://www.signcollab.com/icon.png",
+    },
+  ],
 };
 
 export default function InfluencerRateCalculatorPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#f9f9f9] font-sans text-gray-900 selection:bg-black selection:text-white">
+    <div className="min-h-screen flex flex-col bg-theme-gradient font-sans text-zinc-900 selection:bg-emerald-500 selection:text-white relative overflow-hidden antialiased">
+      {/* Background ambient spotlight */}
+      <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[850px] h-[450px] rounded-full ambient-spotlight-emerald pointer-events-none z-0" />
+
       {/* Structured JSON-LD for Search Engines & AI Crawlers */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <PublicHeader />
+      <PublicHeader activeRoute="/influencer-rate-calculator" />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 relative z-10">
         {/* Breadcrumb Trail */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-6">
-          <Link href="/" className="hover:text-black transition-colors">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 mb-6">
+          <Link href="/" className="hover:text-zinc-900 transition-colors">
             Home
           </Link>
-          <span>/</span>
-          <span className="text-gray-950 font-bold">Influencer Rate Calculator</span>
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+          <span className="text-zinc-900 font-semibold">Influencer Rate Calculator</span>
         </nav>
 
-        {/* Master Interactive Radar Dashboard */}
+        {/* Master Staged Interactive Radar Dashboard */}
         <InfluencerRadarDashboard />
 
-        {/* Crawlable Methodology & FAQs Section */}
-        <section className="mt-16 sm:mt-20 pt-12 border-t border-gray-200/90 space-y-10">
-          <div className="max-w-3xl">
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-gray-950">
-              SignCollab Influencer Valuation &amp; Creator Intelligence Methodology
+        {/* Option A: Below-the-Fold Crawlable Methodology & FAQs Section */}
+        <section className="mt-20 sm:mt-24 pt-12 border-t border-zinc-200/90 space-y-12">
+          <div className="max-w-3xl text-left space-y-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Scientific Commercial Benchmarks</span>
+            </span>
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 font-display">
+              Influencer Valuation &amp; Creator Intelligence Methodology
             </h2>
-            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mt-2">
-              SignCollab combines cross-platform profile scanning, empirical engagement benchmarking, and AI creator intelligence to help brands and creators establish data-informed sponsorship pricing.
+            <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed max-w-2xl">
+              SignCollab combines cross-platform profile scanning, empirical engagement benchmarking, and AI creator intelligence to establish defensible, data-informed sponsorship rates for brands and talent.
             </p>
           </div>
 
           {/* 4 Pillars Overview Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-2xs space-y-1.5">
-              <h3 className="font-bold text-gray-950 text-sm">1. Automatic Profile Discovery</h3>
-              <p className="text-gray-600 leading-relaxed">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-left">
+            <div className="surface-card p-5 rounded-2xl border border-zinc-200/90 shadow-sm space-y-2 hover:border-zinc-300 transition-all">
+              <div className="flex items-center gap-2 text-zinc-900 font-semibold text-sm">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
+                  <Radio className="w-4 h-4" />
+                </div>
+                <span>1. Automatic Profile Discovery</span>
+              </div>
+              <p className="text-zinc-500 leading-relaxed pl-9">
                 Connects public footprints across Instagram, YouTube, and TikTok from a single link to provide unified omnichannel reach and rate analysis.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-2xs space-y-1.5">
-              <h3 className="font-bold text-gray-950 text-sm">2. Itemized Deliverable Pricing</h3>
-              <p className="text-gray-600 leading-relaxed">
+            <div className="surface-card p-5 rounded-2xl border border-zinc-200/90 shadow-sm space-y-2 hover:border-zinc-300 transition-all">
+              <div className="flex items-center gap-2 text-zinc-900 font-semibold text-sm">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
+                  <Tag className="w-4 h-4" />
+                </div>
+                <span>2. Itemized Deliverable Pricing</span>
+              </div>
+              <p className="text-zinc-500 leading-relaxed pl-9">
                 Calculates estimated rate ranges for individual formats (Reels, Static Posts, Dedicated Videos, Shorts, TikToks) and multi-channel campaign packages.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-2xs space-y-1.5">
-              <h3 className="font-bold text-gray-950 text-sm">3. 19-Point Creator Intelligence</h3>
-              <p className="text-gray-600 leading-relaxed">
+            <div className="surface-card p-5 rounded-2xl border border-zinc-200/90 shadow-sm space-y-2 hover:border-zinc-300 transition-all">
+              <div className="flex items-center gap-2 text-zinc-900 font-semibold text-sm">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <span>3. 19-Point Creator Intelligence</span>
+              </div>
+              <p className="text-zinc-500 leading-relaxed pl-9">
                 Synthesizes audience demographics, commercial purchasing intent, content DNA, brand safety ratings, and actionable campaign angles.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-2xs space-y-1.5">
-              <h3 className="font-bold text-gray-950 text-sm">4. Regional Economic Calibration</h3>
-              <p className="text-gray-600 leading-relaxed">
+            <div className="surface-card p-5 rounded-2xl border border-zinc-200/90 shadow-sm space-y-2 hover:border-zinc-300 transition-all">
+              <div className="flex items-center gap-2 text-zinc-900 font-semibold text-sm">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <span>4. Regional Economic Calibration</span>
+              </div>
+              <p className="text-zinc-500 leading-relaxed pl-9">
                 Applies purchasing-power parity adjustments across 17 regional markets with native currency rates alongside USD equivalents.
               </p>
             </div>
           </div>
 
-          {/* Frequently Asked Questions */}
-          <div className="space-y-4 pt-4 border-t border-gray-200/60">
-            <h3 className="text-base font-bold text-gray-950">
-              Frequently Asked Questions
-            </h3>
+          {/* Frequently Asked Questions Accordion */}
+          <div className="space-y-4 pt-4 border-t border-zinc-200/70 text-left">
+            <div className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-zinc-500" />
+              <h3 className="text-base font-semibold text-zinc-900 font-display">
+                Frequently Asked Questions
+              </h3>
+            </div>
 
             <div className="space-y-3">
-              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-2xs space-y-1.5">
-                <h4 className="font-bold text-gray-950 text-xs sm:text-sm">
-                  What is the SignCollab Influencer Rate Calculator &amp; Creator Intelligence Engine?
-                </h4>
-                <p className="text-xs text-gray-600 leading-relaxed">
+              <details className="group surface-card p-4 rounded-xl border border-zinc-200/90 shadow-2xs open:border-zinc-300 transition-all">
+                <summary className="font-medium text-zinc-900 text-xs sm:text-sm cursor-pointer list-none flex items-center justify-between">
+                  <span>What is the SignCollab Influencer Rate Calculator &amp; Creator Intelligence Engine?</span>
+                  <span className="text-zinc-400 group-open:rotate-180 transition-transform text-xs">▼</span>
+                </summary>
+                <p className="text-xs text-zinc-500 leading-relaxed mt-2.5 pt-2 border-t border-zinc-100">
                   The SignCollab Influencer Rate Calculator is an AI-powered creator valuation system that analyzes creator footprints across Instagram, YouTube, and TikTok to provide methodology-based sponsorship rate ranges, itemized deliverable pricing, and strategic creator intelligence dossiers.
                 </p>
-              </div>
+              </details>
 
-              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-2xs space-y-1.5">
-                <h4 className="font-bold text-gray-950 text-xs sm:text-sm">
-                  How does automatic cross-platform creator discovery work?
-                </h4>
-                <p className="text-xs text-gray-600 leading-relaxed">
+              <details className="group surface-card p-4 rounded-xl border border-zinc-200/90 shadow-2xs open:border-zinc-300 transition-all">
+                <summary className="font-medium text-zinc-900 text-xs sm:text-sm cursor-pointer list-none flex items-center justify-between">
+                  <span>How does automatic cross-platform creator discovery work?</span>
+                  <span className="text-zinc-400 group-open:rotate-180 transition-transform text-xs">▼</span>
+                </summary>
+                <p className="text-xs text-zinc-500 leading-relaxed mt-2.5 pt-2 border-t border-zinc-100">
                   When you enter a single creator handle or profile link from Instagram, YouTube, or TikTok, the engine scans public profile footprints and bio links to automatically discover and connect the creator&apos;s secondary channels into a unified report.
                 </p>
-              </div>
+              </details>
 
-              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-2xs space-y-1.5">
-                <h4 className="font-bold text-gray-950 text-xs sm:text-sm">
-                  What deliverable formats and rates are calculated?
-                </h4>
-                <p className="text-xs text-gray-600 leading-relaxed">
+              <details className="group surface-card p-4 rounded-xl border border-zinc-200/90 shadow-2xs open:border-zinc-300 transition-all">
+                <summary className="font-medium text-zinc-900 text-xs sm:text-sm cursor-pointer list-none flex items-center justify-between">
+                  <span>What deliverable formats and rates are calculated?</span>
+                  <span className="text-zinc-400 group-open:rotate-180 transition-transform text-xs">▼</span>
+                </summary>
+                <p className="text-xs text-zinc-500 leading-relaxed mt-2.5 pt-2 border-t border-zinc-100">
                   The calculator produces estimated market rate ranges for Instagram Reels, Feed Carousels, Static Posts, and Story Sets; YouTube Dedicated Videos, 60s Integrated Sponsorships, and Shorts; TikTok Videos; and multi-platform campaign packages.
                 </p>
-              </div>
+              </details>
 
-              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-2xs space-y-1.5">
-                <h4 className="font-bold text-gray-950 text-xs sm:text-sm">
-                  What is included in the 19-point Creator Intelligence Dossier?
-                </h4>
-                <p className="text-xs text-gray-600 leading-relaxed">
+              <details className="group surface-card p-4 rounded-xl border border-zinc-200/90 shadow-2xs open:border-zinc-300 transition-all">
+                <summary className="font-medium text-zinc-900 text-xs sm:text-sm cursor-pointer list-none flex items-center justify-between">
+                  <span>What is included in the 19-point Creator Intelligence Dossier?</span>
+                  <span className="text-zinc-400 group-open:rotate-180 transition-transform text-xs">▼</span>
+                </summary>
+                <p className="text-xs text-zinc-500 leading-relaxed mt-2.5 pt-2 border-t border-zinc-100">
                   The dossier provides an AI-synthesized analysis structured around four key pillars: Audience Demographics &amp; Purchasing Intent, Content DNA &amp; Production Standards, Brand Fit &amp; Sponsorship Safety, and Strategic Strengths with partnership recommendations.
                 </p>
-              </div>
+              </details>
 
-              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-2xs space-y-1.5">
-                <h4 className="font-bold text-gray-950 text-xs sm:text-sm">
-                  Does the calculator support international currencies and regional pricing?
-                </h4>
-                <p className="text-xs text-gray-600 leading-relaxed">
+              <details className="group surface-card p-4 rounded-xl border border-zinc-200/90 shadow-2xs open:border-zinc-300 transition-all">
+                <summary className="font-medium text-zinc-900 text-xs sm:text-sm cursor-pointer list-none flex items-center justify-between">
+                  <span>Does the calculator support international currencies and regional pricing?</span>
+                  <span className="text-zinc-400 group-open:rotate-180 transition-transform text-xs">▼</span>
+                </summary>
+                <p className="text-xs text-zinc-500 leading-relaxed mt-2.5 pt-2 border-t border-zinc-100">
                   Yes. The calculator applies regional economic purchasing-power adjustments across 17 regional markets, showing estimated pricing in local currencies (including PKR, USD, GBP, EUR, INR, AED, SAR, CAD, AUD) alongside USD conversions.
                 </p>
-              </div>
+              </details>
             </div>
           </div>
         </section>
