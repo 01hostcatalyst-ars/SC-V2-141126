@@ -54,7 +54,7 @@ export function WorkflowBridgeSection() {
         <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 font-mono">
           End-to-End Infrastructure
         </span>
-        <h2 className="text-3xl sm:text-4xl font-black text-zinc-950 font-display tracking-tight">
+        <h2 className="text-3xl sm:text-4xl font-semibold text-zinc-950 font-display tracking-tight">
           How the Workflow Bridge Works.
         </h2>
         <p className="text-sm sm:text-base text-zinc-600 font-medium leading-relaxed">
@@ -88,7 +88,7 @@ export function WorkflowBridgeSection() {
                   <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block font-mono">
                     {step.subtitle}
                   </span>
-                  <h3 className="text-base font-bold text-zinc-950 mt-1">
+                  <h3 className="text-base font-semibold text-zinc-950 mt-1">
                     {step.title}
                   </h3>
                 </div>

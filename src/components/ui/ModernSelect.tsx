@@ -45,11 +45,11 @@ export function ModernSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const pyClass = "py-2.5 px-3.5 text-xs font-semibold";
+  const pyClass = "py-2.5 px-3.5 text-xs font-medium";
 
   return (
     <div className="flex flex-col text-left gap-1 relative" ref={dropdownRef}>
-      {label && <label className="text-xs font-bold text-zinc-900">{label}</label>}
+      {label && <label className="text-xs font-semibold text-zinc-700">{label}</label>}
       <button
         type="button"
         disabled={disabled}
@@ -71,7 +71,7 @@ export function ModernSelect({
         />
       </button>
 
-      {isOpen && !disabled && (
+      {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-zinc-200/80 rounded-xl shadow-xl overflow-hidden max-h-64 overflow-y-auto py-1 surface-elevated animate-fadeIn">
           {options.map((opt) => (
             <button
@@ -81,7 +81,7 @@ export function ModernSelect({
                 onChange(opt.value);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-all flex flex-col justify-center ${
+              className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-all flex flex-col justify-center ${
                 opt.value === value
                   ? "bg-black text-white"
                   : "text-gray-800 hover:bg-gray-100"

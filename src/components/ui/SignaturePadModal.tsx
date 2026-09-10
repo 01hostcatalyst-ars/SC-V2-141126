@@ -112,7 +112,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
               <ShieldCheck className="w-4 h-4" strokeWidth={2} />
             </div>
-            <h3 className="text-sm font-bold text-zinc-950 uppercase tracking-wide">Execute Digital Signature</h3>
+            <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wide">Execute Digital Signature</h3>
           </div>
           <button 
             onClick={onClose} 
@@ -127,7 +127,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
         <div className="overflow-y-auto space-y-4 pr-1 flex-1">
           {/* Legal Consent Banner */}
           <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-xs text-zinc-800 leading-relaxed font-medium">
-            <strong className="text-zinc-950 font-bold">Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by <strong className="text-zinc-950 font-semibold">{jur.governingLawName}</strong> and SignCollab&apos;s <a href="/terms" target="_blank" className="underline font-semibold text-zinc-950 hover:text-black">Terms of Service &amp; Privacy Notice</a>.
+            <strong className="text-zinc-950 font-semibold">Legal Consent:</strong> By checking the box below and drawing your signature, you confirm your consent to enter into a legally binding electronic agreement governed by <strong className="text-zinc-950 font-semibold">{jur.governingLawName}</strong> and SignCollab&apos;s <a href="/terms" target="_blank" className="underline font-semibold text-zinc-950 hover:text-black">Terms of Service &amp; Privacy Notice</a>.
           </div>
 
           {/* Consent Checkbox */}
@@ -148,7 +148,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
           {/* Drawing Canvas */}
           <div className="flex flex-col gap-1.5 mt-1">
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
                 Draw Signature Inside Box
               </label>
               <span className="text-[10px] text-zinc-400 font-medium">Finger / Stylus / Mouse</span>
@@ -175,7 +175,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             type="button"
             disabled={loading}
             onClick={handleSave}
-            className="w-full bg-zinc-950 text-white hover:bg-zinc-900 font-bold text-xs uppercase py-3 rounded-lg transition-all shadow-sm mt-3 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="w-full bg-zinc-950 text-white hover:bg-zinc-900 font-semibold text-xs uppercase py-3 rounded-lg transition-all shadow-sm mt-3 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {loading ? "Processing..." : "Confirm & Apply Signature"}
           </button>

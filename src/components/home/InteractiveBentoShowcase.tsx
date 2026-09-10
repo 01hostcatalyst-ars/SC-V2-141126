@@ -38,7 +38,7 @@ export function InteractiveBentoShowcase() {
             <Sparkles className="w-3 h-3 text-zinc-950" strokeWidth={2.5} />
             <span>Interactive Tool Suite</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-zinc-950 font-display tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-zinc-950 font-display tracking-tight">
             Intelligence Meets Legal Settlement.
           </h2>
           <p className="text-sm sm:text-base text-zinc-600 font-medium">
@@ -260,7 +260,7 @@ export function InteractiveBentoShowcase() {
             </div>
 
             <div>
-              <h3 className="text-lg font-bold font-display text-white">SHA-256 Audit Certificate</h3>
+              <h3 className="text-lg font-semibold font-display text-white">SHA-256 Audit Certificate</h3>
               <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
                 Every executed agreement generates a mathematical cryptographic proof layer verifying integrity without storing contract secrets.
               </p>

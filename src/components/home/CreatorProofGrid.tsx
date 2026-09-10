@@ -90,7 +90,7 @@ export function CreatorProofGrid() {
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 font-mono">
               Empirical Market Benchmark
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-zinc-950 font-display tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-950 font-display tracking-tight">
               Calibrated for Every Creator Tier.
             </h2>
             <p className="text-xs sm:text-sm text-zinc-600 font-medium">
@@ -123,7 +123,7 @@ export function CreatorProofGrid() {
                       {creator.avatarInitials}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-zinc-950 truncate leading-tight">
+                      <h4 className="text-xs font-semibold text-zinc-950 truncate leading-tight">
                         {creator.name}
                       </h4>
                       <span className="text-[11px] font-mono text-zinc-400 block truncate">

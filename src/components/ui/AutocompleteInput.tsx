@@ -51,7 +51,7 @@ export function AutocompleteInput({
   return (
     <div ref={containerRef} className={`relative text-left flex flex-col gap-1 ${className}`}>
       {label && (
-        <label className="text-xs font-bold text-zinc-800">
+        <label className="text-xs font-semibold text-zinc-700">
           {label} {required && <span className="text-rose-500">*</span>}
         </label>
       )}

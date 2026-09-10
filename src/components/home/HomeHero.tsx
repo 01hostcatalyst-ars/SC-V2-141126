@@ -50,7 +50,7 @@ export function HomeHero() {
         </div>
 
         {/* Master Display Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-zinc-950 tracking-tight leading-[1.08] font-display max-w-4xl">
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold text-zinc-950 tracking-tight leading-[1.08] font-display max-w-4xl">
           Stop Sealing Deals in DMs.{" "}
           <span className="text-zinc-950 relative inline-block">
             Start Signing Them.
