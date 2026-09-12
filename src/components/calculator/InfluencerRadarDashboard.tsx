@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Platform, DeliverableFormat, PricingInput, RegionCode } from "@/lib/calculator/types";
 import { calculateInfluencerRate, roundCommercial } from "@/lib/calculator/engine";
+import { generateOmnichannelPackages, GeneratedPackage, PackageId } from "@/lib/calculator/packages";
 import { FORMAT_LABELS, REGIONAL_CONFIG, PRIMARY_NICHES, SUB_NICHES, getSubNichesByPrimaryId } from "@/lib/calculator/constants";
 import { InstagramPostItem, YouTubeVideoItem, TikTokVideoItem } from "@/lib/scrapers/types";
 import { CompleteCreatorIntelligence } from "@/lib/ai/types";
@@ -179,6 +180,8 @@ export function InfluencerRadarDashboard() {
 
   // Valuation Calibration Pipeline State (atomic reveal after AI country/niche synthesis)
   const [isValuationCalibrated, setIsValuationCalibrated] = useState(false);
+  const [activePackageId, setActivePackageId] = useState<PackageId>("conversion");
+  const [copiedPackageId, setCopiedPackageId] = useState<string | null>(null);
   const hasUserManuallySelectedRegion = useRef(false);
   const platformsRef = useRef(platforms);
   useEffect(() => {
@@ -1035,117 +1038,51 @@ export function InfluencerRadarDashboard() {
     return `/instant?${queryParams.toString()}`;
   }, [platforms, creatorMeta, selectedRegion, activeNicheId]);
 
-  // Compute Omnichannel Bundles (Starter & Full Pack)
-  // Per spec: each deliverable uses its OWN platform's native metrics (Steps 1-4)
-  const bundleOffers = useMemo(() => {
-    if (verifiedChannelsCount < 2 || !isValuationCalibrated) return null;
+  // 5-Objective Adaptive Omnichannel Package Recommendation Engine
+  const recommendedPackages = useMemo(() => {
+    if (!isValuationCalibrated) return [];
+    return generateOmnichannelPackages(
+      platforms,
+      creatorMeta?.displayName || "Creator",
+      activeNicheId,
+      activeSubNicheId,
+      selectedRegion,
+      completeIntelligence || undefined
+    );
+  }, [platforms, creatorMeta, activeNicheId, activeSubNicheId, selectedRegion, completeIntelligence, isValuationCalibrated]);
 
-    const regConfig = REGIONAL_CONFIG[selectedRegion] || REGIONAL_CONFIG["US"];
-
-    // Helper: Calculate a bundle by computing each deliverable individually with its own platform's metrics
-    const computeBundle = (
-      deliverables: Array<{ id: string; platform: Platform; format: DeliverableFormat; quantity: number }>,
-      usageScope: "organic_repost" | "paid_partnership_ads"
-    ) => {
-      // Step 1-4: Calculate each deliverable with its own platform's native data
-      let grossTotalUSD = 0;
-      for (const item of deliverables) {
-        const platData = platforms[item.platform];
-        const isYtShort = item.platform === "youtube" && item.format === "yt_short";
-        const itemViews = isYtShort && platData.avgShortViews ? platData.avgShortViews : platData.avgViews;
-        const singleInput: PricingInput = {
-          creator: {
-            followerCount: platData.followerCount || 25000,
-            last3PostsAvgLikes: platData.avgLikes || 500,
-            last3PostsAvgComments: platData.avgComments || 25,
-            last3PostsAvgViews: itemViews,
-            primaryPlatform: item.platform,
-            primaryNicheId: activeNicheId,
-            regionCode: selectedRegion,
-          },
-          deliverables: [{ ...item, quantity: 1 }],
-          commercialTerms: { usageRights: { scope: "organic_repost", duration: "30_days" } },
-        };
-        const res = calculateInfluencerRate(singleInput);
-        grossTotalUSD += res.lineItems.grossTotalUSD;
-      }
-
-      // Step 5: Multi-Asset Bundle Volume Discount
-      const totalAssetCount = deliverables.reduce((sum, d) => sum + d.quantity, 0);
-      const bundleDiscountPercent = totalAssetCount >= 4 ? 0.15 : totalAssetCount >= 2 ? 0.10 : 0.00;
-      const bundleDiscountAmountUSD = grossTotalUSD * bundleDiscountPercent;
-      const netContentFeeUSD = grossTotalUSD - bundleDiscountAmountUSD;
-
-      // Step 6: Commercial Rights Surcharge
-      const usagePercent = usageScope === "paid_partnership_ads" ? 0.25 : 0.00;
-      const commercialRightsFeeUSD = netContentFeeUSD * usagePercent;
-      const totalUSD = netContentFeeUSD + commercialRightsFeeUSD;
-
-      // Step 8: PPP & FX localization
-      const localizedMedian = totalUSD * regConfig.pppIndex * regConfig.fxRateToUSD;
-
-      // Step 9: Defended Negotiation Bounds
-      const lowP25 = roundCommercial(localizedMedian * 0.80);
-      const typicalMedian = roundCommercial(localizedMedian);
-      const highP75 = roundCommercial(localizedMedian * 1.25);
-
-      const savingsLocalized = roundCommercial(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
-
-      return { grossTotalUSD, totalUSD, lowP25, typicalMedian, highP75, savingsLocalized };
-    };
-
-    // 1. Starter Cross-Post Bundle
-    const starterDeliverables: Array<{ id: string; platform: Platform; format: DeliverableFormat; quantity: number }> = [];
-    if (platforms.instagram.status === "ready") {
-      starterDeliverables.push({ id: "1", platform: "instagram", format: "ig_reel", quantity: 1 });
+  // Synchronize active package to recommended package when packages update
+  useEffect(() => {
+    if (recommendedPackages.length > 0) {
+      const rec = recommendedPackages.find((p) => p.isRecommended);
+      if (rec) setActivePackageId(rec.id);
+      else setActivePackageId(recommendedPackages[0].id);
     }
-    if (platforms.tiktok.status === "ready") {
-      starterDeliverables.push({ id: "2", platform: "tiktok", format: "tiktok_video", quantity: 1 });
-    } else if (platforms.youtube.status === "ready") {
-      starterDeliverables.push({ id: "2", platform: "youtube", format: "yt_short", quantity: 1 });
-    }
+  }, [recommendedPackages]);
 
-    const starterResult = computeBundle(starterDeliverables, "organic_repost");
+  // 1-Click Copy Package Proposal Handler
+  const handleCopyPackageProposal = useCallback((pkg: GeneratedPackage) => {
+    const text = `SignCollab Campaign Proposal: ${pkg.name} (${pkg.tag})
+Target Creator: ${creatorMeta?.displayName || "Creator"}
+Campaign Objective: ${pkg.objective}
 
-    // 2. Full Omnichannel Authority Pack
-    const authorityDeliverables: Array<{ id: string; platform: Platform; format: DeliverableFormat; quantity: number }> = [];
-    if (platforms.youtube.status === "ready") {
-      authorityDeliverables.push({ id: "1", platform: "youtube", format: "yt_dedicated", quantity: 1 });
-    }
-    if (platforms.instagram.status === "ready") {
-      authorityDeliverables.push({ id: "2", platform: "instagram", format: "ig_reel", quantity: 1 });
-    }
-    if (platforms.tiktok.status === "ready") {
-      authorityDeliverables.push({ id: "3", platform: "tiktok", format: "tiktok_video", quantity: 1 });
-    }
+Valuation & Commercial Terms:
+• Typical Valuation: ${pkg.pricing.typicalFormatted} ${pkg.pricing.usdEquivalentTypical ? `(${pkg.pricing.usdEquivalentTypical})` : ""}
+• Defended Negotiation Range: ${pkg.pricing.lowFormatted} – ${pkg.pricing.highFormatted}
+• Included Savings: ${pkg.pricing.savingsFormatted} (${pkg.discountPercentApplied}% Multi-Asset Efficiency Discount)
 
-    const authResult = computeBundle(authorityDeliverables, "paid_partnership_ads");
+Deliverables & Campaign Flighting:
+${pkg.deliverables.map((d) => `• [${d.phase}] ${d.quantity}x ${d.title} (${d.platform.toUpperCase()}): ${d.description}`).join("\n")}
 
-    const isForeign = selectedRegion !== "US";
-    const starterUsdMedian = roundCommercial(starterResult.typicalMedian / (regConfig.fxRateToUSD || 1));
-    const authUsdMedian = roundCommercial(authResult.typicalMedian / (regConfig.fxRateToUSD || 1));
-    const starterUsd = isForeign ? `(~$${starterUsdMedian.toLocaleString()} USD)` : "";
-    const authUsd = isForeign ? `(~$${authUsdMedian.toLocaleString()} USD)` : "";
+Included Commercial Entitlements:
+${pkg.entitlements.map((e) => `• ${e.label}: ${e.detail}`).join("\n")}
 
-    return {
-      starter: {
-        title: "Cross-Platform Starter Combo",
-        subtitle: starterDeliverables.map((d) => FORMAT_LABELS[d.format]?.tag || d.format).join(" + "),
-        typicalFormatted: `${regConfig.symbol}${starterResult.typicalMedian.toLocaleString()} ${starterUsd}`,
-        lowFormatted: `${regConfig.symbol}${starterResult.lowP25.toLocaleString()}`,
-        highFormatted: `${regConfig.symbol}${starterResult.highP75.toLocaleString()}`,
-        savings: `${regConfig.symbol}${starterResult.savingsLocalized.toLocaleString()} ${regConfig.currency}`,
-      },
-      authority: {
-        title: "Omnichannel 360 Authority Pack",
-        subtitle: authorityDeliverables.map((d) => FORMAT_LABELS[d.format]?.tag || d.format).join(" + "),
-        typicalFormatted: `${regConfig.symbol}${authResult.typicalMedian.toLocaleString()} ${authUsd}`,
-        lowFormatted: `${regConfig.symbol}${authResult.lowP25.toLocaleString()}`,
-        highFormatted: `${regConfig.symbol}${authResult.highP75.toLocaleString()}`,
-        savings: `${regConfig.symbol}${authResult.savingsLocalized.toLocaleString()} ${regConfig.currency}`,
-      },
-    };
-  }, [verifiedChannelsCount, platforms, activeNicheId, selectedRegion]);
+Verified via SignCollab 16-Knot Market Valuation Engine`;
+
+    navigator.clipboard.writeText(text);
+    setCopiedPackageId(pkg.id);
+    setTimeout(() => setCopiedPackageId(null), 2500);
+  }, [creatorMeta]);
 
   // Extract and normalize primary & secondary regional markets
   const { cleanPrimaryMarket, secondaryMarketsList } = useMemo(() => {
@@ -2004,70 +1941,198 @@ export function InfluencerRadarDashboard() {
                 />
               </div>
 
-              {/* SECTION 5: OMNICHANNEL BUNDLE OPTIMIZER */}
-              {bundleOffers && (
-                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 text-white shadow-xl space-y-4 animate-fadeIn">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+              {/* SECTION 5: STRATEGIC OMNICHANNEL PACKAGES */}
+              {recommendedPackages.length > 0 && (
+                <div className="p-4 sm:p-6 rounded-2xl bg-zinc-950 text-white shadow-xl space-y-5 animate-fadeIn">
+                  {/* Section Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <h3 className="text-xs sm:text-base font-bold tracking-tight text-white">
+                          Strategic Omnichannel Campaign Packages
+                        </h3>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 mt-1">
+                        Objective-driven packages dynamically constructed from {creatorMeta?.displayName || "creator"}&apos;s verified platform hierarchy.
+                      </p>
+                    </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <h3 className="text-xs sm:text-sm font-semibold tracking-tight text-white">
-                        Automated Omnichannel Package Discounts
-                      </h3>
-                    </div>
-                    <div className="text-[11px] font-mono text-zinc-400">
-                      Target: {creatorMeta?.displayName || "Creator"}
+                      <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/10 text-zinc-300 border border-white/10">
+                        Target: {creatorMeta?.displayName || "Creator"}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {/* 2-Platform Starter Pack */}
-                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="text-xs font-semibold text-white flex items-center gap-1.5">
-                            <Flame className="w-3.5 h-3.5 text-amber-400" />
-                            <span>{bundleOffers.starter.title}</span>
-                          </div>
-                          <div className="text-[11px] text-zinc-400 font-mono">{bundleOffers.starter.subtitle}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-semibold font-mono text-white">
-                            {bundleOffers.starter.typicalFormatted}
-                          </div>
-                          <div className="text-[10px] text-emerald-400 font-mono">
-                            Save {bundleOffers.starter.savings}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-[10px] text-zinc-500 font-mono">
-                        Range: {bundleOffers.starter.lowFormatted} – {bundleOffers.starter.highFormatted}
-                      </div>
-                    </div>
-
-                    {/* 360 Authority Pack */}
-                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="text-xs font-semibold text-white flex items-center gap-1.5">
-                            <Crown className="w-3.5 h-3.5 text-yellow-400" />
-                            <span>{bundleOffers.authority.title}</span>
-                          </div>
-                          <div className="text-[11px] text-zinc-400 font-mono">{bundleOffers.authority.subtitle}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-semibold font-mono text-white">
-                            {bundleOffers.authority.typicalFormatted}
-                          </div>
-                          <div className="text-[10px] text-emerald-400 font-mono">
-                            Save {bundleOffers.authority.savings}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-[10px] text-zinc-500 font-mono">
-                        Range: {bundleOffers.authority.lowFormatted} – {bundleOffers.authority.highFormatted}
-                      </div>
-                    </div>
+                  {/* Package Selector Tabs / Pills */}
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {recommendedPackages.map((pkg) => {
+                      const isActive = pkg.id === activePackageId;
+                      return (
+                        <button
+                          key={pkg.id}
+                          type="button"
+                          onClick={() => setActivePackageId(pkg.id)}
+                          className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
+                            isActive
+                              ? "bg-white text-zinc-950 border-white shadow-md scale-[1.02]"
+                              : "bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10"
+                          }`}
+                        >
+                          {pkg.isRecommended && (
+                            <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                          )}
+                          <span>{pkg.name}</span>
+                          {pkg.isRecommended && (
+                            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+                              isActive ? "bg-amber-100 text-amber-900" : "bg-amber-400/20 text-amber-300"
+                            }`}>
+                              Best Fit
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
+
+                  {/* Active Package Detail Card */}
+                  {(() => {
+                    const activePkg = recommendedPackages.find((p) => p.id === activePackageId) || recommendedPackages[0];
+                    if (!activePkg) return null;
+
+                    return (
+                      <div className="p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+                        {/* Top Row: Package Identity & Valuation */}
+                        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 border-b border-white/10 pb-4">
+                          <div className="space-y-1.5 max-w-2xl">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm sm:text-base font-bold text-white">
+                                {activePkg.name}
+                              </span>
+                              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+                                {activePkg.tag}
+                              </span>
+                              {activePkg.isRecommended && (
+                                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30 flex items-center gap-1">
+                                  <span>★</span>
+                                  <span>Top Recommendation</span>
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-zinc-300 leading-relaxed">
+                              {activePkg.objective}
+                            </p>
+
+                            {/* Recommendation Reason Banner */}
+                            {activePkg.recommendationReason && (
+                              <div className="mt-2 p-2.5 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-200 text-xs flex items-start gap-2">
+                                <span className="text-amber-400 font-bold text-sm shrink-0">💡</span>
+                                <div>
+                                  <span className="font-semibold text-white">Why this package: </span>
+                                  <span>{activePkg.recommendationReason}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Valuation & Localized Discount */}
+                          <div className="text-left lg:text-right shrink-0 bg-white/5 lg:bg-transparent p-3 lg:p-0 rounded-xl border border-white/10 lg:border-none">
+                            <div className="text-lg sm:text-2xl font-black font-mono text-white">
+                              {activePkg.pricing.typicalFormatted}
+                              {activePkg.pricing.usdEquivalentTypical && (
+                                <span className="text-xs font-normal text-zinc-400 ml-1.5 font-mono">
+                                  ({activePkg.pricing.usdEquivalentTypical})
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs font-mono text-emerald-400 font-semibold mt-0.5">
+                              Save {activePkg.pricing.savingsFormatted} ({activePkg.discountPercentApplied}% Bundle Discount)
+                            </div>
+                            <div className="text-[11px] font-mono text-zinc-400 mt-1">
+                              Defended Range: {activePkg.pricing.lowFormatted} – {activePkg.pricing.highFormatted}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Phased Deliverable Timeline */}
+                        <div className="space-y-2.5">
+                          <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+                            Campaign Flighting &amp; Deliverables Breakdown
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                            {activePkg.deliverables.map((item) => (
+                              <div
+                                key={item.id}
+                                className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-1.5"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-mono uppercase text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                                    {item.phase}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-zinc-400 uppercase">
+                                    {item.platform}
+                                  </span>
+                                </div>
+                                <div className="text-xs font-bold text-white">
+                                  {item.quantity}x {item.title}
+                                </div>
+                                <div className="text-[11px] text-zinc-400 leading-snug">
+                                  {item.description}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Commercial Entitlements & Value-Add Riders */}
+                        <div className="space-y-2 pt-2 border-t border-white/10">
+                          <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+                            Included Commercial Rights &amp; Contract Entitlements
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {activePkg.entitlements.map((ent, idx) => (
+                              <div
+                                key={idx}
+                                className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-xs space-y-0.5"
+                              >
+                                <div className="font-semibold text-zinc-200 flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                  <span>{ent.label}</span>
+                                </div>
+                                <div className="text-[10px] text-zinc-400 leading-normal pl-3">
+                                  {ent.detail}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Action Row */}
+                        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10">
+                          <div className="text-[11px] text-zinc-400 font-mono">
+                            All line items defended via SignCollab 16-Knot Empirical Model with {activePkg.discountPercentApplied}% bundled efficiency discount.
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPackageProposal(activePkg)}
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 shrink-0"
+                          >
+                            {copiedPackageId === activePkg.id ? (
+                              <>
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                <span>Proposal Copied to Clipboard</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-4 h-4" />
+                                <span>Copy Package Proposal</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
