@@ -149,22 +149,33 @@ export function rankCreatorPlatforms(platforms: Record<Platform, PlatformMetrics
 // 2. Profile Placement Helper
 // ============================================================================
 
-export function getPlatformProfilePlacement(platform: Platform): { label: string; detail: string } {
+export function getPlatformProfilePlacement(
+  platform: Platform,
+  durationDays: number = 14,
+  hasMultiPlatformSynergy: boolean = false
+): { label: string; detail: string } {
+  if (hasMultiPlatformSynergy) {
+    return {
+      label: `${durationDays}-Day Pinned Post & Pinned Top Comment`,
+      detail: `Launch post pinned to the top of profile grid and sponsor comment pinned at the top of the video comment section for ${durationDays} days.`,
+    };
+  }
+
   switch (platform) {
     case 'instagram':
       return {
-        label: '14-Day Pinned Grid Reel & Bio Link',
-        detail: 'Pinned to the top-3 grid slots on Instagram profile with active link-in-bio placement.',
+        label: `${durationDays}-Day Pinned Reel on Grid & Bio Link`,
+        detail: `Launch post pinned to the top-3 grid slots on Instagram profile with active link in bio for ${durationDays} days.`,
       };
     case 'youtube':
       return {
-        label: 'Pinned Top Comment & Description Link',
-        detail: 'Pinned sponsor comment with trackable referral link + top-3 line description placement.',
+        label: `${durationDays}-Day Pinned Top Comment on Video & Description Link`,
+        detail: `Pinned sponsor comment with trackable referral link + top-3 lines of video description for ${durationDays} days.`,
       };
     case 'tiktok':
       return {
-        label: '14-Day Pinned TikTok & Bio Link',
-        detail: 'Pinned to the top of creator profile page with link-in-bio redirect.',
+        label: `${durationDays}-Day Pinned Video on Profile & Bio Link`,
+        detail: `Video pinned to the top of creator profile page with active link-in-bio redirect for ${durationDays} days.`,
       };
   }
 }
@@ -590,7 +601,7 @@ export function generateOmnichannelPackages(
       });
     }
 
-    const placementInfo = getPlatformProfilePlacement(primary.platform);
+    const placementInfo = getPlatformProfilePlacement(primary.platform, 14, false);
 
     const pricing = calculatePackagePricing(
       rawDeliverables,
@@ -935,7 +946,8 @@ export function generateOmnichannelPackages(
       });
     }
 
-    const placementInfo = getPlatformProfilePlacement(primary.platform);
+    const hasMultiPlatform = hasYouTube && (hasInstagram || hasTikTok);
+    const placementInfo = getPlatformProfilePlacement(primary.platform, 30, hasMultiPlatform);
 
     const pricing = calculatePackagePricing(
       rawDeliverables,
@@ -968,7 +980,7 @@ export function generateOmnichannelPackages(
       entitlements: [
         { type: 'whitelisting', label: '60-Day Paid Ad Whitelisting', detail: 'Extended authorization to amplify all campaign assets via Meta Partnership and TikTok Spark Ads.' },
         { type: 'exclusivity', label: '30-Day Direct Competitor Exclusivity', detail: 'Creator is legally barred from accepting sponsorships from direct industry competitors for 30 days.' },
-        { type: 'profile_placement', label: `30-Day Pinned ${placementInfo.label.split('&')[0].trim()}`, detail: 'Pinned to the top of creator profile / comment section for maximum visibility throughout the campaign.' },
+        { type: 'profile_placement', label: placementInfo.label, detail: placementInfo.detail },
         { type: 'raw_footage', label: 'Full Commercial Raw Master Buyout', detail: 'Clean 4K exports and uncompressed project audio delivered for corporate archive.' },
       ],
       pricing,
