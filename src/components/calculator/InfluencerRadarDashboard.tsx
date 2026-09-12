@@ -1688,6 +1688,23 @@ export function InfluencerRadarDashboard() {
                           setActiveNicheId(newNiche);
                           setActiveSubNicheId(defaultSub);
                           recomputeAllPlatformRates(selectedRegion, newNiche, defaultSub);
+                          setCompleteIntelligence((prev) => {
+                            if (!prev) return prev;
+                            const matchedPrimary = PRIMARY_NICHES.find((p) => p.id === newNiche);
+                            const matchedSub = SUB_NICHES.find((s) => s.id === defaultSub);
+                            return {
+                              ...prev,
+                              profile: {
+                                ...prev.profile,
+                                primaryNiche: matchedPrimary
+                                  ? { id: matchedPrimary.id, name: matchedPrimary.name, multiplier: matchedPrimary.multiplier }
+                                  : prev.profile.primaryNiche,
+                                subNiche: matchedSub
+                                  ? { id: matchedSub.id, name: matchedSub.name, multiplier: matchedSub.multiplier }
+                                  : prev.profile.subNiche,
+                              },
+                            };
+                          });
                         }}
                         className="bg-white border border-zinc-300 rounded-lg px-2.5 py-1 font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900 cursor-pointer text-xs shadow-2xs max-w-[210px] truncate"
                       >
@@ -1709,6 +1726,19 @@ export function InfluencerRadarDashboard() {
                           const newSub = Number(e.target.value);
                           setActiveSubNicheId(newSub);
                           recomputeAllPlatformRates(selectedRegion, activeNicheId, newSub);
+                          setCompleteIntelligence((prev) => {
+                            if (!prev) return prev;
+                            const matchedSub = SUB_NICHES.find((s) => s.id === newSub);
+                            return {
+                              ...prev,
+                              profile: {
+                                ...prev.profile,
+                                subNiche: matchedSub
+                                  ? { id: matchedSub.id, name: matchedSub.name, multiplier: matchedSub.multiplier }
+                                  : prev.profile.subNiche,
+                              },
+                            };
+                          });
                         }}
                         className="bg-white border border-zinc-300 rounded-lg px-2.5 py-1 font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900 cursor-pointer text-xs shadow-2xs max-w-[240px] truncate"
                       >
@@ -1736,16 +1766,22 @@ export function InfluencerRadarDashboard() {
                       <span className="text-xs font-semibold uppercase tracking-wider bg-zinc-950 text-white px-3 py-1 rounded-lg">
                         {completeIntelligence.profile?.creatorType || "Creator"}
                       </span>
-                      {completeIntelligence.profile?.primaryNiche && (
-                        <span className="text-xs font-medium text-zinc-900 bg-zinc-100 px-3 py-1 rounded-lg border border-zinc-200">
-                          {completeIntelligence.profile.primaryNiche.name} ({completeIntelligence.profile.primaryNiche.multiplier}x)
-                        </span>
-                      )}
-                      {completeIntelligence.profile?.subNiche && (
-                        <span className="text-xs font-medium text-indigo-950 bg-indigo-50/90 px-3 py-1 rounded-lg border border-indigo-200/90">
-                          {completeIntelligence.profile.subNiche.name} ({completeIntelligence.profile.subNiche.multiplier}x)
-                        </span>
-                      )}
+                      {(() => {
+                        const activePrimary = PRIMARY_NICHES.find((p) => p.id === activeNicheId) || completeIntelligence.profile?.primaryNiche;
+                        return activePrimary ? (
+                          <span className="text-xs font-medium text-zinc-900 bg-zinc-100 px-3 py-1 rounded-lg border border-zinc-200">
+                            {activePrimary.name} ({activePrimary.multiplier}x)
+                          </span>
+                        ) : null;
+                      })()}
+                      {(() => {
+                        const activeSub = (activeSubNicheId ? SUB_NICHES.find((s) => s.id === activeSubNicheId) : undefined) || completeIntelligence.profile?.subNiche;
+                        return activeSub ? (
+                          <span className="text-xs font-medium text-indigo-950 bg-indigo-50/90 px-3 py-1 rounded-lg border border-indigo-200/90">
+                            {activeSub.name} ({activeSub.multiplier}x)
+                          </span>
+                        ) : null;
+                      })()}
                       {completeIntelligence.geography?.countryCode && (
                         <span className="text-xs font-medium text-zinc-800 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
                           <Globe className="w-3 h-3 text-zinc-500" />

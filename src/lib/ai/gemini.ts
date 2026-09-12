@@ -221,8 +221,16 @@ export async function generateCompleteCreatorIntelligence(
   if (!bypassCache) {
     const cached = await getRecentCreatorIntelligence(rootHandle, 24);
     if (cached?.intelligence) {
-      console.log(`[CreatorIntelligence Cache Hit] Returning 24h cached intelligence for @${rootHandle} (${cached.cacheAgeHours}h old).`);
-      return cached.intelligence;
+      // Guard against corrupted cache from previous parser bug (Niche 8 with blank summaries)
+      const isBogusCache =
+        cached.intelligence.profile?.primaryNiche?.id === 8 &&
+        (!cached.intelligence.summary?.oneLine && !cached.intelligence.summary?.brandSummary);
+
+      if (!isBogusCache) {
+        console.log(`[CreatorIntelligence Cache Hit] Returning 24h cached intelligence for @${rootHandle} (${cached.cacheAgeHours}h old).`);
+        return cached.intelligence;
+      }
+      console.log(`[CreatorIntelligence Cache Invalid] Bypassing corrupted cache for @${rootHandle}.`);
     }
   }
 
@@ -303,6 +311,28 @@ Core Principles & Rules:
    - confidence: { niche, country, audience, brandFit }.
    - evidence: { classification[], geography[], audience[], commercial[] }.
    - uncertainties: Array of explicit transparency notes (e.g. "Audience demographics inferred from content signals; not verified via private analytics").
+
+CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON using EXACTLY these top-level keys:
+{
+  "profile": { "creatorType": "...", "profilePositioning": "...", "primaryNiche": { "id": number, "name": "...", "multiplier": number }, "subNiche": { "id": number, "name": "...", "multiplier": number }, "secondaryNiches": [{ "id": number, "name": "...", "multiplier": number }], "microNiches": ["..."], "creatorDescription": "...", "confidence": 0.95 },
+  "geography": { "countryCode": "...", "countryName": "...", "city": null, "region": null, "confidence": 0.9, "evidence": ["..."] },
+  "audience": { "likelyAgeRange": "...", "genderSkew": "...", "primaryMarket": "...", "secondaryMarkets": ["..."], "interests": ["..."], "purchaseIntent": "...", "audienceIntent": ["..."], "profile": "...", "confidence": 0.9 },
+  "content": { "themes": ["..."], "dominantFormat": "...", "formats": ["..."], "style": ["..."], "tone": ["..."], "productionLevel": "...", "contentConsistency": "...", "promotionalContentLevel": "..." },
+  "contentThemes": [{ "theme": "...", "strength": 0.9 }],
+  "contentFormatIntelligence": { "primaryFormat": "...", "strongestFormatForCreator": "...", "formatDescription": "..." },
+  "performanceIntelligence": { "reachLevel": "...", "engagementQuality": "...", "audienceResponse": "...", "performancePattern": "...", "summary": "..." },
+  "engagementIntelligence": { "conversationLevel": "...", "sharingPotential": "...", "purchaseIntentSignals": "...", "audienceBehavior": ["..."] },
+  "commercialIntelligence": { "commercialIntent": "...", "brandCollaborationLikelihood": "...", "affiliateSignals": false, "productPromotionLevel": "...", "sponsorshipSignals": ["..."] },
+  "brandFit": { "bestFitCategories": ["..."], "campaignTypes": ["..."], "strongestPartnershipAngle": "...", "brandSuitability": "..." },
+  "brandSafety": { "overallRisk": "...", "observedRiskSignals": ["..."], "reviewRecommended": false },
+  "strengths": [{ "area": "...", "description": "..." }],
+  "considerations": [{ "area": "...", "description": "..." }],
+  "partnershipRecommendations": [{ "campaign": "...", "fit": "...", "reason": "..." }],
+  "summary": { "oneLine": "...", "brandSummary": "...", "detailedSummary": "..." },
+  "confidence": { "niche": 0.95, "country": 0.9, "audience": 0.85, "brandFit": 0.9 },
+  "evidence": { "classification": ["..."], "geography": ["..."], "audience": ["..."], "commercial": ["..."] },
+  "uncertainties": ["..."]
+}
 
 Return ONLY clean raw JSON matching this schema.`;
 
@@ -396,30 +426,145 @@ Generate the Complete 19-Point Creator Intelligence Dossier JSON.`;
  */
 export function normalizeCompleteIntelligence(raw: unknown, input?: MultiPlatformCreatorInput): CompleteCreatorIntelligence {
   const r = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, any>;
-  const profile = (r.profile && typeof r.profile === 'object' ? r.profile : {}) as Record<string, any>;
-  const geography = (r.geography && typeof r.geography === 'object' ? r.geography : {}) as Record<string, any>;
-  const audience = (r.audience || r.audiencePersona || {}) as Record<string, any>;
-  const contentAndFormat = (r.contentAndFormat || {}) as Record<string, any>;
-  const content = (r.content || contentAndFormat || {}) as Record<string, any>;
-  const commercialAndBrandFit = (r.commercialAndBrandFit || {}) as Record<string, any>;
-  const commercialIntelligence = (r.commercialIntelligence || commercialAndBrandFit || {}) as Record<string, any>;
-  const brandFit = (r.brandFit || commercialAndBrandFit.brandFit || {}) as Record<string, any>;
-  const brandSafety = (r.brandSafety || commercialAndBrandFit.brandSafety || {}) as Record<string, any>;
-  const strategyAndRecommendations = (r.strategyAndRecommendations || {}) as Record<string, any>;
-  const strengths = (Array.isArray(r.strengths) ? r.strengths : Array.isArray(strategyAndRecommendations.strengths) ? strategyAndRecommendations.strengths : []) as Array<{ area: string; description: string }>;
-  const considerations = (Array.isArray(r.considerations) ? r.considerations : Array.isArray(strategyAndRecommendations.considerations) ? strategyAndRecommendations.considerations : []) as Array<{ area: string; description: string }>;
-  const partnershipRecommendations = (Array.isArray(r.partnershipRecommendations) ? r.partnershipRecommendations : Array.isArray(strategyAndRecommendations.partnershipRecommendations) ? strategyAndRecommendations.partnershipRecommendations : []) as Array<{ campaign: string; fit: string; reason: string }>;
-  const summaries = (r.summaries || r.summary || {}) as Record<string, any>;
-  const performanceAndEngagement = (r.performanceAndEngagement || {}) as Record<string, any>;
-  const performanceIntelligence = (r.performanceIntelligence || performanceAndEngagement || {}) as Record<string, any>;
-  const engagementIntelligence = (r.engagementIntelligence || performanceAndEngagement.engagementIntelligence || {}) as Record<string, any>;
-  const metaAndEvidence = (r.metaAndEvidence || {}) as Record<string, any>;
-  const confidence = (r.confidence || metaAndEvidence.confidence || {}) as Record<string, any>;
-  const evidence = (r.evidence || metaAndEvidence.evidence || {}) as Record<string, any>;
-  const uncertainties = (Array.isArray(r.uncertainties) ? r.uncertainties : Array.isArray(metaAndEvidence.uncertainties) ? metaAndEvidence.uncertainties : []) as string[];
+
+  const profile = (
+    (r.profile && typeof r.profile === 'object' ? r.profile : null) ||
+    (r.creatorProfile && typeof r.creatorProfile === 'object' ? r.creatorProfile : null) ||
+    (r.profileAndIdentity && typeof r.profileAndIdentity === 'object' ? r.profileAndIdentity : null) ||
+    r
+  ) as Record<string, any>;
+
+  const geography = (
+    (r.geography && typeof r.geography === 'object' ? r.geography : null) ||
+    (r.geographyIntelligence && typeof r.geographyIntelligence === 'object' ? r.geographyIntelligence : null) ||
+    r
+  ) as Record<string, any>;
+
+  const audience = (
+    (r.audience && typeof r.audience === 'object' ? r.audience : null) ||
+    (r.audienceIntelligence && typeof r.audienceIntelligence === 'object' ? r.audienceIntelligence : null) ||
+    (r.audiencePersona && typeof r.audiencePersona === 'object' ? r.audiencePersona : null) ||
+    r
+  ) as Record<string, any>;
+
+  const contentAndFormat = (
+    (r.contentAndFormat && typeof r.contentAndFormat === 'object' ? r.contentAndFormat : null) ||
+    (r.contentIntelligence && typeof r.contentIntelligence === 'object' ? r.contentIntelligence : null) ||
+    {}
+  ) as Record<string, any>;
+
+  const content = (
+    (r.content && typeof r.content === 'object' ? r.content : null) ||
+    (r.contentIntelligence && typeof r.contentIntelligence === 'object' ? r.contentIntelligence : null) ||
+    contentAndFormat ||
+    r
+  ) as Record<string, any>;
+
+  const performanceIntelligence = (
+    (r.performanceIntelligence && typeof r.performanceIntelligence === 'object' ? r.performanceIntelligence : null) ||
+    (r.performance && typeof r.performance === 'object' ? r.performance : null) ||
+    (r.performanceAndEngagement && typeof r.performanceAndEngagement === 'object' ? r.performanceAndEngagement : null) ||
+    {}
+  ) as Record<string, any>;
+
+  const engagementIntelligence = (
+    (r.engagementIntelligence && typeof r.engagementIntelligence === 'object' ? r.engagementIntelligence : null) ||
+    (performanceIntelligence.engagementIntelligence && typeof performanceIntelligence.engagementIntelligence === 'object' ? performanceIntelligence.engagementIntelligence : null) ||
+    (r.engagement && typeof r.engagement === 'object' ? r.engagement : null) ||
+    {}
+  ) as Record<string, any>;
+
+  const commercialAndBrandFit = (
+    (r.commercialAndBrandFit && typeof r.commercialAndBrandFit === 'object' ? r.commercialAndBrandFit : null) ||
+    {}
+  ) as Record<string, any>;
+
+  const commercialIntelligence = (
+    (r.commercialIntelligence && typeof r.commercialIntelligence === 'object' ? r.commercialIntelligence : null) ||
+    commercialAndBrandFit ||
+    (r.commercial && typeof r.commercial === 'object' ? r.commercial : null) ||
+    {}
+  ) as Record<string, any>;
+
+  const brandFit = (
+    (r.brandFit && typeof r.brandFit === 'object' ? r.brandFit : null) ||
+    (commercialIntelligence.brandFit && typeof commercialIntelligence.brandFit === 'object' ? commercialIntelligence.brandFit : null) ||
+    (commercialAndBrandFit.brandFit && typeof commercialAndBrandFit.brandFit === 'object' ? commercialAndBrandFit.brandFit : null) ||
+    {}
+  ) as Record<string, any>;
+
+  const brandSafety = (
+    (r.brandSafety && typeof r.brandSafety === 'object' ? r.brandSafety : null) ||
+    (commercialIntelligence.brandSafety && typeof commercialIntelligence.brandSafety === 'object' ? commercialIntelligence.brandSafety : null) ||
+    (commercialAndBrandFit.brandSafety && typeof commercialAndBrandFit.brandSafety === 'object' ? commercialAndBrandFit.brandSafety : null) ||
+    {}
+  ) as Record<string, any>;
+
+  const strategyAndRecommendations = (
+    (r.strategyAndRecommendations && typeof r.strategyAndRecommendations === 'object' ? r.strategyAndRecommendations : null) ||
+    (r.strategicRecommendations && typeof r.strategicRecommendations === 'object' ? r.strategicRecommendations : null) ||
+    (r.strategy && typeof r.strategy === 'object' ? r.strategy : null) ||
+    r
+  ) as Record<string, any>;
+
+  const strengths = (
+    Array.isArray(r.strengths) ? r.strengths :
+    Array.isArray(strategyAndRecommendations.strengths) ? strategyAndRecommendations.strengths :
+    []
+  ) as Array<{ area: string; description: string }>;
+
+  const considerations = (
+    Array.isArray(r.considerations) ? r.considerations :
+    Array.isArray(strategyAndRecommendations.considerations) ? strategyAndRecommendations.considerations :
+    []
+  ) as Array<{ area: string; description: string }>;
+
+  const partnershipRecommendations = (
+    Array.isArray(r.partnershipRecommendations) ? r.partnershipRecommendations :
+    Array.isArray(strategyAndRecommendations.partnershipRecommendations) ? strategyAndRecommendations.partnershipRecommendations :
+    []
+  ) as Array<{ campaign: string; fit: string; reason: string }>;
+
+  const summaries = (
+    (r.summary && typeof r.summary === 'object' ? r.summary : null) ||
+    (r.summaries && typeof r.summaries === 'object' ? r.summaries : null) ||
+    (r.executiveSummaries && typeof r.executiveSummaries === 'object' ? r.executiveSummaries : null) ||
+    r
+  ) as Record<string, any>;
+
+  const metaAndEvidence = (
+    (r.metaAndEvidence && typeof r.metaAndEvidence === 'object' ? r.metaAndEvidence : null) ||
+    (r.metaIntelligence && typeof r.metaIntelligence === 'object' ? r.metaIntelligence : null) ||
+    (r.metadata && typeof r.metadata === 'object' ? r.metadata : null) ||
+    r
+  ) as Record<string, any>;
+
+  const confidence = (
+    (r.confidence && typeof r.confidence === 'object' ? r.confidence : null) ||
+    (metaAndEvidence.confidence && typeof metaAndEvidence.confidence === 'object' ? metaAndEvidence.confidence : null) ||
+    {}
+  ) as Record<string, any>;
+
+  const evidence = (
+    (r.evidence && typeof r.evidence === 'object' ? r.evidence : null) ||
+    (metaAndEvidence.evidence && typeof metaAndEvidence.evidence === 'object' ? metaAndEvidence.evidence : null) ||
+    {}
+  ) as Record<string, any>;
+
+  const uncertainties = (
+    Array.isArray(r.uncertainties) ? r.uncertainties :
+    Array.isArray(metaAndEvidence.uncertainties) ? metaAndEvidence.uncertainties :
+    []
+  ) as string[];
 
   // 1. Resilient Sub-Niche Resolution from raw Gemini response
-  const subNicheRaw = profile.subNiche || profile.sub_niche || r.subNiche || r.sub_niche;
+  const subNicheRaw =
+    profile.subNiche ||
+    profile.sub_niche ||
+    profile.subNicheId ||
+    r.subNiche ||
+    r.sub_niche ||
+    r.subNicheId;
   let resolvedSubNiche: typeof SUB_NICHES[0] | undefined = undefined;
 
   if (subNicheRaw) {
@@ -452,7 +597,15 @@ export function normalizeCompleteIntelligence(raw: unknown, input?: MultiPlatfor
   }
 
   // 2. Resilient Primary Niche Resolution from raw Gemini response
-  const primaryNicheRaw = profile.primaryNiche || profile.primary_niche || r.primaryNiche || r.primary_niche;
+  const primaryNicheRaw =
+    profile.primaryNiche ||
+    profile.primary_niche ||
+    profile.primaryNicheId ||
+    profile.niche ||
+    r.primaryNiche ||
+    r.primary_niche ||
+    r.primaryNicheId ||
+    r.niche;
   let resolvedPrimary: typeof PRIMARY_NICHES[0] | undefined = undefined;
 
   if (primaryNicheRaw) {
@@ -699,12 +852,20 @@ export function normalizeCompleteIntelligence(raw: unknown, input?: MultiPlatfor
       contentConsistency: content.contentConsistency || contentAndFormat.contentConsistency || 'High',
       promotionalContentLevel: content.promotionalContentLevel || contentAndFormat.promotionalContentLevel || 'Moderate',
     },
-    contentThemes: Array.isArray(r.contentThemes) ? r.contentThemes : Array.isArray(contentAndFormat.contentThemes) ? contentAndFormat.contentThemes : [],
-    contentFormatIntelligence: r.contentFormatIntelligence || contentAndFormat.contentFormatIntelligence || {
-      primaryFormat: 'Video',
-      strongestFormatForCreator: 'Video',
-      formatDescription: '',
-    },
+    contentThemes: (
+      (Array.isArray(r.contentThemes) && r.contentThemes.length ? r.contentThemes : null) ||
+      (Array.isArray(content.contentThemes) && content.contentThemes.length ? content.contentThemes : null) ||
+      (Array.isArray(contentAndFormat.contentThemes) && contentAndFormat.contentThemes.length ? contentAndFormat.contentThemes : null) ||
+      []
+    ),
+    contentFormatIntelligence:
+      r.contentFormatIntelligence ||
+      content.contentFormatIntelligence ||
+      contentAndFormat.contentFormatIntelligence || {
+        primaryFormat: 'Video',
+        strongestFormatForCreator: 'Video',
+        formatDescription: '',
+      },
     performanceIntelligence: {
       reachLevel: performanceIntelligence.reachLevel || 'Strong',
       engagementQuality: performanceIntelligence.engagementQuality || 'High',
@@ -740,9 +901,9 @@ export function normalizeCompleteIntelligence(raw: unknown, input?: MultiPlatfor
     considerations,
     partnershipRecommendations,
     summary: {
-      oneLine: summaries.oneLine || '',
-      brandSummary: summaries.brandSummary || '',
-      detailedSummary: summaries.detailedSummary || '',
+      oneLine: summaries.oneLine || r.oneLine || '',
+      brandSummary: summaries.brandSummary || r.brandSummary || '',
+      detailedSummary: summaries.detailedSummary || r.detailedSummary || '',
     },
     confidence: {
       niche: typeof confidence.niche === 'number' ? confidence.niche : 0.95,
