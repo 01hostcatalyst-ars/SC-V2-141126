@@ -35,7 +35,7 @@ import {
   Activity,
 } from "lucide-react";
 import { Platform, DeliverableFormat, PricingInput, RegionCode } from "@/lib/calculator/types";
-import { calculateInfluencerRate } from "@/lib/calculator/engine";
+import { calculateInfluencerRate, roundCommercial } from "@/lib/calculator/engine";
 import { FORMAT_LABELS, REGIONAL_CONFIG, PRIMARY_NICHES, SUB_NICHES, getSubNichesByPrimaryId } from "@/lib/calculator/constants";
 import { InstagramPostItem, YouTubeVideoItem, TikTokVideoItem } from "@/lib/scrapers/types";
 import { CompleteCreatorIntelligence } from "@/lib/ai/types";
@@ -338,9 +338,10 @@ export function InfluencerRadarDashboard() {
         const high = res.valuationRange.highP75;
 
         // USD Equivalent if in foreign currency (e.g. PKR, INR, AED, GBP)
+        const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG["US"];
         const isForeign = regionCode !== "US";
-        const usdMedian = res.lineItems.totalUSD;
-        const usdEquivalent = isForeign ? `~$${usdMedian.toLocaleString()} USD` : undefined;
+        const realUsdMedian = roundCommercial(median / (regConfig.fxRateToUSD || 1));
+        const usdEquivalent = isForeign ? `~$${realUsdMedian.toLocaleString()} USD` : undefined;
 
         return {
           format: fmt,
@@ -1084,11 +1085,11 @@ export function InfluencerRadarDashboard() {
       const localizedMedian = totalUSD * regConfig.pppIndex * regConfig.fxRateToUSD;
 
       // Step 9: Defended Negotiation Bounds
-      const lowP25 = Math.round(localizedMedian * 0.80);
-      const typicalMedian = Math.round(localizedMedian);
-      const highP75 = Math.round(localizedMedian * 1.25);
+      const lowP25 = roundCommercial(localizedMedian * 0.80);
+      const typicalMedian = roundCommercial(localizedMedian);
+      const highP75 = roundCommercial(localizedMedian * 1.25);
 
-      const savingsLocalized = Math.round(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
+      const savingsLocalized = roundCommercial(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
 
       return { grossTotalUSD, totalUSD, lowP25, typicalMedian, highP75, savingsLocalized };
     };
@@ -1121,8 +1122,10 @@ export function InfluencerRadarDashboard() {
     const authResult = computeBundle(authorityDeliverables, "paid_partnership_ads");
 
     const isForeign = selectedRegion !== "US";
-    const starterUsd = isForeign ? `(~$${starterResult.totalUSD.toLocaleString()} USD)` : "";
-    const authUsd = isForeign ? `(~$${authResult.totalUSD.toLocaleString()} USD)` : "";
+    const starterUsdMedian = roundCommercial(starterResult.typicalMedian / (regConfig.fxRateToUSD || 1));
+    const authUsdMedian = roundCommercial(authResult.typicalMedian / (regConfig.fxRateToUSD || 1));
+    const starterUsd = isForeign ? `(~$${starterUsdMedian.toLocaleString()} USD)` : "";
+    const authUsd = isForeign ? `(~$${authUsdMedian.toLocaleString()} USD)` : "";
 
     return {
       starter: {
@@ -2342,7 +2345,7 @@ function PlatformRateCardItem({
   const [manualHandle, setManualHandle] = useState("");
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs flex flex-col justify-between p-4 space-y-3.5">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs flex flex-col justify-start p-4 space-y-3.5 h-full">
       {/* Platform Header */}
       <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
         <div className="flex items-center gap-2">
@@ -2486,11 +2489,14 @@ function PlatformRateCardItem({
                 return (
                   <div
                     key={item.format}
-                    className="flex items-center justify-between p-2 rounded-lg border border-gray-100 hover:border-gray-300 bg-white transition-all text-xs"
+                    className="flex items-center justify-between p-2 rounded-lg border border-gray-100 hover:border-gray-300 bg-white transition-all text-xs gap-2"
                   >
-                    <div className="truncate pr-2">
-                      <div className="font-semibold text-gray-900 truncate">{label}</div>
-                      <div className="text-[10px] text-gray-400 font-mono">
+                    <div className="min-w-0 flex-1 pr-1.5">
+                      <div className="font-semibold text-gray-900 truncate" title={label}>{label}</div>
+                      <div
+                        className="text-[9.5px] text-gray-500 font-mono tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
+                        title={`${item.formattedLow} – ${item.formattedHigh}`}
+                      >
                         {item.formattedLow} – {item.formattedHigh}
                       </div>
                     </div>

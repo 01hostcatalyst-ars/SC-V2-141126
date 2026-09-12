@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlatformDataState } from "./PlatformRateCard";
-import { calculateInfluencerRate } from "@/lib/calculator/engine";
+import { calculateInfluencerRate, roundCommercial } from "@/lib/calculator/engine";
 import { PricingInput, DeliverableItem, RegionCode } from "@/lib/calculator/types";
 import { FORMAT_LABELS, REGIONAL_CONFIG } from "@/lib/calculator/constants";
 import {
@@ -90,10 +90,10 @@ export function OmnichannelBundleCard({
     const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG["US"];
     const localizedMedian = totalUSD * regConfig.pppIndex * regConfig.fxRateToUSD;
 
-    const lowP25 = Math.round(localizedMedian * 0.80);
-    const typicalMedian = Math.round(localizedMedian);
-    const highP75 = Math.round(localizedMedian * 1.25);
-    const savingsLocalized = Math.round(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
+    const lowP25 = roundCommercial(localizedMedian * 0.80);
+    const typicalMedian = roundCommercial(localizedMedian);
+    const highP75 = roundCommercial(localizedMedian * 1.25);
+    const savingsLocalized = roundCommercial(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
 
     return {
       title: "Cross-Platform Starter Combo",
@@ -155,10 +155,10 @@ export function OmnichannelBundleCard({
     const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG["US"];
     const localizedMedian = netContentFeeUSD * regConfig.pppIndex * regConfig.fxRateToUSD;
 
-    const lowP25 = Math.round(localizedMedian * 0.80);
-    const typicalMedian = Math.round(localizedMedian);
-    const highP75 = Math.round(localizedMedian * 1.25);
-    const savingsLocalized = Math.round(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
+    const lowP25 = roundCommercial(localizedMedian * 0.80);
+    const typicalMedian = roundCommercial(localizedMedian);
+    const highP75 = roundCommercial(localizedMedian * 1.25);
+    const savingsLocalized = roundCommercial(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
 
     return {
       title: "360° Omnichannel Authority Pack",

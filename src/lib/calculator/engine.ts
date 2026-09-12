@@ -41,6 +41,27 @@ export interface DynamicCalculationOverrides {
 }
 
 /**
+ * Rounds monetary amounts to clean, executive commercial brackets:
+ * - >= 100,000 (PKR, INR, JPY, NGN, high-magnitude currencies): round to nearest 1,000 (e.g. 1,230,220 -> 1,230,000)
+ * - 10,000 - 99,999: round to nearest 100 (e.g. 14,218 -> 14,200)
+ * - 1,000 - 9,999 (standard USD / EUR / GBP rates): round to nearest 25 (e.g. 4,417 -> 4,425)
+ * - 100 - 999: round to nearest 10
+ * - < 100: round to nearest whole integer
+ */
+export function roundCommercial(amount: number): number {
+  if (amount >= 100_000) {
+    return Math.round(amount / 1000) * 1000;
+  } else if (amount >= 10_000) {
+    return Math.round(amount / 100) * 100;
+  } else if (amount >= 1_000) {
+    return Math.round(amount / 25) * 25;
+  } else if (amount >= 100) {
+    return Math.round(amount / 10) * 10;
+  }
+  return Math.round(amount);
+}
+
+/**
  * Continuous 16-Knot Piecewise Linear Interpolator
  */
 export function interpolateKnot(
@@ -320,9 +341,9 @@ export function calculateInfluencerRate(
   // Localized Target Median = Total Global USD × PPP Index × FX Rate
   const localizedMedian = totalUSDMedian * regConfig.pppIndex * regConfig.fxRateToUSD;
 
-  const lowP25 = Math.round(localizedMedian * 0.80);
-  const typicalMedian = Math.round(localizedMedian * 1.00);
-  const highP75 = Math.round(localizedMedian * 1.25);
+  const lowP25 = roundCommercial(localizedMedian * 0.80);
+  const typicalMedian = roundCommercial(localizedMedian * 1.00);
+  const highP75 = roundCommercial(localizedMedian * 1.25);
 
   return {
     metrics: {
