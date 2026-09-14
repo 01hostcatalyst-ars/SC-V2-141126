@@ -251,7 +251,16 @@ export function calculateInfluencerRate(
     else if (item.format === 'tiktok_video') knotArray = activeTtKnots;
     else if (item.format.startsWith('yt_')) knotArray = activeYtKnots;
 
-    const { baseRate } = interpolateKnot(followers, item.format, knotArray);
+    let { baseRate } = interpolateKnot(followers, item.format, knotArray);
+
+    // Architectural Guardrail: YouTube 60s integration must never exceed 55% of YouTube Dedicated Video
+    if (item.format === 'yt_integrated') {
+      const dedicatedInfo = interpolateKnot(followers, 'yt_dedicated', knotArray);
+      const maxIntegrationBase = Math.round(dedicatedInfo.baseRate * 0.55);
+      if (baseRate > maxIntegrationBase) {
+        baseRate = maxIntegrationBase;
+      }
+    }
 
     let quantityAdjusted = baseRate * item.quantity;
     if (item.isCrossPost) {

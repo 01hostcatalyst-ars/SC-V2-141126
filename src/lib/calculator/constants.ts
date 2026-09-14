@@ -62,22 +62,22 @@ export const TIKTOK_16_KNOTS: PlatformKnot[] = [
 
 // 1C. YouTube 16-Knot Matrix (Track A: Long-Form & Track B: Shorts)
 export const YOUTUBE_16_KNOTS: PlatformKnot[] = [
-  { knotId: 'K01', followers: 1000, benchmarkEr: 4.50, expectedViews: 300, rates: { yt_dedicated: 450, yt_integrated: 250, yt_short: 100 } },
-  { knotId: 'K02', followers: 2500, benchmarkEr: 4.00, expectedViews: 750, rates: { yt_dedicated: 700, yt_integrated: 400, yt_short: 200 } },
-  { knotId: 'K03', followers: 5000, benchmarkEr: 3.80, expectedViews: 1500, rates: { yt_dedicated: 710, yt_integrated: 400, yt_short: 210 } },
-  { knotId: 'K04', followers: 10000, benchmarkEr: 3.50, expectedViews: 2800, rates: { yt_dedicated: 725, yt_integrated: 400, yt_short: 225 } },
-  { knotId: 'K05', followers: 15000, benchmarkEr: 3.30, expectedViews: 4000, rates: { yt_dedicated: 735, yt_integrated: 400, yt_short: 235 } },
-  { knotId: 'K06', followers: 25000, benchmarkEr: 3.00, expectedViews: 6500, rates: { yt_dedicated: 750, yt_integrated: 400, yt_short: 250 } },
-  { knotId: 'K07', followers: 40000, benchmarkEr: 2.80, expectedViews: 10000, rates: { yt_dedicated: 1200, yt_integrated: 700, yt_short: 375 } },
-  { knotId: 'K08', followers: 60000, benchmarkEr: 2.60, expectedViews: 15000, rates: { yt_dedicated: 1750, yt_integrated: 1000, yt_short: 500 } },
-  { knotId: 'K09', followers: 100000, benchmarkEr: 2.40, expectedViews: 22000, rates: { yt_dedicated: 2050, yt_integrated: 2100, yt_short: 720 } },
-  { knotId: 'K10', followers: 150000, benchmarkEr: 2.20, expectedViews: 32000, rates: { yt_dedicated: 2400, yt_integrated: 3400, yt_short: 980 } },
-  { knotId: 'K11', followers: 250000, benchmarkEr: 2.00, expectedViews: 50000, rates: { yt_dedicated: 3000, yt_integrated: 6000, yt_short: 1500 } },
-  { knotId: 'K12', followers: 500000, benchmarkEr: 1.80, expectedViews: 90000, rates: { yt_dedicated: 6200, yt_integrated: 9000, yt_short: 2200 } },
-  { knotId: 'K13', followers: 750000, benchmarkEr: 1.60, expectedViews: 130000, rates: { yt_dedicated: 9400, yt_integrated: 12000, yt_short: 2850 } },
-  { knotId: 'K14', followers: 1000000, benchmarkEr: 1.50, expectedViews: 175000, rates: { yt_dedicated: 12500, yt_integrated: 15000, yt_short: 3500 } },
-  { knotId: 'K15', followers: 2500000, benchmarkEr: 1.20, expectedViews: 350000, rates: { yt_dedicated: 21000, yt_integrated: 19000, yt_short: 6000 } },
-  { knotId: 'K16', followers: 5000000, benchmarkEr: 1.00, expectedViews: 600000, rates: { yt_dedicated: 35000, yt_integrated: 25000, yt_short: 10000 } },
+  { knotId: 'K01', followers: 1000, benchmarkEr: 4.50, expectedViews: 300, rates: { yt_dedicated: 450, yt_integrated: 225, yt_short: 100 } },
+  { knotId: 'K02', followers: 2500, benchmarkEr: 4.00, expectedViews: 750, rates: { yt_dedicated: 700, yt_integrated: 350, yt_short: 200 } },
+  { knotId: 'K03', followers: 5000, benchmarkEr: 3.80, expectedViews: 1500, rates: { yt_dedicated: 750, yt_integrated: 375, yt_short: 210 } },
+  { knotId: 'K04', followers: 10000, benchmarkEr: 3.50, expectedViews: 2800, rates: { yt_dedicated: 850, yt_integrated: 425, yt_short: 225 } },
+  { knotId: 'K05', followers: 15000, benchmarkEr: 3.30, expectedViews: 4000, rates: { yt_dedicated: 1000, yt_integrated: 500, yt_short: 235 } },
+  { knotId: 'K06', followers: 25000, benchmarkEr: 3.00, expectedViews: 6500, rates: { yt_dedicated: 1200, yt_integrated: 600, yt_short: 250 } },
+  { knotId: 'K07', followers: 40000, benchmarkEr: 2.80, expectedViews: 10000, rates: { yt_dedicated: 1500, yt_integrated: 750, yt_short: 375 } },
+  { knotId: 'K08', followers: 60000, benchmarkEr: 2.60, expectedViews: 15000, rates: { yt_dedicated: 2000, yt_integrated: 1000, yt_short: 500 } },
+  { knotId: 'K09', followers: 100000, benchmarkEr: 2.40, expectedViews: 22000, rates: { yt_dedicated: 3000, yt_integrated: 1500, yt_short: 720 } },
+  { knotId: 'K10', followers: 150000, benchmarkEr: 2.20, expectedViews: 32000, rates: { yt_dedicated: 4200, yt_integrated: 2100, yt_short: 980 } },
+  { knotId: 'K11', followers: 250000, benchmarkEr: 2.00, expectedViews: 50000, rates: { yt_dedicated: 6000, yt_integrated: 3000, yt_short: 1500 } },
+  { knotId: 'K12', followers: 500000, benchmarkEr: 1.80, expectedViews: 90000, rates: { yt_dedicated: 9500, yt_integrated: 4750, yt_short: 2200 } },
+  { knotId: 'K13', followers: 750000, benchmarkEr: 1.60, expectedViews: 130000, rates: { yt_dedicated: 13500, yt_integrated: 6750, yt_short: 2850 } },
+  { knotId: 'K14', followers: 1000000, benchmarkEr: 1.50, expectedViews: 175000, rates: { yt_dedicated: 17500, yt_integrated: 8750, yt_short: 3500 } },
+  { knotId: 'K15', followers: 2500000, benchmarkEr: 1.20, expectedViews: 350000, rates: { yt_dedicated: 26000, yt_integrated: 13000, yt_short: 6000 } },
+  { knotId: 'K16', followers: 5000000, benchmarkEr: 1.00, expectedViews: 600000, rates: { yt_dedicated: 38000, yt_integrated: 19000, yt_short: 10000 } },
 ];
 
 // Helper to get platform knot array by format
