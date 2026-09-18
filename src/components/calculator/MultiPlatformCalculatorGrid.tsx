@@ -473,11 +473,11 @@ export function MultiPlatformCalculatorGrid({
                   {completeIntelligence.profile.creatorType}
                 </span>
                 <span className="font-semibold text-white bg-white/10 px-2.5 py-1 rounded-lg text-xs">
-                  {completeIntelligence.profile.primaryNiche.name} ({completeIntelligence.profile.primaryNiche.multiplier}x)
+                  {completeIntelligence.profile.primaryNiche.name}
                 </span>
                 {completeIntelligence.profile.subNiche && (
                   <span className="font-medium text-zinc-300 bg-white/5 px-2.5 py-1 rounded-lg text-xs border border-white/5">
-                    {completeIntelligence.profile.subNiche.name} ({completeIntelligence.profile.subNiche.multiplier}x)
+                    {completeIntelligence.profile.subNiche.name}
                   </span>
                 )}
                 {completeIntelligence.geography?.countryCode && (
@@ -600,7 +600,7 @@ export function MultiPlatformCalculatorGrid({
               <div className="flex items-center gap-2">
                 <span className="font-medium text-zinc-300">Omnichannel Niche:</span>
                 <span className="font-semibold text-white bg-white/10 px-2.5 py-0.5 rounded-lg">
-                  {aiSynthesis.primaryNiche.name} ({aiSynthesis.primaryNiche.multiplier}x)
+                  {aiSynthesis.primaryNiche.name}
                 </span>
                 {aiSynthesis.detectedCountry && (
                   <span className="font-medium text-zinc-400 uppercase tracking-wider bg-zinc-800 px-2 py-0.5 rounded-md flex items-center gap-1">

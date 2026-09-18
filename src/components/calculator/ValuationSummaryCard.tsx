@@ -59,8 +59,8 @@ export function ValuationSummaryCard({ result, input }: ValuationSummaryCardProp
     const summaryText = `--- SIGNCOLLAB INFLUENCER VALUATION ---
 Creator Scale: ${metrics.followerCount.toLocaleString()} Followers / Subscribers
 Observed Engagement: ${metrics.observedER}% (Tier Benchmark: ${metrics.benchmarkER}%)
-Performance Multiplier: ${metrics.performanceMultiplier}x
-Commercial Vertical: ${metrics.primaryNicheName} (${metrics.nicheMultiplier}x)
+Engagement Performance: ${metrics.performanceMultiplier >= 1 ? '+' : ''}${Math.round((metrics.performanceMultiplier - 1) * 100)}% vs Tier Benchmark
+Commercial Vertical: ${metrics.primaryNicheName}
 
 Defended Negotiation Range (${metrics.currency}):
 • Budget Offer (25th Pct / Floor): ${valuationRange.formatted.low}
@@ -139,7 +139,7 @@ Generated via SignCollab 16-Knot Rate Engine (Zero Mock Data / Database Verified
           <div className="text-sm sm:text-base font-black font-mono text-gray-900">
             {valuationRange.formatted.low}
           </div>
-          <div className="text-[10px] text-gray-400 font-medium">Negotiation Floor (0.80x)</div>
+          <div className="text-[10px] text-gray-400 font-medium">Negotiation Floor</div>
         </div>
 
         <div className="bg-gray-50/90 border border-gray-200/80 p-4 rounded-2xl text-center space-y-0.5 shadow-2xs">
@@ -149,7 +149,7 @@ Generated via SignCollab 16-Knot Rate Engine (Zero Mock Data / Database Verified
           <div className="text-sm sm:text-base font-black font-mono text-gray-900">
             {valuationRange.formatted.high}
           </div>
-          <div className="text-[10px] text-gray-400 font-medium">Agency Represented (1.25x)</div>
+          <div className="text-[10px] text-gray-400 font-medium">Agency Represented</div>
         </div>
       </div>
 
@@ -164,7 +164,7 @@ Generated via SignCollab 16-Knot Rate Engine (Zero Mock Data / Database Verified
           <span className="font-mono font-bold text-gray-700">{metrics.benchmarkER}%</span>
         </div>
         <div className="pt-2 border-t border-gray-200 flex items-center justify-between">
-          <span className="text-gray-600 font-medium">Performance Multiplier:</span>
+          <span className="text-gray-600 font-medium">Audited Performance:</span>
           <span
             className={`font-black font-mono px-2.5 py-1 rounded-xl text-[11px] shadow-2xs ${
               isPerformanceBoost
@@ -174,13 +174,11 @@ Generated via SignCollab 16-Knot Rate Engine (Zero Mock Data / Database Verified
                 : "bg-gray-200 text-gray-800 border border-gray-300"
             }`}
           >
-            {metrics.performanceMultiplier}x (
             {isPerformanceBoost
-              ? `+${Math.round((metrics.performanceMultiplier - 1) * 100)}%`
+              ? `+${Math.round((metrics.performanceMultiplier - 1) * 100)}% (Outperformer)`
               : isPerformancePenalty
-              ? `${Math.round((metrics.performanceMultiplier - 1) * 100)}%`
-              : "Baseline"}
-            )
+              ? `${Math.round((metrics.performanceMultiplier - 1) * 100)}% (Below Tier)`
+              : "Baseline (At Benchmark)"}
           </span>
         </div>
       </div>

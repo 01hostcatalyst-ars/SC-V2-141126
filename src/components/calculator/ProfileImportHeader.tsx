@@ -306,9 +306,6 @@ export function ProfileImportHeader({
                 onClick={() => onSelectSecondaryNiche(aiEnrichment.primaryNiche.id)}
               >
                 <span>Primary: {aiEnrichment.primaryNiche.name}</span>
-                <span className="px-1.5 py-0.5 rounded bg-white/20 text-[10px]">
-                  {aiEnrichment.primaryNiche.multiplier}x
-                </span>
               </div>
 
               {/* Secondary Niche Pills */}
@@ -322,10 +319,9 @@ export function ProfileImportHeader({
                       ? "bg-black text-white border-black"
                       : "bg-white hover:bg-gray-100 text-gray-700 border-gray-200 shadow-2xs"
                   }`}
-                  title="Click to apply this secondary niche multiplier to calculation"
+                  title="Click to apply this category to calculation"
                 >
                   <span>{sec.name}</span>
-                  <span className="ml-1.5 text-[10px] text-gray-400">({sec.multiplier}x)</span>
                 </button>
               ))}
             </div>

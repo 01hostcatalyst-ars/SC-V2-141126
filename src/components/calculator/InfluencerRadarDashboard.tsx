@@ -923,9 +923,9 @@ export function InfluencerRadarDashboard() {
         recomputeAllPlatformRates(targetCountry, detectedNicheId, detectedSubNicheId);
         setIsValuationCalibrated(true);
 
-        const subNicheText = intel.profile?.subNiche ? ` · ${intel.profile.subNiche.name} (${intel.profile.subNiche.multiplier}x)` : '';
+        const subNicheText = intel.profile?.subNiche ? ` · ${intel.profile.subNiche.name}` : '';
         addActivity(
-          `Intelligence Verified (24h Cache): ${intel.profile.creatorType} · ${intel.profile.primaryNiche.name}${subNicheText} · Calibrated for ${REGIONAL_CONFIG[targetCountry]?.name || targetCountry} (${REGIONAL_CONFIG[targetCountry]?.pppIndex || 1}x PPP)`,
+          `Intelligence Verified (24h Cache): ${intel.profile.creatorType} · ${intel.profile.primaryNiche.name}${subNicheText} · Calibrated for ${REGIONAL_CONFIG[targetCountry]?.name || targetCountry} (${REGIONAL_CONFIG[targetCountry]?.currency || 'USD'})`,
           "success"
         );
       } else {
@@ -1298,7 +1298,7 @@ Verified via SignCollab 16-Knot Market Valuation Engine`;
                 </h1>
 
                 <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-lg">
-                  Auditing live engagement velocity, cross-platform bio links, and regional economic purchasing power parity.
+                  Auditing live engagement velocity, cross-platform bio links, and regional commercial market standards.
                 </p>
               </div>
 
@@ -1576,14 +1576,13 @@ Verified via SignCollab 16-Knot Market Valuation Engine`;
                 </div>
               )}
 
-              {/* COUNTRY & GDP PPP CALIBRATION CONTROLLER */}
-              {verifiedChannelsCount > 0 && (
-                <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs animate-fadeIn">
-                  <div className="flex items-center gap-3 flex-wrap">
+              {/* COUNTRY & REGIONAL CALIBRATION CONTROLLER */}
+              {isValuationCalibrated && (
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-50 border border-zinc-200 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+                  <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-zinc-700" />
-                        Country:
+                      <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">
+                        Market:
                       </span>
                       <select
                         value={selectedRegion}
@@ -1595,23 +1594,23 @@ Verified via SignCollab 16-Knot Market Valuation Engine`;
                         }}
                         className="bg-white border border-zinc-300 rounded-lg px-2.5 py-1 font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900 cursor-pointer text-xs shadow-2xs"
                       >
-                        <option value="PK">Pakistan (PKR · 0.18x PPP)</option>
-                        <option value="US">United States (USD · 1.00x)</option>
-                        <option value="GB">United Kingdom (GBP · 0.85x PPP)</option>
-                        <option value="IN">India (INR · 0.24x PPP)</option>
-                        <option value="CA">Canada (CAD · 0.90x PPP)</option>
-                        <option value="AU">Australia (AUD · 0.88x PPP)</option>
-                        <option value="AE">United Arab Emirates (AED · 0.68x PPP)</option>
-                        <option value="SA">Saudi Arabia (SAR · 0.62x PPP)</option>
-                        <option value="DE">Germany (EUR · 0.85x PPP)</option>
-                        <option value="FR">France (EUR · 0.84x PPP)</option>
-                        <option value="SG">Singapore (SGD · 0.82x PPP)</option>
-                        <option value="BR">Brazil (BRL · 0.36x PPP)</option>
-                        <option value="BD">Bangladesh (BDT · 0.20x PPP)</option>
-                        <option value="NG">Nigeria (NGN · 0.16x PPP)</option>
-                        <option value="EG">Egypt (EGP · 0.17x PPP)</option>
-                        <option value="TR">Turkey (TRY · 0.32x PPP)</option>
-                        <option value="ZA">South Africa (ZAR · 0.38x PPP)</option>
+                        <option value="PK">Pakistan (PKR)</option>
+                        <option value="US">United States (USD)</option>
+                        <option value="GB">United Kingdom (GBP)</option>
+                        <option value="IN">India (INR)</option>
+                        <option value="CA">Canada (CAD)</option>
+                        <option value="AU">Australia (AUD)</option>
+                        <option value="AE">United Arab Emirates (AED)</option>
+                        <option value="SA">Saudi Arabia (SAR)</option>
+                        <option value="DE">Germany (EUR)</option>
+                        <option value="FR">France (EUR)</option>
+                        <option value="SG">Singapore (SGD)</option>
+                        <option value="BR">Brazil (BRL)</option>
+                        <option value="BD">Bangladesh (BDT)</option>
+                        <option value="NG">Nigeria (NGN)</option>
+                        <option value="EG">Egypt (EGP)</option>
+                        <option value="TR">Turkey (TRY)</option>
+                        <option value="ZA">South Africa (ZAR)</option>
                       </select>
                     </div>
 
@@ -1650,7 +1649,7 @@ Verified via SignCollab 16-Knot Market Valuation Engine`;
                       >
                         {PRIMARY_NICHES.map((n) => (
                           <option key={n.id} value={n.id}>
-                            {n.name} ({n.multiplier}x)
+                            {n.name}
                           </option>
                         ))}
                       </select>
@@ -1684,7 +1683,7 @@ Verified via SignCollab 16-Knot Market Valuation Engine`;
                       >
                         {getSubNichesByPrimaryId(activeNicheId).map((s) => (
                           <option key={s.id} value={s.id}>
-                            {s.name} ({s.multiplier}x)
+                            {s.name}
                           </option>
                         ))}
                       </select>
@@ -1692,7 +1691,7 @@ Verified via SignCollab 16-Knot Market Valuation Engine`;
                   </div>
 
                   <div className="text-[11px] text-zinc-500 font-medium">
-                    Applied: <span className="font-semibold text-zinc-950">{REGIONAL_CONFIG[selectedRegion]?.name || selectedRegion}</span> ({REGIONAL_CONFIG[selectedRegion]?.pppIndex}x GDP PPP · {REGIONAL_CONFIG[selectedRegion]?.currency})
+                    Applied Market: <span className="font-semibold text-zinc-950">{REGIONAL_CONFIG[selectedRegion]?.name || selectedRegion}</span> ({REGIONAL_CONFIG[selectedRegion]?.currency})
                   </div>
                 </div>
               )}
@@ -1710,7 +1709,7 @@ Verified via SignCollab 16-Knot Market Valuation Engine`;
                         const activePrimary = PRIMARY_NICHES.find((p) => p.id === activeNicheId) || completeIntelligence.profile?.primaryNiche;
                         return activePrimary ? (
                           <span className="text-xs font-medium text-zinc-900 bg-zinc-100 px-3 py-1 rounded-lg border border-zinc-200">
-                            {activePrimary.name} ({activePrimary.multiplier}x)
+                            {activePrimary.name}
                           </span>
                         ) : null;
                       })()}
@@ -1718,7 +1717,7 @@ Verified via SignCollab 16-Knot Market Valuation Engine`;
                         const activeSub = (activeSubNicheId ? SUB_NICHES.find((s) => s.id === activeSubNicheId) : undefined) || completeIntelligence.profile?.subNiche;
                         return activeSub ? (
                           <span className="text-xs font-medium text-indigo-950 bg-indigo-50/90 px-3 py-1 rounded-lg border border-indigo-200/90">
-                            {activeSub.name} ({activeSub.multiplier}x)
+                            {activeSub.name}
                           </span>
                         ) : null;
                       })()}

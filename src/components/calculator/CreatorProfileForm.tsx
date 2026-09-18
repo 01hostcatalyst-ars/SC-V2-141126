@@ -217,7 +217,7 @@ export function CreatorProfileForm({
             >
               {availableNiches.map((niche) => (
                 <option key={niche.id} value={niche.id}>
-                  {niche.name} ({niche.multiplier}x)
+                  {niche.name}
                 </option>
               ))}
             </select>
@@ -235,7 +235,7 @@ export function CreatorProfileForm({
               {currentSubNiches.length > 0 ? (
                 currentSubNiches.map((sub) => (
                   <option key={sub.id} value={sub.id}>
-                    {sub.name} ({sub.multiplier}x)
+                    {sub.name}
                   </option>
                 ))
               ) : (
@@ -251,8 +251,8 @@ export function CreatorProfileForm({
             <strong className="text-gray-900 font-bold">Category Anchor:</strong>{" "}
             {activeSubNiche?.description || activePrimaryNiche.description}
           </span>
-          <span className="font-mono font-black text-black shrink-0 bg-white px-2.5 py-1 rounded-xl border border-gray-200 shadow-2xs">
-            Multiplier: {activeSubNiche ? `${activeSubNiche.multiplier}x` : `${activePrimaryNiche.multiplier}x`}
+          <span className="text-xs font-semibold text-zinc-700 shrink-0 bg-white px-2.5 py-1 rounded-xl border border-gray-200 shadow-2xs">
+            {activeSubNiche ? activeSubNiche.name : activePrimaryNiche.name}
           </span>
         </div>
 
