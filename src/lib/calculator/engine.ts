@@ -253,13 +253,24 @@ export function calculateInfluencerRate(
 
     let { baseRate } = interpolateKnot(followers, item.format, knotArray);
 
-    // Architectural Guardrail: YouTube 60s integration must never exceed 55% of YouTube Dedicated Video
+    // Dynamic Tier & LF ER Calibration for YouTube 60s Integration:
+    // Mid-roll value scales with creator tier (40% to 45%) and viewer retention/engagement (LF ER)
     if (item.format === 'yt_integrated') {
       const dedicatedInfo = interpolateKnot(followers, 'yt_dedicated', knotArray);
-      const maxIntegrationBase = Math.round(dedicatedInfo.baseRate * 0.55);
-      if (baseRate > maxIntegrationBase) {
-        baseRate = maxIntegrationBase;
-      }
+
+      // 1. Base Tier Ratio: 40.0% (at 1k subs) to 45.0% (at 5M+ subs)
+      const logSubs = Math.log10(Math.max(1000, followers));
+      const tierProgress = Math.min(Math.max((logSubs - 3) / (Math.log10(5000000) - 3), 0), 1);
+      const baseTierRatio = 0.40 + tierProgress * 0.05;
+
+      // 2. LF ER Retention Sensitivity:
+      // Low ER drops integration ratio towards ~34% (passive drop-off discount)
+      // High ER rewards creator loyalty up to ~48% (community conversion boost)
+      const erRatio = benchmarkER > 0 ? observedER / benchmarkER : 1.0;
+      const erDelta = 0.05 * Math.log2(Math.max(0.25, Math.min(erRatio, 2.5)));
+      const dynamicRatio = Math.max(0.34, Math.min(0.48, baseTierRatio + erDelta));
+
+      baseRate = Math.round(dedicatedInfo.baseRate * dynamicRatio);
     }
 
     let quantityAdjusted = baseRate * item.quantity;
