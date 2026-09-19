@@ -86,6 +86,7 @@ export interface CreatorMetrics {
   secondaryNicheIds?: number[];
   subNicheId?: number;
   isLuxuryOrHighEnd?: boolean;
+  productionLevel?: 'High' | 'Medium-High' | 'Medium' | 'Lo-Fi' | string;
   regionCode?: RegionCode;
 }
 

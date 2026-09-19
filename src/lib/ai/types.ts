@@ -17,6 +17,7 @@ export interface CompleteCreatorIntelligence {
       name: string;
       multiplier: number;
     }>;
+    isLuxuryOrHighEnd?: boolean;
     microNiches: string[];
     creatorDescription: string;
     confidence: number;

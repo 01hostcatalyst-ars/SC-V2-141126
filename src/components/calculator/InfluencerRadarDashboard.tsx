@@ -175,6 +175,10 @@ export function InfluencerRadarDashboard() {
 
   // 19-Point Creator Intelligence State
   const [completeIntelligence, setCompleteIntelligence] = useState<CompleteCreatorIntelligence | null>(null);
+  const completeIntelligenceRef = useRef<CompleteCreatorIntelligence | null>(null);
+  useEffect(() => {
+    completeIntelligenceRef.current = completeIntelligence;
+  }, [completeIntelligence]);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const synthesizedHash = useRef<string>("");
 
@@ -303,7 +307,10 @@ export function InfluencerRadarDashboard() {
         avgShortComments?: number;
         avgShortViews?: number;
       },
-      subNicheId?: number
+      subNicheId?: number,
+      secondaryNicheIds?: number[],
+      productionLevel?: string,
+      isLuxuryOrHighEnd?: boolean
     ) => {
       const platformFormats: Record<Platform, DeliverableFormat[]> = {
         instagram: ["ig_reel", "ig_carousel", "ig_static", "ig_story"],
@@ -329,6 +336,9 @@ export function InfluencerRadarDashboard() {
             primaryPlatform: platform,
             primaryNicheId,
             subNicheId,
+            secondaryNicheIds,
+            productionLevel,
+            isLuxuryOrHighEnd,
             regionCode,
           },
           deliverables: [{ id: String(idx + 1), platform, format: fmt, quantity: 1 }],
@@ -364,7 +374,19 @@ export function InfluencerRadarDashboard() {
 
   // Recalculates all active platform cards when Country, Niche, or Sub-Niche changes
   const recomputeAllPlatformRates = useCallback(
-    (targetRegion: RegionCode, targetNicheId: number, targetSubNicheId?: number) => {
+    (
+      targetRegion: RegionCode,
+      targetNicheId: number,
+      targetSubNicheId?: number,
+      overrideSecondaryNicheIds?: number[],
+      overrideProductionLevel?: string,
+      overrideIsLuxury?: boolean
+    ) => {
+      const intel = completeIntelligenceRef.current;
+      const secondaryNicheIds = overrideSecondaryNicheIds ?? intel?.profile?.secondaryNiches?.map((s) => s.id);
+      const productionLevel = overrideProductionLevel ?? intel?.content?.productionLevel;
+      const isLuxuryOrHighEnd = overrideIsLuxury ?? intel?.profile?.isLuxuryOrHighEnd;
+
       setPlatforms((prev) => {
         const updated = { ...prev };
 
@@ -381,7 +403,10 @@ export function InfluencerRadarDashboard() {
               targetNicheId,
               targetRegion,
               undefined,
-              targetSubNicheId
+              targetSubNicheId,
+              secondaryNicheIds,
+              productionLevel,
+              isLuxuryOrHighEnd
             ),
           };
         }
@@ -403,7 +428,10 @@ export function InfluencerRadarDashboard() {
                 avgShortComments: 0,
                 avgShortViews: updated.youtube.avgShortViews || 0,
               },
-              targetSubNicheId
+              targetSubNicheId,
+              secondaryNicheIds,
+              productionLevel,
+              isLuxuryOrHighEnd
             ),
           };
         }
@@ -421,7 +449,10 @@ export function InfluencerRadarDashboard() {
               targetNicheId,
               targetRegion,
               undefined,
-              targetSubNicheId
+              targetSubNicheId,
+              secondaryNicheIds,
+              productionLevel,
+              isLuxuryOrHighEnd
             ),
           };
         }
@@ -919,8 +950,19 @@ export function InfluencerRadarDashboard() {
           setActiveSubNicheId(detectedSubNicheId);
         }
 
+        const detectedSecondaryNicheIds = intel.profile?.secondaryNiches?.map((s) => s.id);
+        const detectedProductionLevel = intel.content?.productionLevel;
+        const detectedIsLuxury = intel.profile?.isLuxuryOrHighEnd;
+
         // Recompute all platform rates atomically with the detected country PPP, niche & sub-niche!
-        recomputeAllPlatformRates(targetCountry, detectedNicheId, detectedSubNicheId);
+        recomputeAllPlatformRates(
+          targetCountry,
+          detectedNicheId,
+          detectedSubNicheId,
+          detectedSecondaryNicheIds,
+          detectedProductionLevel,
+          detectedIsLuxury
+        );
         setIsValuationCalibrated(true);
 
         const subNicheText = intel.profile?.subNiche ? ` · ${intel.profile.subNiche.name}` : '';

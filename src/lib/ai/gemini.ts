@@ -301,13 +301,17 @@ ${nicheHierarchyText}
 ================================================================================
 PART A: CORE DOSSIER PRINCIPLES & RULES
 ================================================================================
-1. PROFILE & IDENTITY:
-   - creatorType: Main professional classification (e.g. "Fashion & Style Creator", "Tech Hardware Reviewer", "Gaming Streamer", "Fitness Coach").
+1. PROFILE & IDENTITY (THE COMMERCIAL MONETIZATION VERTICAL MANDATE):
+   - CRITICAL COMMERCIAL VERTICAL RULE: You MUST classify primaryNiche based on the HIGHEST-MONETIZED COMMERCIAL SPONSORSHIP VERTICAL (the industry sectors that actually fund their brand partnerships: e.g. Camera/Filmmaking Hardware, Consumer Electronics, Automotive Flagships, Enterprise SaaS/FinTech), NOT their passive video format genre (e.g. daily vlogging, personal reflections, or video essays).
+   - STRICT CONSTRAINT ON NICHE 8 (Lifestyle & Entertainment): You MUST NEVER default to Niche 8 simply because a creator makes personal vlogs, travels, or records day-in-the-life videos if they possess professional filmmaking production quality, pro camera hardware, or integrate commercial sponsors (tech, automotive, telecom, apparel). Only assign Niche 8 if the creator has strictly casual, lo-fi, non-technical personal vlogging with no specialized commercial sponsor alignment.
+   - CINEMATIC & HIGH-PRODUCTION CREATORS: Any creator recognized for cinematic visual pacing, color-graded footage, drone cinematography, or camera hardware authority (e.g. Irfan Junejo) MUST be classified under Primary Niche ID 18 ("Creative Arts & Media") with Sub-Niche ID 1801 ("Photography & Filmmaking Gear").
+   - creatorType: Main professional classification (e.g. "Cinematic Documentarian & Filmmaking Creator", "Tech Hardware Reviewer", "Gaming Streamer", "Fitness Coach").
    - profilePositioning: How the creator positions their personal brand (e.g. "Affordable tech reviews & smartphone camera shootouts").
    - primaryNiche: Approved primary niche object: { "id": number, "name": string, "multiplier": number } from the list above.
    - subNiche: Approved sub-niche object belonging to the chosen primary niche: { "id": number, "name": string, "multiplier": number } from the list above.
-   - secondaryNiches: 2-3 adjacent approved primary niche objects with { id, name, multiplier } from the list above.
-   - microNiches: Array of 3-5 specific sub-specializations (e.g. ["Camera Sensors", "Battery Drain Tests", "Custom Keyboards"]).
+   - secondaryNiches: 2-3 adjacent approved primary niche objects with { id, name, multiplier } from the list above. You MUST include adjacent commercial sectors (e.g. for Irfan Junejo: [17 Automotive & Mobility, 8 Lifestyle & Entertainment]).
+   - isLuxuryOrHighEnd: boolean (set to true if the creator works with luxury, automotive flagships, or prosumer cinema hardware).
+   - microNiches: Array of 3-5 specific sub-specializations (e.g. ["Cinematic Vlogging", "Documentary Storytelling", "Camera & Audio Production"]).
    - creatorDescription: Short factual 1-2 sentence description.
    - confidence: Numerical score (0.0 to 1.0).
 
@@ -378,22 +382,42 @@ PART C: GOLDEN FEW-SHOT REFERENCE ANCHORS
 Study these four foundational creator benchmarks to match their standard of depth:
 
 ANCHOR 1: IRFAN JUNEJO (Cinematic Visual Documentarian)
+- Exact Classification:
+  * Primary Niche: ID 18 ("Creative Arts & Media", 1.24x)
+  * Sub-Niche: ID 1801 ("Photography & Filmmaking Gear", 1.35x)
+  * Secondary Niches: [ID 17 ("Automotive & Mobility", 1.24x), ID 8 ("Lifestyle & Entertainment", 0.96x)]
+  * Production Level: "High" | isLuxuryOrHighEnd: true
 - Superpower: Cultural prestige, cinematic visual polish, and subtle storytelling trust.
 - Landmine: Forcing an aggressive, hard-sell promotional ad onto his main feed. His audience violently rejects infomercials.
 - Key Deliverables: 1x ig_reel (Co-authored 60-90s cinematic short film) + 1x ig_story_sequence (3-frame BTS). Paid: 2x ig_reel + meta_whitelisting_30d. Conversion: 1x ig_story_sequence + vanity voucher "JUNEJO10". Content Library: 1x 16:9 brand story video + 10x high-res lifestyle stills + raw_b_roll_buyout.
 
 ANCHOR 2: BILAL MUNIR / VIDEO WALI SARKAR (Consumer-Tech Hardware Authority)
+- Exact Classification:
+  * Primary Niche: ID 6 ("Technology & Hardware", 1.50x)
+  * Sub-Niche: ID 601 ("Consumer Mobile Tech / Audio", 1.35x)
+  * Secondary Niches: [ID 18 ("Creative Arts & Media", 1.24x), ID 8 ("Lifestyle & Entertainment", 0.96x)]
+  * Production Level: "High" | isLuxuryOrHighEnd: false
 - Superpower: Direct consumer trust and purchase validation ("Is this worth my hard-earned money?").
 - Landmine: Demanding a "100% flawless" corporate review without acknowledging minor cons.
 - Verbatim Hooks: "Aap bhi har roz is maslay se tang hain? Main pichlay aik haftay se yeh test kar raha hoon...", "On paper to yeh specs kamaal hain, lekin kya yeh real life mein aapke paison ko justify karta hai?"
 - Key Deliverables: Reach: 1x yt_dedicated (8-12m hardware benchmark) + 1x ig_reel. Paid: 2x ig_reel + meta_whitelisting_60d. Conversion: 1x yt_integrated + vanity voucher "BILAL10" ("Paisa Vasool"). Content Library: 1x 4K clean studio explainer + 15x studio macro stills.
 
 ANCHOR 3: ARSALAN NASEER / CBA (Sketch Comic & Cricket Satirist)
+- Exact Classification:
+  * Primary Niche: ID 8 ("Lifestyle & Entertainment", 0.96x)
+  * Sub-Niche: ID 802 ("Comedy / Parody / Relatable Memes", 0.85x)
+  * Secondary Niches: [ID 15 ("Sports & Athletics", 1.16x), ID 21 ("Pop Culture, Fandom & Anime", 0.99x)]
+  * Production Level: "Medium" | isLuxuryOrHighEnd: false
 - Superpower: Viral WhatsApp shareability and organic meme cultural penetration.
 - Landmine: Forcing a stiff corporate script or cheesy smile (they will roast the brand in comments).
 - Key Deliverables: Reach: 1x yt_dedicated (Humorous sketch with multi-character skit) + 1x ig_reel. Paid: 2x ig_reel (Everyday Hassle Skit + Competitor Roast) + meta_whitelisting_30d. Conversion: 1x ig_story_sequence + vanity voucher "CBA15".
 
 ANCHOR 4: AUN ALI KHOSA (Musical Satirist & Deadpan Comic)
+- Exact Classification:
+  * Primary Niche: ID 19 ("Music, Audio & Performance", 1.06x)
+  * Sub-Niche: ID 1901 ("Music Production & Audio Engineering", 1.30x)
+  * Secondary Niches: [ID 8 ("Lifestyle & Entertainment", 0.96x), ID 16 ("News & Commentary", 0.95x)]
+  * Production Level: "Medium-High" | isLuxuryOrHighEnd: false
 - Superpower: Relatable societal irony set to catchy musical compositions.
 - Landmine: Associating the brand with partisan political satire or forced commercial infomercials.
 - Key Deliverables: Reach: 1x yt_dedicated (Original satirical song) + 1x ig_reel. Paid: 2x ig_reel (Rhyming Jingle Hook) + meta_whitelisting_30d. Conversion: 1x ig_story_sequence + vanity voucher "KHOSA10". Content Library: Original branded audio jingle stem (wav buyout).
@@ -412,7 +436,7 @@ DO NOT OUTPUT HARDCODED PRICES ($ or Rs). OUR ENGINE CALCULATES ALL PRICES.
 CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON with these exact keys:
 ================================================================================
 {
-  "profile": { "creatorType": "...", "profilePositioning": "...", "primaryNiche": { "id": 1, "name": "...", "multiplier": 1.45 }, "subNiche": { "id": 101, "name": "...", "multiplier": 1.50 }, "secondaryNiches": [{ "id": 2, "name": "...", "multiplier": 1.25 }], "microNiches": ["..."], "creatorDescription": "...", "confidence": 0.95 },
+  "profile": { "creatorType": "...", "profilePositioning": "...", "primaryNiche": { "id": 1, "name": "...", "multiplier": 1.45 }, "subNiche": { "id": 101, "name": "...", "multiplier": 1.50 }, "secondaryNiches": [{ "id": 2, "name": "...", "multiplier": 1.25 }], "isLuxuryOrHighEnd": false, "microNiches": ["..."], "creatorDescription": "...", "confidence": 0.95 },
   "geography": { "countryCode": "PK", "countryName": "Pakistan", "city": "...", "region": "...", "confidence": 0.9, "evidence": ["..."] },
   "audience": { "likelyAgeRange": "18-34", "genderSkew": "Male-skewed", "primaryMarket": "Pakistan", "secondaryMarkets": ["..."], "interests": ["..."], "purchaseIntent": "High", "audienceIntent": ["..."], "profile": "...", "confidence": 0.9 },
   "content": { "themes": ["..."], "dominantFormat": "...", "formats": ["..."], "style": ["..."], "tone": ["..."], "productionLevel": "High", "contentConsistency": "High", "promotionalContentLevel": "Moderate" },
@@ -1242,6 +1266,7 @@ export function normalizeCompleteIntelligence(raw: unknown, input?: MultiPlatfor
           }
         : undefined,
       secondaryNiches: secondaryList,
+      isLuxuryOrHighEnd: Boolean(profile.isLuxuryOrHighEnd),
       microNiches: Array.isArray(profile.microNiches) ? profile.microNiches : [],
       creatorDescription: profile.creatorDescription || '',
       confidence: typeof profile.confidence === 'number' ? profile.confidence : 0.95,

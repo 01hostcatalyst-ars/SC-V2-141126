@@ -144,20 +144,17 @@ export function calculateInfluencerRate(
   const activeExclusivityRates = overrides?.exclusivityRates || (EXCLUSIVITY_RATES as Record<string, Record<string, number>>);
   const activeRegionalConfigs = overrides?.regionalConfigs || (REGIONAL_CONFIG as Record<string, { name: string; pppIndex: number; currency: string; fxRateToUSD: number; symbol: string }>);
 
-  // 1. Resolve Primary & Secondary Niche Multipliers
+  // 1. Resolve Primary & Secondary Niche Multipliers (Triple-Layer Defense)
   const subNicheObj = creator.subNicheId ? activeSubNiches.find((s) => s.id === creator.subNicheId) : undefined;
   const primaryNicheObj =
     activePrimaryNiches.find((p) => p.id === creator.primaryNicheId) ||
     (subNicheObj ? activePrimaryNiches.find((p) => p.id === subNicheObj.primaryNicheId) : undefined) ||
     activePrimaryNiches[7]; // Default Lifestyle (1.00x)
 
-  let nicheMultiplier = subNicheObj ? subNicheObj.multiplier : (primaryNicheObj?.multiplier ?? 1.0);
-  if (creator.isLuxuryOrHighEnd) {
-    nicheMultiplier *= 1.25;
-  }
+  const primaryTargetMultiplier = subNicheObj ? subNicheObj.multiplier : (primaryNicheObj?.multiplier ?? 1.0);
 
   const secondaryNiches: NicheInfo[] = [];
-  if (creator.secondaryNicheIds) {
+  if (creator.secondaryNicheIds && creator.secondaryNicheIds.length > 0) {
     for (const id of creator.secondaryNicheIds) {
       const p = activePrimaryNiches.find((item) => item.id === id);
       if (p) {
@@ -169,6 +166,29 @@ export function calculateInfluencerRate(
         });
       }
     }
+  }
+
+  // Layer 2: Blended Composite Niche Multiplier (65% Primary, 20% Sec1, 15% Sec2)
+  // Eliminates winner-takes-all rate shock from discrete category classification
+  let nicheMultiplier = primaryTargetMultiplier;
+  if (secondaryNiches.length > 0) {
+    const sec1 = secondaryNiches[0]?.multiplier ?? primaryTargetMultiplier;
+    const sec2 = secondaryNiches[1]?.multiplier ?? sec1;
+    nicheMultiplier = (primaryTargetMultiplier * 0.65) + (sec1 * 0.20) + (sec2 * 0.15);
+  }
+
+  // Layer 3: Production-Grade Quality Floor
+  // Elite creators with verified High or Medium-High production (cinematic cameras, pro color grading, studio sound)
+  // command an empirical baseline floor (1.20x for High, 1.15x for Medium-High) to prevent downward distortion.
+  const prodLevel = (creator.productionLevel || '').toLowerCase();
+  if (prodLevel.includes('high') && !prodLevel.includes('medium')) {
+    nicheMultiplier = Math.max(nicheMultiplier, 1.20);
+  } else if (prodLevel.includes('medium-high')) {
+    nicheMultiplier = Math.max(nicheMultiplier, 1.15);
+  }
+
+  if (creator.isLuxuryOrHighEnd) {
+    nicheMultiplier *= 1.25;
   }
 
   // 2. Performance Multiplier Calculation (Platform-Native)

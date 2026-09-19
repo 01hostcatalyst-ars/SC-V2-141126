@@ -267,7 +267,10 @@ function calculatePackagePricing(
     rawFootageBuyout?: boolean;
     linkInBioDays?: number;
     pinnedHighlightMonths?: number;
-  }
+  },
+  secondaryNicheIds?: number[],
+  productionLevel?: string,
+  isLuxuryOrHighEnd?: boolean
 ): RawPackagePricing {
   const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG['US'];
   let grossTotalUSD = 0;
@@ -289,6 +292,9 @@ function calculatePackagePricing(
         primaryPlatform: item.platform,
         primaryNicheId,
         subNicheId,
+        secondaryNicheIds,
+        productionLevel,
+        isLuxuryOrHighEnd,
         regionCode,
       },
       deliverables: [{ id: 'item_1', platform: item.platform, format: item.format, quantity: item.quantity }],
@@ -466,7 +472,10 @@ export function generateCalibratedBespokePackages(
   platforms: Record<Platform, PlatformMetricsInput>,
   primaryNicheId: number,
   subNicheId: number | undefined,
-  regionCode: RegionCode
+  regionCode: RegionCode,
+  secondaryNicheIds?: number[],
+  productionLevel?: string,
+  isLuxuryOrHighEnd?: boolean
 ): GeneratedPackage[] {
   const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG['US'];
   const isForeign = regionCode !== 'US';
@@ -498,6 +507,9 @@ export function generateCalibratedBespokePackages(
         primaryPlatform: p,
         primaryNicheId,
         subNicheId,
+        secondaryNicheIds,
+        productionLevel,
+        isLuxuryOrHighEnd,
         regionCode,
       },
       deliverables: [{ id: 'item_1', platform: p, format: fmt, quantity: 1 }],
@@ -694,6 +706,10 @@ export function generateOmnichannelPackages(
   regionCode: RegionCode,
   intelligence?: CompleteCreatorIntelligence
 ): GeneratedPackage[] {
+  const secondaryNicheIds = intelligence?.profile?.secondaryNiches?.map((s) => s.id);
+  const productionLevel = intelligence?.content?.productionLevel;
+  const isLuxuryOrHighEnd = intelligence?.profile?.isLuxuryOrHighEnd;
+
   // If completeIntelligence has bespoke omnichannel packages from Gemini, calibrate and return them!
   if (
     intelligence?.omnichannelStrategySuite?.packages &&
@@ -705,7 +721,10 @@ export function generateOmnichannelPackages(
       platforms,
       primaryNicheId,
       subNicheId,
-      regionCode
+      regionCode,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd
     );
   }
 
@@ -831,7 +850,11 @@ export function generateOmnichannelPackages(
       regionCode,
       primaryNicheId,
       subNicheId,
-      { usageScope: 'organic_repost', duration: '30_days' }
+      { usageScope: 'organic_repost', duration: '30_days' },
+      undefined,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd
     );
 
     packages.push({
@@ -893,7 +916,10 @@ export function generateOmnichannelPackages(
       primaryNicheId,
       subNicheId,
       { usageScope: 'paid_partnership_ads', duration: '30_days', whitelisting: true },
-      { rawFootageBuyout: true }
+      { rawFootageBuyout: true },
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd
     );
 
     packages.push({
@@ -1001,7 +1027,10 @@ export function generateOmnichannelPackages(
       primaryNicheId,
       subNicheId,
       { usageScope: 'organic_repost', duration: '30_days' },
-      { linkInBioDays: 14, pinnedHighlightMonths: 1 }
+      { linkInBioDays: 14, pinnedHighlightMonths: 1 },
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd
     );
 
     packages.push({
@@ -1186,7 +1215,10 @@ export function generateOmnichannelPackages(
       primaryNicheId,
       subNicheId,
       { usageScope: 'website_pdp', duration: '90_days' },
-      { rawFootageBuyout: true }
+      { rawFootageBuyout: true },
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd
     );
 
     packages.push({
@@ -1353,7 +1385,10 @@ export function generateOmnichannelPackages(
         exclusivityScope: 'direct_competitors',
         exclusivityDuration: '30_days',
       },
-      { pinnedHighlightMonths: 1, rawFootageBuyout: true }
+      { pinnedHighlightMonths: 1, rawFootageBuyout: true },
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd
     );
 
     packages.push({
