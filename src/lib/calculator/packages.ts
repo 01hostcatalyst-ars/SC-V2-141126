@@ -113,6 +113,10 @@ export interface GeneratedPackage {
     defendedFloorFormatted?: string;
     agencyRepresentedCeiling?: number;
     agencyCeilingFormatted?: string;
+    rawContentSumLocalized?: number;
+    rawContentSumFormatted?: string;
+    commercialRightsFeeLocalized?: number;
+    commercialRightsFeeFormatted?: string;
   };
   discountPercentApplied: number;
   summaryPill: string;
@@ -238,6 +242,12 @@ interface RawPackagePricing {
   lowFormatted: string;
   highFormatted: string;
   savingsFormatted: string;
+  standaloneBenchmarkSum?: number;
+  standaloneBenchmarkFormatted?: string;
+  rawContentSumLocalized?: number;
+  rawContentSumFormatted?: string;
+  commercialRightsFeeLocalized?: number;
+  commercialRightsFeeFormatted?: string;
 }
 
 function calculatePackagePricing(
@@ -318,9 +328,13 @@ function calculatePackagePricing(
   }
 
   const totalUSD = netContentFeeUSD + commercialRightsFeeUSD + addonsUSD;
+  const standaloneUSD = grossTotalUSD + commercialRightsFeeUSD + addonsUSD;
 
   // Step 5: PPP & FX Localization
   const localizedMedian = totalUSD * regConfig.pppIndex * regConfig.fxRateToUSD;
+  const standaloneBenchmarkSum = roundCommercial(standaloneUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
+  const rawContentSumLocalized = roundCommercial(grossTotalUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
+  const commercialRightsFeeLocalized = roundCommercial((commercialRightsFeeUSD + addonsUSD) * regConfig.pppIndex * regConfig.fxRateToUSD);
   const lowP25 = roundCommercial(localizedMedian * 0.80);
   const typicalMedian = roundCommercial(localizedMedian * 1.00);
   const highP75 = roundCommercial(localizedMedian * 1.25);
@@ -344,6 +358,12 @@ function calculatePackagePricing(
     lowFormatted: `${regConfig.symbol}${lowP25.toLocaleString()}`,
     highFormatted: `${regConfig.symbol}${highP75.toLocaleString()}`,
     savingsFormatted: `${regConfig.symbol}${savingsLocalized.toLocaleString()} ${regConfig.currency}`,
+    standaloneBenchmarkSum,
+    standaloneBenchmarkFormatted: `${regConfig.symbol}${standaloneBenchmarkSum.toLocaleString()}`,
+    rawContentSumLocalized,
+    rawContentSumFormatted: `${regConfig.symbol}${rawContentSumLocalized.toLocaleString()}`,
+    commercialRightsFeeLocalized,
+    commercialRightsFeeFormatted: `${regConfig.symbol}${commercialRightsFeeLocalized.toLocaleString()}`,
   };
 }
 
@@ -511,13 +531,15 @@ export function generateCalibratedBespokePackages(
 
       rawContentSumLocalized += totalLoc;
 
+      const sanitizedTitle = (d.title || '').replace(/^\d+x\s*/i, '').trim() || (FORMAT_LABELS[resolved.format]?.label || resolved.format);
+
       calibratedDeliverables.push({
         id: d.id,
         phase: d.phase,
         platform: resolved.platform,
         formatKey: d.formatKey,
         quantity: qty,
-        title: d.title,
+        title: sanitizedTitle,
         description: d.strategicDetail,
         standaloneUnitLocalized: unitRate.medianLocalized,
         totalStandaloneLocalized: totalLoc,
@@ -531,7 +553,7 @@ export function generateCalibratedBespokePackages(
         platform: resolved.platform,
         format: resolved.format,
         quantity: qty,
-        title: d.title,
+        title: sanitizedTitle,
         description: d.strategicDetail,
       });
     }
@@ -542,6 +564,7 @@ export function generateCalibratedBespokePackages(
       const fallbackFmt: DeliverableFormat = fallbackPlat === 'youtube' ? 'yt_dedicated' : 'ig_reel';
       const unitRate = getUnitRate(fallbackPlat, fallbackFmt);
       rawContentSumLocalized += unitRate.medianLocalized;
+      const fallbackTitle = FORMAT_LABELS[fallbackFmt]?.label || fallbackFmt;
 
       calibratedDeliverables.push({
         id: 'fallback_1',
@@ -549,7 +572,7 @@ export function generateCalibratedBespokePackages(
         platform: fallbackPlat,
         formatKey: fallbackFmt,
         quantity: 1,
-        title: `1x ${FORMAT_LABELS[fallbackFmt]?.label || fallbackFmt}`,
+        title: fallbackTitle,
         description: 'Core campaign anchor deliverable',
         standaloneUnitLocalized: unitRate.medianLocalized,
         totalStandaloneLocalized: unitRate.medianLocalized,
@@ -563,7 +586,7 @@ export function generateCalibratedBespokePackages(
         platform: fallbackPlat,
         format: fallbackFmt,
         quantity: 1,
-        title: `1x ${FORMAT_LABELS[fallbackFmt]?.label || fallbackFmt}`,
+        title: fallbackTitle,
         description: 'Core campaign anchor deliverable',
       });
     }
@@ -643,6 +666,10 @@ export function generateCalibratedBespokePackages(
         defendedFloorFormatted: `${regConfig.symbol}${defendedNegotiationFloor.toLocaleString()}`,
         agencyRepresentedCeiling,
         agencyCeilingFormatted: `${regConfig.symbol}${agencyRepresentedCeiling.toLocaleString()}`,
+        rawContentSumLocalized,
+        rawContentSumFormatted: `${regConfig.symbol}${rawContentSumLocalized.toLocaleString()}`,
+        commercialRightsFeeLocalized: rightsFeeLocalized,
+        commercialRightsFeeFormatted: `${regConfig.symbol}${rightsFeeLocalized.toLocaleString()}`,
       },
       discountPercentApplied: Math.round(bundleDiscountPercent * 100),
       summaryPill: `${calibratedDeliverables.length} Line-Item Assets · Defended Package`,

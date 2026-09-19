@@ -1063,8 +1063,8 @@ export function InfluencerRadarDashboard() {
   // 1-Click Copy Package Proposal Handler
   const handleCopyPackageProposal = useCallback((pkg: GeneratedPackage) => {
     const deliverablesText = pkg.calibratedDeliverables?.length
-      ? pkg.calibratedDeliverables.map((d) => `• [${d.phase}] ${d.quantity}x ${d.title} (${d.platform.toUpperCase()}): ${d.totalStandaloneFormatted} — ${d.description}`).join("\n")
-      : pkg.deliverables.map((d) => `• [${d.phase}] ${d.quantity}x ${d.title} (${d.platform.toUpperCase()}): ${d.description}`).join("\n");
+      ? pkg.calibratedDeliverables.map((d) => `• [${d.phase}] ${d.quantity}x ${d.title.replace(/^\d+x\s*/i, "").trim()} (${d.platform.toUpperCase()}): ${d.totalStandaloneFormatted} — ${d.description}`).join("\n")
+      : pkg.deliverables.map((d) => `• [${d.phase}] ${d.quantity}x ${d.title.replace(/^\d+x\s*/i, "").trim()} (${d.platform.toUpperCase()}): ${d.description}`).join("\n");
 
     const adConceptsText = pkg.adConcepts?.length
       ? `\nVerbatim Spoken Ad Hooks:\n${pkg.adConcepts.map((c) => `• ${c.conceptName} (${c.suggestedPlatform.toUpperCase()}): ${c.hookVerbatim} (${c.angleSummary})`).join("\n")}`
@@ -1078,6 +1078,10 @@ export function InfluencerRadarDashboard() {
       ? `\nCritical Collaboration Guidelines:\n${pkg.collaborationGuidelines.map((g) => `• Rule ${g.ruleNumber} (${g.ruleTitle}): ${g.directive} [Risk: ${g.commercialRisk}]`).join("\n")}`
       : "";
 
+    const rightsBreakdownText = pkg.pricing.commercialRightsFeeLocalized && pkg.pricing.commercialRightsFeeLocalized > 0
+      ? `  - Content Deliverables Subtotal: ${pkg.pricing.rawContentSumFormatted}\n  - Included Commercial Rights & Buyout Value: +${pkg.pricing.commercialRightsFeeFormatted}\n`
+      : "";
+
     const text = `SignCollab Omnichannel Campaign Proposal: ${pkg.name} (${pkg.tag})
 Target Creator: ${creatorMeta?.displayName || "Creator"}
 Campaign Objective: ${pkg.objective}
@@ -1085,7 +1089,7 @@ Campaign Objective: ${pkg.objective}
 Institutional Valuation & Commercial Terms:
 • Recommended Bundle Negotiation Target: ${pkg.pricing.recommendedBundleFormatted || pkg.pricing.typicalFormatted} ${pkg.pricing.usdEquivalentTypical ? `(${pkg.pricing.usdEquivalentTypical})` : ""}
 • Standalone Benchmark Sum: ${pkg.pricing.standaloneBenchmarkFormatted || pkg.pricing.typicalFormatted}
-• Multi-Asset Efficiency Adjustment: -${pkg.discountPercentApplied}% (${pkg.pricing.savingsFormatted})
+${rightsBreakdownText}• Multi-Asset Efficiency Adjustment: ${pkg.discountPercentApplied > 0 ? `-${pkg.discountPercentApplied}% (${pkg.pricing.savingsFormatted})` : "Standard Baseline Benchmark (0%)"}
 • Defended Negotiation Range: ${pkg.pricing.lowFormatted} – ${pkg.pricing.highFormatted}
 
 Deliverables & Itemized Valuations:
@@ -2090,11 +2094,22 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                               </div>
                               <div className="text-[11px] font-mono text-zinc-400">
                                 Standalone Benchmark: <span className="line-through text-zinc-500">{pkg.pricing.standaloneBenchmarkFormatted || pkg.pricing.typicalFormatted}</span>
-                                <span className="text-emerald-400 font-semibold ml-1.5">(-{pkg.discountPercentApplied}% Efficiency)</span>
+                                {pkg.discountPercentApplied > 0 ? (
+                                  <span className="text-emerald-400 font-semibold ml-1.5">(-{pkg.discountPercentApplied}% Efficiency)</span>
+                                ) : (
+                                  <span className="text-zinc-400 font-medium ml-1.5">(Standard Benchmark)</span>
+                                )}
                               </div>
                               <div className="text-[10px] font-mono text-zinc-400 pt-0.5">
                                 Defended Range: {pkg.pricing.lowFormatted} – {pkg.pricing.highFormatted}
                               </div>
+                              {Boolean(pkg.pricing.commercialRightsFeeLocalized && pkg.pricing.commercialRightsFeeLocalized > 0) && (
+                                <div className="text-[10px] font-mono text-zinc-400 pt-1.5 border-t border-white/10 flex flex-wrap items-center justify-start lg:justify-end gap-x-1.5 gap-y-0.5">
+                                  <span>Content: <strong className="text-zinc-200">{pkg.pricing.rawContentSumFormatted}</strong></span>
+                                  <span className="text-zinc-500">+</span>
+                                  <span>Rights: <strong className="text-cyan-400 font-bold">+{pkg.pricing.commercialRightsFeeFormatted}</strong></span>
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -2135,7 +2150,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                                       </span>
                                     </div>
                                     <div className="text-xs font-bold text-white">
-                                      {item.quantity}x {item.title}
+                                      {item.quantity}x {item.title.replace(/^\d+x\s*/i, "").trim()}
                                     </div>
                                     <div className="text-[11px] text-zinc-400 leading-snug">
                                       {item.description}
@@ -2206,8 +2221,13 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
 
                           {/* Commercial Entitlements */}
                           <div className="space-y-2 pt-2 border-t border-white/10">
-                            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
-                              Included Commercial Rights &amp; Contract Entitlements
+                            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold flex items-center justify-between">
+                              <span>Included Commercial Rights &amp; Contract Entitlements</span>
+                              {Boolean(pkg.pricing.commercialRightsFeeLocalized && pkg.pricing.commercialRightsFeeLocalized > 0) && (
+                                <span className="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded">
+                                  Included Rights Valuation: +{pkg.pricing.commercialRightsFeeFormatted}
+                                </span>
+                              )}
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                               {pkg.entitlements.map((ent, idx) => (

@@ -257,16 +257,17 @@ export async function generateCompleteCreatorIntelligence(
   if (!bypassCache) {
     const cached = await getRecentCreatorIntelligence(rootHandle, 24);
     if (cached?.intelligence) {
-      // Guard against corrupted cache from previous parser bug (Niche 8 with blank summaries)
+      // Guard against corrupted cache or legacy cache missing the omnichannel strategy suite
       const isBogusCache =
         cached.intelligence.profile?.primaryNiche?.id === 8 &&
         (!cached.intelligence.summary?.oneLine && !cached.intelligence.summary?.brandSummary);
+      const isMissingSuite = !cached.intelligence.omnichannelStrategySuite?.packages?.length;
 
-      if (!isBogusCache) {
+      if (!isBogusCache && !isMissingSuite) {
         console.log(`[CreatorIntelligence Cache Hit] Returning 24h cached intelligence for @${rootHandle} (${cached.cacheAgeHours}h old).`);
         return cached.intelligence;
       }
-      console.log(`[CreatorIntelligence Cache Invalid] Bypassing corrupted cache for @${rootHandle}.`);
+      console.log(`[CreatorIntelligence Cache Refresh] Bypassing legacy/incomplete cache for @${rootHandle}.`);
     }
   }
 
@@ -452,7 +453,7 @@ CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON with these exact key
             "platform": "youtube",
             "formatKey": "yt_dedicated",
             "quantity": 1,
-            "title": "1x Dedicated Benchmark Video (8-12m)",
+            "title": "Dedicated Benchmark Video (8-12m)",
             "strategicDetail": "..."
           }
         ],
@@ -479,7 +480,7 @@ CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON with these exact key
             "platform": "instagram",
             "formatKey": "ig_reel",
             "quantity": 2,
-            "title": "2x High-Hook Performance UGC Reels (30-45s)",
+            "title": "High-Hook Performance UGC Reels (30-45s)",
             "strategicDetail": "..."
           },
           {
@@ -523,7 +524,7 @@ CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON with these exact key
             "platform": "youtube",
             "formatKey": "yt_integrated",
             "quantity": 1,
-            "title": "1x Dedicated 90s Mid-Roll Integration",
+            "title": "Dedicated 90s Mid-Roll Integration",
             "strategicDetail": "..."
           }
         ],
@@ -550,7 +551,7 @@ CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON with these exact key
             "platform": "youtube",
             "formatKey": "yt_dedicated",
             "quantity": 1,
-            "title": "1x 4K Clean Brand Product Video (16:9)",
+            "title": "4K Clean Brand Product Video (16:9)",
             "strategicDetail": "..."
           },
           {
@@ -589,7 +590,7 @@ CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON with these exact key
             "platform": "youtube",
             "formatKey": "yt_dedicated",
             "quantity": 1,
-            "title": "1x Dedicated Benchmark Video (8-12m)",
+            "title": "Dedicated Benchmark Video (8-12m)",
             "strategicDetail": "..."
           },
           {
@@ -598,7 +599,7 @@ CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON with these exact key
             "platform": "instagram",
             "formatKey": "ig_reel",
             "quantity": 2,
-            "title": "2x High-Impact Instagram Reels (60s)",
+            "title": "High-Impact Instagram Reels (60s)",
             "strategicDetail": "..."
           },
           {
@@ -756,7 +757,7 @@ export function normalizeOmnichannelSuite(raw: unknown): OmnichannelStrategySuit
         platform: (['youtube', 'instagram', 'tiktok', 'cross_platform'].includes(d.platform) ? d.platform : 'cross_platform'),
         formatKey: String(d.formatKey || d.format_key || d.format || 'ig_reel') as any,
         quantity: typeof d.quantity === 'number' && d.quantity > 0 ? d.quantity : 1,
-        title: String(d.title || 'Deliverable'),
+        title: String(d.title || 'Deliverable').replace(/^\d+x\s*/i, '').trim(),
         strategicDetail: String(d.strategicDetail || d.strategic_detail || d.description || ''),
       };
     });
