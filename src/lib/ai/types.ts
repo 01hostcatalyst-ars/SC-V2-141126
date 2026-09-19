@@ -138,4 +138,93 @@ export interface CompleteCreatorIntelligence {
   };
 
   uncertainties: string[];
+  omnichannelStrategySuite?: OmnichannelStrategySuite;
+}
+
+// ============================================================================
+// Omnichannel Strategy Suite Types (Agency-Grade Creator Strategy)
+// ============================================================================
+
+export type StrategyDeliverableFormat =
+  | 'yt_dedicated'
+  | 'yt_integrated'
+  | 'yt_short'
+  | 'ig_reel'
+  | 'ig_story_sequence'
+  | 'ig_carousel'
+  | 'ig_static'
+  | 'tiktok_video'
+  | 'meta_whitelisting_30d'
+  | 'meta_whitelisting_60d'
+  | 'pdp_website_rights_90d'
+  | 'category_exclusivity_30d'
+  | 'raw_b_roll_buyout'
+  | 'pinned_placement_14d';
+
+export interface CreatorExecutiveBrief {
+  whoTheyAre: string;
+  audiencePsychology: string;
+  theSuperpower: string;
+  theLandmine: string;
+  recommendedVoucherPrefix?: string;
+}
+
+export interface BespokeAdConcept {
+  conceptName: string;
+  hookVerbatim: string;
+  angleSummary: string;
+  suggestedPlatform: 'youtube' | 'instagram' | 'tiktok';
+  visualDirection?: string;
+}
+
+export interface BespokeDeliverableItem {
+  id: string;
+  phase: string;
+  platform: 'youtube' | 'instagram' | 'tiktok' | 'cross_platform';
+  formatKey: StrategyDeliverableFormat;
+  quantity: number;
+  title: string;
+  strategicDetail: string;
+}
+
+export interface StrategicCommercialEntitlement {
+  type: 'whitelisting' | 'raw_footage' | 'repurposing' | 'profile_placement' | 'exclusivity';
+  title: string;
+  detail: string;
+}
+
+export interface ConcreteAssetDeliverable {
+  assetType: 'macro_photography' | 'raw_b_roll' | 'audio_jingle_stems' | 'blooper_cuts' | 'cutdown_ads' | string;
+  specification: string;
+}
+
+export interface CriticalCollaborationGuideline {
+  ruleNumber: 1 | 2 | 3;
+  ruleTitle: string;
+  directive: string;
+  commercialRisk: string;
+}
+
+export interface BespokeStrategyPackage {
+  packageId: 'reach' | 'paid_creative' | 'conversion' | 'content_library' | 'launch';
+  packageName: string;
+  packageTag: '[ Reach ]' | '[ Paid Creative ]' | '[ Conversion ]' | '[ Content Library ]' | '[ Full-Funnel ]';
+  campaignObjective: string;
+  strategicRationale: string;
+  isRecommended: boolean;
+  deliverables: BespokeDeliverableItem[];
+  entitlements: StrategicCommercialEntitlement[];
+  adConcepts?: BespokeAdConcept[];
+  concreteAssets?: ConcreteAssetDeliverable[];
+  collaborationGuidelines: [
+    CriticalCollaborationGuideline,
+    CriticalCollaborationGuideline,
+    CriticalCollaborationGuideline
+  ];
+}
+
+export interface OmnichannelStrategySuite {
+  creatorExecutiveBrief: CreatorExecutiveBrief;
+  packages: BespokeStrategyPackage[];
+  collaborationRules?: string[];
 }

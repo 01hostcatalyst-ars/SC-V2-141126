@@ -10,7 +10,15 @@ import {
 } from './types';
 import { calculateInfluencerRate, roundCommercial } from './engine';
 import { FORMAT_LABELS, REGIONAL_CONFIG } from './constants';
-import { CompleteCreatorIntelligence } from '@/lib/ai/types';
+import {
+  CompleteCreatorIntelligence,
+  BespokeStrategyPackage,
+  BespokeDeliverableItem,
+  BespokeAdConcept,
+  ConcreteAssetDeliverable,
+  CriticalCollaborationGuideline,
+  CreatorExecutiveBrief,
+} from '@/lib/ai/types';
 
 // ============================================================================
 // Types
@@ -60,6 +68,20 @@ export interface PackageEntitlement {
   detail: string;
 }
 
+export interface CalibratedDeliverableItem {
+  id: string;
+  phase: string;
+  platform: Platform;
+  formatKey: string;
+  quantity: number;
+  title: string;
+  description: string;
+  standaloneUnitFormatted: string;
+  totalStandaloneFormatted: string;
+  standaloneUnitLocalized: number;
+  totalStandaloneLocalized: number;
+}
+
 export interface GeneratedPackage {
   id: PackageId;
   name: string;
@@ -83,9 +105,28 @@ export interface GeneratedPackage {
     usdEquivalentTypical?: string;
     currency: string;
     currencySymbol: string;
+    standaloneBenchmarkSum?: number;
+    standaloneBenchmarkFormatted?: string;
+    recommendedBundleTarget?: number;
+    recommendedBundleFormatted?: string;
+    defendedNegotiationFloor?: number;
+    defendedFloorFormatted?: string;
+    agencyRepresentedCeiling?: number;
+    agencyCeilingFormatted?: string;
   };
   discountPercentApplied: number;
   summaryPill: string;
+
+  // Bespoke Strategy Additions
+  calibratedDeliverables?: CalibratedDeliverableItem[];
+  adConcepts?: BespokeAdConcept[];
+  concreteAssets?: ConcreteAssetDeliverable[];
+  collaborationGuidelines?: [
+    CriticalCollaborationGuideline,
+    CriticalCollaborationGuideline,
+    CriticalCollaborationGuideline
+  ];
+  strategicRationale?: string;
 }
 
 // ============================================================================
@@ -307,6 +348,314 @@ function calculatePackagePricing(
 }
 
 // ============================================================================
+// 3b. Bespoke Strategy Suite Pricing Bridge
+// ============================================================================
+
+export function resolveDeliverablePlatformAndFormat(
+  rawPlatform: string,
+  rawFormatKey: string,
+  readyPlatforms: Record<Platform, boolean>
+): { platform: Platform; format: DeliverableFormat; isCommercialRight: boolean; rightType?: string } {
+  const normKey = String(rawFormatKey || '').toLowerCase().trim();
+  const normPlat = String(rawPlatform || '').toLowerCase().trim();
+
+  // Commercial Rights
+  if (normKey.includes('whitelisting') || normKey.includes('meta_white')) {
+    return { platform: 'instagram', format: 'ig_reel', isCommercialRight: true, rightType: normKey.includes('60') ? 'whitelisting_60d' : 'whitelisting_30d' };
+  }
+  if (normKey.includes('pdp') || normKey.includes('website')) {
+    return { platform: 'instagram', format: 'ig_reel', isCommercialRight: true, rightType: 'pdp_website_rights_90d' };
+  }
+  if (normKey.includes('exclusiv')) {
+    return { platform: 'instagram', format: 'ig_reel', isCommercialRight: true, rightType: 'category_exclusivity_30d' };
+  }
+  if (normKey.includes('raw_b_roll') || normKey.includes('raw_footage') || normKey.includes('buyout')) {
+    return { platform: 'instagram', format: 'ig_reel', isCommercialRight: true, rightType: 'raw_b_roll_buyout' };
+  }
+  if (normKey.includes('pinned')) {
+    return { platform: 'youtube', format: 'yt_dedicated', isCommercialRight: true, rightType: 'pinned_placement_14d' };
+  }
+
+  // Tier 1: Format & Platform resolution
+  let resolvedPlatform: Platform = 'instagram';
+  let resolvedFormat: DeliverableFormat = 'ig_reel';
+
+  if (normKey === 'yt_dedicated' || normKey.includes('dedicated') || normKey.includes('review') || (normPlat === 'youtube' && normKey.includes('video'))) {
+    resolvedPlatform = 'youtube';
+    resolvedFormat = 'yt_dedicated';
+  } else if (normKey === 'yt_integrated' || normKey.includes('integrated') || normKey.includes('midroll') || normKey.includes('sponsor')) {
+    resolvedPlatform = 'youtube';
+    resolvedFormat = 'yt_integrated';
+  } else if (normKey === 'yt_short' || (normPlat === 'youtube' && normKey.includes('short'))) {
+    resolvedPlatform = 'youtube';
+    resolvedFormat = 'yt_short';
+  } else if (normKey === 'ig_reel' || normKey.includes('reel') || (normPlat === 'instagram' && normKey.includes('video'))) {
+    resolvedPlatform = 'instagram';
+    resolvedFormat = 'ig_reel';
+  } else if (normKey === 'ig_story_sequence' || normKey === 'ig_story' || normKey.includes('story')) {
+    resolvedPlatform = 'instagram';
+    resolvedFormat = 'ig_story';
+  } else if (normKey === 'ig_carousel' || normKey.includes('carousel')) {
+    resolvedPlatform = 'instagram';
+    resolvedFormat = 'ig_carousel';
+  } else if (normKey === 'ig_static' || normKey.includes('photo') || normKey.includes('static')) {
+    resolvedPlatform = 'instagram';
+    resolvedFormat = 'ig_static';
+  } else if (normKey === 'tiktok_video' || normPlat === 'tiktok' || normKey.includes('tiktok')) {
+    resolvedPlatform = 'tiktok';
+    resolvedFormat = 'tiktok_video';
+  } else if (normPlat === 'youtube') {
+    resolvedPlatform = 'youtube';
+    resolvedFormat = 'yt_integrated';
+  }
+
+  // Tier 2: Platform Availability Fallback
+  if (!readyPlatforms[resolvedPlatform]) {
+    if (resolvedPlatform === 'tiktok') {
+      if (readyPlatforms.instagram) {
+        resolvedPlatform = 'instagram';
+        resolvedFormat = 'ig_reel';
+      } else if (readyPlatforms.youtube) {
+        resolvedPlatform = 'youtube';
+        resolvedFormat = 'yt_short';
+      }
+    } else if (resolvedPlatform === 'youtube') {
+      if (readyPlatforms.instagram) {
+        resolvedPlatform = 'instagram';
+        resolvedFormat = 'ig_reel';
+      } else if (readyPlatforms.tiktok) {
+        resolvedPlatform = 'tiktok';
+        resolvedFormat = 'tiktok_video';
+      }
+    } else if (resolvedPlatform === 'instagram') {
+      if (readyPlatforms.youtube) {
+        resolvedPlatform = 'youtube';
+        resolvedFormat = 'yt_short';
+      } else if (readyPlatforms.tiktok) {
+        resolvedPlatform = 'tiktok';
+        resolvedFormat = 'tiktok_video';
+      }
+    }
+  }
+
+  return { platform: resolvedPlatform, format: resolvedFormat, isCommercialRight: false };
+}
+
+export function generateCalibratedBespokePackages(
+  bespokePackages: BespokeStrategyPackage[],
+  platforms: Record<Platform, PlatformMetricsInput>,
+  primaryNicheId: number,
+  subNicheId: number | undefined,
+  regionCode: RegionCode
+): GeneratedPackage[] {
+  const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG['US'];
+  const isForeign = regionCode !== 'US';
+
+  const readyPlatforms: Record<Platform, boolean> = {
+    instagram: platforms.instagram?.status === 'ready' && (platforms.instagram?.followerCount || 0) > 0,
+    youtube: platforms.youtube?.status === 'ready' && (platforms.youtube?.followerCount || 0) > 0,
+    tiktok: platforms.tiktok?.status === 'ready' && (platforms.tiktok?.followerCount || 0) > 0,
+  };
+
+  const unitRateCache: Record<string, { medianLocalized: number; usdGross: number }> = {};
+
+  const getUnitRate = (p: Platform, fmt: DeliverableFormat) => {
+    const cacheKey = `${p}_${fmt}`;
+    if (unitRateCache[cacheKey]) return unitRateCache[cacheKey];
+
+    const platData = platforms[p] || {};
+    const isYtShort = p === 'youtube' && fmt === 'yt_short';
+    const itemLikes = isYtShort && platData.avgShortLikes !== undefined ? platData.avgShortLikes : platData.avgLikes;
+    const itemComments = isYtShort && platData.avgShortComments !== undefined ? platData.avgShortComments : platData.avgComments;
+    const itemViews = isYtShort && platData.avgShortViews !== undefined ? platData.avgShortViews : platData.avgViews;
+
+    const singleInput: PricingInput = {
+      creator: {
+        followerCount: Math.max(platData.followerCount || 10000, 1000),
+        last3PostsAvgLikes: itemLikes || 500,
+        last3PostsAvgComments: itemComments || 25,
+        last3PostsAvgViews: itemViews,
+        primaryPlatform: p,
+        primaryNicheId,
+        subNicheId,
+        regionCode,
+      },
+      deliverables: [{ id: 'item_1', platform: p, format: fmt, quantity: 1 }],
+      commercialTerms: { usageRights: { scope: 'organic_repost', duration: '30_days' } },
+    };
+
+    const res = calculateInfluencerRate(singleInput);
+    const medianLocalized = res.valuationRange.typicalMedian;
+    const usdGross = res.lineItems.grossTotalUSD;
+
+    unitRateCache[cacheKey] = { medianLocalized, usdGross };
+    return unitRateCache[cacheKey];
+  };
+
+  return bespokePackages.map((bp) => {
+    let rawContentSumLocalized = 0;
+    const calibratedDeliverables: CalibratedDeliverableItem[] = [];
+    const phasedDeliverables: PhasedDeliverable[] = [];
+
+    // 1. Process and price each deliverable
+    for (const d of bp.deliverables) {
+      const resolved = resolveDeliverablePlatformAndFormat(d.platform, d.formatKey, readyPlatforms);
+
+      if (resolved.isCommercialRight) {
+        continue;
+      }
+
+      const unitRate = getUnitRate(resolved.platform, resolved.format);
+      const qty = Math.max(d.quantity || 1, 1);
+      const totalLoc = unitRate.medianLocalized * qty;
+
+      rawContentSumLocalized += totalLoc;
+
+      calibratedDeliverables.push({
+        id: d.id,
+        phase: d.phase,
+        platform: resolved.platform,
+        formatKey: d.formatKey,
+        quantity: qty,
+        title: d.title,
+        description: d.strategicDetail,
+        standaloneUnitLocalized: unitRate.medianLocalized,
+        totalStandaloneLocalized: totalLoc,
+        standaloneUnitFormatted: `${regConfig.symbol}${roundCommercial(unitRate.medianLocalized).toLocaleString()}`,
+        totalStandaloneFormatted: `${regConfig.symbol}${roundCommercial(totalLoc).toLocaleString()}`,
+      });
+
+      phasedDeliverables.push({
+        id: d.id,
+        phase: d.phase,
+        platform: resolved.platform,
+        format: resolved.format,
+        quantity: qty,
+        title: d.title,
+        description: d.strategicDetail,
+      });
+    }
+
+    // Safety fallback: if package had 0 content deliverables
+    if (calibratedDeliverables.length === 0) {
+      const fallbackPlat: Platform = readyPlatforms.youtube ? 'youtube' : readyPlatforms.instagram ? 'instagram' : 'tiktok';
+      const fallbackFmt: DeliverableFormat = fallbackPlat === 'youtube' ? 'yt_dedicated' : 'ig_reel';
+      const unitRate = getUnitRate(fallbackPlat, fallbackFmt);
+      rawContentSumLocalized += unitRate.medianLocalized;
+
+      calibratedDeliverables.push({
+        id: 'fallback_1',
+        phase: 'Hero Anchor',
+        platform: fallbackPlat,
+        formatKey: fallbackFmt,
+        quantity: 1,
+        title: `1x ${FORMAT_LABELS[fallbackFmt]?.label || fallbackFmt}`,
+        description: 'Core campaign anchor deliverable',
+        standaloneUnitLocalized: unitRate.medianLocalized,
+        totalStandaloneLocalized: unitRate.medianLocalized,
+        standaloneUnitFormatted: `${regConfig.symbol}${roundCommercial(unitRate.medianLocalized).toLocaleString()}`,
+        totalStandaloneFormatted: `${regConfig.symbol}${roundCommercial(unitRate.medianLocalized).toLocaleString()}`,
+      });
+
+      phasedDeliverables.push({
+        id: 'fallback_1',
+        phase: 'Hero Anchor',
+        platform: fallbackPlat,
+        format: fallbackFmt,
+        quantity: 1,
+        title: `1x ${FORMAT_LABELS[fallbackFmt]?.label || fallbackFmt}`,
+        description: 'Core campaign anchor deliverable',
+      });
+    }
+
+    // 2. Multi-Asset Production Efficiency Discount
+    const totalAssetCount = calibratedDeliverables.reduce((sum, d) => sum + d.quantity, 0);
+    const bundleDiscountPercent = totalAssetCount >= 4 ? 0.15 : totalAssetCount >= 2 ? 0.10 : 0.00;
+
+    // 3. Commercial Rights and Entitlements Surcharges
+    let rightsSurchargePercent = 0.0;
+    for (const d of bp.deliverables) {
+      const resolved = resolveDeliverablePlatformAndFormat(d.platform, d.formatKey, readyPlatforms);
+      if (resolved.isCommercialRight) {
+        if (resolved.rightType === 'whitelisting_60d') rightsSurchargePercent += 0.30;
+        else if (resolved.rightType === 'whitelisting_30d') rightsSurchargePercent += 0.20;
+        else if (resolved.rightType === 'pdp_website_rights_90d') rightsSurchargePercent += 0.20;
+        else if (resolved.rightType === 'category_exclusivity_30d') rightsSurchargePercent += 0.25;
+        else if (resolved.rightType === 'raw_b_roll_buyout') rightsSurchargePercent += 0.15;
+        else if (resolved.rightType === 'pinned_placement_14d') rightsSurchargePercent += 0.10;
+      }
+    }
+    for (const ent of bp.entitlements) {
+      if (ent.type === 'whitelisting') rightsSurchargePercent += 0.20;
+      else if (ent.type === 'exclusivity') rightsSurchargePercent += 0.25;
+      else if (ent.type === 'raw_footage') rightsSurchargePercent += 0.15;
+    }
+    rightsSurchargePercent = Math.min(rightsSurchargePercent, 0.60);
+
+    const rightsFeeLocalized = roundCommercial(rawContentSumLocalized * rightsSurchargePercent);
+    const standaloneBenchmarkSum = roundCommercial(rawContentSumLocalized + rightsFeeLocalized);
+
+    // 4. Bundle Negotiation Target
+    const recommendedBundleTarget = roundCommercial(standaloneBenchmarkSum * (1 - bundleDiscountPercent));
+    const defendedNegotiationFloor = roundCommercial(recommendedBundleTarget * 0.80);
+    const agencyRepresentedCeiling = roundCommercial(recommendedBundleTarget * 1.25);
+    const savingsLocalized = roundCommercial(standaloneBenchmarkSum - recommendedBundleTarget);
+
+    const realUsdMedian = roundCommercial(recommendedBundleTarget / (regConfig.fxRateToUSD || 1));
+    const usdEquivalent = isForeign ? `~$${realUsdMedian.toLocaleString()} USD` : undefined;
+
+    const entitlements: PackageEntitlement[] = bp.entitlements.map((e) => ({
+      type: e.type,
+      label: e.title,
+      detail: e.detail,
+    }));
+
+    const packageId = bp.packageId as PackageId;
+
+    return {
+      id: packageId,
+      name: bp.packageName,
+      tag: bp.packageTag,
+      objective: bp.campaignObjective,
+      suitability: bp.isRecommended ? 'recommended' : 'suitable',
+      isRecommended: bp.isRecommended,
+      recommendationHeadline: bp.isRecommended ? 'Defended Institutional Recommendation' : undefined,
+      recommendationReason: bp.strategicRationale,
+      deliverables: phasedDeliverables,
+      entitlements,
+      pricing: {
+        typicalMedian: recommendedBundleTarget,
+        lowP25: defendedNegotiationFloor,
+        highP75: agencyRepresentedCeiling,
+        typicalFormatted: `${regConfig.symbol}${recommendedBundleTarget.toLocaleString()}`,
+        lowFormatted: `${regConfig.symbol}${defendedNegotiationFloor.toLocaleString()}`,
+        highFormatted: `${regConfig.symbol}${agencyRepresentedCeiling.toLocaleString()}`,
+        savingsLocalized,
+        savingsFormatted: `${regConfig.symbol}${savingsLocalized.toLocaleString()} ${regConfig.currency}`,
+        usdEquivalentTypical: usdEquivalent,
+        currency: regConfig.currency,
+        currencySymbol: regConfig.symbol,
+        standaloneBenchmarkSum,
+        standaloneBenchmarkFormatted: `${regConfig.symbol}${standaloneBenchmarkSum.toLocaleString()}`,
+        recommendedBundleTarget,
+        recommendedBundleFormatted: `${regConfig.symbol}${recommendedBundleTarget.toLocaleString()}`,
+        defendedNegotiationFloor,
+        defendedFloorFormatted: `${regConfig.symbol}${defendedNegotiationFloor.toLocaleString()}`,
+        agencyRepresentedCeiling,
+        agencyCeilingFormatted: `${regConfig.symbol}${agencyRepresentedCeiling.toLocaleString()}`,
+      },
+      discountPercentApplied: Math.round(bundleDiscountPercent * 100),
+      summaryPill: `${calibratedDeliverables.length} Line-Item Assets · Defended Package`,
+      calibratedDeliverables,
+      adConcepts: bp.adConcepts,
+      concreteAssets: bp.concreteAssets,
+      collaborationGuidelines: bp.collaborationGuidelines,
+      strategicRationale: bp.strategicRationale,
+    };
+  });
+}
+
+// ============================================================================
 // 4. The 5 Adaptive Package Recipe Builders
 // ============================================================================
 
@@ -318,6 +667,21 @@ export function generateOmnichannelPackages(
   regionCode: RegionCode,
   intelligence?: CompleteCreatorIntelligence
 ): GeneratedPackage[] {
+  // If completeIntelligence has bespoke omnichannel packages from Gemini, calibrate and return them!
+  if (
+    intelligence?.omnichannelStrategySuite?.packages &&
+    Array.isArray(intelligence.omnichannelStrategySuite.packages) &&
+    intelligence.omnichannelStrategySuite.packages.length > 0
+  ) {
+    return generateCalibratedBespokePackages(
+      intelligence.omnichannelStrategySuite.packages,
+      platforms,
+      primaryNicheId,
+      subNicheId,
+      regionCode
+    );
+  }
+
   const ranked = rankCreatorPlatforms(platforms);
   if (ranked.length === 0) return [];
 

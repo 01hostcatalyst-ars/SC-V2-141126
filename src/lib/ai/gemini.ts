@@ -1,7 +1,17 @@
 import { PRIMARY_NICHES, SUB_NICHES, REGIONAL_CONFIG } from '../calculator/constants';
 import { RegionCode } from '../calculator/types';
 import { JWT } from 'google-auth-library';
-import { CompleteCreatorIntelligence } from './types';
+import {
+  CompleteCreatorIntelligence,
+  OmnichannelStrategySuite,
+  CreatorExecutiveBrief,
+  BespokeStrategyPackage,
+  BespokeDeliverableItem,
+  StrategicCommercialEntitlement,
+  BespokeAdConcept,
+  ConcreteAssetDeliverable,
+  CriticalCollaborationGuideline,
+} from './types';
 import { getRecentCreatorIntelligence, saveCreatorIntelligence } from './storage';
 
 export * from './types';
@@ -143,6 +153,32 @@ async function getGoogleCloudAccessToken(): Promise<string> {
 function buildCuratedPromptContext(input: MultiPlatformCreatorInput): string {
   const platformDossiers: string[] = [];
 
+  const activePlatforms: string[] = [];
+  const inactivePlatforms: string[] = [];
+
+  if (input.youtube && ((input.youtube.subscriberCount || 0) > 0 || input.youtube.handle)) {
+    activePlatforms.push('YouTube');
+  } else {
+    inactivePlatforms.push('YouTube');
+  }
+
+  if (input.instagram && ((input.instagram.followerCount || 0) > 0 || input.instagram.username)) {
+    activePlatforms.push('Instagram');
+  } else {
+    inactivePlatforms.push('Instagram');
+  }
+
+  if (input.tiktok && ((input.tiktok.followerCount || 0) > 0 || input.tiktok.username)) {
+    activePlatforms.push('TikTok');
+  } else {
+    inactivePlatforms.push('TikTok');
+  }
+
+  platformDossiers.push(`  [PLATFORM AVAILABILITY & APPROVED CATALOG CONSTRAINTS]
+  - ACTIVE VERIFIED PLATFORMS FOR THIS CREATOR: ${activePlatforms.length > 0 ? activePlatforms.join(', ') : 'Cross-Platform'}
+  - INACTIVE / UNVERIFIED PLATFORMS: ${inactivePlatforms.length > 0 ? inactivePlatforms.join(', ') : 'None'}
+  * STRICT RULE: You MUST ONLY propose deliverables for ACTIVE platforms (${activePlatforms.join(', ')}). Proposing deliverables for inactive platforms (${inactivePlatforms.join(', ')}) is STRICTLY FORBIDDEN.`);
+
   if (input.reportedCountry) {
     platformDossiers.push(`  [CALIBRATED REGIONAL MARKET BASELINE]
   - Target Market Baseline: ${input.reportedCountry}`);
@@ -251,13 +287,19 @@ export async function generateCompleteCreatorIntelligence(
 
   const curatedDossier = buildCuratedPromptContext(input);
 
-  const systemInstruction = `You are an elite influencer marketing economist, brand partnership director, and creator valuation analyst for SignCollab.
-Your job is to analyze creator multi-platform data and output a strict, comprehensive 19-point Creator Intelligence dossier matching the exact required JSON schema.
+  const systemInstruction = `You are an elite influencer marketing economist, brand partnership director, and veteran creator talent strategist for SignCollab.
+Your role is to act as a $10,000/month agency media director auditing a creator's cross-platform footprint (YouTube, Instagram, TikTok) to produce an authoritative, actionable partnership blueprint.
+
+Your output must consist of two synchronized intelligence components in strict JSON format:
+1. The 19-Point Creator Intelligence Dossier (Audience Demographics, Primary Market Country, Vertical Niche & Safety).
+2. The Omnichannel Strategy Suite (Creator Executive Brief, 5 Funnel Packages with Deliverable Keys, Verbatim Spoken Hooks, Concrete Digital Assets, Vanity Codes, and 3 Critical Collaboration Rules).
 
 Available Approved Niches & Sub-Niches (You MUST pick 1 Primary Niche and 1 Sub-Niche ONLY from this exact hierarchy):
 ${nicheHierarchyText}
 
-Core Principles & Rules:
+================================================================================
+PART A: CORE DOSSIER PRINCIPLES & RULES
+================================================================================
 1. PROFILE & IDENTITY:
    - creatorType: Main professional classification (e.g. "Fashion & Style Creator", "Tech Hardware Reviewer", "Gaming Streamer", "Fitness Coach").
    - profilePositioning: How the creator positions their personal brand (e.g. "Affordable tech reviews & smartphone camera shootouts").
@@ -277,10 +319,9 @@ Core Principles & Rules:
 
 3. AUDIENCE PERSONA & REGIONAL MARKETS (Inferred):
    - likelyAgeRange (e.g. "18-34"), genderSkew (e.g. "Female-skewed", "Male-skewed", "Balanced"). DO NOT invent fake demographic percentages like "64.2% female".
-   - primaryMarket: EXACTLY ONE Single Primary Country Name (e.g. "Pakistan", "United States", "United Kingdom", "India", "Canada", "Australia", "United Arab Emirates").
-     * ABSOLUTE MANDATORY REQUIREMENT: Must be a SINGLE sovereign country name (MUST match countryName).
+   - primaryMarket: EXACTLY ONE Single Primary Country Name (e.g. "Pakistan", "United States", "United Kingdom", "India", "Canada", "Australia", "United Arab Emirates"). Must match countryName.
      * STRICTLY PROHIBITED: NEVER output "Global", "Worldwide", "International", "None", or composite phrases like "Pakistan & South Asian Diaspora". It MUST be ONLY the 1 single country name (e.g. "Pakistan").
-   - secondaryMarkets: Array of 2-3 secondary countries or diaspora markets (e.g. ["South Asian Global Diaspora (UAE, UK, US)", "United Arab Emirates", "United Kingdom"] or ["Canada", "Australia"]).
+   - secondaryMarkets: Array of 2-3 secondary countries or diaspora markets (e.g. ["United Arab Emirates", "United Kingdom", "Saudi Arabia"]).
    - interests[], purchaseIntent ("High" | "Moderate" | "Low"), audienceIntent[], profile explanation, confidence.
 
 4. CONTENT & FORMAT INTELLIGENCE:
@@ -310,28 +351,278 @@ Core Principles & Rules:
 9. META, EVIDENCE & UNCERTAINTIES:
    - confidence: { niche, country, audience, brandFit }.
    - evidence: { classification[], geography[], audience[], commercial[] }.
-   - uncertainties: Array of explicit transparency notes (e.g. "Audience demographics inferred from content signals; not verified via private analytics").
+   - uncertainties: Array of explicit transparency notes.
 
-CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON using EXACTLY these top-level keys:
+================================================================================
+PART B: THE 4 ANTI-BLAND COPYWRITING & STRATEGY DIRECTIVES
+================================================================================
+1. ZERO GENERIC MARKETING FLUFF (BANNED PHRASES):
+   - NEVER write generic lines like "Creator will showcase the product", "Creator will make an engaging video", "Creator will post a reel with a link".
+   - Every single deliverable description MUST detail the specific narrative angle, visual pacing, and audience emotional trigger.
+
+2. MANDATORY VERBATIM SPOKEN AD HOOKS (PACKAGE 2 - PAID CREATIVE):
+   - For every ad concept in Package 2 (Paid Creative), you MUST write the EXACT first 3-5 seconds of spoken dialogue in quotation marks.
+   - Use the creator's authentic cadence, colloquial tone, and local vernacular (e.g. blend Urdu/English for Pakistani creators like "Main pichlay aik haftay se yeh test kar raha hoon...", "Aapko lagta hai ke...", or dry deadpan sarcasm for satirists).
+
+3. CONCRETE PHYSICAL & DIGITAL ASSET DELIVERABLES (PACKAGE 4 - CONTENT LIBRARY):
+   - NEVER output vague descriptions like "High quality photos".
+   - Specify tangible, production-grade assets: e.g. "5x 4K macro camera stills of hardware ports with clean backplates", "24-bit uncompressed audio jingle stems", "45-second vertical blooper & outtake reel".
+
+4. THE #1 CREATIVE LANDMINE (WHAT TO AVOID):
+   - Identify the exact fatal mistake that ruins campaigns with this creator (e.g. forcing a comedian to read a stiff corporate script, forcing a tech reviewer to hide minor cons, forcing a cinematic documentarian into a hard-sell telemarketing pitch).
+
+================================================================================
+PART C: GOLDEN FEW-SHOT REFERENCE ANCHORS
+================================================================================
+Study these four foundational creator benchmarks to match their standard of depth:
+
+ANCHOR 1: IRFAN JUNEJO (Cinematic Visual Documentarian)
+- Superpower: Cultural prestige, cinematic visual polish, and subtle storytelling trust.
+- Landmine: Forcing an aggressive, hard-sell promotional ad onto his main feed. His audience violently rejects infomercials.
+- Key Deliverables: 1x ig_reel (Co-authored 60-90s cinematic short film) + 1x ig_story_sequence (3-frame BTS). Paid: 2x ig_reel + meta_whitelisting_30d. Conversion: 1x ig_story_sequence + vanity voucher "JUNEJO10". Content Library: 1x 16:9 brand story video + 10x high-res lifestyle stills + raw_b_roll_buyout.
+
+ANCHOR 2: BILAL MUNIR / VIDEO WALI SARKAR (Consumer-Tech Hardware Authority)
+- Superpower: Direct consumer trust and purchase validation ("Is this worth my hard-earned money?").
+- Landmine: Demanding a "100% flawless" corporate review without acknowledging minor cons.
+- Verbatim Hooks: "Aap bhi har roz is maslay se tang hain? Main pichlay aik haftay se yeh test kar raha hoon...", "On paper to yeh specs kamaal hain, lekin kya yeh real life mein aapke paison ko justify karta hai?"
+- Key Deliverables: Reach: 1x yt_dedicated (8-12m hardware benchmark) + 1x ig_reel. Paid: 2x ig_reel + meta_whitelisting_60d. Conversion: 1x yt_integrated + vanity voucher "BILAL10" ("Paisa Vasool"). Content Library: 1x 4K clean studio explainer + 15x studio macro stills.
+
+ANCHOR 3: ARSALAN NASEER / CBA (Sketch Comic & Cricket Satirist)
+- Superpower: Viral WhatsApp shareability and organic meme cultural penetration.
+- Landmine: Forcing a stiff corporate script or cheesy smile (they will roast the brand in comments).
+- Key Deliverables: Reach: 1x yt_dedicated (Humorous sketch with multi-character skit) + 1x ig_reel. Paid: 2x ig_reel (Everyday Hassle Skit + Competitor Roast) + meta_whitelisting_30d. Conversion: 1x ig_story_sequence + vanity voucher "CBA15".
+
+ANCHOR 4: AUN ALI KHOSA (Musical Satirist & Deadpan Comic)
+- Superpower: Relatable societal irony set to catchy musical compositions.
+- Landmine: Associating the brand with partisan political satire or forced commercial infomercials.
+- Key Deliverables: Reach: 1x yt_dedicated (Original satirical song) + 1x ig_reel. Paid: 2x ig_reel (Rhyming Jingle Hook) + meta_whitelisting_30d. Conversion: 1x ig_story_sequence + vanity voucher "KHOSA10". Content Library: Original branded audio jingle stem (wav buyout).
+
+================================================================================
+PART D: APPROVED DELIVERABLES CATALOG & FORMAT KEYS
+================================================================================
+You MUST ONLY propose deliverables for the creator's ACTIVE platforms. Every deliverable formatKey MUST be one of:
+- YouTube: "yt_dedicated" | "yt_integrated" | "yt_short"
+- Instagram: "ig_reel" | "ig_story_sequence" | "ig_carousel" | "ig_static"
+- TikTok: "tiktok_video" (ONLY IF TIKTOK IS ACTIVE)
+- Commercial Rights: "meta_whitelisting_30d" | "meta_whitelisting_60d" | "pdp_website_rights_90d" | "category_exclusivity_30d" | "raw_b_roll_buyout" | "pinned_placement_14d"
+DO NOT OUTPUT HARDCODED PRICES ($ or Rs). OUR ENGINE CALCULATES ALL PRICES.
+
+================================================================================
+CRITICAL SCHEMA REQUIREMENT: You MUST output clean raw JSON with these exact keys:
+================================================================================
 {
-  "profile": { "creatorType": "...", "profilePositioning": "...", "primaryNiche": { "id": number, "name": "...", "multiplier": number }, "subNiche": { "id": number, "name": "...", "multiplier": number }, "secondaryNiches": [{ "id": number, "name": "...", "multiplier": number }], "microNiches": ["..."], "creatorDescription": "...", "confidence": 0.95 },
-  "geography": { "countryCode": "...", "countryName": "...", "city": null, "region": null, "confidence": 0.9, "evidence": ["..."] },
-  "audience": { "likelyAgeRange": "...", "genderSkew": "...", "primaryMarket": "...", "secondaryMarkets": ["..."], "interests": ["..."], "purchaseIntent": "...", "audienceIntent": ["..."], "profile": "...", "confidence": 0.9 },
-  "content": { "themes": ["..."], "dominantFormat": "...", "formats": ["..."], "style": ["..."], "tone": ["..."], "productionLevel": "...", "contentConsistency": "...", "promotionalContentLevel": "..." },
+  "profile": { "creatorType": "...", "profilePositioning": "...", "primaryNiche": { "id": 1, "name": "...", "multiplier": 1.45 }, "subNiche": { "id": 101, "name": "...", "multiplier": 1.50 }, "secondaryNiches": [{ "id": 2, "name": "...", "multiplier": 1.25 }], "microNiches": ["..."], "creatorDescription": "...", "confidence": 0.95 },
+  "geography": { "countryCode": "PK", "countryName": "Pakistan", "city": "...", "region": "...", "confidence": 0.9, "evidence": ["..."] },
+  "audience": { "likelyAgeRange": "18-34", "genderSkew": "Male-skewed", "primaryMarket": "Pakistan", "secondaryMarkets": ["..."], "interests": ["..."], "purchaseIntent": "High", "audienceIntent": ["..."], "profile": "...", "confidence": 0.9 },
+  "content": { "themes": ["..."], "dominantFormat": "...", "formats": ["..."], "style": ["..."], "tone": ["..."], "productionLevel": "High", "contentConsistency": "High", "promotionalContentLevel": "Moderate" },
   "contentThemes": [{ "theme": "...", "strength": 0.9 }],
   "contentFormatIntelligence": { "primaryFormat": "...", "strongestFormatForCreator": "...", "formatDescription": "..." },
   "performanceIntelligence": { "reachLevel": "...", "engagementQuality": "...", "audienceResponse": "...", "performancePattern": "...", "summary": "..." },
   "engagementIntelligence": { "conversationLevel": "...", "sharingPotential": "...", "purchaseIntentSignals": "...", "audienceBehavior": ["..."] },
   "commercialIntelligence": { "commercialIntent": "...", "brandCollaborationLikelihood": "...", "affiliateSignals": false, "productPromotionLevel": "...", "sponsorshipSignals": ["..."] },
   "brandFit": { "bestFitCategories": ["..."], "campaignTypes": ["..."], "strongestPartnershipAngle": "...", "brandSuitability": "..." },
-  "brandSafety": { "overallRisk": "...", "observedRiskSignals": ["..."], "reviewRecommended": false },
+  "brandSafety": { "overallRisk": "Low", "observedRiskSignals": ["..."], "reviewRecommended": false },
   "strengths": [{ "area": "...", "description": "..." }],
   "considerations": [{ "area": "...", "description": "..." }],
   "partnershipRecommendations": [{ "campaign": "...", "fit": "...", "reason": "..." }],
   "summary": { "oneLine": "...", "brandSummary": "...", "detailedSummary": "..." },
   "confidence": { "niche": 0.95, "country": 0.9, "audience": 0.85, "brandFit": 0.9 },
   "evidence": { "classification": ["..."], "geography": ["..."], "audience": ["..."], "commercial": ["..."] },
-  "uncertainties": ["..."]
+  "uncertainties": ["..."],
+  "omnichannelStrategySuite": {
+    "creatorExecutiveBrief": {
+      "whoTheyAre": "1-sentence defining creative identity & market position",
+      "audiencePsychology": "Exact viewer mindset when consuming their content",
+      "theSuperpower": "Definitive commercial reason to hire this creator over competitors",
+      "theLandmine": "The #1 creative mistake that ruins the campaign",
+      "recommendedVoucherPrefix": "e.g. BILAL, JUNEJO, CBA"
+    },
+    "packages": [
+      {
+        "packageId": "reach",
+        "packageName": "Mass Cultural Reach & Brand Association",
+        "packageTag": "[ Reach ]",
+        "campaignObjective": "Top-of-funnel mass awareness and cultural association",
+        "strategicRationale": "...",
+        "isRecommended": false,
+        "deliverables": [
+          {
+            "id": "reach_d1",
+            "phase": "Hero Anchor",
+            "platform": "youtube",
+            "formatKey": "yt_dedicated",
+            "quantity": 1,
+            "title": "1x Dedicated Benchmark Video (8-12m)",
+            "strategicDetail": "..."
+          }
+        ],
+        "entitlements": [
+          { "type": "profile_placement", "title": "14-Day Pinned Top Comment", "detail": "..." }
+        ],
+        "collaborationGuidelines": [
+          { "ruleNumber": 1, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 2, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 3, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." }
+        ]
+      },
+      {
+        "packageId": "paid_creative",
+        "packageName": "High-CTR Performance Creative & Whitelisting",
+        "packageTag": "[ Paid Creative ]",
+        "campaignObjective": "Middle-of-funnel conversion ads for Meta and TikTok paid acquisition",
+        "strategicRationale": "...",
+        "isRecommended": true,
+        "deliverables": [
+          {
+            "id": "paid_d1",
+            "phase": "Creative Testing",
+            "platform": "instagram",
+            "formatKey": "ig_reel",
+            "quantity": 2,
+            "title": "2x High-Hook Performance UGC Reels (30-45s)",
+            "strategicDetail": "..."
+          },
+          {
+            "id": "paid_d2",
+            "phase": "Commercial Rights",
+            "platform": "cross_platform",
+            "formatKey": "meta_whitelisting_60d",
+            "quantity": 1,
+            "title": "60-Day Meta Partnership Ads Whitelisting",
+            "strategicDetail": "..."
+          }
+        ],
+        "entitlements": [
+          { "type": "whitelisting", "title": "60-Day Partnership Ads Token", "detail": "..." }
+        ],
+        "adConcepts": [
+          {
+            "conceptName": "Pain-Point Interrupt",
+            "hookVerbatim": "\"Aap bhi har roz is maslay se tang hain? Main pichlay aik haftay se...\"",
+            "angleSummary": "Directly tackles customer friction before introducing product as the answer",
+            "suggestedPlatform": "instagram"
+          }
+        ],
+        "collaborationGuidelines": [
+          { "ruleNumber": 1, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 2, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 3, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." }
+        ]
+      },
+      {
+        "packageId": "conversion",
+        "packageName": "Direct Response & Vanity Voucher Attribution",
+        "packageTag": "[ Conversion ]",
+        "campaignObjective": "Bottom-of-funnel sales conversions and trackable return on ad spend",
+        "strategicRationale": "...",
+        "isRecommended": false,
+        "deliverables": [
+          {
+            "id": "conv_d1",
+            "phase": "Hero Pitch",
+            "platform": "youtube",
+            "formatKey": "yt_integrated",
+            "quantity": 1,
+            "title": "1x Dedicated 90s Mid-Roll Integration",
+            "strategicDetail": "..."
+          }
+        ],
+        "entitlements": [
+          { "type": "profile_placement", "title": "Link-in-Bio Placement (14 Days)", "detail": "..." }
+        ],
+        "collaborationGuidelines": [
+          { "ruleNumber": 1, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 2, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 3, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." }
+        ]
+      },
+      {
+        "packageId": "content_library",
+        "packageName": "Asset Library Buyout & Production Stems",
+        "packageTag": "[ Content Library ]",
+        "campaignObjective": "High-production brand asset creation for brand-owned marketing channels",
+        "strategicRationale": "...",
+        "isRecommended": false,
+        "deliverables": [
+          {
+            "id": "lib_d1",
+            "phase": "Asset Production",
+            "platform": "youtube",
+            "formatKey": "yt_dedicated",
+            "quantity": 1,
+            "title": "1x 4K Clean Brand Product Video (16:9)",
+            "strategicDetail": "..."
+          },
+          {
+            "id": "lib_d2",
+            "phase": "Rights Buyout",
+            "platform": "cross_platform",
+            "formatKey": "pdp_website_rights_90d",
+            "quantity": 1,
+            "title": "90-Day Digital PDP Commercial Usage Rights",
+            "strategicDetail": "..."
+          }
+        ],
+        "entitlements": [
+          { "type": "repurposing", "title": "Full Digital Ad Repurposing Rights", "detail": "..." }
+        ],
+        "concreteAssets": [
+          { "assetType": "macro_photography", "specification": "15x 4K Studio Macro Hardware Stills" }
+        ],
+        "collaborationGuidelines": [
+          { "ruleNumber": 1, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 2, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 3, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." }
+        ]
+      },
+      {
+        "packageId": "launch",
+        "packageName": "Full-Funnel Omnichannel Takeover",
+        "packageTag": "[ Full-Funnel ]",
+        "campaignObjective": "360-degree flagship campaign uniting reach, paid creative, and direct attribution",
+        "strategicRationale": "...",
+        "isRecommended": false,
+        "deliverables": [
+          {
+            "id": "launch_d1",
+            "phase": "Prestige Anchor",
+            "platform": "youtube",
+            "formatKey": "yt_dedicated",
+            "quantity": 1,
+            "title": "1x Dedicated Benchmark Video (8-12m)",
+            "strategicDetail": "..."
+          },
+          {
+            "id": "launch_d2",
+            "phase": "Cultural Frequency",
+            "platform": "instagram",
+            "formatKey": "ig_reel",
+            "quantity": 2,
+            "title": "2x High-Impact Instagram Reels (60s)",
+            "strategicDetail": "..."
+          },
+          {
+            "id": "launch_d3",
+            "phase": "Performance Rights",
+            "platform": "cross_platform",
+            "formatKey": "meta_whitelisting_60d",
+            "quantity": 1,
+            "title": "60-Day Meta Partnership Ads Whitelisting",
+            "strategicDetail": "..."
+          }
+        ],
+        "entitlements": [
+          { "type": "exclusivity", "title": "30-Day Competitor Blackout", "detail": "..." }
+        ],
+        "collaborationGuidelines": [
+          { "ruleNumber": 1, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 2, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." },
+          { "ruleNumber": 3, "ruleTitle": "...", "directive": "...", "commercialRisk": "..." }
+        ]
+      }
+    ],
+    "collaborationRules": ["...", "...", "..."]
+  }
 }
 
 Return ONLY clean raw JSON matching this schema.`;
@@ -342,7 +633,7 @@ Primary Evaluation Platform: ${input.primaryPlatform || 'Cross-Platform'}
 
 ${curatedDossier}
 
-Generate the Complete 19-Point Creator Intelligence Dossier JSON.`;
+Generate the Complete 19-Point Creator Intelligence Dossier & Omnichannel Strategy Suite JSON.`;
 
   const requestPayload = {
     contents: [
@@ -418,6 +709,137 @@ Generate the Complete 19-Point Creator Intelligence Dossier JSON.`;
   }
 
   throw new Error(`[Gemini Vertex AI Failure] All models failed. Details:\n${modelErrors.join('\n')}`);
+}
+
+/**
+ * Normalizes raw LLM output into the strict OmnichannelStrategySuite structure
+ */
+export function normalizeOmnichannelSuite(raw: unknown): OmnichannelStrategySuite | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Record<string, any>;
+
+  const rawBrief = (r.creatorExecutiveBrief || r.creatorBrief || r.executiveBrief || {}) as Record<string, any>;
+  const creatorExecutiveBrief: CreatorExecutiveBrief = {
+    whoTheyAre: String(rawBrief.whoTheyAre || rawBrief.who_they_are || '').trim(),
+    audiencePsychology: String(rawBrief.audiencePsychology || rawBrief.audience_psychology || '').trim(),
+    theSuperpower: String(rawBrief.theSuperpower || rawBrief.the_superpower || '').trim(),
+    theLandmine: String(rawBrief.theLandmine || rawBrief.the_landmine || '').trim(),
+    recommendedVoucherPrefix: rawBrief.recommendedVoucherPrefix ? String(rawBrief.recommendedVoucherPrefix).trim() : undefined,
+  };
+
+  const rawPackages = Array.isArray(r.packages) ? r.packages : [];
+  if (rawPackages.length === 0 && !creatorExecutiveBrief.whoTheyAre && !creatorExecutiveBrief.theSuperpower) {
+    return undefined;
+  }
+
+  const validPackageIds = ['reach', 'paid_creative', 'conversion', 'content_library', 'launch'] as const;
+
+  const packages: BespokeStrategyPackage[] = rawPackages.map((pkgRaw: any, idx: number) => {
+    const pkg = (typeof pkgRaw === 'object' && pkgRaw !== null ? pkgRaw : {}) as Record<string, any>;
+    const defaultId = validPackageIds[idx % validPackageIds.length];
+    const rawId = String(pkg.packageId || pkg.id || defaultId).toLowerCase();
+    const packageId = (validPackageIds.includes(rawId as any) ? rawId : defaultId) as typeof validPackageIds[number];
+
+    const packageTags: Record<string, BespokeStrategyPackage['packageTag']> = {
+      reach: '[ Reach ]',
+      paid_creative: '[ Paid Creative ]',
+      conversion: '[ Conversion ]',
+      content_library: '[ Content Library ]',
+      launch: '[ Full-Funnel ]',
+    };
+
+    const deliverables: BespokeDeliverableItem[] = (Array.isArray(pkg.deliverables) ? pkg.deliverables : []).map((dRaw: any, dIdx: number) => {
+      const d = (typeof dRaw === 'object' && dRaw !== null ? dRaw : {}) as Record<string, any>;
+      return {
+        id: String(d.id || `d_${dIdx + 1}`),
+        phase: String(d.phase || 'Campaign Deliverable'),
+        platform: (['youtube', 'instagram', 'tiktok', 'cross_platform'].includes(d.platform) ? d.platform : 'cross_platform'),
+        formatKey: String(d.formatKey || d.format_key || d.format || 'ig_reel') as any,
+        quantity: typeof d.quantity === 'number' && d.quantity > 0 ? d.quantity : 1,
+        title: String(d.title || 'Deliverable'),
+        strategicDetail: String(d.strategicDetail || d.strategic_detail || d.description || ''),
+      };
+    });
+
+    const entitlements: StrategicCommercialEntitlement[] = (Array.isArray(pkg.entitlements) ? pkg.entitlements : []).map((eRaw: any) => {
+      const e = (typeof eRaw === 'object' && eRaw !== null ? eRaw : {}) as Record<string, any>;
+      return {
+        type: e.type || 'profile_placement',
+        title: String(e.title || 'Commercial Entitlement'),
+        detail: String(e.detail || ''),
+      };
+    });
+
+    const adConcepts: BespokeAdConcept[] | undefined = Array.isArray(pkg.adConcepts)
+      ? pkg.adConcepts.map((cRaw: any) => {
+          const c = (typeof cRaw === 'object' && cRaw !== null ? cRaw : {}) as Record<string, any>;
+          return {
+            conceptName: String(c.conceptName || c.concept_name || 'Ad Concept'),
+            hookVerbatim: String(c.hookVerbatim || c.hook_verbatim || c.openingHookScript || ''),
+            angleSummary: String(c.angleSummary || c.angle_summary || ''),
+            suggestedPlatform: (['youtube', 'instagram', 'tiktok'].includes(c.suggestedPlatform) ? c.suggestedPlatform : 'instagram'),
+            visualDirection: c.visualDirection ? String(c.visualDirection) : undefined,
+          };
+        })
+      : undefined;
+
+    const concreteAssets: ConcreteAssetDeliverable[] | undefined = Array.isArray(pkg.concreteAssets)
+      ? pkg.concreteAssets.map((aRaw: any) => {
+          if (typeof aRaw === 'string') return { assetType: 'digital_asset', specification: aRaw };
+          const a = (typeof aRaw === 'object' && aRaw !== null ? aRaw : {}) as Record<string, any>;
+          return {
+            assetType: String(a.assetType || a.asset_type || 'digital_asset'),
+            specification: String(a.specification || a.spec || ''),
+          };
+        })
+      : undefined;
+
+    const rawGuidelines = Array.isArray(pkg.collaborationGuidelines) ? pkg.collaborationGuidelines : [];
+    const collaborationGuidelines: [CriticalCollaborationGuideline, CriticalCollaborationGuideline, CriticalCollaborationGuideline] = [
+      {
+        ruleNumber: 1,
+        ruleTitle: String(rawGuidelines[0]?.ruleTitle || 'Creative Freedom & Authentic Delivery'),
+        directive: String(rawGuidelines[0]?.directive || 'Creator must retain natural voice and creative framing.'),
+        commercialRisk: String(rawGuidelines[0]?.commercialRisk || 'Forced scripts alienate audience and hurt engagement.'),
+      },
+      {
+        ruleNumber: 2,
+        ruleTitle: String(rawGuidelines[1]?.ruleTitle || 'Objective Balance & Honesty'),
+        directive: String(rawGuidelines[1]?.directive || 'Allow creator to mention minor trade-offs to protect buyer trust.'),
+        commercialRisk: String(rawGuidelines[1]?.commercialRisk || 'Unrealistic claims destroy audience purchase validation.'),
+      },
+      {
+        ruleNumber: 3,
+        ruleTitle: String(rawGuidelines[2]?.ruleTitle || 'Production Lead Time & Seeding'),
+        directive: String(rawGuidelines[2]?.directive || 'Provide product seeding 5-7 days before review shoot.'),
+        commercialRisk: String(rawGuidelines[2]?.commercialRisk || 'Rushed turnaround results in superficial coverage.'),
+      },
+    ];
+
+    return {
+      packageId,
+      packageName: String(pkg.packageName || pkg.title || `${packageTags[packageId]} Strategy`),
+      packageTag: packageTags[packageId],
+      campaignObjective: String(pkg.campaignObjective || pkg.objective || ''),
+      strategicRationale: String(pkg.strategicRationale || pkg.strategicAngle || ''),
+      isRecommended: Boolean(pkg.isRecommended || packageId === 'paid_creative'),
+      deliverables,
+      entitlements,
+      adConcepts,
+      concreteAssets,
+      collaborationGuidelines,
+    };
+  });
+
+  const collaborationRules = Array.isArray(r.collaborationRules)
+    ? r.collaborationRules.map((rule: any) => String(rule))
+    : undefined;
+
+  return {
+    creatorExecutiveBrief,
+    packages,
+    collaborationRules,
+  };
 }
 
 /**
@@ -918,6 +1340,12 @@ export function normalizeCompleteIntelligence(raw: unknown, input?: MultiPlatfor
       commercial: Array.isArray(evidence.commercial) ? evidence.commercial : [],
     },
     uncertainties,
+    omnichannelStrategySuite: normalizeOmnichannelSuite(
+      r.omnichannelStrategySuite ||
+      r.omnichannel_strategy_suite ||
+      r.commercialPackagesSuite ||
+      r.strategySuite
+    ),
   };
 }
 

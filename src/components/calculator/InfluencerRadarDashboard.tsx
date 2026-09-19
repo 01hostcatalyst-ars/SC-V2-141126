@@ -1062,22 +1062,39 @@ export function InfluencerRadarDashboard() {
 
   // 1-Click Copy Package Proposal Handler
   const handleCopyPackageProposal = useCallback((pkg: GeneratedPackage) => {
-    const text = `SignCollab Campaign Proposal: ${pkg.name} (${pkg.tag})
+    const deliverablesText = pkg.calibratedDeliverables?.length
+      ? pkg.calibratedDeliverables.map((d) => `• [${d.phase}] ${d.quantity}x ${d.title} (${d.platform.toUpperCase()}): ${d.totalStandaloneFormatted} — ${d.description}`).join("\n")
+      : pkg.deliverables.map((d) => `• [${d.phase}] ${d.quantity}x ${d.title} (${d.platform.toUpperCase()}): ${d.description}`).join("\n");
+
+    const adConceptsText = pkg.adConcepts?.length
+      ? `\nVerbatim Spoken Ad Hooks:\n${pkg.adConcepts.map((c) => `• ${c.conceptName} (${c.suggestedPlatform.toUpperCase()}): ${c.hookVerbatim} (${c.angleSummary})`).join("\n")}`
+      : "";
+
+    const assetsText = pkg.concreteAssets?.length
+      ? `\nDigital Assets Deliverables:\n${pkg.concreteAssets.map((a) => `• ${a.specification}`).join("\n")}`
+      : "";
+
+    const rulesText = pkg.collaborationGuidelines?.length
+      ? `\nCritical Collaboration Guidelines:\n${pkg.collaborationGuidelines.map((g) => `• Rule ${g.ruleNumber} (${g.ruleTitle}): ${g.directive} [Risk: ${g.commercialRisk}]`).join("\n")}`
+      : "";
+
+    const text = `SignCollab Omnichannel Campaign Proposal: ${pkg.name} (${pkg.tag})
 Target Creator: ${creatorMeta?.displayName || "Creator"}
 Campaign Objective: ${pkg.objective}
 
-Valuation & Commercial Terms:
-• Typical Valuation: ${pkg.pricing.typicalFormatted} ${pkg.pricing.usdEquivalentTypical ? `(${pkg.pricing.usdEquivalentTypical})` : ""}
+Institutional Valuation & Commercial Terms:
+• Recommended Bundle Negotiation Target: ${pkg.pricing.recommendedBundleFormatted || pkg.pricing.typicalFormatted} ${pkg.pricing.usdEquivalentTypical ? `(${pkg.pricing.usdEquivalentTypical})` : ""}
+• Standalone Benchmark Sum: ${pkg.pricing.standaloneBenchmarkFormatted || pkg.pricing.typicalFormatted}
+• Multi-Asset Efficiency Adjustment: -${pkg.discountPercentApplied}% (${pkg.pricing.savingsFormatted})
 • Defended Negotiation Range: ${pkg.pricing.lowFormatted} – ${pkg.pricing.highFormatted}
-• Included Savings: ${pkg.pricing.savingsFormatted} (${pkg.discountPercentApplied}% Multi-Asset Efficiency Discount)
 
-Deliverables & Campaign Flighting:
-${pkg.deliverables.map((d) => `• [${d.phase}] ${d.quantity}x ${d.title} (${d.platform.toUpperCase()}): ${d.description}`).join("\n")}
-
+Deliverables & Itemized Valuations:
+${deliverablesText}
+${adConceptsText}${assetsText}
 Included Commercial Entitlements:
 ${pkg.entitlements.map((e) => `• ${e.label}: ${e.detail}`).join("\n")}
-
-Verified via SignCollab 16-Knot Market Valuation Engine`;
+${rulesText}
+Defended via SignCollab 16-Knot Market Valuation Engine`;
 
     navigator.clipboard.writeText(text);
     setCopiedPackageId(pkg.id);
@@ -1940,198 +1957,331 @@ Verified via SignCollab 16-Knot Market Valuation Engine`;
                 />
               </div>
 
-              {/* SECTION 5: STRATEGIC OMNICHANNEL PACKAGES */}
+              {/* SECTION 5: STRATEGIC OMNICHANNEL PACKAGES (ZERO TABS, FULL FUNNEL STACK) */}
               {recommendedPackages.length > 0 && (
-                <div className="p-4 sm:p-6 rounded-2xl bg-zinc-950 text-white shadow-xl space-y-5 animate-fadeIn">
-                  {/* Section Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <h3 className="text-xs sm:text-base font-bold tracking-tight text-white">
-                          Strategic Omnichannel Campaign Packages
-                        </h3>
+                <div className="space-y-6 animate-fadeIn">
+                  {/* Creator Strategic DNA Executive Brief */}
+                  {completeIntelligence?.omnichannelStrategySuite?.creatorExecutiveBrief && (
+                    <div className="p-5 sm:p-6 rounded-2xl bg-zinc-950 text-white border border-zinc-800 shadow-xl space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-cyan-400 font-mono">
+                            Creator Strategic DNA &amp; Talent Executive Brief
+                          </h3>
+                        </div>
+                        {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.recommendedVoucherPrefix && (
+                          <span className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-white/10 text-zinc-300 border border-white/15">
+                            Vanity Voucher: <strong className="text-emerald-400">{completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.recommendedVoucherPrefix}10</strong>
+                          </span>
+                        )}
                       </div>
-                      <p className="text-[11px] text-zinc-400 mt-1">
-                        Objective-driven packages dynamically constructed from {creatorMeta?.displayName || "creator"}&apos;s verified platform hierarchy.
+
+                      <div className="text-sm sm:text-base font-semibold text-zinc-100">
+                        {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.whoTheyAre}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                          <div className="text-[10px] font-mono uppercase text-emerald-400 font-bold tracking-wider">
+                            Commercial Superpower
+                          </div>
+                          <div className="text-xs text-zinc-200 leading-relaxed">
+                            {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.theSuperpower}
+                          </div>
+                        </div>
+
+                        <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                          <div className="text-[10px] font-mono uppercase text-cyan-400 font-bold tracking-wider">
+                            Audience Buying Mindset
+                          </div>
+                          <div className="text-xs text-zinc-200 leading-relaxed">
+                            {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.audiencePsychology}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* The #1 Creative Landmine Callout */}
+                      {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.theLandmine && (
+                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-200 text-xs flex items-start gap-2.5">
+                          <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold text-white uppercase tracking-wider text-[10px] block font-mono">
+                              The #1 Creative Landmine to Avoid
+                            </span>
+                            <span className="text-zinc-200 text-xs leading-relaxed">
+                              {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.theLandmine}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Section Title */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-zinc-950 flex items-center gap-2">
+                        <span>Omnichannel Campaign Strategy Suite</span>
+                        <span className="text-xs font-normal text-zinc-500 font-mono">
+                          (5 Full-Funnel Packages)
+                        </span>
+                      </h3>
+                      <p className="text-xs text-zinc-500 mt-0.5">
+                        Itemized line-item pricing and strategic flighting calibrated in native currency.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/10 text-zinc-300 border border-white/10">
-                        Target: {creatorMeta?.displayName || "Creator"}
-                      </span>
+                    <div className="text-[11px] font-mono text-zinc-500 bg-zinc-100 px-3 py-1 rounded-xl border border-zinc-200 shrink-0">
+                      Market Applied: {REGIONAL_CONFIG[selectedRegion]?.name} ({REGIONAL_CONFIG[selectedRegion]?.currency})
                     </div>
                   </div>
 
-                  {/* Package Selector Tabs / Pills */}
-                  <div className="flex flex-wrap gap-2 pt-1">
+                  {/* Stacked 5-Package Cards (Zero Tabs) */}
+                  <div className="space-y-6">
                     {recommendedPackages.map((pkg) => {
-                      const isActive = pkg.id === activePackageId;
+                      const isRec = pkg.isRecommended;
+
                       return (
-                        <button
+                        <div
                           key={pkg.id}
-                          type="button"
-                          onClick={() => setActivePackageId(pkg.id)}
-                          className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
-                            isActive
-                              ? "bg-white text-zinc-950 border-white shadow-md scale-[1.02]"
-                              : "bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10"
+                          className={`p-5 sm:p-6 rounded-2xl bg-zinc-950 text-white shadow-xl space-y-5 border transition-all ${
+                            isRec ? "border-amber-400/40 ring-1 ring-amber-400/20" : "border-white/10"
                           }`}
                         >
-                          {pkg.isRecommended && (
-                            <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                          {/* Top Header: Identity & Financials */}
+                          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 border-b border-white/10 pb-4">
+                            <div className="space-y-2 max-w-2xl">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+                                  {pkg.tag}
+                                </span>
+                                <h4 className="text-base sm:text-lg font-bold text-white">
+                                  {pkg.name}
+                                </h4>
+                                {isRec && (
+                                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30 flex items-center gap-1">
+                                    <Sparkles className="w-3 h-3" />
+                                    <span>Top Recommendation</span>
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-zinc-300 leading-relaxed">
+                                {pkg.objective}
+                              </p>
+                              {pkg.strategicRationale && (
+                                <div className="text-[11px] text-zinc-400 italic bg-white/5 p-2.5 rounded-lg border border-white/5">
+                                  Strategy Angle: {pkg.strategicRationale}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Financial Summary */}
+                            <div className="text-left lg:text-right shrink-0 bg-white/5 p-3.5 rounded-xl border border-white/10 space-y-1">
+                              <div className="text-[10px] font-mono uppercase text-zinc-400 tracking-wider">
+                                Recommended Bundle Target
+                              </div>
+                              <div className="text-xl sm:text-2xl font-black font-mono text-white">
+                                {pkg.pricing.recommendedBundleFormatted || pkg.pricing.typicalFormatted}
+                                {pkg.pricing.usdEquivalentTypical && (
+                                  <span className="text-xs font-normal text-zinc-400 ml-1.5 font-mono">
+                                    ({pkg.pricing.usdEquivalentTypical})
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] font-mono text-zinc-400">
+                                Standalone Benchmark: <span className="line-through text-zinc-500">{pkg.pricing.standaloneBenchmarkFormatted || pkg.pricing.typicalFormatted}</span>
+                                <span className="text-emerald-400 font-semibold ml-1.5">(-{pkg.discountPercentApplied}% Efficiency)</span>
+                              </div>
+                              <div className="text-[10px] font-mono text-zinc-400 pt-0.5">
+                                Defended Range: {pkg.pricing.lowFormatted} – {pkg.pricing.highFormatted}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Itemized Deliverables with Line-Item Pricing */}
+                          <div className="space-y-2.5">
+                            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold flex items-center justify-between">
+                              <span>Itemized Deliverables &amp; Defended Rates</span>
+                              <span className="text-[10px] text-zinc-500">16-Knot Formula Verified</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {(pkg.calibratedDeliverables && pkg.calibratedDeliverables.length > 0
+                                ? pkg.calibratedDeliverables
+                                : pkg.deliverables.map((d, dIdx) => ({
+                                    id: d.id,
+                                    phase: d.phase,
+                                    platform: d.platform,
+                                    formatKey: d.format,
+                                    quantity: d.quantity,
+                                    title: d.title,
+                                    description: d.description,
+                                    standaloneUnitFormatted: "",
+                                    totalStandaloneFormatted: "",
+                                    standaloneUnitLocalized: 0,
+                                    totalStandaloneLocalized: 0,
+                                  }))
+                              ).map((item, dIdx) => (
+                                <div
+                                  key={item.id || dIdx}
+                                  className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-2 flex flex-col justify-between"
+                                >
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between gap-1.5">
+                                      <span className="text-[9px] font-mono uppercase text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                                        {item.phase}
+                                      </span>
+                                      <span className="text-[9px] font-mono text-zinc-400 uppercase">
+                                        {item.platform}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs font-bold text-white">
+                                      {item.quantity}x {item.title}
+                                    </div>
+                                    <div className="text-[11px] text-zinc-400 leading-snug">
+                                      {item.description}
+                                    </div>
+                                  </div>
+
+                                  {/* Line-Item Price Badge */}
+                                  {item.totalStandaloneFormatted && (
+                                    <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                                      <span className="text-[10px] font-mono uppercase text-zinc-400">Standalone Rate</span>
+                                      <span className="text-xs font-bold font-mono text-emerald-400">
+                                        {item.totalStandaloneFormatted}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Verbatim Spoken Ad Hooks (Package 2) */}
+                          {pkg.adConcepts && pkg.adConcepts.length > 0 && (
+                            <div className="space-y-2.5 pt-2 border-t border-white/10">
+                              <div className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold flex items-center gap-1.5">
+                                <span>Verbatim Spoken Ad Hooks (Opening 3–5 Seconds)</span>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {pkg.adConcepts.map((concept, cIdx) => (
+                                  <div
+                                    key={cIdx}
+                                    className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-bold text-white">{concept.conceptName}</span>
+                                      <span className="text-[9px] font-mono uppercase text-cyan-400">{concept.suggestedPlatform}</span>
+                                    </div>
+                                    <div className="text-xs text-amber-200/90 font-mono italic bg-black/40 p-2.5 rounded-lg border border-white/5 leading-relaxed">
+                                      {concept.hookVerbatim}
+                                    </div>
+                                    <div className="text-[11px] text-zinc-400 leading-snug">
+                                      {concept.angleSummary}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
-                          <span>{pkg.name}</span>
-                          {pkg.isRecommended && (
-                            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
-                              isActive ? "bg-amber-100 text-amber-900" : "bg-amber-400/20 text-amber-300"
-                            }`}>
-                              Best Fit
-                            </span>
+
+                          {/* Concrete Digital Assets (Package 4) */}
+                          {pkg.concreteAssets && pkg.concreteAssets.length > 0 && (
+                            <div className="space-y-2 pt-2 border-t border-white/10">
+                              <div className="text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-semibold">
+                                Concrete Digital Asset Buyout Specifications
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {pkg.concreteAssets.map((asset, aIdx) => (
+                                  <div
+                                    key={aIdx}
+                                    className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-xs text-zinc-300 flex items-center gap-2"
+                                  >
+                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
+                                    <span>{asset.specification}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
-                        </button>
+
+                          {/* Commercial Entitlements */}
+                          <div className="space-y-2 pt-2 border-t border-white/10">
+                            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+                              Included Commercial Rights &amp; Contract Entitlements
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                              {pkg.entitlements.map((ent, idx) => (
+                                <div
+                                  key={idx}
+                                  className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-xs space-y-0.5"
+                                >
+                                  <div className="font-semibold text-zinc-200 flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    <span>{ent.label}</span>
+                                  </div>
+                                  <div className="text-[10px] text-zinc-400 leading-normal pl-3">
+                                    {ent.detail}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* 3 Critical Collaboration Guidelines */}
+                          {pkg.collaborationGuidelines && pkg.collaborationGuidelines.length > 0 && (
+                            <div className="space-y-2 pt-2 border-t border-white/10">
+                              <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+                                Critical Collaboration Guidelines (Brand Safety &amp; ROI)
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                                {pkg.collaborationGuidelines.map((rule, rIdx) => (
+                                  <div
+                                    key={rIdx}
+                                    className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-1 text-xs"
+                                  >
+                                    <div className="font-bold text-white text-[11px] flex items-center gap-1.5">
+                                      <span className="text-zinc-500 font-mono">#{rule.ruleNumber}</span>
+                                      <span>{rule.ruleTitle}</span>
+                                    </div>
+                                    <div className="text-[11px] text-zinc-300 leading-snug">
+                                      {rule.directive}
+                                    </div>
+                                    <div className="text-[10px] text-amber-300/80 pt-1 leading-snug">
+                                      Risk: {rule.commercialRisk}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Action Row */}
+                          <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10">
+                            <div className="text-[11px] text-zinc-400 font-mono">
+                              Institutional proposal defended via SignCollab 16-Knot Empirical Model.
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyPackageProposal(pkg)}
+                              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 shrink-0"
+                            >
+                              {copiedPackageId === pkg.id ? (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                  <span>Proposal Copied to Clipboard</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-4 h-4" />
+                                  <span>Copy Campaign Proposal</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
-
-                  {/* Active Package Detail Card */}
-                  {(() => {
-                    const activePkg = recommendedPackages.find((p) => p.id === activePackageId) || recommendedPackages[0];
-                    if (!activePkg) return null;
-
-                    return (
-                      <div className="p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4">
-                        {/* Top Row: Package Identity & Valuation */}
-                        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 border-b border-white/10 pb-4">
-                          <div className="space-y-1.5 max-w-2xl">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-sm sm:text-base font-bold text-white">
-                                {activePkg.name}
-                              </span>
-                              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
-                                {activePkg.tag}
-                              </span>
-                              {activePkg.isRecommended && (
-                                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30 flex items-center gap-1">
-                                  <span>★</span>
-                                  <span>Top Recommendation</span>
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-zinc-300 leading-relaxed">
-                              {activePkg.objective}
-                            </p>
-
-                            {/* Recommendation Reason Banner */}
-                            {activePkg.recommendationReason && (
-                              <div className="mt-2 p-2.5 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-200 text-xs flex items-start gap-2">
-                                <span className="text-amber-400 font-bold text-sm shrink-0">💡</span>
-                                <div>
-                                  <span className="font-semibold text-white">Why this package: </span>
-                                  <span>{activePkg.recommendationReason}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Valuation & Localized Discount */}
-                          <div className="text-left lg:text-right shrink-0 bg-white/5 lg:bg-transparent p-3 lg:p-0 rounded-xl border border-white/10 lg:border-none">
-                            <div className="text-lg sm:text-2xl font-black font-mono text-white">
-                              {activePkg.pricing.typicalFormatted}
-                              {activePkg.pricing.usdEquivalentTypical && (
-                                <span className="text-xs font-normal text-zinc-400 ml-1.5 font-mono">
-                                  ({activePkg.pricing.usdEquivalentTypical})
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-xs font-mono text-emerald-400 font-semibold mt-0.5">
-                              Save {activePkg.pricing.savingsFormatted} ({activePkg.discountPercentApplied}% Bundle Discount)
-                            </div>
-                            <div className="text-[11px] font-mono text-zinc-400 mt-1">
-                              Defended Range: {activePkg.pricing.lowFormatted} – {activePkg.pricing.highFormatted}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Phased Deliverable Timeline */}
-                        <div className="space-y-2.5">
-                          <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
-                            Campaign Flighting &amp; Deliverables Breakdown
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                            {activePkg.deliverables.map((item) => (
-                              <div
-                                key={item.id}
-                                className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-1.5"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[10px] font-mono uppercase text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-                                    {item.phase}
-                                  </span>
-                                  <span className="text-[10px] font-mono text-zinc-400 uppercase">
-                                    {item.platform}
-                                  </span>
-                                </div>
-                                <div className="text-xs font-bold text-white">
-                                  {item.quantity}x {item.title}
-                                </div>
-                                <div className="text-[11px] text-zinc-400 leading-snug">
-                                  {item.description}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Commercial Entitlements & Value-Add Riders */}
-                        <div className="space-y-2 pt-2 border-t border-white/10">
-                          <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
-                            Included Commercial Rights &amp; Contract Entitlements
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                            {activePkg.entitlements.map((ent, idx) => (
-                              <div
-                                key={idx}
-                                className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-xs space-y-0.5"
-                              >
-                                <div className="font-semibold text-zinc-200 flex items-center gap-1.5">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                  <span>{ent.label}</span>
-                                </div>
-                                <div className="text-[10px] text-zinc-400 leading-normal pl-3">
-                                  {ent.detail}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Action Row */}
-                        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10">
-                          <div className="text-[11px] text-zinc-400 font-mono">
-                            All line items defended via SignCollab 16-Knot Empirical Model with {activePkg.discountPercentApplied}% bundled efficiency discount.
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCopyPackageProposal(activePkg)}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 shrink-0"
-                          >
-                            {copiedPackageId === activePkg.id ? (
-                              <>
-                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                <span>Proposal Copied to Clipboard</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-4 h-4" />
-                                <span>Copy Package Proposal</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })()}
                 </div>
               )}
 
