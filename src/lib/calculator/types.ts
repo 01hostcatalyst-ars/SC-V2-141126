@@ -175,5 +175,8 @@ export interface CalculationResult {
     budgetOffer: number;
     typicalMedian: number;
     premiumAsk: number;
+    agencyGrossAsk?: number;
+    defendedNetTarget?: number;
+    procurementFloor?: number;
   };
 }

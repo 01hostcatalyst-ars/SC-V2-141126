@@ -62,6 +62,63 @@ export function roundCommercial(amount: number): number {
 }
 
 /**
+ * Sub-linear macro follower scale compression:
+ * Accounts with <= 1,000,000 followers remain 100% untouched.
+ * For accounts exceeding 1,000,000 followers, incremental reach is compressed
+ * using normalized power-law scaling (excess / 1M)^0.65 to reflect audience saturation,
+ * duplicate reach, and diminishing marginal brand lift.
+ */
+export function calculateEffectiveFollowers(followers: number): number {
+  if (followers <= 1_000_000) {
+    return followers;
+  }
+  const excessReach = followers - 1_000_000;
+  const normalizedExcess = excessReach / 1_000_000;
+  const compressedExcess = Math.pow(normalizedExcess, 0.88) * 1_000_000;
+  return Math.round(1_000_000 + compressedExcess);
+}
+
+/**
+ * Continuous piecewise linear Instagram Engagement Quality Multiplier (EQM):
+ * For accounts exceeding 1,000,000 followers, assesses audience responsiveness
+ * smoothly without cliff-edge price drops. Accounts under 1,000,000 are untouched.
+ */
+export function calculateInstagramEQM(er: number, followers: number): number {
+  if (followers <= 1_000_000) return 1.0;
+  if (er >= 2.5) return 1.15;
+  if (er >= 1.2) {
+    return 1.00 + ((er - 1.2) / (2.5 - 1.2)) * 0.15;
+  }
+  if (er >= 0.6) {
+    return 0.65 + ((er - 0.6) / (1.2 - 0.6)) * 0.35;
+  }
+  const clampedEr = Math.max(0.2, er);
+  return 0.35 + ((clampedEr - 0.2) / (0.6 - 0.2)) * 0.30;
+}
+
+/**
+ * YouTube View-to-Subscriber Ratio (VSR) & Feed Decay Knot:
+ * Evaluates long-form YouTube inventory against rolling 30-day view velocity.
+ * Distinguishes active view-velocity channels (VSR >= 4%) from high-cadence daily uploaders (VSR < 2%).
+ */
+export function calculateYouTubeVSRMultiplier(medianViews: number, subscribers: number): number {
+  if (subscribers <= 1_000_000) return 1.0;
+
+  // Conservative fallback of 2.5% VSR if 30-day views are not available for >1M channels
+  const effectiveViews = medianViews > 0 ? medianViews : Math.round(subscribers * 0.025);
+  const vsr = effectiveViews / subscribers;
+
+  if (vsr >= 0.04) {
+    return 1.0;
+  }
+  if (vsr >= 0.02) {
+    return 0.75 + ((vsr - 0.02) / (0.04 - 0.02)) * 0.25;
+  }
+  const clampedVsr = Math.max(0.005, vsr);
+  return 0.58 + ((clampedVsr - 0.005) / (0.02 - 0.005)) * 0.17;
+}
+
+/**
  * Continuous 16-Knot Piecewise Linear Interpolator
  */
 export function interpolateKnot(
@@ -69,7 +126,8 @@ export function interpolateKnot(
   deliverableKey: string,
   knots: PlatformKnot[]
 ): { baseRate: number; targetBenchmarkEr: number; expectedViews: number } {
-  const safeFollowers = Math.max(followers, 1000);
+  const effectiveFollowers = calculateEffectiveFollowers(followers);
+  const safeFollowers = Math.max(effectiveFollowers, 1000);
 
   if (!knots || knots.length === 0) {
     return { baseRate: 100, targetBenchmarkEr: 2.0, expectedViews: Math.round(safeFollowers * 0.1) };
@@ -211,7 +269,8 @@ export function calculateInfluencerRate(
 
     const ratio = observedER === 0 ? 0.05 : Math.max(observedER / Math.max(0.01, benchmarkER), 0.05);
     const erLogFactor = 0.15 * Math.log2(ratio);
-    clampedPerfMultiplier = Math.min(Math.max(1.0 + erLogFactor, 0.70), 1.40);
+    const eqmFactor = calculateInstagramEQM(observedER, followers);
+    clampedPerfMultiplier = Math.min(Math.max((1.0 + erLogFactor) * eqmFactor, 0.35), 1.40);
 
   } else if (platform === 'tiktok') {
     // View-Based Interaction Rate including Shares
@@ -253,11 +312,15 @@ export function calculateInfluencerRate(
       const erRatio = observedER === 0 ? 0.05 : Math.max(observedER / Math.max(0.01, benchmarkER), 0.05);
       const erLogFactor = 0.15 * Math.log2(erRatio);
 
-      const expectedViews = knotInfo.expectedViews || Math.max(1, followers * 0.1);
-      const viewRatio = views === 0 ? 0.05 : Math.max(views / expectedViews, 0.05);
-      const viewLogFactor = 0.15 * Math.log2(viewRatio);
+      let viewVelocityFactor = 0;
+      if (followers <= 1_000_000) {
+        const expectedViews = knotInfo.expectedViews || Math.max(1, followers * 0.1);
+        const viewRatio = views === 0 ? 0.05 : Math.max(views / expectedViews, 0.05);
+        viewVelocityFactor = 0.15 * Math.log2(viewRatio);
+      }
+      const vsrMultiplier = calculateYouTubeVSRMultiplier(creator.last3PostsAvgViews || 0, followers);
 
-      clampedPerfMultiplier = Math.min(Math.max(1.0 + erLogFactor + viewLogFactor, 0.70), 1.40);
+      clampedPerfMultiplier = Math.min(Math.max((1.0 + erLogFactor + viewVelocityFactor) * vsrMultiplier, 0.45), 1.40);
     }
   }
 
@@ -424,6 +487,9 @@ export function calculateInfluencerRate(
       budgetOffer: lowP25,
       typicalMedian: typicalMedian,
       premiumAsk: highP75,
+      agencyGrossAsk: roundCommercial(typicalMedian * 1.38),
+      defendedNetTarget: typicalMedian,
+      procurementFloor: roundCommercial(typicalMedian * 0.80),
     },
   };
 }

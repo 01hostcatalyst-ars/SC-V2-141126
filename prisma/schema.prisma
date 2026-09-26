@@ -636,6 +636,25 @@ model CalculatorPlatformKnot {
   @@map("calculator_platform_knots")
 }
 
+model CalculatorKnotHistory {
+  id               String   @id @default(uuid())
+  platform         String   // "instagram" | "tiktok" | "youtube"
+  knotId           String   @map("knot_id") // "K01" to "K16"
+  followers        Int
+  benchmarkEr      Decimal  @map("benchmark_er") @db.Decimal(6, 4)
+  expectedViews    Int?     @map("expected_views")
+  previousRates    Json     @map("previous_rates")
+  newRates         Json     @map("new_rates")
+  changePercentage Decimal? @map("change_percentage") @db.Decimal(5, 2)
+  reason           String
+  changedAt        DateTime @default(now()) @map("changed_at")
+
+  @@index([platform, knotId])
+  @@index([changedAt])
+  @@map("calculator_knot_history")
+}
+
+
 model CalculatorNiche {
   id              Int                  @id
   name            String
