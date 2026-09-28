@@ -130,7 +130,7 @@ export function ProfileImportHeader({
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-              Live Scraper &amp; AI Integration
+              Live Channel Audit &amp; AI Integration
             </span>
             <span className="text-xs font-semibold text-gray-400">SignCollab LLM Engine Powered</span>
           </div>

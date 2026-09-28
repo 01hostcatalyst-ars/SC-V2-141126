@@ -1618,7 +1618,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
           )}
 
           {/* ========================================================= */}
-          {/* SECTION 2: RADAR PROGRESS STATION (0–80% SCRAPER / 80–100% LLM) */}
+          {/* SECTION 2: RADAR PROGRESS STATION (0–80% CHANNEL ANALYSIS / 80–100% LLM) */}
           {/* ========================================================= */}
           <div
             ref={telemetrySectionRef}
@@ -3250,8 +3250,8 @@ function TikTokVideosGrid({
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: Institutional Radar Progress Station
-// Unifies Scraper Pipeline (0–80%) and SignCollab Profile LLM Engine (80–100%)
+// Sub-Component: Institutional Radar Progress Station (Light Theme)
+// Unifies Channel Analysis (0–80%) and SignCollab Profile LLM Engine (80–100%)
 // ----------------------------------------------------------------------
 function RadarProgressStation({
   inputQuery,
@@ -3281,7 +3281,7 @@ function RadarProgressStation({
   const circumference = 2 * Math.PI * radius; // ~326.73
   const strokeDashoffset = circumference - (circumference * Math.min(overallProgress, 100)) / 100;
 
-  const isScrapingPhase = overallProgress < 80;
+  const isAnalysisPhase = overallProgress < 80;
   const isLlmPhase = overallProgress >= 80 && overallProgress < 100;
 
   // Platform items configuration
@@ -3311,7 +3311,7 @@ function RadarProgressStation({
       name: "TikTok",
       data: platforms.tiktok,
       icon: (
-        <svg className="w-3.5 h-3.5 text-cyan-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-3.5 h-3.5 text-cyan-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
         </svg>
       ),
@@ -3319,52 +3319,52 @@ function RadarProgressStation({
   ];
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-zinc-950 text-white shadow-2xl border border-zinc-800 p-5 sm:p-6 space-y-5">
-      {/* Background ambient light */}
-      <div className="absolute top-0 right-1/4 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative overflow-hidden rounded-2xl bg-white text-zinc-950 shadow-sm border border-zinc-200/90 p-5 sm:p-6 space-y-5">
+      {/* Background ambient subtle light */}
+      <div className="absolute top-0 right-1/4 w-80 h-80 bg-cyan-100/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Header Row */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/80 pb-4">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-700/80 flex items-center justify-center shrink-0 shadow-inner">
-            <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
+          <div className="w-9 h-9 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0 shadow-2xs">
+            <Radio className="w-4 h-4 text-cyan-600 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold tracking-tight text-white">
+              <span className="text-sm font-semibold tracking-tight text-zinc-950">
                 Autonomous Telemetry &amp; Valuation Radar
               </span>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-mono border ${
                   isValuationCalibrated
-                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-semibold"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/90 font-semibold"
                     : isSynthesizing
-                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30 animate-pulse font-medium"
-                    : "bg-zinc-800 text-zinc-300 border-zinc-700 font-medium"
+                    ? "bg-cyan-50 text-cyan-700 border-cyan-200/90 animate-pulse font-semibold"
+                    : "bg-zinc-100 text-zinc-700 border-zinc-200 font-medium"
                 }`}
               >
-                {isValuationCalibrated ? "Calibrated & Verified" : isSynthesizing ? "Stage 2: LLM Synthesis" : "Stage 1: Media Scraping"}
+                {isValuationCalibrated ? "Calibrated & Verified" : isSynthesizing ? "Stage 2: LLM Synthesis" : "Stage 1: Channel Analysis"}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
-              Target Creator: <span className="text-white font-medium">@{inputQuery.replace(/^@/, "")}</span>
+            <p className="text-[11px] text-zinc-500 font-mono mt-0.5">
+              Target Creator: <span className="text-zinc-900 font-semibold">@{inputQuery.replace(/^@/, "")}</span>
             </p>
           </div>
         </div>
 
         {/* Time expectation callout */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-300 shadow-sm self-start sm:self-auto">
-          <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span>Complete analysis takes <strong className="text-white font-semibold">~2–3 minutes</strong></span>
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-xs text-zinc-700 shadow-2xs self-start sm:self-auto">
+          <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+          <span>Complete analysis takes <strong className="text-zinc-950 font-semibold">~2–3 minutes</strong></span>
         </div>
       </div>
 
       {/* Reassurance Callout Box */}
-      <div className="relative z-10 text-xs text-zinc-300 leading-relaxed flex items-start gap-2.5 bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800/70">
-        <Clock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+      <div className="relative z-10 text-xs text-zinc-600 leading-relaxed flex items-start gap-2.5 bg-zinc-50/90 p-3.5 rounded-xl border border-zinc-200/80">
+        <Clock className="w-4 h-4 text-cyan-600 shrink-0 mt-0.5" />
         <p>
-          Extracting real-time channel velocity, subscriber reach, and audience metrics to benchmark 16 commercial knots via SignCollab Profile LLM Engine. Deep profiling completes in ~2–3 minutes. Please keep this tab active.
+          Analyzing real-time channel velocity, subscriber reach, and audience metrics to benchmark 16 commercial knots via SignCollab Profile LLM Engine. Deep profiling completes in ~2–3 minutes. Please keep this tab active.
         </p>
       </div>
 
@@ -3374,9 +3374,9 @@ function RadarProgressStation({
         <div className="relative flex items-center justify-center shrink-0">
           <svg className="w-36 h-36 -rotate-90 transform" viewBox="0 0 128 128">
             <defs>
-              <linearGradient id="stationRadialGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#06b6d4" />
-                <stop offset="100%" stopColor="#10b981" />
+              <linearGradient id="stationRadialGradientLight" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#0891b2" />
+                <stop offset="100%" stopColor="#059669" />
               </linearGradient>
             </defs>
             {/* Background Track Circle */}
@@ -3384,7 +3384,7 @@ function RadarProgressStation({
               cx="64"
               cy="64"
               r={radius}
-              stroke="#27272a"
+              stroke="#e4e4e7"
               strokeWidth={strokeWidth}
               fill="transparent"
             />
@@ -3393,7 +3393,7 @@ function RadarProgressStation({
               cx="64"
               cy="64"
               r={radius}
-              stroke="url(#stationRadialGradient)"
+              stroke="url(#stationRadialGradientLight)"
               strokeWidth={strokeWidth}
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -3405,11 +3405,11 @@ function RadarProgressStation({
 
           {/* Centered Percentage & Stage Label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-            <span className="text-3xl font-extrabold font-mono text-white tracking-tight">
+            <span className="text-3xl font-extrabold font-mono text-zinc-950 tracking-tight">
               {overallProgress}%
             </span>
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-zinc-400 mt-0.5">
-              {overallProgress < 80 ? "Scraping" : overallProgress < 100 ? "LLM Engine" : "Verified"}
+            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-zinc-500 mt-0.5">
+              {overallProgress < 80 ? "Analyzing" : overallProgress < 100 ? "LLM Engine" : "Verified"}
             </span>
           </div>
         </div>
@@ -3419,37 +3419,37 @@ function RadarProgressStation({
           {/* Stage 1: 0% - 80% */}
           <div
             className={`p-3 rounded-xl border transition-all ${
-              isScrapingPhase
-                ? "bg-zinc-900/90 border-cyan-500/40 shadow-sm"
+              isAnalysisPhase
+                ? "bg-cyan-50/70 border-cyan-200 shadow-2xs"
                 : overallProgress >= 80
-                ? "bg-zinc-900/50 border-emerald-500/30 opacity-90"
-                : "bg-zinc-900/30 border-zinc-800 opacity-60"
+                ? "bg-emerald-50/40 border-emerald-200/90"
+                : "bg-zinc-50/80 border-zinc-200/80"
             }`}
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-md bg-zinc-800 text-zinc-300 text-[10px] font-mono font-bold flex items-center justify-center">
+                <span className="w-5 h-5 rounded-md bg-white border border-zinc-200 text-zinc-700 text-[10px] font-mono font-bold flex items-center justify-center shadow-2xs">
                   1
                 </span>
-                <span className="text-xs font-semibold text-white">
-                  Multi-Platform Media Extraction (0% – 80%)
+                <span className="text-xs font-semibold text-zinc-900">
+                  Cross-Platform Channel Analysis (0% – 80%)
                 </span>
               </div>
               <span
                 className={`text-[10px] font-mono ${
-                  overallProgress >= 80 ? "text-emerald-400 font-semibold" : "text-cyan-300 animate-pulse font-semibold"
+                  overallProgress >= 80 ? "text-emerald-700 font-semibold" : "text-cyan-700 animate-pulse font-semibold"
                 }`}
               >
                 {overallProgress >= 80 ? "Verified (80%)" : `${Math.min(overallProgress, 80)}% / 80%`}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 mt-1 pl-7">
-              Scraping live video play velocity, historical posts, views &amp; engagement rates across YouTube, Instagram &amp; TikTok.
+            <p className="text-[11px] text-zinc-600 mt-1 pl-7">
+              Analyzing live video play velocity, historical uploads, audience reach &amp; engagement rates across YouTube, Instagram &amp; TikTok.
             </p>
             {/* Stage 1 Mini Progress Bar */}
-            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden mt-2 ml-7 max-w-[calc(100%-1.75rem)]">
+            <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden mt-2 ml-7 max-w-[calc(100%-1.75rem)]">
               <div
-                className="h-full bg-cyan-400 transition-all duration-500 rounded-full"
+                className="h-full bg-cyan-600 transition-all duration-500 rounded-full"
                 style={{ width: `${Math.min((overallProgress / 80) * 100, 100)}%` }}
               />
             </div>
@@ -3459,28 +3459,28 @@ function RadarProgressStation({
           <div
             className={`p-3 rounded-xl border transition-all ${
               isLlmPhase
-                ? "bg-zinc-900/90 border-cyan-500/40 shadow-sm"
+                ? "bg-cyan-50/70 border-cyan-200 shadow-2xs"
                 : isValuationCalibrated
-                ? "bg-zinc-900/50 border-emerald-500/30 opacity-90"
-                : "bg-zinc-900/30 border-zinc-800 opacity-60"
+                ? "bg-emerald-50/40 border-emerald-200/90"
+                : "bg-zinc-50/80 border-zinc-200/80"
             }`}
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-md bg-zinc-800 text-zinc-300 text-[10px] font-mono font-bold flex items-center justify-center">
+                <span className="w-5 h-5 rounded-md bg-white border border-zinc-200 text-zinc-700 text-[10px] font-mono font-bold flex items-center justify-center shadow-2xs">
                   2
                 </span>
-                <span className="text-xs font-semibold text-white">
+                <span className="text-xs font-semibold text-zinc-900">
                   SignCollab Profile LLM Engine (80% – 100%)
                 </span>
               </div>
               <span
                 className={`text-[10px] font-mono ${
                   isValuationCalibrated
-                    ? "text-emerald-400 font-semibold"
+                    ? "text-emerald-700 font-semibold"
                     : isLlmPhase
-                    ? "text-cyan-300 animate-pulse font-semibold"
-                    : "text-zinc-500"
+                    ? "text-cyan-700 animate-pulse font-semibold"
+                    : "text-zinc-400"
                 }`}
               >
                 {isValuationCalibrated
@@ -3490,13 +3490,13 @@ function RadarProgressStation({
                   : "Standby (Starts at 80%)"}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 mt-1 pl-7">
+            <p className="text-[11px] text-zinc-600 mt-1 pl-7">
               Synthesizing 19-point creator intelligence dossier &amp; calibrating 16 defended knot valuations.
             </p>
             {/* Stage 2 Mini Progress Bar */}
-            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden mt-2 ml-7 max-w-[calc(100%-1.75rem)]">
+            <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden mt-2 ml-7 max-w-[calc(100%-1.75rem)]">
               <div
-                className="h-full bg-emerald-400 transition-all duration-500 rounded-full"
+                className="h-full bg-emerald-600 transition-all duration-500 rounded-full"
                 style={{
                   width: `${
                     overallProgress <= 80
@@ -3511,7 +3511,7 @@ function RadarProgressStation({
       </div>
 
       {/* Linked Platforms Status Bar */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-800/80">
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100">
         <div className="flex flex-wrap items-center gap-2">
           {platformList.map((p) => {
             const isReady = p.data.status === "ready";
@@ -3522,31 +3522,31 @@ function RadarProgressStation({
                 key={p.key}
                 onClick={!isReady ? onOpenMissingModal : undefined}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition-all ${
-                  !isReady ? "cursor-pointer hover:bg-zinc-800" : ""
+                  !isReady ? "cursor-pointer hover:bg-zinc-100" : ""
                 } ${
                   isReady
-                    ? "bg-zinc-900 border-emerald-500/30 text-zinc-200"
+                    ? "bg-white border-emerald-300 text-zinc-900 shadow-2xs"
                     : isLoading
-                    ? "bg-zinc-900 border-cyan-500/40 text-cyan-300 animate-pulse"
-                    : "bg-zinc-900/40 border-zinc-800 text-zinc-500"
+                    ? "bg-cyan-50/70 border-cyan-300 text-cyan-900 animate-pulse"
+                    : "bg-zinc-50 border-zinc-200 text-zinc-400"
                 }`}
               >
                 {p.icon}
-                <span className="font-medium text-white">{p.name}</span>
+                <span className="font-semibold text-zinc-900">{p.name}</span>
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
                     isReady
-                      ? "bg-emerald-400 shadow-[0_0_4px_#34d399]"
+                      ? "bg-emerald-500 shadow-[0_0_4px_#10b981]"
                       : isLoading
-                      ? "bg-cyan-400 animate-ping"
-                      : "bg-zinc-600"
+                      ? "bg-cyan-500 animate-ping"
+                      : "bg-zinc-300"
                   }`}
                 />
-                <span className="font-mono text-[11px] text-zinc-400">
+                <span className="font-mono text-[11px] text-zinc-500">
                   {isReady
                     ? `@${p.data.username?.replace(/^@/, "")} (${formatShortNumber(p.data.followerCount)})`
                     : isLoading
-                    ? "Extracting..."
+                    ? "Auditing..."
                     : "Standby"}
                 </span>
               </div>
@@ -3559,29 +3559,29 @@ function RadarProgressStation({
             <button
               type="button"
               onClick={onOpenMissingModal}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-sm"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-300 text-zinc-800 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
             >
               <span>+ Link Missing Platform</span>
             </button>
           )}
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-mono text-zinc-300">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 border border-zinc-200 text-xs font-mono text-zinc-700">
             <span
               className={`w-2 h-2 rounded-full ${
                 verifiedChannelsCount === 3
-                  ? "bg-emerald-400"
+                  ? "bg-emerald-500"
                   : verifiedChannelsCount > 0
-                  ? "bg-cyan-400"
-                  : "bg-zinc-500"
+                  ? "bg-cyan-500"
+                  : "bg-zinc-400"
               }`}
             />
-            <span className="font-bold text-white">{verifiedChannelsCount}/3 Linked</span>
+            <span className="font-bold text-zinc-900">{verifiedChannelsCount}/3 Linked</span>
           </div>
         </div>
       </div>
 
-      {/* Animated Live Step Ticker Capsule */}
-      <div className="relative z-10 w-full bg-zinc-900/95 text-white rounded-xl border border-zinc-800 px-4 py-3 flex items-center justify-between gap-3 shadow-inner">
+      {/* Animated Live Step Ticker Capsule (Light Theme) */}
+      <div className="relative z-10 w-full bg-zinc-50 text-zinc-900 rounded-xl border border-zinc-200/90 px-4 py-3 flex items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span
@@ -3591,22 +3591,22 @@ function RadarProgressStation({
             />
             <span
               className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                isValuationCalibrated ? "bg-emerald-500" : "bg-cyan-500"
+                isValuationCalibrated ? "bg-emerald-600" : "bg-cyan-600"
               }`}
             />
           </span>
           <div className="font-mono text-xs truncate flex items-center gap-2">
-            <span className="text-zinc-500 uppercase font-semibold text-[10px] tracking-wider shrink-0">
+            <span className="text-zinc-400 uppercase font-semibold text-[10px] tracking-wider shrink-0">
               LIVE STEP:
             </span>
-            <span className={isValuationCalibrated ? "text-emerald-300 font-medium" : "text-cyan-300 font-medium"}>
+            <span className={isValuationCalibrated ? "text-emerald-700 font-semibold" : "text-cyan-800 font-semibold"}>
               {activeTickerText}
             </span>
           </div>
         </div>
 
-        <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-zinc-800 text-[10px] font-mono text-zinc-400 border border-zinc-700/60 shrink-0">
-          {overallProgress < 80 ? "0–80% Scraper" : overallProgress < 100 ? "80–100% SignCollab LLM" : "Verified 100%"}
+        <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-white text-[10px] font-mono text-zinc-600 border border-zinc-200/80 shadow-2xs shrink-0">
+          {overallProgress < 80 ? "0–80% Analysis" : overallProgress < 100 ? "80–100% SignCollab LLM" : "Verified 100%"}
         </span>
       </div>
     </div>
