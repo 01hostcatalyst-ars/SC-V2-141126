@@ -117,6 +117,14 @@ const TIKTOK_TICKER_STEPS: PlatformTickerStep[] = [
   { step: 6, percent: 100, text: "TikTok Telemetry Active: Defended video deliverable rate verified" },
 ];
 
+const LLM_SYNTHESIS_STEPS: PlatformTickerStep[] = [
+  { step: 1, percent: 82, text: "SignCollab Profile LLM Engine: Ingesting cross-platform media telemetry & transcripts..." },
+  { step: 2, percent: 86, text: "SignCollab Profile LLM Engine: Synthesizing 19-point creator intelligence dossier..." },
+  { step: 3, percent: 91, text: "SignCollab Profile LLM Engine: Classifying buyer intent, micro-niche & audience DNA..." },
+  { step: 4, percent: 96, text: "SignCollab Profile LLM Engine: Calibrating 16-knot defended rate sheets & package tiers..." },
+  { step: 5, percent: 100, text: "SignCollab Profile LLM Engine: Intelligence verified · Mounting institutional rate dashboard" },
+];
+
 function formatShortNumber(num: number | undefined | null): string {
   if (num === undefined || num === null || isNaN(num)) return "0";
   if (num < 1000) return num.toString();
@@ -253,6 +261,88 @@ export function InfluencerRadarDashboard() {
       setTtStepIdx(TIKTOK_TICKER_STEPS.length - 1);
     }
   }, [platforms.tiktok.status]);
+
+  // SignCollab Profile LLM Engine Ticker Step Progression (80% - 100%)
+  const [llmStepIdx, setLlmStepIdx] = useState(0);
+  useEffect(() => {
+    if (isSynthesizing) {
+      setLlmStepIdx(0);
+      const interval = setInterval(() => {
+        setLlmStepIdx((prev) => (prev < LLM_SYNTHESIS_STEPS.length - 2 ? prev + 1 : prev));
+      }, 2200);
+      return () => clearInterval(interval);
+    } else if (isValuationCalibrated) {
+      setLlmStepIdx(LLM_SYNTHESIS_STEPS.length - 1);
+    }
+  }, [isSynthesizing, isValuationCalibrated]);
+
+  // Unified 80/20 Overall Progress Calculation:
+  // 0% - 80%: Multi-Platform Scraper Pipeline
+  // 80% - 100%: SignCollab Profile LLM Engine Synthesis & Valuation Calibration
+  const overallProgress = useMemo(() => {
+    if (isValuationCalibrated) {
+      return 100;
+    }
+    if (isSynthesizing) {
+      const step = LLM_SYNTHESIS_STEPS[Math.min(llmStepIdx, LLM_SYNTHESIS_STEPS.length - 1)] || LLM_SYNTHESIS_STEPS[0];
+      return step.percent;
+    }
+
+    const isYtLoading = platforms.youtube.status === "loading";
+    const isIgLoading = platforms.instagram.status === "loading";
+    const isTtLoading = platforms.tiktok.status === "loading";
+
+    let maxScraperPercent = 10;
+    if (isYtLoading) {
+      const ytPct = YOUTUBE_TICKER_STEPS[Math.min(ytStepIdx, YOUTUBE_TICKER_STEPS.length - 1)]?.percent || 15;
+      maxScraperPercent = Math.max(maxScraperPercent, ytPct);
+    }
+    if (isIgLoading) {
+      const igPct = INSTAGRAM_TICKER_STEPS[Math.min(igStepIdx, INSTAGRAM_TICKER_STEPS.length - 1)]?.percent || 12;
+      maxScraperPercent = Math.max(maxScraperPercent, igPct);
+    }
+    if (isTtLoading) {
+      const ttPct = TIKTOK_TICKER_STEPS[Math.min(ttStepIdx, TIKTOK_TICKER_STEPS.length - 1)]?.percent || 15;
+      maxScraperPercent = Math.max(maxScraperPercent, ttPct);
+    }
+
+    if (!isYtLoading && !isIgLoading && !isTtLoading) {
+      const hasAnyReady = platforms.youtube.status === "ready" || platforms.instagram.status === "ready" || platforms.tiktok.status === "ready";
+      return hasAnyReady ? 80 : 0;
+    }
+
+    return Math.min(Math.round(maxScraperPercent * 0.80), 80);
+  }, [isValuationCalibrated, isSynthesizing, llmStepIdx, platforms, ytStepIdx, igStepIdx, ttStepIdx]);
+
+  const activeTickerText = useMemo(() => {
+    if (isValuationCalibrated) {
+      return "SignCollab Profile LLM Engine: Intelligence verified · Rates calibrated";
+    }
+    if (isSynthesizing) {
+      const step = LLM_SYNTHESIS_STEPS[Math.min(llmStepIdx, LLM_SYNTHESIS_STEPS.length - 1)] || LLM_SYNTHESIS_STEPS[0];
+      return `${step.text} (${step.percent}%)`;
+    }
+    if (platforms.youtube.status === "loading") {
+      const step = YOUTUBE_TICKER_STEPS[Math.min(ytStepIdx, YOUTUBE_TICKER_STEPS.length - 1)] || YOUTUBE_TICKER_STEPS[0];
+      const scaledPct = Math.round(step.percent * 0.80);
+      return `YouTube: ${step.text} (${scaledPct}%)`;
+    }
+    if (platforms.instagram.status === "loading") {
+      const step = INSTAGRAM_TICKER_STEPS[Math.min(igStepIdx, INSTAGRAM_TICKER_STEPS.length - 1)] || INSTAGRAM_TICKER_STEPS[0];
+      const scaledPct = Math.round(step.percent * 0.80);
+      return `Instagram: ${step.text} (${scaledPct}%)`;
+    }
+    if (platforms.tiktok.status === "loading") {
+      const step = TIKTOK_TICKER_STEPS[Math.min(ttStepIdx, TIKTOK_TICKER_STEPS.length - 1)] || TIKTOK_TICKER_STEPS[0];
+      const scaledPct = Math.round(step.percent * 0.80);
+      return `TikTok: ${step.text} (${scaledPct}%)`;
+    }
+    const hasAnyReady = platforms.youtube.status === "ready" || platforms.instagram.status === "ready" || platforms.tiktok.status === "ready";
+    if (hasAnyReady) {
+      return "SignCollab Profile LLM Engine: Cross-platform data verified · Engaging neural synthesis... (80%)";
+    }
+    return "Awaiting channel discovery or direct input";
+  }, [isValuationCalibrated, isSynthesizing, llmStepIdx, platforms, ytStepIdx, igStepIdx, ttStepIdx]);
 
   // Creator General Info
   const [creatorMeta, setCreatorMeta] = useState<{
@@ -835,7 +925,7 @@ export function InfluencerRadarDashboard() {
     if (currentHash === synthesizedHash.current && !bypassCache) return;
 
     setIsSynthesizing(true);
-    addActivity(`Gemini 3.7 Flash: Synthesizing 19-point Creator Intelligence across ${readyList.length} platform(s)...`, "info");
+    addActivity(`SignCollab Profile LLM Engine: Synthesizing 19-point Creator Intelligence across ${readyList.length} platform(s)...`, "info");
 
     try {
       const multiInput: MultiPlatformCreatorInput = {
@@ -1528,62 +1618,22 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
           )}
 
           {/* ========================================================= */}
-          {/* SECTION 2: TELEMETRY & PROCESSING STATION                 */}
+          {/* SECTION 2: RADAR PROGRESS STATION (0–80% SCRAPER / 80–100% LLM) */}
           {/* ========================================================= */}
           <div
             ref={telemetrySectionRef}
             className="space-y-4 scroll-mt-24 transition-all duration-500 animate-fadeIn"
           >
-            {/* Reassuring Radar Process Banner with 2-4 Min Timing Callout */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 text-white shadow-xl border border-zinc-800 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0">
-                    <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs sm:text-sm font-semibold tracking-tight text-white">
-                        Autonomous Telemetry Radar
-                      </span>
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-mono border border-emerald-500/30">
-                        {isValuationCalibrated ? "Calibrated" : "Live Processing"}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-400">
-                      Target: <span className="text-white font-medium">{inputQuery}</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-300">
-                  <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>Complete analysis takes <strong>~2–4 minutes</strong></span>
-                </div>
-              </div>
-
-              {/* Reassuring Process Description */}
-              <div className="text-xs text-zinc-300 leading-relaxed flex items-start gap-2 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/60">
-                <Clock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                <p>
-                  Our autonomous radar performs live cross-platform entity resolution &amp; neural LLM indexing. Complete analysis takes ~2–4 minutes depending on channel velocity. Rates and intelligence dossier calibrate automatically below.
-                </p>
-              </div>
-
-              {/* Dynamic Island Ticker */}
-              <DynamicCommandIslandTicker
-                platforms={platforms}
-                igStepIdx={igStepIdx}
-                ytStepIdx={ytStepIdx}
-                ttStepIdx={ttStepIdx}
-                verifiedChannelsCount={verifiedChannelsCount}
-                onOpenMissingModal={() => setIsMissingModalOpen(true)}
-                selectedRegion={selectedRegion}
-                completeIntelligence={completeIntelligence}
-                isSynthesizing={isSynthesizing}
-                isValuationCalibrated={isValuationCalibrated}
-              />
-            </div>
+            <RadarProgressStation
+              inputQuery={inputQuery}
+              overallProgress={overallProgress}
+              activeTickerText={activeTickerText}
+              platforms={platforms}
+              verifiedChannelsCount={verifiedChannelsCount}
+              onOpenMissingModal={() => setIsMissingModalOpen(true)}
+              isSynthesizing={isSynthesizing}
+              isValuationCalibrated={isValuationCalibrated}
+            />
           </div>
 
           {/* ========================================================= */}
@@ -3200,109 +3250,68 @@ function TikTokVideosGrid({
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: Dynamic Command Island (1-Line Telemetry Ticker)
+// Sub-Component: Institutional Radar Progress Station
+// Unifies Scraper Pipeline (0–80%) and SignCollab Profile LLM Engine (80–100%)
 // ----------------------------------------------------------------------
-function DynamicCommandIslandTicker({
+function RadarProgressStation({
+  inputQuery,
+  overallProgress,
+  activeTickerText,
   platforms,
-  igStepIdx,
-  ytStepIdx,
-  ttStepIdx,
   verifiedChannelsCount,
   onOpenMissingModal,
-  selectedRegion,
-  completeIntelligence,
   isSynthesizing,
   isValuationCalibrated,
 }: {
+  inputQuery: string;
+  overallProgress: number;
+  activeTickerText: string;
   platforms: {
     instagram: DiscoveredPlatformData;
     youtube: DiscoveredPlatformData;
     tiktok: DiscoveredPlatformData;
   };
-  igStepIdx: number;
-  ytStepIdx: number;
-  ttStepIdx: number;
   verifiedChannelsCount: number;
   onOpenMissingModal: () => void;
-  selectedRegion: RegionCode;
-  completeIntelligence: CompleteCreatorIntelligence | null;
   isSynthesizing?: boolean;
   isValuationCalibrated?: boolean;
 }) {
-  const syncPercentage = Math.round((verifiedChannelsCount / 3) * 100);
+  const radius = 52;
+  const strokeWidth = 7;
+  const circumference = 2 * Math.PI * radius; // ~326.73
+  const strokeDashoffset = circumference - (circumference * Math.min(overallProgress, 100)) / 100;
 
-  // Check if any platform is currently scraping or synthesizing
-  const isAnyLoading =
-    platforms.youtube.status === "loading" ||
-    platforms.instagram.status === "loading" ||
-    platforms.tiktok.status === "loading" ||
-    Boolean(isSynthesizing) ||
-    (!isValuationCalibrated && verifiedChannelsCount > 0);
+  const isScrapingPhase = overallProgress < 80;
+  const isLlmPhase = overallProgress >= 80 && overallProgress < 100;
 
-  // Determine current active loading text
-  let activeProcessText = "";
-  if (platforms.youtube.status === "loading") {
-    const step = YOUTUBE_TICKER_STEPS[Math.min(ytStepIdx, YOUTUBE_TICKER_STEPS.length - 1)] || YOUTUBE_TICKER_STEPS[0];
-    activeProcessText = `YouTube: ${step.text} (${step.percent}%)`;
-  } else if (platforms.instagram.status === "loading") {
-    const step = INSTAGRAM_TICKER_STEPS[Math.min(igStepIdx, INSTAGRAM_TICKER_STEPS.length - 1)] || INSTAGRAM_TICKER_STEPS[0];
-    activeProcessText = `Instagram: ${step.text} (${step.percent}%)`;
-  } else if (platforms.tiktok.status === "loading") {
-    const step = TIKTOK_TICKER_STEPS[Math.min(ttStepIdx, TIKTOK_TICKER_STEPS.length - 1)] || TIKTOK_TICKER_STEPS[0];
-    activeProcessText = `TikTok: ${step.text} (${step.percent}%)`;
-  } else if (isSynthesizing || (!isValuationCalibrated && verifiedChannelsCount > 0)) {
-    activeProcessText = "SignCollab LLM Engine: Synthesizing 19-point Creator Intelligence & Calibrating Rates...";
-  } else {
-    // All in-flight requests finished: show glanceable 1-line verified telemetry
-    const parts: string[] = [];
-    if (platforms.youtube.status === "ready") {
-      parts.push(`YouTube (@${platforms.youtube.username?.replace(/^@/, "")} · ${formatShortNumber(platforms.youtube.followerCount)} Subs)`);
-    }
-    if (platforms.instagram.status === "ready") {
-      parts.push(`Instagram (@${platforms.instagram.username?.replace(/^@/, "")} · ${formatShortNumber(platforms.instagram.followerCount)} Reach)`);
-    }
-    if (platforms.tiktok.status === "ready") {
-      parts.push(`TikTok (@${platforms.tiktok.username?.replace(/^@/, "")} · ${formatShortNumber(platforms.tiktok.followerCount)})`);
-    }
-
-    if (parts.length > 0) {
-      activeProcessText = `${parts.join(" · ")} Verified`;
-      if (verifiedChannelsCount < 3) {
-        activeProcessText += ` · ${3 - verifiedChannelsCount} in Standby`;
-      }
-    } else {
-      activeProcessText = "Awaiting channel discovery or direct input";
-    }
-  }
-
-  // Icons array for left dynamic island stack
-  const platformIcons = [
+  // Platform items configuration
+  const platformList = [
     {
-      key: "youtube",
+      key: "youtube" as const,
       name: "YouTube",
-      status: platforms.youtube.status,
+      data: platforms.youtube,
       icon: (
-        <svg className="w-3.5 h-3.5 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-3.5 h-3.5 text-red-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
         </svg>
       ),
     },
     {
-      key: "instagram",
+      key: "instagram" as const,
       name: "Instagram",
-      status: platforms.instagram.status,
+      data: platforms.instagram,
       icon: (
-        <svg className="w-3.5 h-3.5 text-pink-500" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-3.5 h-3.5 text-pink-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
         </svg>
       ),
     },
     {
-      key: "tiktok",
+      key: "tiktok" as const,
       name: "TikTok",
-      status: platforms.tiktok.status,
+      data: platforms.tiktok,
       icon: (
-        <svg className="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-3.5 h-3.5 text-cyan-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
         </svg>
       ),
@@ -3310,83 +3319,295 @@ function DynamicCommandIslandTicker({
   ];
 
   return (
-    <div className="w-full bg-gray-950 text-white rounded-2xl border border-gray-800/90 shadow-md px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2.5 sm:gap-4 overflow-hidden animate-fadeIn">
-      {/* Left: 3 Brand Icons Stack with Status Rings */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        {platformIcons.map((p) => {
-          const isReady = p.status === "ready";
-          const isLoading = p.status === "loading";
+    <div className="relative overflow-hidden rounded-2xl bg-zinc-950 text-white shadow-2xl border border-zinc-800 p-5 sm:p-6 space-y-5">
+      {/* Background ambient light */}
+      <div className="absolute top-0 right-1/4 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
-          return (
-            <div
-              key={p.key}
-              title={`${p.name}: ${isReady ? "Verified" : isLoading ? "Scanning" : "Standby"}`}
-              onClick={!isReady ? onOpenMissingModal : undefined}
-              className={`relative p-1.5 rounded-lg flex items-center justify-center transition-all ${
-                !isReady ? "cursor-pointer hover:bg-gray-800" : ""
-              } ${
-                isReady
-                  ? "bg-gray-900 border border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.2)]"
-                  : isLoading
-                  ? "bg-gray-900 border border-cyan-500/40 animate-pulse"
-                  : "bg-gray-900/60 border border-gray-800 opacity-60 hover:opacity-100"
-              }`}
-            >
-              {p.icon}
-              {/* Mini Status Dot */}
+      {/* Top Header Row */}
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/80 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-700/80 flex items-center justify-center shrink-0 shadow-inner">
+            <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold tracking-tight text-white">
+                Autonomous Telemetry &amp; Valuation Radar
+              </span>
               <span
-                className={`absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full ${
-                  isReady
-                    ? "bg-emerald-400 shadow-[0_0_4px_#34d399]"
-                    : isLoading
-                    ? "bg-cyan-400 animate-ping"
-                    : "bg-gray-600"
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono border ${
+                  isValuationCalibrated
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-semibold"
+                    : isSynthesizing
+                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30 animate-pulse font-medium"
+                    : "bg-zinc-800 text-zinc-300 border-zinc-700 font-medium"
                 }`}
+              >
+                {isValuationCalibrated ? "Calibrated & Verified" : isSynthesizing ? "Stage 2: LLM Synthesis" : "Stage 1: Media Scraping"}
+              </span>
+            </div>
+            <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
+              Target Creator: <span className="text-white font-medium">@{inputQuery.replace(/^@/, "")}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Time expectation callout */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-300 shadow-sm self-start sm:self-auto">
+          <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>Complete analysis takes <strong className="text-white font-semibold">~2–3 minutes</strong></span>
+        </div>
+      </div>
+
+      {/* Reassurance Callout Box */}
+      <div className="relative z-10 text-xs text-zinc-300 leading-relaxed flex items-start gap-2.5 bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800/70">
+        <Clock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+        <p>
+          Extracting real-time channel velocity, subscriber reach, and audience metrics to benchmark 16 commercial knots via SignCollab Profile LLM Engine. Deep profiling completes in ~2–3 minutes. Please keep this tab active.
+        </p>
+      </div>
+
+      {/* Centerpiece: Radial Spinner + 2-Stage Progress Architecture */}
+      <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-8 pt-1">
+        {/* Left: SVG Radial Progress Ring */}
+        <div className="relative flex items-center justify-center shrink-0">
+          <svg className="w-36 h-36 -rotate-90 transform" viewBox="0 0 128 128">
+            <defs>
+              <linearGradient id="stationRadialGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#06b6d4" />
+                <stop offset="100%" stopColor="#10b981" />
+              </linearGradient>
+            </defs>
+            {/* Background Track Circle */}
+            <circle
+              cx="64"
+              cy="64"
+              r={radius}
+              stroke="#27272a"
+              strokeWidth={strokeWidth}
+              fill="transparent"
+            />
+            {/* Active Progress Circle */}
+            <circle
+              cx="64"
+              cy="64"
+              r={radius}
+              stroke="url(#stationRadialGradient)"
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="transparent"
+              className="transition-all duration-700 ease-out"
+            />
+          </svg>
+
+          {/* Centered Percentage & Stage Label */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+            <span className="text-3xl font-extrabold font-mono text-white tracking-tight">
+              {overallProgress}%
+            </span>
+            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-zinc-400 mt-0.5">
+              {overallProgress < 80 ? "Scraping" : overallProgress < 100 ? "LLM Engine" : "Verified"}
+            </span>
+          </div>
+        </div>
+
+        {/* Right: 2-Stage Architecture Visual Breakdown */}
+        <div className="flex-1 w-full space-y-3">
+          {/* Stage 1: 0% - 80% */}
+          <div
+            className={`p-3 rounded-xl border transition-all ${
+              isScrapingPhase
+                ? "bg-zinc-900/90 border-cyan-500/40 shadow-sm"
+                : overallProgress >= 80
+                ? "bg-zinc-900/50 border-emerald-500/30 opacity-90"
+                : "bg-zinc-900/30 border-zinc-800 opacity-60"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-md bg-zinc-800 text-zinc-300 text-[10px] font-mono font-bold flex items-center justify-center">
+                  1
+                </span>
+                <span className="text-xs font-semibold text-white">
+                  Multi-Platform Media Extraction (0% – 80%)
+                </span>
+              </div>
+              <span
+                className={`text-[10px] font-mono ${
+                  overallProgress >= 80 ? "text-emerald-400 font-semibold" : "text-cyan-300 animate-pulse font-semibold"
+                }`}
+              >
+                {overallProgress >= 80 ? "Verified (80%)" : `${Math.min(overallProgress, 80)}% / 80%`}
+              </span>
+            </div>
+            <p className="text-[11px] text-zinc-400 mt-1 pl-7">
+              Scraping live video play velocity, historical posts, views &amp; engagement rates across YouTube, Instagram &amp; TikTok.
+            </p>
+            {/* Stage 1 Mini Progress Bar */}
+            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden mt-2 ml-7 max-w-[calc(100%-1.75rem)]">
+              <div
+                className="h-full bg-cyan-400 transition-all duration-500 rounded-full"
+                style={{ width: `${Math.min((overallProgress / 80) * 100, 100)}%` }}
               />
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      {/* Middle: Single-Line Live Telemetry Process Ticker */}
-      <div className="flex-1 min-w-0 flex items-center gap-2">
-        {isAnyLoading ? (
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
-        ) : (
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-        )}
-        <div className="text-[11px] sm:text-xs font-mono truncate text-gray-200">
-          <span className={isAnyLoading ? "text-cyan-300 font-semibold" : "text-gray-300"}>
-            {activeProcessText}
-          </span>
-        </div>
-      </div>
-
-      {/* Right: Compact Sync Pill / Link CTA */}
-      <div className="flex items-center gap-2 shrink-0">
-        {verifiedChannelsCount < 3 && (
-          <button
-            type="button"
-            onClick={onOpenMissingModal}
-            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-[10px] font-bold font-mono transition-all cursor-pointer shadow-2xs"
-          >
-            <span>+ Link</span>
-          </button>
-        )}
-
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-900/90 border border-gray-800 text-[10px] sm:text-[11px] font-mono text-gray-300">
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              verifiedChannelsCount === 3
-                ? "bg-emerald-400"
-                : verifiedChannelsCount > 0
-                ? "bg-cyan-400"
-                : "bg-gray-500"
+          {/* Stage 2: 80% - 100% */}
+          <div
+            className={`p-3 rounded-xl border transition-all ${
+              isLlmPhase
+                ? "bg-zinc-900/90 border-cyan-500/40 shadow-sm"
+                : isValuationCalibrated
+                ? "bg-zinc-900/50 border-emerald-500/30 opacity-90"
+                : "bg-zinc-900/30 border-zinc-800 opacity-60"
             }`}
-          />
-          <span className="font-bold text-white">{verifiedChannelsCount}/3</span>
-          <span className="text-gray-500 hidden sm:inline">({syncPercentage}%)</span>
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-md bg-zinc-800 text-zinc-300 text-[10px] font-mono font-bold flex items-center justify-center">
+                  2
+                </span>
+                <span className="text-xs font-semibold text-white">
+                  SignCollab Profile LLM Engine (80% – 100%)
+                </span>
+              </div>
+              <span
+                className={`text-[10px] font-mono ${
+                  isValuationCalibrated
+                    ? "text-emerald-400 font-semibold"
+                    : isLlmPhase
+                    ? "text-cyan-300 animate-pulse font-semibold"
+                    : "text-zinc-500"
+                }`}
+              >
+                {isValuationCalibrated
+                  ? "Calibrated (100%)"
+                  : isLlmPhase
+                  ? `${overallProgress}% / 100%`
+                  : "Standby (Starts at 80%)"}
+              </span>
+            </div>
+            <p className="text-[11px] text-zinc-400 mt-1 pl-7">
+              Synthesizing 19-point creator intelligence dossier &amp; calibrating 16 defended knot valuations.
+            </p>
+            {/* Stage 2 Mini Progress Bar */}
+            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden mt-2 ml-7 max-w-[calc(100%-1.75rem)]">
+              <div
+                className="h-full bg-emerald-400 transition-all duration-500 rounded-full"
+                style={{
+                  width: `${
+                    overallProgress <= 80
+                      ? 0
+                      : Math.min(((overallProgress - 80) / 20) * 100, 100)
+                  }%`,
+                }}
+              />
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Linked Platforms Status Bar */}
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-800/80">
+        <div className="flex flex-wrap items-center gap-2">
+          {platformList.map((p) => {
+            const isReady = p.data.status === "ready";
+            const isLoading = p.data.status === "loading";
+
+            return (
+              <div
+                key={p.key}
+                onClick={!isReady ? onOpenMissingModal : undefined}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition-all ${
+                  !isReady ? "cursor-pointer hover:bg-zinc-800" : ""
+                } ${
+                  isReady
+                    ? "bg-zinc-900 border-emerald-500/30 text-zinc-200"
+                    : isLoading
+                    ? "bg-zinc-900 border-cyan-500/40 text-cyan-300 animate-pulse"
+                    : "bg-zinc-900/40 border-zinc-800 text-zinc-500"
+                }`}
+              >
+                {p.icon}
+                <span className="font-medium text-white">{p.name}</span>
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isReady
+                      ? "bg-emerald-400 shadow-[0_0_4px_#34d399]"
+                      : isLoading
+                      ? "bg-cyan-400 animate-ping"
+                      : "bg-zinc-600"
+                  }`}
+                />
+                <span className="font-mono text-[11px] text-zinc-400">
+                  {isReady
+                    ? `@${p.data.username?.replace(/^@/, "")} (${formatShortNumber(p.data.followerCount)})`
+                    : isLoading
+                    ? "Extracting..."
+                    : "Standby"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {verifiedChannelsCount < 3 && (
+            <button
+              type="button"
+              onClick={onOpenMissingModal}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-sm"
+            >
+              <span>+ Link Missing Platform</span>
+            </button>
+          )}
+
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-mono text-zinc-300">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                verifiedChannelsCount === 3
+                  ? "bg-emerald-400"
+                  : verifiedChannelsCount > 0
+                  ? "bg-cyan-400"
+                  : "bg-zinc-500"
+              }`}
+            />
+            <span className="font-bold text-white">{verifiedChannelsCount}/3 Linked</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Animated Live Step Ticker Capsule */}
+      <div className="relative z-10 w-full bg-zinc-900/95 text-white rounded-xl border border-zinc-800 px-4 py-3 flex items-center justify-between gap-3 shadow-inner">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                isValuationCalibrated ? "bg-emerald-400" : "bg-cyan-400"
+              }`}
+            />
+            <span
+              className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                isValuationCalibrated ? "bg-emerald-500" : "bg-cyan-500"
+              }`}
+            />
+          </span>
+          <div className="font-mono text-xs truncate flex items-center gap-2">
+            <span className="text-zinc-500 uppercase font-semibold text-[10px] tracking-wider shrink-0">
+              LIVE STEP:
+            </span>
+            <span className={isValuationCalibrated ? "text-emerald-300 font-medium" : "text-cyan-300 font-medium"}>
+              {activeTickerText}
+            </span>
+          </div>
+        </div>
+
+        <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-zinc-800 text-[10px] font-mono text-zinc-400 border border-zinc-700/60 shrink-0">
+          {overallProgress < 80 ? "0–80% Scraper" : overallProgress < 100 ? "80–100% SignCollab LLM" : "Verified 100%"}
+        </span>
       </div>
     </div>
   );

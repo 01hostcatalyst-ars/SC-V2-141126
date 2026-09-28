@@ -411,7 +411,7 @@ export function MultiPlatformCalculatorGrid({
               ) : isSynthesizing ? (
                 <span className="text-xs text-cyan-400 font-semibold flex items-center gap-1.5 animate-pulse">
                   <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                  Gemini 3.7 Flash Synthesizing Omnichannel Dossier...
+                  SignCollab Profile LLM Engine Synthesizing Omnichannel Dossier...
                 </span>
               ) : (
                 <span className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
