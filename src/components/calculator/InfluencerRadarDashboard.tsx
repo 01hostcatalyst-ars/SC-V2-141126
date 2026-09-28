@@ -2910,37 +2910,510 @@ function PlatformRateCardItem({
 }
 
 // ----------------------------------------------------------------------
-// Sub-Component: Recent Media & Empirical Post Audits Feed
+// Sub-Component: Recent Media & Empirical Content Audits (Compact Cards)
+// ----------------------------------------------------------------------
+
+type AuditTab = "all" | "youtube" | "instagram" | "tiktok";
+
+function YouTubeLogoIcon({ className = "w-3.5 h-3.5 text-red-600 shrink-0" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  );
+}
+
+function InstagramLogoIcon({ className = "w-3.5 h-3.5 text-pink-600 shrink-0" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+    </svg>
+  );
+}
+
+function TikTokLogoIcon({ className = "w-3.5 h-3.5 text-gray-950 shrink-0" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298 0 .594.045.87.134V9.41a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.49 6.28 6.28 0 0 0 1.87-4.48V8.71a8.31 8.31 0 0 0 3.9 1.02V6.69z" />
+    </svg>
+  );
+}
+
+function calcEngagementRate(likes: number, comments: number, views: number): string {
+  if (!views || views <= 0) return "—";
+  const rate = ((likes + comments) / views) * 100;
+  return `${rate.toFixed(2)}%`;
+}
+
+function calcFollowerEr(likes: number, comments: number, followers?: number): string {
+  if (!followers || followers <= 0) return "—";
+  const rate = ((likes + comments) / followers) * 100;
+  return `${rate.toFixed(2)}%`;
+}
+
+function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
+function getInstagramContentType(rawType?: string): { label: string; badgeClass: string } {
+  const t = (rawType || "").toLowerCase();
+  if (t === "reel" || t.includes("reel") || t.includes("clip")) {
+    return {
+      label: "Reel",
+      badgeClass: "bg-purple-50 text-purple-700 border-purple-200/80",
+    };
+  }
+  if (t === "carousel" || t === "sidecar" || t.includes("carousel") || t.includes("album")) {
+    return {
+      label: "Carousel",
+      badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200/80",
+    };
+  }
+  if (t === "video") {
+    return {
+      label: "Video",
+      badgeClass: "bg-sky-50 text-sky-700 border-sky-200/80",
+    };
+  }
+  return {
+    label: "Image",
+    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+  };
+}
+
+// 1. YouTube Audit Card (No Thumbnail)
+function YouTubeAuditCard({
+  video,
+  username,
+}: {
+  video: YouTubeVideoItem;
+  username?: string;
+}) {
+  const formattedDate = formatDate(video.publishedAt);
+  const cleanUsername = username?.replace(/^@+/, "");
+
+  return (
+    <div
+      className={`rounded-xl border bg-white hover:border-gray-300 hover:shadow-xs transition-all flex flex-col justify-between p-3.5 sm:p-4 space-y-3 ${
+        video.isErSample ? "border-emerald-200/90 shadow-2xs" : "border-gray-200/90"
+      }`}
+    >
+      {/* Top Header: Platform Logo + Name + Format Pill | Outlier Status */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <YouTubeLogoIcon className="w-3.5 h-3.5 text-red-600 shrink-0" />
+          <span className="text-[11px] font-bold text-gray-900 shrink-0">YouTube</span>
+          <span
+            className={`px-2 py-0.5 rounded-md border text-[10px] font-semibold truncate ${
+              video.isShort
+                ? "bg-rose-50 text-rose-700 border-rose-200/80"
+                : "bg-slate-100 text-slate-700 border-slate-200"
+            }`}
+          >
+            {video.isShort ? "Shorts" : "Long Video"}
+          </span>
+        </div>
+
+        <div className="shrink-0">
+          {video.isErSample ? (
+            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold text-[10px] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Core Benchmark
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 border border-gray-200 font-medium text-[10px]">
+              Trimmed Outlier
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Content Title & Runtime Metadata */}
+      <div className="space-y-1">
+        <h4 className="text-xs font-semibold text-gray-950 line-clamp-2 leading-snug">
+          {video.title}
+        </h4>
+        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
+          {formattedDate && <span>{formattedDate}</span>}
+          {video.durationFormatted && (
+            <>
+              <span>•</span>
+              <span className="flex items-center gap-0.5">
+                <svg className="w-2.5 h-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {video.durationFormatted}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Metrics Row: 4 High-Density Columns */}
+      <div className="bg-gray-50/80 rounded-lg p-2.5 border border-gray-200/70 grid grid-cols-4 gap-1.5 text-center">
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Views</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {formatShortNumber(video.viewCount)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Likes</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {formatShortNumber(video.likeCount)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Comments</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {formatShortNumber(video.commentCount)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">ER %</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {calcEngagementRate(video.likeCount, video.commentCount, video.viewCount)}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Row */}
+      <div className="pt-1 border-t border-gray-100 flex items-center justify-between text-[11px]">
+        <span className="font-mono text-gray-400 text-[10px]">@{cleanUsername || "channel"}</span>
+        <a
+          href={video.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-gray-800 hover:text-black flex items-center gap-1 hover:underline cursor-pointer"
+        >
+          <span>Watch</span>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// 2. Instagram Audit Card (No Thumbnail)
+function InstagramAuditCard({
+  post,
+  followers,
+  username,
+}: {
+  post: InstagramPostItem;
+  followers?: number;
+  username?: string;
+}) {
+  const typeInfo = getInstagramContentType(post.contentType);
+  const formattedDate = formatDate(post.datetime);
+  const cleanUsername = username?.replace(/^@+/, "");
+
+  return (
+    <div className="rounded-xl border border-gray-200/90 bg-white hover:border-gray-300 hover:shadow-xs transition-all flex flex-col justify-between p-3.5 sm:p-4 space-y-3">
+      {/* Top Header: Platform Logo + Name + Format Pill | Sample Status */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <InstagramLogoIcon className="w-3.5 h-3.5 text-pink-600 shrink-0" />
+          <span className="text-[11px] font-bold text-gray-900 shrink-0">Instagram</span>
+          <span className={`px-2 py-0.5 rounded-md border text-[10px] font-semibold truncate ${typeInfo.badgeClass}`}>
+            {typeInfo.label}
+          </span>
+        </div>
+
+        <div className="shrink-0">
+          {post.isPinned ? (
+            <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/80 font-semibold text-[10px] flex items-center gap-1">
+              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              Pinned
+            </span>
+          ) : post.isEnrichedSample ? (
+            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold text-[10px] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Core Sample
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 border border-gray-200 font-medium text-[10px]">
+              Recent
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Caption & Metadata */}
+      <div className="space-y-1">
+        <p className="text-xs font-semibold text-gray-950 line-clamp-2 leading-snug">
+          {post.caption || "Instagram upload"}
+        </p>
+        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
+          {formattedDate && <span>{formattedDate}</span>}
+          <span>•</span>
+          <span title="Instagram hides public view counts on individual posts and reels">Views: — (Private on IG)</span>
+        </div>
+      </div>
+
+      {/* Metrics Row: 3 High-Density Columns (Follower ER Benchmarked) */}
+      <div className="bg-gray-50/80 rounded-lg p-2.5 border border-gray-200/70 grid grid-cols-3 gap-2 text-center">
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Likes</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {formatShortNumber(post.likes)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Comments</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {formatShortNumber(post.commentsCount)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider" title="Follower Benchmarked ER">
+            Follower ER
+          </div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {calcFollowerEr(post.likes, post.commentsCount, followers)}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Row */}
+      <div className="pt-1 border-t border-gray-100 flex items-center justify-between text-[11px]">
+        <span className="font-mono text-gray-400 text-[10px]">@{cleanUsername || "creator"}</span>
+        <a
+          href={post.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-gray-800 hover:text-black flex items-center gap-1 hover:underline cursor-pointer"
+        >
+          <span>View Post</span>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// 3. TikTok Audit Card (No Thumbnail)
+function TikTokAuditCard({
+  video,
+  username,
+}: {
+  video: TikTokVideoItem;
+  username?: string;
+}) {
+  const formattedDate = formatDate(video.createDate);
+  const cleanUsername = username?.replace(/^@+/, "");
+
+  return (
+    <div className="rounded-xl border border-gray-200/90 bg-white hover:border-gray-300 hover:shadow-xs transition-all flex flex-col justify-between p-3.5 sm:p-4 space-y-3">
+      {/* Top Header: Platform Logo + Name + Format Pill | Status */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <TikTokLogoIcon className="w-3.5 h-3.5 text-gray-950 shrink-0" />
+          <span className="text-[11px] font-bold text-gray-900 shrink-0">TikTok</span>
+          <span className="px-2 py-0.5 rounded-md border text-[10px] font-semibold truncate bg-gray-100 text-gray-700 border-gray-200">
+            TikTok Video
+          </span>
+        </div>
+
+        <div className="shrink-0">
+          {video.isPinned ? (
+            <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/80 font-semibold text-[10px] flex items-center gap-1">
+              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              Pinned
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 border border-gray-200 font-medium text-[10px]">
+              Recent
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Description */}
+      <div className="space-y-1">
+        <p className="text-xs font-semibold text-gray-950 line-clamp-2 leading-snug">
+          {video.description || "TikTok upload"}
+        </p>
+        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
+          {formattedDate && <span>{formattedDate}</span>}
+        </div>
+      </div>
+
+      {/* Metrics Row: 4 High-Density Columns */}
+      <div className="bg-gray-50/80 rounded-lg p-2.5 border border-gray-200/70 grid grid-cols-4 gap-1.5 text-center">
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Views</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {formatShortNumber(video.playCount)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Likes</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {formatShortNumber(video.diggCount)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Comments</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {formatShortNumber(video.commentCount)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">ER %</div>
+          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+            {calcEngagementRate(video.diggCount, video.commentCount, video.playCount)}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Row */}
+      <div className="pt-1 border-t border-gray-100 flex items-center justify-between text-[11px]">
+        <span className="font-mono text-gray-400 text-[10px]">@{cleanUsername || "creator"}</span>
+        <a
+          href={video.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-gray-800 hover:text-black flex items-center gap-1 hover:underline cursor-pointer"
+        >
+          <span>View Video</span>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------
+// Main Sub-Component: Recent Media & Empirical Post Audits Feed
 // ----------------------------------------------------------------------
 function RecentMediaAuditFeed({
   platforms,
 }: {
   platforms: Record<Platform, DiscoveredPlatformData>;
 }) {
+  const ytVideos = useMemo(() => {
+    return (platforms.youtube.videos as unknown as YouTubeVideoItem[]) || [];
+  }, [platforms.youtube.videos]);
+
+  const igPosts = useMemo(() => {
+    return platforms.instagram.posts || [];
+  }, [platforms.instagram.posts]);
+
+  const ttVideos = useMemo(() => {
+    return (platforms.tiktok.videos as unknown as TikTokVideoItem[]) || [];
+  }, [platforms.tiktok.videos]);
+
+  const totalCount = ytVideos.length + igPosts.length + ttVideos.length;
+
+  // Separate YouTube Long-Form and Shorts
+  const ytLongVideos = useMemo(() => ytVideos.filter((v) => !v.isShort), [ytVideos]);
+  const ytShortVideos = useMemo(() => ytVideos.filter((v) => v.isShort), [ytVideos]);
+
+  // Construct tabs dynamically based on available data
   const availableTabs = useMemo(() => {
-    const list: Array<{ platform: Platform; label: string; count: number }> = [];
-    if (platforms.instagram.status === "ready" && (platforms.instagram.posts?.length || 0) > 0) {
-      list.push({ platform: "instagram", label: "Instagram", count: platforms.instagram.posts!.length });
-    }
-    if (platforms.youtube.status === "ready" && (platforms.youtube.videos?.length || 0) > 0) {
-      list.push({ platform: "youtube", label: "YouTube", count: platforms.youtube.videos!.length });
-    }
-    if (platforms.tiktok.status === "ready" && (platforms.tiktok.videos?.length || 0) > 0) {
-      list.push({ platform: "tiktok", label: "TikTok", count: platforms.tiktok.videos!.length });
-    }
-    return list;
-  }, [platforms]);
+    const tabs: Array<{ id: AuditTab; label: string; count: number }> = [];
 
-  const [activeTab, setActiveTab] = useState<Platform>("instagram");
+    const platformsWithData = [
+      platforms.youtube.status === "ready" && ytVideos.length > 0,
+      platforms.instagram.status === "ready" && igPosts.length > 0,
+      platforms.tiktok.status === "ready" && ttVideos.length > 0,
+    ].filter(Boolean).length;
 
-  // Keep active tab synced with available platforms
+    if (platformsWithData > 1) {
+      tabs.push({ id: "all", label: "All Platforms", count: totalCount });
+    }
+    if (platforms.youtube.status === "ready" && ytVideos.length > 0) {
+      tabs.push({ id: "youtube", label: "YouTube", count: ytVideos.length });
+    }
+    if (platforms.instagram.status === "ready" && igPosts.length > 0) {
+      tabs.push({ id: "instagram", label: "Instagram", count: igPosts.length });
+    }
+    if (platforms.tiktok.status === "ready" && ttVideos.length > 0) {
+      tabs.push({ id: "tiktok", label: "TikTok", count: ttVideos.length });
+    }
+
+    return tabs;
+  }, [platforms, ytVideos.length, igPosts.length, ttVideos.length, totalCount]);
+
+  const [activeTab, setActiveTab] = useState<AuditTab>(() => {
+    return availableTabs[0]?.id || "all";
+  });
+
   useEffect(() => {
-    if (availableTabs.length > 0 && !availableTabs.some((t) => t.platform === activeTab)) {
-      setActiveTab(availableTabs[0].platform);
+    if (availableTabs.length > 0 && !availableTabs.some((t) => t.id === activeTab)) {
+      setActiveTab(availableTabs[0].id);
     }
   }, [availableTabs, activeTab]);
 
-  if (availableTabs.length === 0) return null;
+  // Unified items for "All Platforms" tab sorted by timestamp
+  const allUnifiedCards = useMemo(() => {
+    const items: Array<{
+      timestamp: number;
+      element: React.ReactNode;
+    }> = [];
+
+    ytVideos.forEach((vid) => {
+      items.push({
+        timestamp: vid.publishedAt ? new Date(vid.publishedAt).getTime() : 0,
+        element: (
+          <YouTubeAuditCard
+            key={`all-yt-${vid.id || vid.url}`}
+            video={vid}
+            username={platforms.youtube.username}
+          />
+        ),
+      });
+    });
+
+    igPosts.forEach((post) => {
+      items.push({
+        timestamp: post.datetime ? new Date(post.datetime).getTime() : 0,
+        element: (
+          <InstagramAuditCard
+            key={`all-ig-${post.id || post.url}`}
+            post={post}
+            followers={platforms.instagram.followerCount}
+            username={platforms.instagram.username}
+          />
+        ),
+      });
+    });
+
+    ttVideos.forEach((vid) => {
+      items.push({
+        timestamp: vid.createDate ? new Date(vid.createDate).getTime() : 0,
+        element: (
+          <TikTokAuditCard
+            key={`all-tt-${vid.id || vid.url}`}
+            video={vid}
+            username={platforms.tiktok.username}
+          />
+        ),
+      });
+    });
+
+    return items.sort((a, b) => b.timestamp - a.timestamp).map((x) => x.element);
+  }, [ytVideos, igPosts, ttVideos, platforms]);
+
+  if (totalCount === 0 || availableTabs.length === 0) return null;
 
   return (
     <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/90 shadow-sm space-y-4 animate-fadeIn">
@@ -2962,11 +3435,11 @@ function RecentMediaAuditFeed({
           <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200 shrink-0">
             {availableTabs.map((tab) => (
               <button
-                key={tab.platform}
+                key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.platform)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`px-3 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
-                  activeTab === tab.platform
+                  activeTab === tab.id
                     ? "bg-white text-gray-950 shadow-2xs"
                     : "text-gray-600 hover:text-gray-950"
                 }`}
@@ -2978,335 +3451,135 @@ function RecentMediaAuditFeed({
         )}
       </div>
 
-      {/* 1. Instagram Posts Grid */}
-      {activeTab === "instagram" && platforms.instagram.posts && (
-        <InstagramPostsGrid
-          posts={platforms.instagram.posts}
-          username={platforms.instagram.username || ""}
-        />
+      {/* 1. All Platforms Tab */}
+      {activeTab === "all" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-950" />
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                All Audited Media ({allUnifiedCards.length})
+              </h4>
+            </div>
+            <span className="text-[11px] text-gray-500">
+              Chronological audit feed across all verified channels
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {allUnifiedCards}
+          </div>
+        </div>
       )}
 
-      {/* 2. YouTube Videos Grid */}
-      {activeTab === "youtube" && platforms.youtube.videos && (
-        <YouTubeVideosGrid
-          videos={platforms.youtube.videos as unknown as YouTubeVideoItem[]}
-        />
-      )}
-
-      {/* 3. TikTok Videos Grid */}
-      {activeTab === "tiktok" && platforms.tiktok.videos && (
-        <TikTokVideosGrid
-          videos={platforms.tiktok.videos as unknown as TikTokVideoItem[]}
-          username={platforms.tiktok.username || ""}
-        />
-      )}
-    </div>
-  );
-}
-
-// ----------------------------------------------------------------------
-// Sub-Component: Instagram 12 Recent Posts + 4 Enriched Unpinned Grid
-// ----------------------------------------------------------------------
-function InstagramPostsGrid({
-  posts,
-  username,
-}: {
-  posts: InstagramPostItem[];
-  username: string;
-}) {
-  // Show up to 12 posts, with the 4 trimmed-mean ER sample posts appearing first
-  const sortedPosts = useMemo(() => {
-    const validPosts = posts.slice(0, 12);
-    const erSamples = validPosts.filter((p) => p.isEnrichedSample);
-    const otherPosts = validPosts.filter((p) => !p.isEnrichedSample);
-    return [...erSamples, ...otherPosts];
-  }, [posts]);
-
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      {sortedPosts.map((post, idx) => {
-        return (
-          <div
-            key={post.id || post.url || idx}
-            className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
-          >
-            {/* Top Media & Badges */}
-            <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
-              {post.imageUrl ? (
-                <img
-                  src={post.imageUrl}
-                  alt={post.caption || "Instagram post"}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
-                  No Thumbnail
+      {/* 2. YouTube Tab (LF Separated from SF) */}
+      {activeTab === "youtube" && (
+        <div className="space-y-6">
+          {/* Sub-section 1: Long-Form Videos */}
+          {ytLongVideos.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-100 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                    Long-Form Video Audits ({ytLongVideos.length})
+                  </h4>
                 </div>
-              )}
-
-              {/* Floating Badges Overlay */}
-              <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
-                <div className="flex flex-wrap gap-1">
-                  {post.isPinned ? (
-                    <span className="px-2 py-0.5 rounded-md bg-amber-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
-                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                      </svg>
-                      Pinned Post
-                    </span>
-                  ) : post.isEnrichedSample ? (
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      ER Sample
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
-                      Recent #{idx + 1}
-                    </span>
-                  )}
-                </div>
-
-                <span className="px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-mono uppercase backdrop-blur-xs">
-                  {post.contentType || "Post"}
+                <span className="text-[11px] text-gray-500">
+                  6 Core Benchmark uploads defend median baseline rate (top 2 viral outliers and bottom 2 flops trimmed)
                 </span>
               </div>
-            </div>
-
-            {/* Metrics Row (Likes & Comments) */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono">
-                <div className="flex items-center gap-1.5 text-gray-700">
-                  <svg className="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
-                  <span className="font-bold">{formatShortNumber(post.likes)}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-gray-700">
-                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span className="font-bold">{formatShortNumber(post.commentsCount)}</span>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {ytLongVideos.map((vid) => (
+                  <YouTubeAuditCard
+                    key={`yt-lf-${vid.id || vid.url}`}
+                    video={vid}
+                    username={platforms.youtube.username}
+                  />
+                ))}
               </div>
-
-              {/* Caption */}
-              {post.caption && (
-                <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
-                  {post.caption}
-                </p>
-              )}
             </div>
+          )}
 
-            {/* Link Footer */}
-            <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] font-mono text-gray-400">
-              <span>{post.datetime ? new Date(post.datetime).toLocaleDateString() : `@${username}`}</span>
-              <a
-                href={post.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
-              >
-                <span>View Post</span>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ----------------------------------------------------------------------
-// Sub-Component: YouTube Videos Grid
-// ----------------------------------------------------------------------
-function YouTubeVideosGrid({ videos }: { videos: YouTubeVideoItem[] }) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      {videos.slice(0, 9).map((vid, idx) => {
-        return (
-          <div
-            key={vid.id || vid.url || idx}
-            className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
-          >
-            <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
-              {vid.thumbnailUrl ? (
-                <img
-                  src={vid.thumbnailUrl}
-                  alt={vid.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
-                  No Thumbnail
+          {/* Sub-section 2: Short-Form / Shorts */}
+          {ytShortVideos.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-100 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                    Short-Form / Shorts Audits ({ytShortVideos.length})
+                  </h4>
                 </div>
-              )}
-
-              <div className="absolute top-2 left-2 flex gap-1">
-                {vid.isShort ? (
-                  <span className="px-2 py-0.5 rounded-md bg-red-600/90 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs">
-                    Short
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
-                    Long Video
-                  </span>
-                )}
+                <span className="text-[11px] text-gray-500">
+                  6 Core Benchmark shorts defend median baseline rate (top 2 viral outliers and bottom 2 flops trimmed)
+                </span>
               </div>
-
-              {vid.durationFormatted && (
-                <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-black/80 text-white text-[10px] font-mono backdrop-blur-xs">
-                  {vid.durationFormatted}
-                </div>
-              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {ytShortVideos.map((vid) => (
+                  <YouTubeAuditCard
+                    key={`yt-sf-${vid.id || vid.url}`}
+                    video={vid}
+                    username={platforms.youtube.username}
+                  />
+                ))}
+              </div>
             </div>
+          )}
+        </div>
+      )}
 
-            <div className="space-y-1.5">
-              <h4 className="text-xs font-bold text-gray-950 line-clamp-2 leading-snug">
-                {vid.title}
+      {/* 3. Instagram Tab (Content Type Categorized) */}
+      {activeTab === "instagram" && (
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-100 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-pink-600" />
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                Instagram Content Audits ({igPosts.length})
               </h4>
-              <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono text-gray-700">
-                <div className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  <span className="font-bold">{formatShortNumber(vid.viewCount)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
-                  <span className="font-bold">{formatShortNumber(vid.likeCount)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span className="font-bold">{formatShortNumber(vid.commentCount)}</span>
-                </div>
-              </div>
             </div>
-
-            <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] font-mono text-gray-400">
-              <span>{vid.publishedAt ? new Date(vid.publishedAt).toLocaleDateString() : ""}</span>
-              <a
-                href={vid.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
-              >
-                <span>Watch</span>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </div>
+            <span className="text-[11px] text-gray-500">
+              Categorized by Reel, Carousel, and Image formats • Follower ER benchmarked
+            </span>
           </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ----------------------------------------------------------------------
-// Sub-Component: TikTok Videos Grid
-// ----------------------------------------------------------------------
-function TikTokVideosGrid({
-  videos,
-  username,
-}: {
-  videos: TikTokVideoItem[];
-  username: string;
-}) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      {videos.slice(0, 9).map((vid, idx) => {
-        return (
-          <div
-            key={vid.id || vid.url || idx}
-            className="group rounded-xl border border-gray-200/90 bg-gray-50/40 hover:bg-white hover:border-gray-300 hover:shadow-2xs transition-all flex flex-col justify-between p-3 space-y-2.5"
-          >
-            <div className="relative aspect-[9/12] w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200/60">
-              {vid.coverImage ? (
-                <img
-                  src={vid.coverImage}
-                  alt={vid.description || "TikTok Video"}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-mono">
-                  No Cover
-                </div>
-              )}
-
-              <div className="absolute top-2 left-2 flex gap-1">
-                {vid.isPinned ? (
-                  <span className="px-2 py-0.5 rounded-md bg-gray-950 text-white font-bold text-[10px] shadow-2xs backdrop-blur-xs flex items-center gap-1">
-                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                    </svg>
-                    Pinned
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-md bg-gray-900/80 text-white font-medium text-[10px] shadow-2xs backdrop-blur-xs">
-                    Video #{idx + 1}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              {vid.description && (
-                <p className="text-xs font-medium text-gray-950 line-clamp-2 leading-snug">
-                  {vid.description}
-                </p>
-              )}
-              <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-200/80 text-xs font-mono text-gray-700">
-                <div className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  <span className="font-bold">{formatShortNumber(vid.playCount)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
-                  <span className="font-bold">{formatShortNumber(vid.diggCount)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span className="font-bold">{formatShortNumber(vid.commentCount)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] font-mono text-gray-400">
-              <span>@{username?.replace(/^@+/, "")}</span>
-              <a
-                href={vid.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-gray-900 hover:text-black flex items-center gap-0.5 hover:underline cursor-pointer"
-              >
-                <span>View Video</span>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {igPosts.map((post) => (
+              <InstagramAuditCard
+                key={`ig-${post.id || post.url}`}
+                post={post}
+                followers={platforms.instagram.followerCount}
+                username={platforms.instagram.username}
+              />
+            ))}
           </div>
-        );
-      })}
+        </div>
+      )}
+
+      {/* 4. TikTok Tab */}
+      {activeTab === "tiktok" && (
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-100 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-950" />
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                TikTok Content Audits ({ttVideos.length})
+              </h4>
+            </div>
+            <span className="text-[11px] text-gray-500">
+              Recent uploads analyzed for play velocity, shares, and engagement rates
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {ttVideos.map((vid) => (
+              <TikTokAuditCard
+                key={`tt-${vid.id || vid.url}`}
+                video={vid}
+                username={platforms.tiktok.username}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
