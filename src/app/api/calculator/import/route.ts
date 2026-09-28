@@ -55,18 +55,24 @@ export async function POST(req: NextRequest) {
       recentTitles = [...ytData.longVideos, ...ytData.shortVideos].map((v) => v.title);
       detectedCountry = (ytData.channel.country as RegionCode) || 'US';
 
-      // Compute exact real averages from scraped YouTube video arrays
-      const allYtVideos = [...ytData.longVideos, ...ytData.shortVideos];
-      if (allYtVideos.length > 0) {
-        const totalViews = allYtVideos.reduce((sum, v) => sum + (v.viewCount || 0), 0);
-        const totalLikes = allYtVideos.reduce((sum, v) => sum + (v.likeCount || 0), 0);
-        const totalComments = allYtVideos.reduce((sum, v) => sum + (v.commentCount || 0), 0);
+      // Compute robust real averages from trimmed YouTube videos (core sample)
+      const sampleLong = ytData.longVideos.filter((v) => v.isErSample);
+      const targetLong = sampleLong.length > 0 ? sampleLong : ytData.longVideos;
 
-        avgViews = Math.round(totalViews / allYtVideos.length);
-        avgLikes = Math.round(totalLikes / allYtVideos.length);
-        avgComments = Math.round(totalComments / allYtVideos.length);
+      const sampleShort = ytData.shortVideos.filter((v) => v.isErSample);
+      const targetShort = sampleShort.length > 0 ? sampleShort : ytData.shortVideos;
+
+      const allCoreVideos = [...targetLong, ...targetShort];
+      if (allCoreVideos.length > 0) {
+        const totalViews = allCoreVideos.reduce((sum, v) => sum + (v.viewCount || 0), 0);
+        const totalLikes = allCoreVideos.reduce((sum, v) => sum + (v.likeCount || 0), 0);
+        const totalComments = allCoreVideos.reduce((sum, v) => sum + (v.commentCount || 0), 0);
+
+        avgViews = Math.round(totalViews / allCoreVideos.length);
+        avgLikes = Math.round(totalLikes / allCoreVideos.length);
+        avgComments = Math.round(totalComments / allCoreVideos.length);
       } else {
-        avgViews = ytData.channel.avgViewsPerVideo || 0;
+        avgViews = ytData.stats?.avgLongVideoViews || ytData.channel.avgViewsPerVideo || 0;
         avgLikes = 0;
         avgComments = 0;
       }

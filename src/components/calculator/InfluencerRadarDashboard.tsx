@@ -669,15 +669,23 @@ export function InfluencerRadarDashboard() {
           const longVids = Array.isArray(data.longVideos) ? data.longVideos : [];
           const shortVids = Array.isArray(data.shortVideos) ? data.shortVideos : [];
 
-          if (longVids.length > 0) {
-            avgLikes = Math.round(longVids.reduce((s: number, v: { likeCount?: number }) => s + (v.likeCount || 0), 0) / longVids.length);
-            avgComments = Math.round(longVids.reduce((s: number, v: { commentCount?: number }) => s + (v.commentCount || 0), 0) / longVids.length);
-            avgViews = avgLongViews;
+          // Prioritize outlier-trimmed core benchmark videos (tagged with isErSample)
+          const sampleLongVids = longVids.filter((v: { isErSample?: boolean }) => v.isErSample);
+          const targetLongVids = sampleLongVids.length > 0 ? sampleLongVids : longVids;
+
+          const sampleShortVids = shortVids.filter((v: { isErSample?: boolean }) => v.isErSample);
+          const targetShortVids = sampleShortVids.length > 0 ? sampleShortVids : shortVids;
+
+          if (targetLongVids.length > 0) {
+            avgLikes = Math.round(targetLongVids.reduce((s: number, v: { likeCount?: number }) => s + (v.likeCount || 0), 0) / targetLongVids.length);
+            avgComments = Math.round(targetLongVids.reduce((s: number, v: { commentCount?: number }) => s + (v.commentCount || 0), 0) / targetLongVids.length);
+            avgViews = avgLongViews || Math.round(targetLongVids.reduce((s: number, v: { viewCount?: number }) => s + (v.viewCount || 0), 0) / targetLongVids.length);
           }
 
-          if (shortVids.length > 0) {
-            avgShortLikes = Math.round(shortVids.reduce((s: number, v: { likeCount?: number }) => s + (v.likeCount || 0), 0) / shortVids.length);
-            avgShortComments = Math.round(shortVids.reduce((s: number, v: { commentCount?: number }) => s + (v.commentCount || 0), 0) / shortVids.length);
+          if (targetShortVids.length > 0) {
+            avgShortLikes = Math.round(targetShortVids.reduce((s: number, v: { likeCount?: number }) => s + (v.likeCount || 0), 0) / targetShortVids.length);
+            avgShortComments = Math.round(targetShortVids.reduce((s: number, v: { commentCount?: number }) => s + (v.commentCount || 0), 0) / targetShortVids.length);
+            avgShortViews = avgShortViews || Math.round(targetShortVids.reduce((s: number, v: { viewCount?: number }) => s + (v.viewCount || 0), 0) / targetShortVids.length);
           }
 
           engagementRate = avgLongEngagementRate;

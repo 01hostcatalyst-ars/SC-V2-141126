@@ -10,6 +10,7 @@ import {
   formatCompactNumber,
   extractEmailFromText,
   extractOfficialProfileLinks,
+  computeYouTubeTrimmedMetrics,
 } from './parser';
 
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
@@ -332,7 +333,7 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
             tags: item.snippet?.tags,
             url: `https://www.youtube.com/watch?v=${item.id}`,
             isShort,
-            isErSample: true,
+            isErSample: false,
             engagementRate: parseFloat(rawEr.toFixed(2)),
             comments: [],
           };
@@ -358,9 +359,12 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     }
   }
 
-  // 3. Fetch Top 5 Comments for the 5 Most Recent Long-Form Videos
-  for (let i = 0; i < Math.min(5, longVideos.length); i++) {
-    const vid = longVideos[i];
+  // 3. Compute Outlier-Trimmed Core Sample (Middle 6 Videos for Long & Shorts)
+  const longMetrics = computeYouTubeTrimmedMetrics(longVideos, 6);
+  const shortMetrics = computeYouTubeTrimmedMetrics(shortVideos, 6);
+
+  // 4. Fetch Top 5 Comments for the Core Middle Sample Long-Form Videos
+  for (const vid of longMetrics.sampleVideos.slice(0, 6)) {
     try {
       const cUrl = `${BASE_URL}/commentThreads?part=snippet&videoId=${vid.id}&maxResults=5&order=time&key=${apiKey}`;
       const cRes = await fetch(cUrl);
@@ -385,9 +389,8 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     }
   }
 
-  // 4. Fetch Top 5 Comments for the 5 Most Recent Shorts
-  for (let i = 0; i < Math.min(5, shortVideos.length); i++) {
-    const vid = shortVideos[i];
+  // 5. Fetch Top 5 Comments for the Core Middle Sample Shorts
+  for (const vid of shortMetrics.sampleVideos.slice(0, 6)) {
     try {
       const cUrl = `${BASE_URL}/commentThreads?part=snippet&videoId=${vid.id}&maxResults=5&order=time&key=${apiKey}`;
       const cRes = await fetch(cUrl);
@@ -412,23 +415,7 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     }
   }
 
-  // 5. Aggregate Analytics
-  const totalLongViews = longVideos.reduce((sum, v) => sum + v.viewCount, 0);
-  const avgLongVideoViews = longVideos.length > 0 ? Math.round(totalLongViews / longVideos.length) : 0;
-
-  const totalShortViews = shortVideos.reduce((sum, v) => sum + v.viewCount, 0);
-  const avgShortVideoViews = shortVideos.length > 0 ? Math.round(totalShortViews / shortVideos.length) : 0;
-
-  const avgLongEngagementRate =
-    totalLongViews > 0
-      ? (longVideos.reduce((sum, v) => sum + v.likeCount + v.commentCount, 0) / totalLongViews) * 100
-      : 0;
-
-  const avgShortEngagementRate =
-    totalShortViews > 0
-      ? (shortVideos.reduce((sum, v) => sum + v.likeCount + v.commentCount, 0) / totalShortViews) * 100
-      : 0;
-
+  // 6. Aggregate Analytics from Core Trimmed Samples
   return {
     channel: channelProfile,
     longVideos,
@@ -436,10 +423,10 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     stats: {
       totalLongVideosFetched: longVideos.length,
       totalShortVideosFetched: shortVideos.length,
-      avgLongVideoViews,
-      avgShortVideoViews,
-      avgLongEngagementRate: parseFloat(avgLongEngagementRate.toFixed(2)),
-      avgShortEngagementRate: parseFloat(avgShortEngagementRate.toFixed(2)),
+      avgLongVideoViews: longMetrics.avgViews,
+      avgShortVideoViews: shortMetrics.avgViews,
+      avgLongEngagementRate: longMetrics.avgEngagementRate,
+      avgShortEngagementRate: shortMetrics.avgEngagementRate,
     },
     scrapedAt: new Date().toISOString(),
   };

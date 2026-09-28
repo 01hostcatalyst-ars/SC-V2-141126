@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { YouTubeScraperData, YouTubeExternalLink, YouTubeVideoItem } from '../types';
-import { formatCompactNumber, extractYouTubeIdentifier } from './parser';
+import { formatCompactNumber, extractYouTubeIdentifier, computeYouTubeTrimmedMetrics } from './parser';
 
 const CACHE_WINDOW_HOURS = 24;
 
@@ -138,30 +138,17 @@ export function formatDbRecordToScraperData(record: {
     ? record.shortVideos
     : []) as YouTubeVideoItem[];
 
-  // Dynamically calculate pure long-form and short-form metrics from stored uploads
-  const totalLongViews = longVideos.reduce((sum, v) => sum + (v.viewCount || 0), 0);
-  const avgLongVideoViews = longVideos.length > 0 ? Math.round(totalLongViews / longVideos.length) : 0;
-
-  const totalShortViews = shortVideos.reduce((sum, v) => sum + (v.viewCount || 0), 0);
-  const avgShortVideoViews = shortVideos.length > 0 ? Math.round(totalShortViews / shortVideos.length) : 0;
-
-  const avgLongEngagementRate =
-    totalLongViews > 0
-      ? parseFloat(((longVideos.reduce((sum, v) => sum + (v.likeCount || 0) + (v.commentCount || 0), 0) / totalLongViews) * 100).toFixed(2))
-      : 0;
-
-  const avgShortEngagementRate =
-    totalShortViews > 0
-      ? parseFloat(((shortVideos.reduce((sum, v) => sum + (v.likeCount || 0) + (v.commentCount || 0), 0) / totalShortViews) * 100).toFixed(2))
-      : 0;
+  // Dynamically calculate robust long-form and short-form metrics from stored uploads using trimmed-mean
+  const longMetrics = computeYouTubeTrimmedMetrics(longVideos, 6);
+  const shortMetrics = computeYouTubeTrimmedMetrics(shortVideos, 6);
 
   const stats = {
     totalLongVideosFetched: longVideos.length,
     totalShortVideosFetched: shortVideos.length,
-    avgLongVideoViews,
-    avgShortVideoViews,
-    avgLongEngagementRate,
-    avgShortEngagementRate,
+    avgLongVideoViews: longMetrics.avgViews,
+    avgShortVideoViews: shortMetrics.avgViews,
+    avgLongEngagementRate: longMetrics.avgEngagementRate,
+    avgShortEngagementRate: shortMetrics.avgEngagementRate,
   };
 
   return {

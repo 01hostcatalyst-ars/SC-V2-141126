@@ -1,4 +1,4 @@
-import { YouTubeExternalLink } from '../types';
+import { YouTubeExternalLink, YouTubeVideoItem } from '../types';
 
 export interface ParsedYouTubeInput {
   type: 'handle' | 'channelId' | 'videoId' | 'username' | 'unknown';
@@ -218,4 +218,88 @@ export function extractOfficialProfileLinks(rawPageHtml?: string): YouTubeExtern
   }
 
   return Array.from(linksMap.values());
+}
+
+export interface YouTubeTrimmedSampleResult {
+  sampleVideos: YouTubeVideoItem[];
+  allVideos: YouTubeVideoItem[];
+  avgViews: number;
+  avgLikes: number;
+  avgComments: number;
+  avgEngagementRate: number;
+}
+
+/**
+ * Calculates robust trimmed-mean metrics for YouTube video arrays (long or short).
+ * Discards top viral outliers and bottom lowest performers to isolate the core middle videos.
+ * Defaults to the middle 6 videos when 10 videos are provided.
+ */
+export function computeYouTubeTrimmedMetrics(
+  videos: YouTubeVideoItem[],
+  targetCoreCount: number = 6
+): YouTubeTrimmedSampleResult {
+  if (!videos || videos.length === 0) {
+    return {
+      sampleVideos: [],
+      allVideos: [],
+      avgViews: 0,
+      avgLikes: 0,
+      avgComments: 0,
+      avgEngagementRate: 0,
+    };
+  }
+
+  // Reset sample flags
+  videos.forEach((v) => {
+    v.isErSample = false;
+  });
+
+  // Valid videos with view metrics
+  const validVideos = videos.filter((v) => (v.viewCount || 0) > 0 || (v.likeCount || 0) > 0);
+
+  // Sort ascending by viewCount from lowest to highest
+  const sorted = [...validVideos].sort((a, b) => (a.viewCount || 0) - (b.viewCount || 0));
+
+  let sampleVideos: YouTubeVideoItem[];
+  if (sorted.length >= 8) {
+    // Trim top 2 and bottom 2 outliers to isolate middle 6 core videos
+    const skipCount = Math.floor((sorted.length - targetCoreCount) / 2);
+    sampleVideos = sorted.slice(skipCount, skipCount + targetCoreCount);
+  } else if (sorted.length >= 4) {
+    // If between 4 and 7 videos, trim 1 bottom and 1 top
+    const takeCount = Math.min(sorted.length - 2, targetCoreCount);
+    const skipCount = Math.floor((sorted.length - takeCount) / 2);
+    sampleVideos = sorted.slice(skipCount, skipCount + takeCount);
+  } else {
+    // Fewer than 4 videos, use all available
+    sampleVideos = sorted.length > 0 ? sorted : videos;
+  }
+
+  // Tag sample videos with isErSample = true
+  sampleVideos.forEach((v) => {
+    v.isErSample = true;
+  });
+
+  const sampleCount = sampleVideos.length;
+  const totalViews = sampleVideos.reduce((sum, v) => sum + (v.viewCount || 0), 0);
+  const totalLikes = sampleVideos.reduce((sum, v) => sum + (v.likeCount || 0), 0);
+  const totalComments = sampleVideos.reduce((sum, v) => sum + (v.commentCount || 0), 0);
+
+  const avgViews = sampleCount > 0 ? Math.round(totalViews / sampleCount) : 0;
+  const avgLikes = sampleCount > 0 ? Math.round(totalLikes / sampleCount) : 0;
+  const avgComments = sampleCount > 0 ? Math.round(totalComments / sampleCount) : 0;
+
+  const avgEngagementRate =
+    totalViews > 0
+      ? parseFloat((((totalLikes + totalComments) / totalViews) * 100).toFixed(2))
+      : 0;
+
+  return {
+    sampleVideos,
+    allVideos: videos,
+    avgViews,
+    avgLikes,
+    avgComments,
+    avgEngagementRate,
+  };
 }
