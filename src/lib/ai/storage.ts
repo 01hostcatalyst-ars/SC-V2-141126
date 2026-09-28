@@ -32,12 +32,33 @@ export async function getRecentCreatorIntelligence(
   if (!cleanHandle) return null;
 
   try {
+    // Resolve all possible aliases from identity cluster
+    const candidateHandles = [cleanHandle, `@${cleanHandle}`];
+    try {
+      const cluster = await prisma.creatorIdentityCluster.findFirst({
+        where: {
+          OR: [
+            { youtubeHandle: cleanHandle },
+            { instagramUsername: cleanHandle },
+            { tiktokUsername: cleanHandle },
+          ],
+        },
+      });
+
+      if (cluster) {
+        if (cluster.youtubeHandle) candidateHandles.push(cluster.youtubeHandle, `@${cluster.youtubeHandle}`);
+        if (cluster.instagramUsername) candidateHandles.push(cluster.instagramUsername, `@${cluster.instagramUsername}`);
+        if (cluster.tiktokUsername) candidateHandles.push(cluster.tiktokUsername, `@${cluster.tiktokUsername}`);
+      }
+    } catch {
+      // Non-critical fallback
+    }
+
     const latest = await prisma.creatorIntelligence.findFirst({
       where: {
-        OR: [
-          { creatorHandle: cleanHandle },
-          { creatorHandle: `@${cleanHandle}` },
-        ],
+        OR: Array.from(new Set(candidateHandles.map((h) => h.toLowerCase()))).map((h) => ({
+          creatorHandle: { equals: h, mode: 'insensitive' },
+        })),
       },
       orderBy: { createdAt: 'desc' },
     });

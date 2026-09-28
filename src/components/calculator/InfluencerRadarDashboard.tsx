@@ -834,6 +834,29 @@ export function InfluencerRadarDashboard() {
             );
           }
         }
+
+        // Automatically persist cross-platform discovery to Identity Cluster
+        if (externalLinks.length > 0) {
+          const bindingPayload: Record<string, string> = {};
+          if (targetPlatform === "youtube") bindingPayload.youtubeHandle = username;
+          if (targetPlatform === "instagram") bindingPayload.instagramUsername = username;
+          if (targetPlatform === "tiktok") bindingPayload.tiktokUsername = username;
+
+          for (const l of externalLinks) {
+            if (l.platform === "youtube") bindingPayload.youtubeHandle = l.url;
+            if (l.platform === "instagram") bindingPayload.instagramUsername = l.url;
+            if (l.platform === "tiktok") bindingPayload.tiktokUsername = l.url;
+          }
+
+          fetch("/api/creators/bind-identity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              canonicalName: displayName || username,
+              ...bindingPayload,
+            }),
+          }).catch((err) => console.warn("[Auto-bind External Links Warning]:", err));
+        }
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : `Failed to fetch ${targetPlatform}`;
         setPlatforms((prev) => ({
@@ -884,6 +907,36 @@ export function InfluencerRadarDashboard() {
       if (lower.includes("youtube.com") || lower.includes("youtu.be")) initialTargetPlatform = "youtube";
       else if (lower.includes("tiktok.com")) initialTargetPlatform = "tiktok";
       else initialTargetPlatform = "instagram";
+    }
+
+    // Step 1: Pre-search Identity Cluster Resolution
+    // If the creator has already been bound across multiple platforms, trigger all of them simultaneously!
+    try {
+      const resolveRes = await fetch(`/api/creators/resolve-identity?query=${encodeURIComponent(query)}&platform=${initialTargetPlatform}`);
+      const resolveJson = await resolveRes.json();
+      if (resolveJson.success && resolveJson.resolved && resolveJson.cluster?.accounts) {
+        const accounts = resolveJson.cluster.accounts;
+        const availablePlatforms: Array<{ plat: Platform; input: string }> = [];
+        if (accounts.youtube) availablePlatforms.push({ plat: "youtube", input: accounts.youtube });
+        if (accounts.instagram) availablePlatforms.push({ plat: "instagram", input: accounts.instagram });
+        if (accounts.tiktok) availablePlatforms.push({ plat: "tiktok", input: accounts.tiktok });
+
+        if (availablePlatforms.length > 1) {
+          addActivity(
+            `Identity Cluster Resolved: Recognized ${resolveJson.cluster.canonicalName}. Synchronizing ${availablePlatforms.length} verified channels in parallel...`,
+            "discovery"
+          );
+          await Promise.all(
+            availablePlatforms.map(({ plat, input }) =>
+              scrapePlatform(input, plat, `Cluster Sync for ${resolveJson.cluster.canonicalName}`)
+            )
+          );
+          setIsSearching(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('[Identity Resolver Pre-check Error]:', e);
     }
 
     await scrapePlatform(query, initialTargetPlatform);
@@ -1110,6 +1163,25 @@ export function InfluencerRadarDashboard() {
       forceNextSynthesisBypassCache.current = true;
       scrapePlatform(missingInputs.tiktok.trim(), "tiktok", "User linked TikTok account");
     }
+
+    // Persist manual platform binding to Identity Cluster for all future users globally
+    const bindPayload: Record<string, string> = {
+      canonicalName: creatorMeta?.displayName || "Creator",
+    };
+    if (missingInputs.youtube.trim()) bindPayload.youtubeHandle = missingInputs.youtube.trim();
+    else if (platforms.youtube.username) bindPayload.youtubeHandle = platforms.youtube.username;
+
+    if (missingInputs.instagram.trim()) bindPayload.instagramUsername = missingInputs.instagram.trim();
+    else if (platforms.instagram.username) bindPayload.instagramUsername = platforms.instagram.username;
+
+    if (missingInputs.tiktok.trim()) bindPayload.tiktokUsername = missingInputs.tiktok.trim();
+    else if (platforms.tiktok.username) bindPayload.tiktokUsername = platforms.tiktok.username;
+
+    fetch("/api/creators/bind-identity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bindPayload),
+    }).catch((err) => console.warn("[Manual Link Bind Warning]:", err));
   };
 
   // Build 1-Click Instant Sponsorship Contract Bridge HREF (/instant)

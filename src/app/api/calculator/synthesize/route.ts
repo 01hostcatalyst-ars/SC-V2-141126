@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateCompleteCreatorIntelligence, MultiPlatformCreatorInput, CreatorAIClassification } from '@/lib/ai/gemini';
 import { prisma } from '@/lib/prisma';
 import { RegionCode } from '@/lib/calculator/types';
+import { upsertCreatorIdentityCluster } from '@/lib/creators/identity';
 
 export async function POST(req: NextRequest) {
   try {
@@ -86,6 +87,16 @@ export async function POST(req: NextRequest) {
           },
         });
       }
+
+      // Persist to CreatorIdentityCluster so future searches on ANY handle immediately resolve all channels
+      await upsertCreatorIdentityCluster({
+        canonicalName: multiInput.creatorName || completeIntel.profile?.creatorType || 'Creator',
+        youtubeHandle: multiInput.youtube?.handle,
+        instagramUsername: multiInput.instagram?.username,
+        tiktokUsername: multiInput.tiktok?.username,
+        primaryNicheId: completeIntel.profile.primaryNiche.id,
+        countryCode: finalCountry,
+      });
     } catch (dbErr) {
       console.warn('[DB Synthesis Save] Non-critical warning:', dbErr);
     }

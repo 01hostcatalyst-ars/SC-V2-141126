@@ -804,3 +804,28 @@ model CreatorIntelligence {
   @@index([creatorHandle, createdAt(sort: Desc)])
   @@map("creator_intelligence")
 }
+
+// ==========================================
+// CREATOR IDENTITY CLUSTER (MULTI-PLATFORM ALIAS GRAPH)
+// ==========================================
+
+model CreatorIdentityCluster {
+  id                String   @id @default(uuid())
+  canonicalName     String   @map("canonical_name")
+  primaryNicheId    Int?     @map("primary_niche_id")
+  countryCode       String?  @map("country_code")
+
+  // Bound Platform Handles (lowercase, clean string, no @)
+  youtubeHandle     String?  @unique @map("youtube_handle")
+  instagramUsername String?  @unique @map("instagram_username")
+  tiktokUsername    String?  @unique @map("tiktok_username")
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([youtubeHandle])
+  @@index([instagramUsername])
+  @@index([tiktokUsername])
+  @@map("creator_identity_clusters")
+}
+
