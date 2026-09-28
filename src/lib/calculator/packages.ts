@@ -529,8 +529,39 @@ export function generateCalibratedBespokePackages(
     const calibratedDeliverables: CalibratedDeliverableItem[] = [];
     const phasedDeliverables: PhasedDeliverable[] = [];
 
+    // Omnichannel Representation Guarantee:
+    // If a platform is verified and active (e.g. TikTok, Instagram, YouTube), ensure it is represented
+    // in multi-channel takeover packages like Launch (Full-Funnel Omnichannel Takeover) and Paid Creative (Cross-Platform UGC Ads)
+    const effectiveDeliverables = [...bp.deliverables];
+
+    if (bp.packageId === 'launch') {
+      if (readyPlatforms.tiktok && !effectiveDeliverables.some((d) => d.platform === 'tiktok' || d.formatKey === 'tiktok_video')) {
+        effectiveDeliverables.push({
+          id: `${bp.packageId}_tt_omni`,
+          phase: 'Viral Frequency',
+          platform: 'tiktok',
+          formatKey: 'tiktok_video',
+          quantity: 1,
+          title: '1x High-Impact Native TikTok Feature Video (30-60s)',
+          strategicDetail: 'Fast-paced algorithmic short-form video capturing dynamic product highlights for FYP discovery.',
+        });
+      }
+    } else if (bp.packageId === 'paid_creative') {
+      if (readyPlatforms.tiktok && !effectiveDeliverables.some((d) => d.platform === 'tiktok' || d.formatKey === 'tiktok_video')) {
+        effectiveDeliverables.push({
+          id: `${bp.packageId}_tt_paid`,
+          phase: 'Direct Response Testing',
+          platform: 'tiktok',
+          formatKey: 'tiktok_video',
+          quantity: 1,
+          title: '1x High-Hook Native TikTok Video (15-30s)',
+          strategicDetail: 'Direct-response vertical hook test highlighting key consumer friction points for TikTok Ads Manager.',
+        });
+      }
+    }
+
     // 1. Process and price each deliverable
-    for (const d of bp.deliverables) {
+    for (const d of effectiveDeliverables) {
       const resolved = resolveDeliverablePlatformAndFormat(d.platform, d.formatKey, readyPlatforms);
 
       if (resolved.isCommercialRight) {
@@ -609,7 +640,7 @@ export function generateCalibratedBespokePackages(
 
     // 3. Commercial Rights and Entitlements Surcharges
     let rightsSurchargePercent = 0.0;
-    for (const d of bp.deliverables) {
+    for (const d of effectiveDeliverables) {
       const resolved = resolveDeliverablePlatformAndFormat(d.platform, d.formatKey, readyPlatforms);
       if (resolved.isCommercialRight) {
         if (resolved.rightType === 'whitelisting_60d') rightsSurchargePercent += 0.30;

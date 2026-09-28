@@ -164,7 +164,7 @@ export function InfluencerRadarDashboard() {
     instagram: "",
     tiktok: "",
   });
-  const hasPromptedMissingModal = useRef(false);
+  const forceNextSynthesisBypassCache = useRef(false);
 
   // Platform Ticker Step State (6-8 steps each)
   const [igStepIdx, setIgStepIdx] = useState(0);
@@ -864,7 +864,7 @@ export function InfluencerRadarDashboard() {
     setActivityFeed([]);
     setCreatorMeta(null);
     setCompleteIntelligence(null);
-    hasPromptedMissingModal.current = false;
+    forceNextSynthesisBypassCache.current = false;
 
     // Reset platform states
     setPlatforms({
@@ -914,6 +914,9 @@ export function InfluencerRadarDashboard() {
 
   // Unified 19-Point Omnichannel AI Synthesis Function
   const triggerOmnichannelSynthesis = useCallback(async (bypassCache = false) => {
+    const shouldBypass = bypassCache || forceNextSynthesisBypassCache.current;
+    forceNextSynthesisBypassCache.current = false;
+
     const readyList: Platform[] = [];
     if (platforms.youtube.status === "ready") readyList.push("youtube");
     if (platforms.instagram.status === "ready") readyList.push("instagram");
@@ -922,7 +925,7 @@ export function InfluencerRadarDashboard() {
     if (readyList.length === 0) return;
 
     const currentHash = readyList.map((p) => `${p}:${platforms[p].username || ""}`).sort().join("|");
-    if (currentHash === synthesizedHash.current && !bypassCache) return;
+    if (currentHash === synthesizedHash.current && !shouldBypass) return;
 
     setIsSynthesizing(true);
     addActivity(`SignCollab Profile LLM Engine: Synthesizing 19-point Creator Intelligence across ${readyList.length} platform(s)...`, "info");
@@ -1013,7 +1016,7 @@ export function InfluencerRadarDashboard() {
       const res = await fetch("/api/calculator/synthesize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ multiInput, regionCode: selectedRegion, bypassCache }),
+        body: JSON.stringify({ multiInput, regionCode: selectedRegion, bypassCache: shouldBypass }),
       });
 
       const json = await res.json();
@@ -1091,41 +1094,20 @@ export function InfluencerRadarDashboard() {
     }
   }, [platforms, verifiedChannelsCount, triggerOmnichannelSynthesis]);
 
-  // Prompt Missing Platforms Modal ONLY after valuation has calibrated and settled
-  useEffect(() => {
-    const isAnyInFlight =
-      platforms.instagram.status === "loading" ||
-      platforms.youtube.status === "loading" ||
-      platforms.tiktok.status === "loading";
-
-    if (
-      !isAnyInFlight &&
-      !isSynthesizing &&
-      isValuationCalibrated &&
-      verifiedChannelsCount > 0 &&
-      verifiedChannelsCount < 3 &&
-      !hasPromptedMissingModal.current
-    ) {
-      const modalTimer = setTimeout(() => {
-        setIsMissingModalOpen(true);
-        hasPromptedMissingModal.current = true;
-      }, 2500);
-
-      return () => clearTimeout(modalTimer);
-    }
-  }, [platforms, isSynthesizing, isValuationCalibrated, verifiedChannelsCount]);
-
-  // Handle Missing Platforms Submission
+  // Handle Missing Platforms Submission (invoked on-demand from Radar button or badge)
   const handleSubmitMissingPlatforms = () => {
     setIsMissingModalOpen(false);
 
     if (missingInputs.youtube.trim() && platforms.youtube.status !== "ready") {
+      forceNextSynthesisBypassCache.current = true;
       scrapePlatform(missingInputs.youtube.trim(), "youtube", "User linked YouTube account");
     }
     if (missingInputs.instagram.trim() && platforms.instagram.status !== "ready") {
+      forceNextSynthesisBypassCache.current = true;
       scrapePlatform(missingInputs.instagram.trim(), "instagram", "User linked Instagram account");
     }
     if (missingInputs.tiktok.trim() && platforms.tiktok.status !== "ready") {
+      forceNextSynthesisBypassCache.current = true;
       scrapePlatform(missingInputs.tiktok.trim(), "tiktok", "User linked TikTok account");
     }
   };

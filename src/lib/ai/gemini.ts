@@ -177,7 +177,8 @@ function buildCuratedPromptContext(input: MultiPlatformCreatorInput): string {
   platformDossiers.push(`  [PLATFORM AVAILABILITY & APPROVED CATALOG CONSTRAINTS]
   - ACTIVE VERIFIED PLATFORMS FOR THIS CREATOR: ${activePlatforms.length > 0 ? activePlatforms.join(', ') : 'Cross-Platform'}
   - INACTIVE / UNVERIFIED PLATFORMS: ${inactivePlatforms.length > 0 ? inactivePlatforms.join(', ') : 'None'}
-  * STRICT RULE: You MUST ONLY propose deliverables for ACTIVE platforms (${activePlatforms.join(', ')}). Proposing deliverables for inactive platforms (${inactivePlatforms.join(', ')}) is STRICTLY FORBIDDEN.`);
+  * STRICT RULE: You MUST ONLY propose deliverables for ACTIVE platforms (${activePlatforms.join(', ')}). Proposing deliverables for inactive platforms (${inactivePlatforms.join(', ')}) is STRICTLY FORBIDDEN.
+  * MULTI-PLATFORM SYNERGY MANDATE: When multiple platforms are ACTIVE (${activePlatforms.join(', ')}), EVERY single active platform MUST be strategically utilized and included across the campaign packages (for example, TikTok videos in Paid Creative, Launch, or Reach). Proposing deliverables for inactive platforms is forbidden, but omitting any active platform is also STRICTLY FORBIDDEN.`);
 
   if (input.reportedCountry) {
     platformDossiers.push(`  [CALIBRATED REGIONAL MARKET BASELINE]
@@ -263,11 +264,40 @@ export async function generateCompleteCreatorIntelligence(
         (!cached.intelligence.summary?.oneLine && !cached.intelligence.summary?.brandSummary);
       const isMissingSuite = !cached.intelligence.omnichannelStrategySuite?.packages?.length;
 
-      if (!isBogusCache && !isMissingSuite) {
+      // Platform Coverage Verification:
+      // Check which platforms are active in the current incoming input
+      const activePlatforms: string[] = [];
+      if (input.youtube && ((input.youtube.subscriberCount || 0) > 0 || input.youtube.handle)) {
+        activePlatforms.push('youtube');
+      }
+      if (input.instagram && ((input.instagram.followerCount || 0) > 0 || input.instagram.username)) {
+        activePlatforms.push('instagram');
+      }
+      if (input.tiktok && ((input.tiktok.followerCount || 0) > 0 || input.tiktok.username)) {
+        activePlatforms.push('tiktok');
+      }
+
+      // Check which platforms are represented in the cached omnichannel deliverables
+      const cachedPlatforms = new Set<string>();
+      for (const pkg of cached.intelligence.omnichannelStrategySuite?.packages || []) {
+        for (const d of pkg.deliverables || []) {
+          if (d.platform) {
+            cachedPlatforms.add(d.platform.toLowerCase());
+          }
+        }
+      }
+
+      // If the incoming input has an active platform (e.g. TikTok) that is missing from cached packages,
+      // the cache is partial/stale and MUST be invalidated to include all active platforms.
+      const isMissingActivePlatform = activePlatforms.some((p) => !cachedPlatforms.has(p));
+
+      if (!isBogusCache && !isMissingSuite && !isMissingActivePlatform) {
         console.log(`[CreatorIntelligence Cache Hit] Returning 24h cached intelligence for @${rootHandle} (${cached.cacheAgeHours}h old).`);
         return cached.intelligence;
       }
-      console.log(`[CreatorIntelligence Cache Refresh] Bypassing legacy/incomplete cache for @${rootHandle}.`);
+      console.log(
+        `[CreatorIntelligence Cache Refresh] Bypassing cache for @${rootHandle} (isBogus: ${isBogusCache}, isMissingSuite: ${isMissingSuite}, isMissingActivePlatform: ${isMissingActivePlatform}).`
+      );
     }
   }
 
@@ -458,7 +488,7 @@ PART D: APPROVED DELIVERABLES CATALOG & FORMAT KEYS
 You MUST ONLY propose deliverables for the creator's ACTIVE platforms. Every deliverable formatKey MUST be one of:
 - YouTube: "yt_dedicated" | "yt_integrated" | "yt_short"
 - Instagram: "ig_reel" | "ig_story_sequence" | "ig_carousel" | "ig_static"
-- TikTok: "tiktok_video" (ONLY IF TIKTOK IS ACTIVE)
+- TikTok: "tiktok_video" (MANDATORY IF TIKTOK IS ACTIVE - include in Paid Creative, Launch, and/or Reach packages)
 - Commercial Rights: "meta_whitelisting_30d" | "meta_whitelisting_60d" | "pdp_website_rights_90d" | "category_exclusivity_30d" | "raw_b_roll_buyout" | "pinned_placement_14d"
 DO NOT OUTPUT HARDCODED PRICES ($ or Rs). OUR ENGINE CALCULATES ALL PRICES.
 
