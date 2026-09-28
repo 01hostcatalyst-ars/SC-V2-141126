@@ -625,7 +625,7 @@ export function InfluencerRadarDashboard() {
             engagementRate = Number((((avgLikes + avgComments) / followerCount) * 100).toFixed(2));
           }
 
-          username = profile.username || targetInput.replace(/^@/, "");
+          username = (profile.username || targetInput).replace(/^@+/, "");
           displayName = profile.fullName || profile.username || username;
           avatarUrl = profile.avatarUrl || "";
           biography = profile.biography || "";
@@ -686,7 +686,7 @@ export function InfluencerRadarDashboard() {
             engagementRate = Number((((avgLikes + avgComments) / avgViews) * 100).toFixed(2));
           }
 
-          username = channel.handle || channel.title || targetInput;
+          username = (channel.handle || channel.title || targetInput).replace(/^@+/, "");
           displayName = channel.title || username;
           avatarUrl = channel.avatarUrl || "";
           biography = channel.description || "";
@@ -725,7 +725,7 @@ export function InfluencerRadarDashboard() {
             engagementRate = Number((((avgLikes + avgComments + avgShares) / avgViews) * 100).toFixed(2));
           }
 
-          username = profile.username || targetInput.replace(/^@/, "");
+          username = (profile.username || targetInput).replace(/^@+/, "");
           displayName = profile.nickname || profile.username || username;
           avatarUrl = profile.avatarUrl || "";
           biography = profile.biography || "";
@@ -812,7 +812,7 @@ export function InfluencerRadarDashboard() {
           if (!prev) {
             return {
               displayName: displayName || username,
-              primaryUsername: username,
+              primaryUsername: username.replace(/^@+/, ""),
               avatarUrl,
               primaryPlatform: targetPlatform,
             };
@@ -1212,8 +1212,8 @@ export function InfluencerRadarDashboard() {
       from: "calculator",
       creator: creatorMeta?.displayName || "Creator",
       creatorName: creatorMeta?.displayName || "Creator",
-      handle: creatorMeta?.primaryUsername || "",
-      creatorHandle: creatorMeta?.primaryUsername || "",
+      handle: (creatorMeta?.primaryUsername || "").replace(/^@+/, ""),
+      creatorHandle: (creatorMeta?.primaryUsername || "").replace(/^@+/, ""),
       platform: (creatorMeta?.primaryPlatform || "instagram").toUpperCase(),
       currency: REGIONAL_CONFIG[selectedRegion]?.currency || "USD",
       region: selectedRegion,
@@ -1629,7 +1629,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                       </span>
                       {creatorMeta?.primaryUsername && (
                         <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">
-                          @{creatorMeta.primaryUsername}
+                          @{creatorMeta.primaryUsername.replace(/^@+/, "")}
                         </span>
                       )}
                       {isValuationCalibrated ? (
@@ -1720,7 +1720,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Multi-Channel Profile
                         </span>
                       </div>
-                      <div className="text-xs text-zinc-400 font-mono">@{creatorMeta.primaryUsername}</div>
+                      <div className="text-xs text-zinc-400 font-mono">@{creatorMeta.primaryUsername.replace(/^@+/, "")}</div>
                     </div>
                   </div>
 
@@ -2526,7 +2526,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                     Unlock Complete 360° Report
                   </h3>
                   <p className="text-xs text-zinc-500 leading-relaxed">
-                    We verified <strong className="text-zinc-900 font-semibold">{verifiedChannelsCount} channel(s)</strong> for @{creatorMeta?.displayName || "Creator"}, but couldn&apos;t automatically discover all 3 channels in the bio. Add unfound handles to calculate multi-platform bundle rates &amp; full intelligence.
+                    We verified <strong className="text-zinc-900 font-semibold">{verifiedChannelsCount} channel(s)</strong> for {creatorMeta?.displayName || "Creator"}, but couldn&apos;t automatically discover all 3 channels in the bio. Add unfound handles to calculate multi-platform bundle rates &amp; full intelligence.
                   </p>
                 </div>
 
@@ -3283,7 +3283,7 @@ function TikTokVideosGrid({
             </div>
 
             <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] font-mono text-gray-400">
-              <span>@{username}</span>
+              <span>@{username?.replace(/^@+/, "")}</span>
               <a
                 href={vid.url}
                 target="_blank"
@@ -3402,7 +3402,7 @@ function RadarProgressStation({
               </span>
             </div>
             <p className="text-[11px] text-zinc-500 font-mono mt-0.5">
-              Target Creator: <span className="text-zinc-900 font-semibold">@{inputQuery.replace(/^@/, "")}</span>
+              Target Creator: <span className="text-zinc-900 font-semibold">@{inputQuery.replace(/^@+/, "")}</span>
             </p>
           </div>
         </div>

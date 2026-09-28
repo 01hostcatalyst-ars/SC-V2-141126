@@ -241,9 +241,9 @@ export function PlatformRateCard({
                 )}
                 <div className="min-w-0">
                   <div className="text-xs font-semibold text-zinc-900 truncate">
-                    {data.displayName || `@${data.username}`}
+                    {data.displayName || `@${data.username?.replace(/^@+/, "")}`}
                   </div>
-                  <div className="text-[10px] text-zinc-500 font-mono truncate">@{data.username}</div>
+                  <div className="text-[10px] text-zinc-500 font-mono truncate">@{data.username?.replace(/^@+/, "")}</div>
                 </div>
               </div>
 

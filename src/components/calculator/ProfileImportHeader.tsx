@@ -260,7 +260,7 @@ export function ProfileImportHeader({
                     {importedCreator.platform}
                   </span>
                 </div>
-                <span className="text-xs font-bold text-gray-500">@{importedCreator.username}</span>
+                <span className="text-xs font-bold text-gray-500">@{importedCreator.username?.replace(/^@+/, "")}</span>
               </div>
             </div>
 

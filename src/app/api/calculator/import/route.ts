@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       }
 
       followerCount = ytData.channel.subscriberCount;
-      username = ytData.channel.handle || ytData.channel.title;
+      username = (ytData.channel.handle || ytData.channel.title || '').replace(/^@+/, '');
       displayName = ytData.channel.title;
       biography = ytData.channel.description;
       avatarUrl = ytData.channel.avatarUrl;
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       avgLikes = igData.stats.avgLikesPerPost || 0;
       avgComments = igData.stats.avgCommentsPerPost || 0;
       avgViews = 0;
-      username = igData.profile.username;
+      username = (igData.profile.username || '').replace(/^@+/, '');
       displayName = igData.profile.fullName || igData.profile.username;
       biography = igData.profile.biography;
       avatarUrl = igData.profile.avatarUrl;
@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
       avgComments = ttData.stats.avgCommentsPerVideo || 0;
       avgViews = ttData.stats.avgViewsPerVideo || 0;
       avgShares = ttData.stats.avgSharesPerVideo || 0;
-      username = ttData.profile.username;
+      username = (ttData.profile.username || '').replace(/^@+/, '');
       displayName = ttData.profile.nickname || ttData.profile.username;
       biography = ttData.profile.biography;
       avatarUrl = ttData.profile.avatarUrl;

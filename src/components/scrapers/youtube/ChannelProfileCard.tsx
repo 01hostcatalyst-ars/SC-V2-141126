@@ -135,7 +135,9 @@ export function ChannelProfileCard({
             </div>
 
             <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-semibold text-gray-500">
-              <span className="text-gray-900 font-bold">{channel.handle || `@${channel.title}`}</span>
+              <span className="text-gray-900 font-bold">
+                {channel.handle ? (channel.handle.startsWith("@") ? channel.handle : `@${channel.handle}`) : `@${channel.title}`}
+              </span>
               <span className="text-gray-300">•</span>
               <button
                 type="button"
