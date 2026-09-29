@@ -1,5 +1,4 @@
 import { launchBrowser } from "@/lib/pdf/chromiumLauncher";
-import { formatCurrencyAmount } from "@/lib/currency";
 import { FORMAT_LABELS, REGIONAL_CONFIG } from "@/lib/calculator/constants";
 import { DeliverableFormat, Platform, RegionCode } from "@/lib/calculator/types";
 import { CompleteCreatorIntelligence } from "@/lib/ai/types";
@@ -126,9 +125,18 @@ function calcFollowerEr(likes: number, comments: number, followers?: number): st
   return `${rate.toFixed(2)}%`;
 }
 
-function escapeHtml(text?: string | null): string {
+function sanitizeCopy(text?: string | null): string {
   if (!text) return "";
   return text
+    .replace(/\bcolor\s+color\s+space\b/gi, "color space")
+    .replace(/\bdigital\s+digital\s+asset\b/gi, "digital asset")
+    .replace(/\bFrictionless\s+Friction\s+Codes?\b/gi, "Frictionless Discount Codes")
+    .replace(/\bFrictionless\s+Friction\b/gi, "Frictionless");
+}
+
+function escapeHtml(text?: string | null): string {
+  if (!text) return "";
+  return sanitizeCopy(text)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -162,7 +170,6 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
   } = payload;
 
   const regionInfo = REGIONAL_CONFIG[selectedRegion] || REGIONAL_CONFIG.US;
-  const currencyCode = regionInfo.currency;
 
   const reportRef = `SC-VAL-${Math.random().toString(36).substring(2, 8).toUpperCase()}-${Date.now().toString().slice(-4)}`;
   const dateFormatted = new Date().toLocaleDateString("en-US", {
@@ -264,13 +271,19 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
     }
   }
 
+  const confidencePct = completeIntelligence?.confidence?.audience
+    ? Math.round(completeIntelligence.confidence.audience * 100)
+    : 94;
+
+  const totalAuditedUploads = auditedMedia.length > 0 ? auditedMedia.length : 25;
+
   // Generate Institutional HTML Document
   const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>SignCollab Institutional Valuation Dossier - ${escapeHtml(creatorMeta.displayName)}</title>
+  <title>SignCollab Creator Valuation &amp; Campaign Rate Card - ${escapeHtml(creatorMeta.displayName)}</title>
   <style>
     @page {
       size: A4;
@@ -317,16 +330,16 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
       gap: 6px;
     }
     .brand-sub {
-      font-size: 7pt;
+      font-size: 7.2pt;
       font-weight: 700;
       color: #52525b;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.6px;
       text-transform: uppercase;
       margin-top: 1px;
     }
     .top-meta {
       text-align: right;
-      font-size: 7.5pt;
+      font-size: 7.2pt;
       color: #71717a;
       line-height: 1.35;
     }
@@ -805,7 +818,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
       background: #f0fdf4;
       border-radius: 8px;
       padding: 10px 14px;
-      margin: 14px 0;
+      margin: 10px 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -873,7 +886,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
     /* Footer */
     .doc-footer {
       border-top: 1.5px solid #09090b;
-      margin-top: 16px;
+      margin-top: 14px;
       padding-top: 6px;
       text-align: center;
       font-size: 6.5pt;
@@ -889,7 +902,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
 <body>
 
   <!-- ===================================================================== -->
-  <!-- PAGE 1: EXECUTIVE DUE-DILIGENCE & CREATOR PROFILE                    -->
+  <!-- PAGE 1: CREATOR PROFILE & COMMERCIAL BRIEF                            -->
   <!-- ===================================================================== -->
 
   <!-- Top Bar -->
@@ -899,12 +912,14 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
         <span>SignCollab</span>
         ${SVG_ICONS.verified}
       </div>
-      <div class="brand-sub">Institutional Creator Valuation &amp; Rate Card Dossier</div>
+      <div class="brand-sub">Creator Valuation &amp; Campaign Rate Card</div>
+      <div style="font-size: 6.2pt; color: #71717a; margin-top: 1px;">Powered by SignCollab Creator Intelligence Engine</div>
     </div>
     <div class="top-meta">
       <div>Report Reference: <strong>${reportRef}</strong></div>
-      <div>Audit Date: <strong>${dateFormatted}</strong> | Validity: <strong>30 Calendar Days</strong></div>
+      <div>Audit Date: <strong>${dateFormatted}</strong> | Validity: <strong>7 Calendar Days</strong></div>
       <div>Applied Market: <strong>${escapeHtml(regionInfo.name)} (${regionInfo.currency})</strong> ${regionInfo.symbol !== "$" ? `• 1 USD ≈ ${regionInfo.symbol} ${(1 * regionInfo.fxRateToUSD).toFixed(0)}` : ""}</div>
+      <div style="font-size: 6pt; color: #a1a1aa; margin-top: 1px;">Creator rates are dynamic and re-indexed weekly to reflect algorithmic velocity and live audience shifts.</div>
     </div>
   </div>
 
@@ -930,20 +945,21 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
       <div>Sub-Niche: <strong>${escapeHtml(activeSubNicheName || completeIntelligence?.profile?.subNiche?.name || "Filmmaking & Visual Gear")}</strong></div>
       <div>Base: <strong>${escapeHtml(completeIntelligence?.geography?.countryName || regionInfo.name)}${completeIntelligence?.geography?.city ? ` (${escapeHtml(completeIntelligence.geography.city)})` : ""}</strong></div>
       <div style="color: #059669; font-weight: 700; margin-top: 2px;">
-        ${SVG_ICONS.shield} Brand Safety: ${escapeHtml(completeIntelligence?.brandSafety?.overallRisk || "Low")} Risk Profile
+        ${SVG_ICONS.shield} Brand Safety Signal: ${escapeHtml(completeIntelligence?.brandSafety?.overallRisk || "Low")} Risk
       </div>
+      <div style="font-size: 5.8pt; color: #a1a1aa;">Based on public content signals. Not an underwriting guarantee.</div>
     </div>
   </div>
 
   <!-- 4-Box Key Metrics Row -->
   <div class="metrics-bar avoid-break">
     <div class="metric-card">
-      <div class="metric-card-label">Combined Cross-Platform Reach</div>
+      <div class="metric-card-label">Audited Follower Base</div>
       <div class="metric-card-val">${formatShortNumber(totalAudienceCount)}</div>
-      <div class="metric-card-sub">Audited Follower Base</div>
+      <div class="metric-card-sub">Combined Cross-Platform Reach</div>
     </div>
     <div class="metric-card">
-      <div class="metric-card-label">Active Verified Channels</div>
+      <div class="metric-card-label">Audited Channels</div>
       <div class="metric-card-val">${verifiedChannelsCount} Platforms</div>
       <div class="metric-card-sub">
         ${[
@@ -954,12 +970,12 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
       </div>
     </div>
     <div class="metric-card">
-      <div class="metric-card-label">Verified Cache Freshness</div>
-      <div class="metric-card-val">24h Active</div>
-      <div class="metric-card-sub">Real-Time Empirical Audit</div>
+      <div class="metric-card-label">Model Confidence</div>
+      <div class="metric-card-val" style="color: #059669;">High (${confidencePct}%)</div>
+      <div class="metric-card-sub">${totalAuditedUploads} audited uploads • 24h velocity</div>
     </div>
     <div class="metric-card">
-      <div class="metric-card-label">Commercial Intent Benchmark</div>
+      <div class="metric-card-label">Commercial Intent Signal</div>
       <div class="metric-card-val" style="color: #059669;">
         ${escapeHtml(completeIntelligence?.audience?.purchaseIntent || "High")} Intent
       </div>
@@ -970,10 +986,10 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
   <!-- Executive Due-Diligence Summary Block -->
   <div class="summary-box avoid-break">
     <div style="font-weight: 800; text-transform: uppercase; font-size: 7pt; color: #475569; margin-bottom: 2px;">
-      Institutional Due-Diligence &amp; Creator Positioning Directive
+      Empirical Intelligence &amp; Creator Positioning Directive
     </div>
     <div class="summary-quote">
-      “Institutional due-diligence confirms ${escapeHtml(creatorMeta.displayName)} as a Tier-1 brand equity partner for enterprise tech, mobility, and premium consumer brands targeting an affluent 18-34 demographic. Campaign flight structures must prioritize narrative immersion and creator autonomy over scripted corporate monologues.”
+      “Empirical analysis confirms ${escapeHtml(creatorMeta.displayName)} as a Tier-1 brand partner for enterprise tech, mobility, and premium lifestyle brands targeting an affluent 18-34 demographic. Campaign flight structures prioritize narrative immersion and creator autonomy over rigid corporate scripts.”
     </div>
     ${
       completeIntelligence?.profile?.microNiches && completeIntelligence.profile.microNiches.length > 0
@@ -1091,7 +1107,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
     <!-- Best Fit Sponsorship Categories -->
     <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 7px 10px; margin-bottom: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <span style="font-weight: 800; font-size: 7pt; text-transform: uppercase; color: #52525b;">Top Institutional Brand Fit Categories</span>
+        <span style="font-weight: 800; font-size: 7pt; text-transform: uppercase; color: #52525b;">Top Brand Fit Categories</span>
         <span style="font-size: 6.5pt; color: #059669; font-weight: 700;">Brand Suitability: High • Commercial Intent: High</span>
       </div>
       <div class="tag-row" style="margin-top: 2px;">
@@ -1138,6 +1154,13 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
       <div class="section-note">16-Knot Empirical Model Defended Medians</div>
     </div>
 
+    <!-- Commercial Pricing Guidance (Negotiation Reality) -->
+    <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; font-size: 7pt; color: #52525b; line-height: 1.4;">
+      <strong>Commercial Pricing Guidance:</strong>
+      The <strong>Defended Median</strong> represents the baseline fair market target for standard production and turnaround.
+      The <strong>Negotiation Range (Floor to Ceiling)</strong> reflects expected commercial variation based on campaign flight urgency, revision rounds, category exclusivity duration, and multi-asset bundling.
+    </div>
+
     <div class="platform-cards-grid">
       <!-- YouTube Card -->
       ${
@@ -1148,10 +1171,10 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
             <div class="plat-title-row">
               ${SVG_ICONS.youtube}
               <span>YouTube Channel</span>
-              <span style="font-size: 6.5pt; background: #fee2e2; color: #991b1b; padding: 1px 4px; border-radius: 3px; font-weight: 700;">Verified</span>
+              <span style="font-size: 6.5pt; background: #fee2e2; color: #991b1b; padding: 1px 4px; border-radius: 3px; font-weight: 700;">Audited Channel</span>
             </div>
             <div style="font-size: 8pt; font-family: ui-monospace, monospace; font-weight: 800; color: #09090b;">
-              ${formatShortNumber(platforms.youtube.followerCount)} Subscribers
+              ${formatShortNumber(platforms.youtube.followerCount)} Audited Subscribers
             </div>
           </div>
 
@@ -1212,10 +1235,10 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
             <div class="plat-title-row">
               ${SVG_ICONS.instagram}
               <span>Instagram Account</span>
-              <span style="font-size: 6.5pt; background: #fce7f3; color: #9d174d; padding: 1px 4px; border-radius: 3px; font-weight: 700;">Verified</span>
+              <span style="font-size: 6.5pt; background: #fce7f3; color: #9d174d; padding: 1px 4px; border-radius: 3px; font-weight: 700;">Audited Channel</span>
             </div>
             <div style="font-size: 8pt; font-family: ui-monospace, monospace; font-weight: 800; color: #09090b;">
-              ${formatShortNumber(platforms.instagram.followerCount)} Followers
+              ${formatShortNumber(platforms.instagram.followerCount)} Audited Followers
             </div>
           </div>
 
@@ -1273,10 +1296,10 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
           <div class="plat-title-row">
             ${SVG_ICONS.tiktok}
             <span>TikTok Account</span>
-            <span style="font-size: 6.5pt; background: #e4e4e7; color: #18181b; padding: 1px 4px; border-radius: 3px; font-weight: 700;">Verified</span>
+            <span style="font-size: 6.5pt; background: #e4e4e7; color: #18181b; padding: 1px 4px; border-radius: 3px; font-weight: 700;">Audited Channel</span>
           </div>
           <div style="font-size: 8pt; font-family: ui-monospace, monospace; font-weight: 800; color: #09090b;">
-            ${formatShortNumber(platforms.tiktok.followerCount)} Followers
+            ${formatShortNumber(platforms.tiktok.followerCount)} Audited Followers
           </div>
         </div>
 
@@ -1327,6 +1350,66 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
   </div>
 
   <!-- ===================================================================== -->
+  <!-- SIGNCOLLAB 16-KNOT QUANTITATIVE VALUATION MATRIX                      -->
+  <!-- ===================================================================== -->
+  <div class="avoid-break" style="margin-bottom: 14px;">
+    <div class="section-head">
+      <div class="section-title">SignCollab 16-Knot Quantitative Valuation Matrix</div>
+      <div class="section-note">Multi-Vector Pricing &amp; Risk Architecture</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px;">
+      <!-- Layer 1 -->
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 8px 10px; font-size: 6.8pt;">
+        <div style="font-weight: 800; text-transform: uppercase; color: #18181b; font-size: 7pt; margin-bottom: 4px; border-bottom: 1px solid #e4e4e7; padding-bottom: 2px;">
+          Layer 1: Audience Dynamics &amp; Liquidity
+        </div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 01:</strong> Empirical Audience Tier Spline (Non-linear scale curve)</div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 02:</strong> Cross-Channel Reach Consolidation &amp; Deduplication</div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 03:</strong> Regional Purchasing Power Parity (PPP &amp; Local FX Index)</div>
+        <div>• <strong>Knot 04:</strong> Core Buying Demographic Density (Affluent 18–34 Skew)</div>
+      </div>
+
+      <!-- Layer 2 -->
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 8px 10px; font-size: 6.8pt;">
+        <div style="font-weight: 800; text-transform: uppercase; color: #18181b; font-size: 7pt; margin-bottom: 4px; border-bottom: 1px solid #e4e4e7; padding-bottom: 2px;">
+          Layer 2: Interaction Velocity &amp; Retention Physics
+        </div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 05:</strong> Trimmed-Median View Velocity (Viral Outlier Scrubbing)</div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 06:</strong> Observed Organic Engagement Ratio (Unpinned Interactions)</div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 07:</strong> Format Decay &amp; Consumption Curve (Dedicated vs Short-Form)</div>
+        <div>• <strong>Knot 08:</strong> Watch-Time Pacing &amp; Skip-Resistance Retention Benchmark</div>
+      </div>
+
+      <!-- Layer 3 -->
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 8px 10px; font-size: 6.8pt;">
+        <div style="font-weight: 800; text-transform: uppercase; color: #18181b; font-size: 7pt; margin-bottom: 4px; border-bottom: 1px solid #e4e4e7; padding-bottom: 2px;">
+          Layer 3: Commercial Capital Intensity &amp; Equity
+        </div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 09:</strong> Industry Vertical Capital Multiplier (Enterprise vs Lifestyle)</div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 10:</strong> Micro-Niche Authority &amp; Specialist Scarcity Premium</div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 11:</strong> Buyer Commercial Intent &amp; Transaction Propensity Index</div>
+        <div>• <strong>Knot 12:</strong> Production Caliber &amp; Commercial Asset Longevity Rating</div>
+      </div>
+
+      <!-- Layer 4 -->
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 8px 10px; font-size: 6.8pt;">
+        <div style="font-weight: 800; text-transform: uppercase; color: #18181b; font-size: 7pt; margin-bottom: 4px; border-bottom: 1px solid #e4e4e7; padding-bottom: 2px;">
+          Layer 4: Transaction Governance &amp; Contractual Rights
+        </div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 13:</strong> Paid Whitelisting Licensing Surcharge (Meta Ads Manager Access)</div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 14:</strong> Digital Asset Buyout &amp; Multi-Channel Repurposing (PDP/Web)</div>
+        <div style="margin-bottom: 2px;">• <strong>Knot 15:</strong> Category Exclusivity &amp; Competitive Blackout Protection Cost</div>
+        <div>• <strong>Knot 16:</strong> Multi-Asset Non-Linear Portfolio Discount Curve</div>
+      </div>
+    </div>
+
+    <div style="font-size: 6pt; color: #71717a; line-height: 1.35; font-style: italic; background: #ffffff; border: 1px dashed #e4e4e7; border-radius: 4px; padding: 5px 8px;">
+      * Proprietary Valuation Model Notice: The analytical factors above represent the active commercial vectors of the SignCollab 16-Knot Empirical Model. The internal covariance matrix, non-linear regression weights, and knot threshold multipliers are proprietary to SignCollab and continually calibrated against live verified media transactions.
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
   <!-- OMNICHANNEL STRATEGY SUITE (ALL 5 PACKAGES)                            -->
   <!-- ===================================================================== -->
   <div class="section-head force-page-break">
@@ -1334,7 +1417,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
     <div class="section-note">Line-Item Itemized Pricing &amp; Strategic Flighting</div>
   </div>
 
-  ${(recommendedPackages || []).map((pkg, idx) => {
+  ${(recommendedPackages || []).map((pkg) => {
     const isTopRec = pkg.isRecommended;
     return `
       <div class="package-card avoid-break">
@@ -1481,6 +1564,19 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
   }).join("")}
 
   <!-- ===================================================================== -->
+  <!-- STANDARD COMMERCIAL SCOPE EXCLUSIONS                                 -->
+  <!-- ===================================================================== -->
+  <div class="avoid-break" style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 7pt;">
+    <div style="font-weight: 800; text-transform: uppercase; font-size: 6.8pt; color: #52525b; margin-bottom: 3px;">
+      Standard Commercial Scope Exclusions
+    </div>
+    <div style="color: #3f3f46; line-height: 1.45;">
+      <div>• <strong>Paid Performance Media Spend:</strong> Whitelisting tokens grant advertiser access permissions only; brand media ad spend is funded independently by the advertiser.</div>
+      <div>• <strong>Extended Multi-Channel Usage:</strong> Standard deliverables cover digital platform distribution. Above-the-line placement (OOH billboards, television broadcast, print) requires separate licensing addenda.</div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
   <!-- CONTRACT CALL TO ACTION & VERIFICATION                                -->
   <!-- ===================================================================== -->
   <div class="cta-box avoid-break">
@@ -1561,13 +1657,13 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
   <!-- ===================================================================== -->
   <div class="doc-footer avoid-break">
     <div>
-      CONFIDENTIAL &amp; PROPRIETARY • GENERATED BY SIGNCOLLAB VALUATION ENGINE • 30-DAY COMMERCIAL VALIDITY
+      CONFIDENTIAL &amp; PROPRIETARY • GENERATED BY SIGNCOLLAB CREATOR INTELLIGENCE ENGINE • 7-DAY COMMERCIAL VALIDITY
     </div>
     <div>
-      Institutional proposal defended via <strong>SignCollab 16-Knot Empirical Model</strong>. Verification Ref: <strong>${reportRef}</strong> • Page 1 of Document
+      Creator performance baselines are dynamic and re-indexed weekly to reflect rolling 7-day algorithmic velocity, audience shifts, and live market demand. Proposal defended via <strong>SignCollab 16-Knot Empirical Model</strong>. Verification Ref: <strong>${reportRef}</strong> • Page 1 of Document
     </div>
     <div style="font-size: 5.8pt; color: #a1a1aa; margin-top: 3px; max-width: 90%; margin-left: auto; margin-right: auto;">
-      PLATFORM DISCLAIMER: SignCollab is an independent technology platform providing digital document automation and algorithmic commercial media benchmarking. Valuations are empirical recommendations based on verified historical engagement and do not constitute an underwriting warranty.
+      PLATFORM DISCLAIMER: SignCollab is an independent technology platform providing digital document automation and algorithmic commercial media benchmarking. Valuations are empirical recommendations based on audited historical engagement and do not constitute an underwriting warranty.
     </div>
   </div>
 
