@@ -1823,7 +1823,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
 
                   {/* Combined Audience Badge & PDF Export */}
                   <div className="flex flex-wrap items-center gap-3 shrink-0">
-                    <div className="flex items-center gap-4 text-xs bg-zinc-50 p-2.5 rounded-xl border border-zinc-200/70 shrink-0">
+                    <div className="flex items-center gap-3 sm:gap-4 text-xs bg-zinc-50 p-2.5 rounded-xl border border-zinc-200/70 shrink-0">
                       <div>
                         <div className="text-[10px] text-zinc-400 font-medium uppercase">Combined Reach</div>
                         <div className="text-sm font-semibold font-mono text-zinc-950">
@@ -1832,9 +1832,16 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                       </div>
                       <div className="w-px h-6 bg-zinc-200" />
                       <div>
-                        <div className="text-[10px] text-zinc-400 font-medium uppercase">Active Channels</div>
+                        <div className="text-[10px] text-zinc-400 font-medium uppercase">Audited Channels</div>
                         <div className="text-sm font-semibold font-mono text-zinc-950">
                           {verifiedChannelsCount} Platforms
+                        </div>
+                      </div>
+                      <div className="w-px h-6 bg-zinc-200 hidden sm:block" />
+                      <div className="hidden sm:block">
+                        <div className="text-[10px] text-zinc-400 font-medium uppercase">Model Confidence</div>
+                        <div className="text-sm font-semibold font-mono text-emerald-600 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> High ({completeIntelligence?.confidence?.audience ? Math.round(completeIntelligence.confidence.audience * 100) : 94}%)
                         </div>
                       </div>
                     </div>

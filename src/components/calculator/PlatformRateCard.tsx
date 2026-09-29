@@ -281,8 +281,9 @@ export function PlatformRateCard({
 
             {/* Itemized Deliverables Pricing List */}
             <div className="space-y-1.5 pt-1">
-              <div className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">
-                Deliverable Valuations (Defended Medians)
+              <div className="flex items-center justify-between px-1 text-[10px] text-zinc-500">
+                <span className="font-medium uppercase tracking-wider">Deliverable Valuations</span>
+                <span className="text-[9px] text-zinc-400 font-normal">Defended Median • Range = Negotiation Band</span>
               </div>
               {data.rateCardItems?.map((item) => {
                 const labelInfo = FORMAT_LABELS[item.format] || { label: item.format, tag: "Item" };

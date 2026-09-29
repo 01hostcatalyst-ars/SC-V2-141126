@@ -12,6 +12,7 @@ import {
   Globe,
   HelpCircle,
   ShieldCheck,
+  Layers,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -96,6 +97,14 @@ const jsonLd = {
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "The SignCollab Influencer Rate Calculator is an AI-powered creator valuation system that analyzes creator footprints across Instagram, YouTube, and TikTok to provide methodology-based sponsorship rate ranges, itemized deliverable pricing, and strategic creator intelligence dossiers.",
+          },
+        },
+        {
+          "@type": "Question",
+          "name": "How does the SignCollab 16-Knot Quantitative Valuation Matrix calculate creator rates?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The SignCollab 16-Knot Quantitative Valuation Matrix calculates creator sponsorship rates across four empirical layers: Audience Dynamics & Liquidity (scale curves, cross-channel reach consolidation, regional PPP, demographic skew), Interaction Velocity & Retention Physics (trimmed-median views, organic engagement, format decay curves, retention pacing), Commercial Capital Intensity & Equity (industry vertical multipliers, micro-niche authority, buyer purchasing intent, production caliber), and Transaction Governance & Rights (whitelisting surcharges, digital asset buyouts, exclusivity protections, and multi-asset bundle discounts).",
           },
         },
         {
@@ -271,6 +280,83 @@ export default function InfluencerRateCalculatorPage() {
                 <p className="text-xs text-zinc-500 leading-relaxed mt-2.5 pt-2 border-t border-zinc-100">
                   The SignCollab Influencer Rate Calculator is an AI-powered creator valuation system that analyzes creator footprints across Instagram, YouTube, and TikTok to provide methodology-based sponsorship rate ranges, itemized deliverable pricing, and strategic creator intelligence dossiers.
                 </p>
+              </details>
+
+              <details className="group surface-card p-4 sm:p-5 rounded-xl border border-zinc-200/90 shadow-2xs open:border-zinc-300 transition-all">
+                <summary className="font-medium text-zinc-900 text-xs sm:text-sm cursor-pointer list-none flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>How does the SignCollab 16-Knot Quantitative Valuation Matrix calculate creator rates?</span>
+                  </span>
+                  <span className="text-zinc-400 group-open:rotate-180 transition-transform text-xs">▼</span>
+                </summary>
+                <div className="text-xs text-zinc-600 leading-relaxed mt-3 pt-3 border-t border-zinc-100 space-y-3.5">
+                  <p>
+                    Unlike simplistic follower-tier multipliers, the <strong>SignCollab 16-Knot Quantitative Valuation Matrix</strong> operates on a multi-layer vector architecture that evaluates creator pricing across four interdependent commercial dimensions:
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    {/* Layer 1 */}
+                    <div className="p-3.5 rounded-xl bg-zinc-50/80 border border-zinc-200/80 space-y-2">
+                      <div className="text-[11px] font-bold text-zinc-900 uppercase tracking-wide border-b border-zinc-200 pb-1.5 flex items-center justify-between">
+                        <span>Layer 1: Audience Dynamics &amp; Liquidity</span>
+                        <span className="text-[10px] text-zinc-500 font-mono">Knots 01–04</span>
+                      </div>
+                      <ul className="space-y-1.5 text-[11px] text-zinc-600">
+                        <li>• <strong className="text-zinc-800">Knot 01:</strong> Empirical Audience Tier Spline (Non-linear scale curve)</li>
+                        <li>• <strong className="text-zinc-800">Knot 02:</strong> Cross-Channel Reach Consolidation &amp; Deduplication</li>
+                        <li>• <strong className="text-zinc-800">Knot 03:</strong> Regional Purchasing Power Parity (PPP &amp; Local FX Index)</li>
+                        <li>• <strong className="text-zinc-800">Knot 04:</strong> Core Buying Demographic Density (Affluent 18–34 Skew)</li>
+                      </ul>
+                    </div>
+
+                    {/* Layer 2 */}
+                    <div className="p-3.5 rounded-xl bg-zinc-50/80 border border-zinc-200/80 space-y-2">
+                      <div className="text-[11px] font-bold text-zinc-900 uppercase tracking-wide border-b border-zinc-200 pb-1.5 flex items-center justify-between">
+                        <span>Layer 2: Interaction Velocity &amp; Retention</span>
+                        <span className="text-[10px] text-zinc-500 font-mono">Knots 05–08</span>
+                      </div>
+                      <ul className="space-y-1.5 text-[11px] text-zinc-600">
+                        <li>• <strong className="text-zinc-800">Knot 05:</strong> Trimmed-Median View Velocity (Viral Outlier Scrubbing)</li>
+                        <li>• <strong className="text-zinc-800">Knot 06:</strong> Observed Organic Engagement Ratio (Unpinned Interactions)</li>
+                        <li>• <strong className="text-zinc-800">Knot 07:</strong> Format Decay &amp; Consumption Curve (Dedicated vs Shorts)</li>
+                        <li>• <strong className="text-zinc-800">Knot 08:</strong> Watch-Time Pacing &amp; Skip-Resistance Retention</li>
+                      </ul>
+                    </div>
+
+                    {/* Layer 3 */}
+                    <div className="p-3.5 rounded-xl bg-zinc-50/80 border border-zinc-200/80 space-y-2">
+                      <div className="text-[11px] font-bold text-zinc-900 uppercase tracking-wide border-b border-zinc-200 pb-1.5 flex items-center justify-between">
+                        <span>Layer 3: Commercial Capital Intensity &amp; Equity</span>
+                        <span className="text-[10px] text-zinc-500 font-mono">Knots 09–12</span>
+                      </div>
+                      <ul className="space-y-1.5 text-[11px] text-zinc-600">
+                        <li>• <strong className="text-zinc-800">Knot 09:</strong> Industry Vertical Capital Multiplier (Enterprise vs Lifestyle)</li>
+                        <li>• <strong className="text-zinc-800">Knot 10:</strong> Micro-Niche Authority &amp; Specialist Scarcity Premium</li>
+                        <li>• <strong className="text-zinc-800">Knot 11:</strong> Buyer Commercial Intent &amp; Transaction Propensity Index</li>
+                        <li>• <strong className="text-zinc-800">Knot 12:</strong> Production Caliber &amp; Commercial Asset Longevity Rating</li>
+                      </ul>
+                    </div>
+
+                    {/* Layer 4 */}
+                    <div className="p-3.5 rounded-xl bg-zinc-50/80 border border-zinc-200/80 space-y-2">
+                      <div className="text-[11px] font-bold text-zinc-900 uppercase tracking-wide border-b border-zinc-200 pb-1.5 flex items-center justify-between">
+                        <span>Layer 4: Transaction Governance &amp; Rights</span>
+                        <span className="text-[10px] text-zinc-500 font-mono">Knots 13–16</span>
+                      </div>
+                      <ul className="space-y-1.5 text-[11px] text-zinc-600">
+                        <li>• <strong className="text-zinc-800">Knot 13:</strong> Paid Whitelisting Licensing Surcharge (Ads Manager Access)</li>
+                        <li>• <strong className="text-zinc-800">Knot 14:</strong> Digital Asset Buyout &amp; Multi-Channel Repurposing (PDP/Web)</li>
+                        <li>• <strong className="text-zinc-800">Knot 15:</strong> Category Exclusivity &amp; Competitive Blackout Protection Cost</li>
+                        <li>• <strong className="text-zinc-800">Knot 16:</strong> Multi-Asset Non-Linear Portfolio Discount Curve</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] text-zinc-400 italic pt-1.5 border-t border-zinc-100">
+                    * Proprietary Valuation Model Notice: The analytical factors above represent the active commercial vectors of the SignCollab 16-Knot Empirical Model. The internal covariance matrix, non-linear regression weights, and knot threshold multipliers are proprietary to SignCollab and continually calibrated against live verified media transactions.
+                  </p>
+                </div>
               </details>
 
               <details className="group surface-card p-4 rounded-xl border border-zinc-200/90 shadow-2xs open:border-zinc-300 transition-all">
