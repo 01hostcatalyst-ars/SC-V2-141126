@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateRateCardPDF, RateCardPdfPayload } from "@/lib/pdf/generateRateCardPdf";
 
 export const maxDuration = 60; // Allow sufficient time for Puppeteer PDF render
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {

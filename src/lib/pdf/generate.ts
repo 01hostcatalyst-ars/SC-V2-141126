@@ -1,5 +1,4 @@
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import { launchBrowser } from "@/lib/pdf/chromiumLauncher";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
@@ -624,41 +623,19 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
   `;
 
   // 3. Launch Puppeteer PDF Renderer
-  let executablePath = "";
-  if (process.platform === "win32") {
-    const fs = require("fs");
-    const paths = [
-      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-    ];
-    for (const p of paths) {
-      if (fs.existsSync(p)) {
-        executablePath = p;
-        break;
-      }
-    }
-    if (!executablePath) {
-      throw new Error("Could not locate local Chrome or Edge browser executable on Windows.");
-    }
-  } else {
-    executablePath = await chromium.executablePath();
+  const browser = await launchBrowser();
+  let pdfBuffer: Uint8Array;
+  try {
+    const page = await browser.newPage();
+    await page.setContent(fullHtml, { waitUntil: "domcontentloaded" });
+    pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "12mm", bottom: "12mm", left: "12mm", right: "12mm" },
+    });
+  } finally {
+    await browser.close();
   }
-
-  const browser = await puppeteer.launch({
-    args: process.platform === "win32" ? [] : chromium.args,
-    executablePath,
-    headless: true,
-  });
-
-  const page = await browser.newPage();
-  await page.setContent(fullHtml, { waitUntil: "domcontentloaded" });
-  const pdfBuffer = await page.pdf({
-    format: "A4",
-    printBackground: true,
-    margin: { top: "12mm", bottom: "12mm", left: "12mm", right: "12mm" },
-  });
-  await browser.close();
 
   // 4. Compute SHA-256 integrity hash over rendered PDF binary buffer
   const pdfBinaryHash = crypto.createHash("sha256").update(pdfBuffer).digest("hex");

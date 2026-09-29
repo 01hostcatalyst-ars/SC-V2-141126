@@ -1,5 +1,4 @@
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import { launchBrowser } from "@/lib/pdf/chromiumLauncher";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -354,38 +353,19 @@ export async function generateAuditCertificatePDF(contractId: string) {
     </html>
   `;
 
-  let executablePath = "";
-  if (process.platform === "win32") {
-    const fs = require("fs");
-    const paths = [
-      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-    ];
-    for (const p of paths) {
-      if (fs.existsSync(p)) {
-        executablePath = p;
-        break;
-      }
-    }
-  } else {
-    executablePath = await chromium.executablePath();
+  const browser = await launchBrowser();
+  let certPdfBuffer: Uint8Array;
+  try {
+    const page = await browser.newPage();
+    await page.setContent(certificateHtml, { waitUntil: "domcontentloaded" });
+    certPdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "12mm", bottom: "12mm", left: "12mm", right: "12mm" },
+    });
+  } finally {
+    await browser.close();
   }
-
-  const browser = await puppeteer.launch({
-    args: process.platform === "win32" ? [] : chromium.args,
-    executablePath,
-    headless: true,
-  });
-
-  const page = await browser.newPage();
-  await page.setContent(certificateHtml, { waitUntil: "domcontentloaded" });
-  const certPdfBuffer = await page.pdf({
-    format: "A4",
-    printBackground: true,
-    margin: { top: "12mm", bottom: "12mm", left: "12mm", right: "12mm" },
-  });
-  await browser.close();
 
   const filePath = `certificates/${contractId}_certificate.pdf`;
   const { data: uploadData, error: uploadError } = await supabaseAdmin.storage

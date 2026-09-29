@@ -1,6 +1,4 @@
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
-import fs from "fs";
+import { launchBrowser } from "@/lib/pdf/chromiumLauncher";
 import { formatCurrencyAmount } from "@/lib/currency";
 import { FORMAT_LABELS, REGIONAL_CONFIG } from "@/lib/calculator/constants";
 import { DeliverableFormat, Platform, RegionCode } from "@/lib/calculator/types";
@@ -779,32 +777,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
 </html>
   `;
 
-  // Launch Puppeteer with OS-specific executable resolution
-  let executablePath = "";
-  if (process.platform === "win32") {
-    const candidatePaths = [
-      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-    ];
-    for (const p of candidatePaths) {
-      if (fs.existsSync(p)) {
-        executablePath = p;
-        break;
-      }
-    }
-    if (!executablePath) {
-      throw new Error("Could not locate local Chrome or Edge browser executable on Windows.");
-    }
-  } else {
-    executablePath = await chromium.executablePath();
-  }
-
-  const browser = await puppeteer.launch({
-    args: process.platform === "win32" ? [] : chromium.args,
-    executablePath,
-    headless: true,
-  });
+  const browser = await launchBrowser();
 
   try {
     const page = await browser.newPage();
