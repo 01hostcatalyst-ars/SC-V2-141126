@@ -1381,6 +1381,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
         platforms,
         recommendedPackages,
         completeIntelligence,
+        instantContractUrl: buildContractHref(),
       };
 
       const res = await fetch("/api/calculator/export-pdf", {
@@ -1402,7 +1403,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
       a.href = url;
       const safeName = (creatorMeta.displayName || creatorMeta.primaryUsername || "Creator")
         .replace(/[^a-zA-Z0-9_-]/g, "_");
-      a.download = `BrandBridge_RateCard_${safeName}.pdf`;
+      a.download = `SignCollab_RateCard_${safeName}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

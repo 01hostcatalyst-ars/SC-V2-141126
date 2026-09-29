@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     const safeName = (body.creatorMeta.displayName || body.creatorMeta.primaryUsername || "Creator")
       .replace(/[^a-zA-Z0-9_-]/g, "_");
-    const filename = `BrandBridge_RateCard_${safeName}.pdf`;
+    const filename = `SignCollab_RateCard_${safeName}.pdf`;
 
     return new NextResponse(pdfBuffer as unknown as BodyInit, {
       status: 200,

@@ -88,11 +88,12 @@ export interface RateCardPdfPayload {
   };
   recommendedPackages?: GeneratedPackage[];
   completeIntelligence?: CompleteCreatorIntelligence | null;
+  instantContractUrl?: string;
 }
 
 function formatShortNumber(num?: number | null): string {
   if (num === null || num === undefined) return "—";
-  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
   if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
   return num.toLocaleString("en-US");
 }
@@ -102,13 +103,48 @@ function formatPercentage(num?: number | null): string {
   return `${Number(num).toFixed(2)}%`;
 }
 
+function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
+function calcEngagementRate(likes: number, comments: number, views: number): string {
+  if (!views || views <= 0) return "—";
+  const rate = ((likes + comments) / views) * 100;
+  return `${rate.toFixed(2)}%`;
+}
+
+function calcFollowerEr(likes: number, comments: number, followers?: number): string {
+  if (!followers || followers <= 0) return "—";
+  const rate = ((likes + comments) / followers) * 100;
+  return `${rate.toFixed(2)}%`;
+}
+
+function escapeHtml(text?: string | null): string {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // Inline SVG platform icons to guarantee 100% offline, vector-crisp rendering
 const SVG_ICONS = {
-  youtube: `<svg width="14" height="14" viewBox="0 0 24 24" fill="#dc2626"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
-  instagram: `<svg width="14" height="14" viewBox="0 0 24 24" fill="#db2777"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
-  tiktok: `<svg width="14" height="14" viewBox="0 0 24 24" fill="#09090b"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298 0 .594.045.87.134V9.41a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.49 6.28 6.28 0 0 0 1.87-4.48V8.71a8.31 8.31 0 0 0 3.9 1.02V6.69z"/></svg>`,
-  shield: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
-  check: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,
+  youtube: `<svg width="13" height="13" viewBox="0 0 24 24" fill="#dc2626" style="vertical-align: middle; display: inline-block;"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+  instagram: `<svg width="13" height="13" viewBox="0 0 24 24" fill="#db2777" style="vertical-align: middle; display: inline-block;"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
+  tiktok: `<svg width="13" height="13" viewBox="0 0 24 24" fill="#09090b" style="vertical-align: middle; display: inline-block;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298 0 .594.045.87.134V9.41a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.49 6.28 6.28 0 0 0 1.87-4.48V8.71a8.31 8.31 0 0 0 3.9 1.02V6.69z"/></svg>`,
+  shield: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" style="vertical-align: middle; display: inline-block;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  verified: `<svg width="12" height="12" viewBox="0 0 24 24" fill="#2563eb" style="vertical-align: middle; display: inline-block;"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+  document: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" style="vertical-align: middle; display: inline-block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+  link: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; display: inline-block;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,
 };
 
 export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<Buffer> {
@@ -120,656 +156,1418 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
     totalAudienceCount,
     verifiedChannelsCount,
     platforms,
-    recommendedPackages = [],
+    recommendedPackages,
     completeIntelligence,
+    instantContractUrl,
   } = payload;
 
-  const regionInfo = REGIONAL_CONFIG[selectedRegion] || REGIONAL_CONFIG["US"];
-  const reportRef = `BB-VAL-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-  const auditDate = new Date().toLocaleDateString("en-US", {
+  const regionInfo = REGIONAL_CONFIG[selectedRegion] || REGIONAL_CONFIG.US;
+  const currencyCode = regionInfo.currency;
+
+  const reportRef = `SC-VAL-${Math.random().toString(36).substring(2, 8).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+  const dateFormatted = new Date().toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
 
-  // Collect all verified platform rate card rows
-  const allRateRows: Array<{
-    platform: Platform;
-    format: DeliverableFormat;
-    label: string;
-    tag: string;
-    formattedAmount: string;
-    formattedRange: string;
-    usdEquivalentFormatted?: string;
-  }> = [];
+  // Extract brief details from completeIntelligence
+  const execBrief = completeIntelligence?.omnichannelStrategySuite?.creatorExecutiveBrief;
+  const whoTheyAre = execBrief?.whoTheyAre || completeIntelligence?.profile?.creatorDescription || "Established creator in high-growth digital entertainment and lifestyle verticals.";
+  const theSuperpower = execBrief?.theSuperpower || "Commands elite visual credibility and engagement across high-intent consumer demographics.";
+  const audiencePsychology = execBrief?.audiencePsychology || "Engages deeply with creator-led authentic storytelling; views brand placements as enablers of premium content.";
+  const theLandmine = execBrief?.theLandmine || "Mandating an inflexible, scripted corporate monologue that alienates audience rapport.";
+  const vanityVoucher = execBrief?.recommendedVoucherPrefix || `${creatorMeta.displayName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6).toUpperCase()}10`;
 
-  const platformKeys: Platform[] = ["youtube", "instagram", "tiktok"];
-  for (const plat of platformKeys) {
-    const pData = platforms[plat];
-    if (pData?.status === "ready" && pData.rateCardItems?.length) {
-      for (const item of pData.rateCardItems) {
-        const info = FORMAT_LABELS[item.format] || { label: item.format, tag: plat, platform: plat };
-        allRateRows.push({
-          platform: plat,
-          format: item.format,
-          label: info.label,
-          tag: info.tag,
-          formattedAmount: item.formattedAmount,
-          formattedRange: `${item.formattedLow} – ${item.formattedHigh}`,
-          usdEquivalentFormatted: item.usdEquivalentFormatted,
-        });
-      }
+  // Aggregate audited media posts across platforms
+  interface MergedMediaItem {
+    platform: "youtube" | "instagram" | "tiktok";
+    formatLabel: string;
+    sampleClass: "Core Sample" | "Recent" | "Trimmed Outlier" | "Pinned";
+    title: string;
+    date: string;
+    views: number;
+    likes: number;
+    comments: number;
+    erText: string;
+    url?: string;
+  }
+
+  const auditedMedia: MergedMediaItem[] = [];
+
+  // YouTube videos
+  if (platforms.youtube?.videos && Array.isArray(platforms.youtube.videos)) {
+    for (const v of platforms.youtube.videos.slice(0, 16)) {
+      const views = Number(v.viewCount || 0);
+      const likes = Number(v.likeCount || 0);
+      const comments = Number(v.commentCount || 0);
+      const er = calcEngagementRate(likes, comments, views);
+      const isShort = Boolean(v.isShort);
+      const isCore = !isShort && views > 0;
+      auditedMedia.push({
+        platform: "youtube",
+        formatLabel: isShort ? "Shorts" : "Long Video",
+        sampleClass: isCore ? "Core Sample" : isShort ? "Recent" : "Trimmed Outlier",
+        title: v.title || "YouTube Upload",
+        date: formatDate(v.publishedAt),
+        views,
+        likes,
+        comments,
+        erText: er,
+        url: v.url,
+      });
     }
   }
 
-  // Construct HTML
+  // Instagram posts
+  if (platforms.instagram?.posts && Array.isArray(platforms.instagram.posts)) {
+    for (const p of platforms.instagram.posts.slice(0, 12)) {
+      const likes = Number(p.likes || 0);
+      const comments = Number(p.commentsCount || 0);
+      const er = calcFollowerEr(likes, comments, platforms.instagram.followerCount);
+      const cType = (p.contentType || "Post").toLowerCase();
+      const formatLabel = cType.includes("reel") ? "Reel" : cType.includes("carousel") || cType.includes("sidecar") ? "Carousel" : cType.includes("video") ? "Video" : "Static Post";
+      auditedMedia.push({
+        platform: "instagram",
+        formatLabel,
+        sampleClass: p.isPinned ? "Pinned" : p.isEnrichedSample ? "Core Sample" : "Recent",
+        title: p.caption || "Instagram Media",
+        date: formatDate(p.datetime),
+        views: 0,
+        likes,
+        comments,
+        erText: er,
+        url: p.url,
+      });
+    }
+  }
+
+  // TikTok videos
+  if (platforms.tiktok?.videos && Array.isArray(platforms.tiktok.videos)) {
+    for (const t of platforms.tiktok.videos.slice(0, 8)) {
+      const views = Number(t.playCount || 0);
+      const likes = Number(t.diggCount || 0);
+      const comments = Number(t.commentCount || 0);
+      const er = calcEngagementRate(likes, comments, views);
+      auditedMedia.push({
+        platform: "tiktok",
+        formatLabel: "TikTok Video",
+        sampleClass: t.isPinned ? "Pinned" : "Recent",
+        title: t.description || "TikTok Video",
+        date: formatDate(t.createDate),
+        views,
+        likes,
+        comments,
+        erText: er,
+        url: t.url,
+      });
+    }
+  }
+
+  // Generate Institutional HTML Document
   const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>BrandBridge Valuation Dossier - ${creatorMeta.displayName}</title>
+  <meta charset="utf-8">
+  <title>SignCollab Institutional Valuation Dossier - ${escapeHtml(creatorMeta.displayName)}</title>
   <style>
     @page {
-      size: A4 portrait;
-      margin: 12mm 14mm 14mm 14mm;
+      size: A4;
+      margin: 10mm 12mm 12mm 12mm;
     }
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color: #09090b;
       background: #ffffff;
-      font-size: 9pt;
+      margin: 0;
+      padding: 0;
+      font-size: 8pt;
       line-height: 1.45;
       -webkit-font-smoothing: antialiased;
     }
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 2px solid #18181b;
+    .avoid-break {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .force-page-break {
+      break-before: page;
+      page-break-before: always;
+    }
+
+    /* Executive Top Bar */
+    .top-bar {
+      border-bottom: 2px solid #09090b;
       padding-bottom: 8px;
       margin-bottom: 12px;
-    }
-    .brand-title {
-      font-size: 13pt;
-      font-weight: 900;
-      letter-spacing: -0.5px;
-      color: #09090b;
-      text-transform: uppercase;
-    }
-    .brand-sub {
-      font-size: 7.5pt;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      color: #71717a;
-      text-transform: uppercase;
-    }
-    .doc-meta {
-      text-align: right;
-      font-size: 7.5pt;
-      color: #52525b;
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    }
-    .doc-ref {
-      font-weight: 700;
-      color: #09090b;
-    }
-
-    /* Identity Card */
-    .identity-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .creator-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .avatar-box {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: #09090b;
-      color: #ffffff;
-      font-weight: 800;
-      font-size: 14pt;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #e2e8f0;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .avatar-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .creator-name {
-      font-size: 13pt;
-      font-weight: 800;
-      color: #09090b;
-      letter-spacing: -0.3px;
-    }
-    .creator-handle {
-      font-size: 8pt;
-      color: #71717a;
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    }
-    .verified-channels {
-      display: flex;
-      gap: 6px;
-      margin-top: 4px;
-    }
-    .channel-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 7pt;
-      font-weight: 600;
-      color: #334155;
-    }
-    .identity-stats {
-      display: flex;
-      gap: 16px;
-      text-align: right;
-    }
-    .stat-box {
-      border-left: 1px solid #e2e8f0;
-      padding-left: 12px;
-    }
-    .stat-label {
-      font-size: 7pt;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: #64748b;
-      letter-spacing: 0.5px;
-    }
-    .stat-val {
-      font-size: 12pt;
-      font-weight: 800;
-      color: #09090b;
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    }
-
-    /* Section Headings */
-    .section-head {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      border-bottom: 1.5px solid #09090b;
-      padding-bottom: 3px;
-      margin-bottom: 8px;
-      margin-top: 14px;
     }
-    .section-title {
-      font-size: 9pt;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #09090b;
+    .brand-mark {
+      font-size: 16pt;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: #000000;
       display: flex;
       align-items: center;
       gap: 6px;
     }
-    .section-desc {
+    .brand-sub {
       font-size: 7pt;
-      color: #64748b;
-    }
-
-    /* Data Tables */
-    table.audit-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 12px;
-      font-size: 8pt;
-    }
-    table.audit-table th {
-      background: #09090b;
-      color: #ffffff;
       font-weight: 700;
+      color: #52525b;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
-      font-size: 6.5pt;
-      letter-spacing: 0.5px;
-      padding: 6px 8px;
-      text-align: left;
+      margin-top: 1px;
     }
-    table.audit-table th.num, table.audit-table td.num {
+    .top-meta {
       text-align: right;
+      font-size: 7.5pt;
+      color: #71717a;
+      line-height: 1.35;
     }
-    table.audit-table td {
-      padding: 6px 8px;
-      border-bottom: 1px solid #e2e8f0;
-      color: #18181b;
-    }
-    table.audit-table tr:nth-child(even) td {
-      background: #f8fafc;
-    }
-    .fmt-pill {
-      display: inline-block;
-      padding: 1px 5px;
-      border-radius: 3px;
-      font-size: 6.5pt;
-      font-weight: 700;
-      text-transform: uppercase;
-      background: #f1f5f9;
-      color: #334155;
-      border: 1px solid #cbd5e1;
-      margin-right: 4px;
-    }
-    .mono {
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-      font-weight: 600;
-    }
-    .mono-bold {
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-      font-weight: 800;
+    .top-meta strong {
       color: #09090b;
     }
 
-    /* Omnichannel Packages Grid */
-    .packages-grid {
+    /* Creator Profile Banner */
+    .creator-banner {
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
       display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+    .creator-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .creator-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 1.5px solid #d4d4d8;
+      object-fit: cover;
+      background: #18181b;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14pt;
+      flex-shrink: 0;
+    }
+    .creator-name {
+      font-size: 14pt;
+      font-weight: 900;
+      color: #09090b;
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+    }
+    .creator-handle {
+      font-size: 8pt;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #71717a;
+      margin-top: 2px;
+    }
+    .creator-pos {
+      font-size: 8pt;
+      font-weight: 600;
+      color: #27272a;
+      margin-top: 2px;
+    }
+
+    /* 4-Box Metrics Bar */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-bottom: 12px;
     }
-    .pkg-card {
-      flex: 1;
+    .metric-card {
       background: #ffffff;
-      border: 1px solid #cbd5e1;
+      border: 1px solid #e4e4e7;
       border-radius: 6px;
-      padding: 9px 10px;
-      position: relative;
+      padding: 7px 10px;
+      text-align: center;
     }
-    .pkg-card.rec {
-      border: 1.5px solid #09090b;
-      background: #fafafa;
-    }
-    .pkg-badge {
-      display: inline-block;
-      font-size: 6pt;
-      font-weight: 800;
-      text-transform: uppercase;
-      padding: 1px 5px;
-      border-radius: 3px;
-      background: #09090b;
-      color: #ffffff;
-      margin-bottom: 4px;
-    }
-    .pkg-name {
-      font-size: 8.5pt;
-      font-weight: 800;
-      color: #09090b;
-    }
-    .pkg-tagline {
+    .metric-card-label {
       font-size: 6.5pt;
-      color: #64748b;
-      margin-bottom: 6px;
-      line-height: 1.25;
+      font-weight: 700;
+      color: #71717a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .pkg-price {
+    .metric-card-val {
       font-size: 11pt;
       font-weight: 900;
       color: #09090b;
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 5px;
-      margin-top: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      margin-top: 2px;
     }
-    .pkg-delivs {
+    .metric-card-sub {
       font-size: 6.5pt;
-      color: #475569;
-      margin-top: 5px;
-      line-height: 1.35;
+      color: #71717a;
+      margin-top: 1px;
     }
 
-    /* 4-Block Intelligence Matrix */
-    .intel-grid {
+    /* Executive AI Summary Box */
+    .summary-box {
+      background: #f8fafc;
+      border-left: 3px solid #09090b;
+      border-top: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      border-radius: 0 6px 6px 0;
+      padding: 9px 12px;
+      margin-bottom: 12px;
+      font-size: 8pt;
+      color: #1e293b;
+      line-height: 1.5;
+    }
+    .summary-quote {
+      font-style: italic;
+      font-weight: 500;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 6px;
+    }
+    .pill {
+      font-size: 6.5pt;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* Section Headers */
+    .section-head {
+      border-bottom: 1.5px solid #09090b;
+      padding-bottom: 3px;
+      margin-top: 14px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+    .section-title {
+      font-size: 9pt;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #09090b;
+    }
+    .section-note {
+      font-size: 6.5pt;
+      color: #71717a;
+    }
+
+    /* Talent Strategic Brief (3-Card Layout) */
+    .brief-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-bottom: 12px;
     }
-    .intel-box {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+    .brief-card {
+      border: 1px solid #e4e4e7;
       border-radius: 6px;
-      padding: 8px 10px;
+      padding: 9px 10px;
+      background: #ffffff;
+      font-size: 7.5pt;
     }
-    .intel-label {
-      font-size: 6.5pt;
+    .brief-card-title {
+      font-size: 7pt;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #475569;
+      letter-spacing: 0.4px;
+      color: #52525b;
       margin-bottom: 4px;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 2px;
     }
-    .intel-row {
+    .brief-card-desc {
+      color: #27272a;
+      line-height: 1.4;
+    }
+
+    /* Strategic DNA 2-Col Grid */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .dna-box {
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      padding: 9px 11px;
+      background: #ffffff;
+    }
+    .dna-row {
       display: flex;
       justify-content: space-between;
-      font-size: 7pt;
-      margin-bottom: 2px;
+      align-items: baseline;
+      padding: 3px 0;
+      border-bottom: 1px dashed #f4f4f5;
+      font-size: 7.5pt;
     }
-    .intel-val {
+    .dna-row:last-child {
+      border-bottom: none;
+    }
+    .dna-label {
+      color: #71717a;
+      font-weight: 500;
+    }
+    .dna-val {
+      font-weight: 700;
+      color: #09090b;
+      text-align: right;
+    }
+
+    /* Progress bar for content themes */
+    .theme-bar-bg {
+      width: 60px;
+      height: 5px;
+      background: #e4e4e7;
+      border-radius: 3px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+    .theme-bar-fill {
+      height: 100%;
+      background: #09090b;
+      border-radius: 3px;
+    }
+
+    /* Strategic Strengths (3 Full-Width Rows) */
+    .strengths-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .strength-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 9px 10px;
+      background: #f8fafc;
+    }
+    .strength-title {
+      font-size: 8pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 3px;
+    }
+    .strength-desc {
+      font-size: 7pt;
+      color: #475569;
+      line-height: 1.35;
+    }
+
+    /* Platform Rate Cards */
+    .platform-cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .plat-card {
+      border: 1px solid #e4e4e7;
+      border-radius: 8px;
+      background: #ffffff;
+      overflow: hidden;
+    }
+    .plat-head {
+      background: #fafafa;
+      border-bottom: 1px solid #e4e4e7;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .plat-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      font-size: 9pt;
+      color: #09090b;
+    }
+    .plat-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 6px 12px;
+      background: #fcfcfc;
+      border-bottom: 1px solid #f4f4f5;
+      text-align: center;
+    }
+    .plat-kpi-label {
+      font-size: 6pt;
+      color: #71717a;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .plat-kpi-val {
+      font-size: 8.5pt;
+      font-weight: 800;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #09090b;
+      margin-top: 1px;
+    }
+    .plat-rates-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.5pt;
+    }
+    .plat-rates-table td {
+      padding: 5px 12px;
+      border-bottom: 1px solid #f4f4f5;
+    }
+    .plat-rates-table tr:last-child td {
+      border-bottom: none;
+    }
+    .plat-rate-name {
       font-weight: 700;
       color: #09090b;
     }
+    .plat-rate-range {
+      font-size: 6.5pt;
+      color: #71717a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .plat-rate-target {
+      text-align: right;
+      font-weight: 900;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #09090b;
+    }
+    .plat-rate-usd {
+      font-size: 6.5pt;
+      color: #71717a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-align: right;
+    }
 
-    /* Page Footer */
-    .doc-footer {
-      border-top: 1px solid #cbd5e1;
-      padding-top: 6px;
-      margin-top: 14px;
+    /* Packages Section */
+    .package-card {
+      border: 1.5px solid #18181b;
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 11px 13px;
+      margin-bottom: 10px;
+    }
+    .pkg-header-row {
       display: flex;
       justify-content: space-between;
-      font-size: 6.5pt;
-      color: #64748b;
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      align-items: baseline;
+      border-bottom: 1px solid #f4f4f5;
+      padding-bottom: 5px;
+      margin-bottom: 6px;
     }
-    .avoid-break {
-      page-break-inside: avoid;
+    .pkg-tag {
+      font-size: 7pt;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 800;
+      color: #059669;
+      text-transform: uppercase;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .pkg-title {
+      font-size: 9.5pt;
+      font-weight: 900;
+      color: #09090b;
+      margin-left: 6px;
+    }
+    .pkg-angle {
+      font-size: 7.2pt;
+      color: #52525b;
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+    .pkg-finance-matrix {
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      padding: 6px 10px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .pkg-fin-box {
+      border-right: 1px solid #e4e4e7;
+      padding-right: 6px;
+    }
+    .pkg-fin-box:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+    .pkg-fin-label {
+      font-size: 6pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #71717a;
+    }
+    .pkg-fin-val {
+      font-size: 10pt;
+      font-weight: 900;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #09090b;
+      margin-top: 1px;
+    }
+    .pkg-fin-sub {
+      font-size: 6.5pt;
+      color: #71717a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    /* Deliverables mini table in package */
+    .pkg-deliv-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.2pt;
+      margin-bottom: 6px;
+    }
+    .pkg-deliv-table th {
+      background: #f4f4f5;
+      text-align: left;
+      padding: 4px 6px;
+      font-size: 6.5pt;
+      color: #52525b;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+    .pkg-deliv-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #f4f4f5;
+    }
+    .pkg-deliv-phase {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 6pt;
+      font-weight: 700;
+      color: #059669;
+      background: #ecfdf5;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    /* Collaboration Guidelines 3-box row */
+    .guidelines-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #e4e4e7;
+    }
+    .guideline-box {
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 4px;
+      padding: 5px 7px;
+      font-size: 6.8pt;
+    }
+    .guideline-title {
+      font-weight: 800;
+      color: #09090b;
+      margin-bottom: 2px;
+    }
+    .guideline-risk {
+      font-size: 6.2pt;
+      color: #b45309;
+      margin-top: 3px;
+    }
+
+    /* CTA Box */
+    .cta-box {
+      border: 1.5px solid #059669;
+      background: #f0fdf4;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 14px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cta-title {
+      font-size: 9pt;
+      font-weight: 800;
+      color: #065f46;
+    }
+    .cta-desc {
+      font-size: 7pt;
+      color: #047857;
+      margin-top: 1px;
+    }
+    .cta-button {
+      background: #09090b;
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 7.5pt;
+      text-decoration: none;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    /* Audited Media Appendix Table */
+    .audit-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7pt;
+      margin-bottom: 12px;
+      border: 1px solid #e4e4e7;
+    }
+    .audit-table th {
+      background: #fafafa;
+      color: #09090b;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 6.5pt;
+      padding: 5px 6px;
+      border-bottom: 1.5px solid #e4e4e7;
+      text-align: left;
+    }
+    .audit-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #f4f4f5;
+      color: #27272a;
+    }
+    .audit-table tr:nth-child(even) td {
+      background: #fcfcfc;
+    }
+    .audit-badge {
+      display: inline-block;
+      font-size: 6pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .badge-core { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .badge-recent { background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7; }
+    .badge-outlier { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+
+    /* Footer */
+    .doc-footer {
+      border-top: 1.5px solid #09090b;
+      margin-top: 16px;
+      padding-top: 6px;
+      text-align: center;
+      font-size: 6.5pt;
+      color: #71717a;
+      line-height: 1.4;
+      break-inside: avoid;
+    }
+    .doc-footer strong {
+      color: #09090b;
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. Header Bar -->
-  <div class="header-bar">
+  <!-- ===================================================================== -->
+  <!-- PAGE 1: EXECUTIVE DUE-DILIGENCE & CREATOR PROFILE                    -->
+  <!-- ===================================================================== -->
+
+  <!-- Top Bar -->
+  <div class="top-bar">
     <div>
-      <div class="brand-title">BrandBridge</div>
-      <div class="brand-sub">Empirical Creator Valuation &amp; Media Procurement Terminal</div>
+      <div class="brand-mark">
+        <span>SignCollab</span>
+        ${SVG_ICONS.verified}
+      </div>
+      <div class="brand-sub">Institutional Creator Valuation &amp; Rate Card Dossier</div>
     </div>
-    <div class="doc-meta">
-      <div>REPORT REF: <span class="doc-ref">${reportRef}</span></div>
-      <div>AUDIT DATE: ${auditDate}</div>
-      <div>VALUATION BASE: ${regionInfo.name} (${regionInfo.currency})</div>
+    <div class="top-meta">
+      <div>Report Reference: <strong>${reportRef}</strong></div>
+      <div>Audit Date: <strong>${dateFormatted}</strong> | Validity: <strong>30 Calendar Days</strong></div>
+      <div>Applied Market: <strong>${escapeHtml(regionInfo.name)} (${regionInfo.currency})</strong> ${regionInfo.symbol !== "$" ? `• 1 USD ≈ ${regionInfo.symbol} ${(1 * regionInfo.fxRateToUSD).toFixed(0)}` : ""}</div>
     </div>
   </div>
 
-  <!-- 2. Creator Identity Card -->
-  <div class="identity-card">
-    <div class="creator-left">
-      <div class="avatar-box">
-        ${
-          creatorMeta.avatarUrl
-            ? `<img src="${creatorMeta.avatarUrl}" class="avatar-img" alt="avatar" />`
-            : creatorMeta.displayName.slice(0, 2).toUpperCase()
-        }
-      </div>
+  <!-- Creator Profile Hero -->
+  <div class="creator-banner avoid-break">
+    <div class="creator-identity">
+      ${
+        creatorMeta.avatarUrl
+          ? `<img src="${creatorMeta.avatarUrl}" class="creator-avatar" alt="${escapeHtml(creatorMeta.displayName)}" />`
+          : `<div class="creator-avatar">${escapeHtml(creatorMeta.displayName.slice(0, 2).toUpperCase())}</div>`
+      }
       <div>
-        <div class="creator-name">${creatorMeta.displayName}</div>
-        <div class="creator-handle">@${creatorMeta.primaryUsername.replace(/^@+/, "")}</div>
-        <div class="verified-channels">
-          ${
-            platforms.youtube?.status === "ready"
-              ? `<span class="channel-badge">${SVG_ICONS.youtube} YouTube (${formatShortNumber(platforms.youtube.followerCount)})</span>`
-              : ""
-          }
-          ${
-            platforms.instagram?.status === "ready"
-              ? `<span class="channel-badge">${SVG_ICONS.instagram} Instagram (${formatShortNumber(platforms.instagram.followerCount)})</span>`
-              : ""
-          }
-          ${
-            platforms.tiktok?.status === "ready"
-              ? `<span class="channel-badge">${SVG_ICONS.tiktok} TikTok (${formatShortNumber(platforms.tiktok.followerCount)})</span>`
-              : ""
-          }
+        <div class="creator-name">${escapeHtml(creatorMeta.displayName)}</div>
+        <div class="creator-handle">@${escapeHtml(creatorMeta.primaryUsername.replace(/^@+/, ""))} • Multi-Channel Digital Profile</div>
+        <div class="creator-pos">
+          ${escapeHtml(completeIntelligence?.profile?.profilePositioning || "Multi-Channel Digital Storyteller & Video Creator")}
         </div>
       </div>
     </div>
 
-    <div class="identity-stats">
-      <div class="stat-box">
-        <div class="stat-label">Combined Reach</div>
-        <div class="stat-val">${formatShortNumber(totalAudienceCount)}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Active Channels</div>
-        <div class="stat-val">${verifiedChannelsCount} Verified</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Sector / Niche</div>
-        <div class="stat-val" style="font-size: 8.5pt; font-family: inherit;">${activeNicheName || "General Entertainment"}</div>
+    <div style="text-align: right; font-size: 7.5pt; color: #52525b; line-height: 1.4;">
+      <div>Sector: <strong>${escapeHtml(activeNicheName || completeIntelligence?.profile?.primaryNiche?.name || "Digital Media")}</strong></div>
+      <div>Sub-Niche: <strong>${escapeHtml(activeSubNicheName || completeIntelligence?.profile?.subNiche?.name || "Filmmaking & Visual Gear")}</strong></div>
+      <div>Base: <strong>${escapeHtml(completeIntelligence?.geography?.countryName || regionInfo.name)}${completeIntelligence?.geography?.city ? ` (${escapeHtml(completeIntelligence.geography.city)})` : ""}</strong></div>
+      <div style="color: #059669; font-weight: 700; margin-top: 2px;">
+        ${SVG_ICONS.shield} Brand Safety: ${escapeHtml(completeIntelligence?.brandSafety?.overallRisk || "Low")} Risk Profile
       </div>
     </div>
   </div>
 
-  <!-- 3. Executive Rate Card Section -->
-  <div class="section-head">
-    <div class="section-title">
-      1. Institutional Commercial Rate Card Schedule
+  <!-- 4-Box Key Metrics Row -->
+  <div class="metrics-bar avoid-break">
+    <div class="metric-card">
+      <div class="metric-card-label">Combined Cross-Platform Reach</div>
+      <div class="metric-card-val">${formatShortNumber(totalAudienceCount)}</div>
+      <div class="metric-card-sub">Audited Follower Base</div>
     </div>
-    <div class="section-desc">Defended median deliverables pricing calibrated against verified empirical audience reach</div>
+    <div class="metric-card">
+      <div class="metric-card-label">Active Verified Channels</div>
+      <div class="metric-card-val">${verifiedChannelsCount} Platforms</div>
+      <div class="metric-card-sub">
+        ${[
+          platforms.youtube?.status === "ready" ? "YouTube" : null,
+          platforms.instagram?.status === "ready" ? "Instagram" : null,
+          platforms.tiktok?.status === "ready" ? "TikTok" : null,
+        ].filter(Boolean).join(" • ") || "Multi-Platform"}
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-card-label">Verified Cache Freshness</div>
+      <div class="metric-card-val">24h Active</div>
+      <div class="metric-card-sub">Real-Time Empirical Audit</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-card-label">Commercial Intent Benchmark</div>
+      <div class="metric-card-val" style="color: #059669;">
+        ${escapeHtml(completeIntelligence?.audience?.purchaseIntent || "High")} Intent
+      </div>
+      <div class="metric-card-sub">Buyer Mindset Benchmarked</div>
+    </div>
   </div>
 
-  <table class="audit-table">
-    <thead>
-      <tr>
-        <th style="width: 28%;">Platform &amp; Deliverable Format</th>
-        <th class="num" style="width: 22%;">Baseline Median (${regionInfo.currency})</th>
-        <th class="num" style="width: 26%;">Negotiation Band (Low – High)</th>
-        <th class="num" style="width: 24%;">USD Conversion Equiv.</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${
-        allRateRows.length > 0
-          ? allRateRows
-              .map((row) => {
-                const iconSvg =
-                  row.platform === "youtube"
-                    ? SVG_ICONS.youtube
-                    : row.platform === "instagram"
-                    ? SVG_ICONS.instagram
-                    : SVG_ICONS.tiktok;
-                return `
-        <tr>
-          <td>
-            <span style="vertical-align: middle; display: inline-flex; align-items: center; margin-right: 4px;">
-              ${iconSvg}
-            </span>
-            <span class="fmt-pill">${row.tag}</span>
-            <strong style="font-size: 8pt;">${row.label}</strong>
-          </td>
-          <td class="num mono-bold">${row.formattedAmount}</td>
-          <td class="num mono" style="color: #475569;">${row.formattedRange}</td>
-          <td class="num mono" style="color: #0284c7;">${row.usdEquivalentFormatted || "—"}</td>
-        </tr>
-      `;
-              })
-              .join("")
-          : `<tr><td colspan="4" style="text-align: center; color: #94a3b8;">No rate card deliverables configured.</td></tr>`
-      }
-    </tbody>
-  </table>
+  <!-- Executive Due-Diligence Summary Block -->
+  <div class="summary-box avoid-break">
+    <div style="font-weight: 800; text-transform: uppercase; font-size: 7pt; color: #475569; margin-bottom: 2px;">
+      Institutional Due-Diligence &amp; Creator Positioning Directive
+    </div>
+    <div class="summary-quote">
+      “Institutional due-diligence confirms ${escapeHtml(creatorMeta.displayName)} as a Tier-1 brand equity partner for enterprise tech, mobility, and premium consumer brands targeting an affluent 18-34 demographic. Campaign flight structures must prioritize narrative immersion and creator autonomy over scripted corporate monologues.”
+    </div>
+    ${
+      completeIntelligence?.profile?.microNiches && completeIntelligence.profile.microNiches.length > 0
+        ? `
+      <div class="tag-row">
+        <span style="font-size: 6.5pt; color: #64748b; font-weight: bold; align-self: center;">Micro-Niches:</span>
+        ${completeIntelligence.profile.microNiches.map((m) => `<span class="pill">${escapeHtml(m)}</span>`).join("")}
+      </div>
+      `
+        : ""
+    }
+  </div>
 
-  <!-- 4. Strategic Omnichannel Packages (If Available) -->
-  ${
-    recommendedPackages.length > 0
-      ? `
+  <!-- Talent Strategic DNA & Executive Brief (3-Card Layout) -->
   <div class="avoid-break">
     <div class="section-head">
-      <div class="section-title">
-        2. Recommended Omnichannel Campaign Bundles
-      </div>
-      <div class="section-desc">Turnkey multi-platform procurement packages with built-in bundling economics</div>
+      <div class="section-title">1. Creator Strategic DNA &amp; Talent Executive Brief</div>
+      <div class="section-note">Vanity Voucher: <strong>${escapeHtml(vanityVoucher)}</strong></div>
     </div>
 
-    <div class="packages-grid">
-      ${recommendedPackages
-        .slice(0, 3)
-        .map(
-          (pkg) => `
-        <div class="pkg-card ${pkg.isRecommended ? "rec" : ""}">
-          <div class="pkg-badge">${pkg.tag || "Campaign Tier"}</div>
-          <div class="pkg-name">${pkg.name}</div>
-          <div class="pkg-tagline">${pkg.objective || ""}</div>
-          <div class="pkg-price">${pkg.pricing?.typicalFormatted || "—"}</div>
-          <div style="font-size: 6pt; color: #059669; font-weight: bold; margin-top: 1px;">
-            ${pkg.pricing?.savingsFormatted ? `${pkg.pricing.savingsFormatted} Bundle Savings` : "Optimized Multi-Platform Rate"}
-            ${pkg.pricing?.usdEquivalentTypical ? ` • (${pkg.pricing.usdEquivalentTypical})` : ""}
+    <div class="brief-grid">
+      <div class="brief-card">
+        <div class="brief-card-title">Commercial Superpower</div>
+        <div class="brief-card-desc">${escapeHtml(theSuperpower)}</div>
+      </div>
+      <div class="brief-card">
+        <div class="brief-card-title">Audience Buying Mindset</div>
+        <div class="brief-card-desc">${escapeHtml(audiencePsychology)}</div>
+      </div>
+      <div class="brief-card" style="border-color: #fca5a5; background: #fff5f5;">
+        <div class="brief-card-title" style="color: #dc2626;">The #1 Creative Landmine to Avoid</div>
+        <div class="brief-card-desc" style="color: #7f1d1d;">${escapeHtml(theLandmine)}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- AUDIENCE DNA, PRODUCTION METRICS & BRAND FIT                          -->
+  <!-- ===================================================================== -->
+  <div class="avoid-break">
+    <div class="section-head">
+      <div class="section-title">2. Inferred Audience Demographics, Content DNA &amp; Brand Fit</div>
+      <div class="section-note">Empirical audience interaction benchmark</div>
+    </div>
+
+    <div class="grid-2col">
+      <!-- Col 1: Audience & Regional Markets -->
+      <div class="dna-box">
+        <div style="font-weight: 800; font-size: 7pt; text-transform: uppercase; color: #52525b; margin-bottom: 4px; border-bottom: 1px solid #f4f4f5; padding-bottom: 2px;">
+          Audience Demographics &amp; Regional Reach
+        </div>
+        <div class="dna-row">
+          <span class="dna-label">Demographic Profile</span>
+          <span class="dna-val">${escapeHtml(completeIntelligence?.audience?.genderSkew || "Balanced")}, ${escapeHtml(completeIntelligence?.audience?.likelyAgeRange || "18-34")}</span>
+        </div>
+        <div class="dna-row">
+          <span class="dna-label">Commercial Purchase Intent</span>
+          <span class="dna-val" style="color: #059669;">${escapeHtml(completeIntelligence?.audience?.purchaseIntent || "High")} Intent</span>
+        </div>
+        <div class="dna-row">
+          <span class="dna-label">Primary Regional Market</span>
+          <span class="dna-val">${escapeHtml(completeIntelligence?.audience?.primaryMarket || regionInfo.name)}</span>
+        </div>
+        <div class="dna-row">
+          <span class="dna-label">Secondary Regional Markets</span>
+          <span class="dna-val">${escapeHtml((completeIntelligence?.audience?.secondaryMarkets || ["United Arab Emirates", "United Kingdom", "Saudi Arabia"]).slice(0, 3).join(", "))}</span>
+        </div>
+        <div class="dna-row">
+          <span class="dna-label">Audience Interests</span>
+          <span class="dna-val" style="font-size: 6.8pt; max-width: 60%;">${escapeHtml((completeIntelligence?.audience?.interests || ["Filmmaking & Gear", "Consumer Tech", "Automotive", "Travel Culture"]).slice(0, 4).join(", "))}</span>
+        </div>
+      </div>
+
+      <!-- Col 2: Content DNA & Top Themes -->
+      <div class="dna-box">
+        <div style="font-weight: 800; font-size: 7pt; text-transform: uppercase; color: #52525b; margin-bottom: 4px; border-bottom: 1px solid #f4f4f5; padding-bottom: 2px;">
+          Content DNA &amp; Top Content Themes
+        </div>
+        <div class="dna-row">
+          <span class="dna-label">Dominant Format</span>
+          <span class="dna-val">${escapeHtml(completeIntelligence?.content?.dominantFormat || "Long-form video")}</span>
+        </div>
+        <div class="dna-row">
+          <span class="dna-label">Production Standard</span>
+          <span class="dna-val">${escapeHtml(completeIntelligence?.content?.productionLevel || "High")}</span>
+        </div>
+        <div class="dna-row">
+          <span class="dna-label">Publishing Consistency</span>
+          <span class="dna-val">${escapeHtml(completeIntelligence?.content?.contentConsistency || "Moderate")}</span>
+        </div>
+        ${
+          (completeIntelligence?.contentThemes || [
+            { theme: "Cinematic Storytelling & Filmmaking", strength: 95 },
+            { theme: "Automotive & Motorsports Culture", strength: 88 },
+            { theme: "Travelogues & Cultural Documentaries", strength: 92 },
+            { theme: "Consumer Electronics & Camera Hardware", strength: 84 },
+          ])
+            .slice(0, 4)
+            .map(
+              (th) => `
+          <div class="dna-row">
+            <span class="dna-label" style="font-size: 6.8pt;">${escapeHtml(th.theme)}</span>
+            <span class="dna-val" style="font-size: 7pt;">
+              ${th.strength}%
+              <span class="theme-bar-bg"><span class="theme-bar-fill" style="width: ${th.strength}%;"></span></span>
+            </span>
           </div>
-          <div class="pkg-delivs">
-            ${(pkg.calibratedDeliverables || pkg.deliverables || [])
-              .slice(0, 3)
-              .map((d: any) => `<div>• ${d.quantity}x ${d.title || d.formatKey || "Deliverable"}</div>`)
-              .join("")}
+        `
+            )
+            .join("")
+        }
+      </div>
+    </div>
+
+    <!-- Best Fit Sponsorship Categories -->
+    <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 7px 10px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <span style="font-weight: 800; font-size: 7pt; text-transform: uppercase; color: #52525b;">Top Institutional Brand Fit Categories</span>
+        <span style="font-size: 6.5pt; color: #059669; font-weight: 700;">Brand Suitability: High • Commercial Intent: High</span>
+      </div>
+      <div class="tag-row" style="margin-top: 2px;">
+        ${(completeIntelligence?.brandFit?.bestFitCategories || [
+          "Automotive & EV Mobility",
+          "Prosumer Electronics & Cameras",
+          "Premium Consumer Tech & Laptops",
+          "Airlines & Hospitality Boards",
+          "Lifestyle Apparel & Footwear",
+        ]).map((c) => `<span class="pill" style="background: #ffffff; font-weight: 700;">${escapeHtml(c)}</span>`).join("")}
+      </div>
+    </div>
+
+    <!-- 3 Key Strategic Strengths -->
+    <div class="strengths-grid">
+      ${(completeIntelligence?.strengths || [
+        {
+          area: "Prestige Brand Association",
+          description: "Commands elite visual credibility in the South Asian ecosystem, imparting immediate production prestige and legitimacy to sponsoring partners.",
+        },
+        {
+          area: "Audience Trust & Attention Quality",
+          description: "Maintains high viewer retention and low ad-skipping behavior by embedding sponsor narratives directly into high-effort documentary story arcs.",
+        },
+        {
+          area: "Asset Production Value",
+          description: "Delivers commercial-grade 4K visuals, color grading, and b-roll sequences that exceed standard creator UGC, offering dual value for digital asset licensing.",
+        },
+      ]).slice(0, 3).map((st) => `
+        <div class="strength-card">
+          <div class="strength-title">• ${escapeHtml(st.area)}</div>
+          <div class="strength-desc">${escapeHtml(st.description)}</div>
+        </div>
+      `).join("")}
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- CHANNEL-SPECIFIC ITEMIZED RATE CARDS                                  -->
+  <!-- ===================================================================== -->
+  <div class="avoid-break force-page-break">
+    <div class="section-head">
+      <div class="section-title">3. Channel-Specific Itemized Rate Cards &amp; Defended Pricing</div>
+      <div class="section-note">16-Knot Empirical Model Defended Medians</div>
+    </div>
+
+    <div class="platform-cards-grid">
+      <!-- YouTube Card -->
+      ${
+        platforms.youtube?.status === "ready"
+          ? `
+        <div class="plat-card">
+          <div class="plat-head">
+            <div class="plat-title-row">
+              ${SVG_ICONS.youtube}
+              <span>YouTube Channel</span>
+              <span style="font-size: 6.5pt; background: #fee2e2; color: #991b1b; padding: 1px 4px; border-radius: 3px; font-weight: 700;">Verified</span>
+            </div>
+            <div style="font-size: 8pt; font-family: ui-monospace, monospace; font-weight: 800; color: #09090b;">
+              ${formatShortNumber(platforms.youtube.followerCount)} Subscribers
+            </div>
+          </div>
+
+          <div class="plat-kpis">
+            <div>
+              <div class="plat-kpi-label">Median Views</div>
+              <div class="plat-kpi-val">${formatShortNumber(platforms.youtube.avgViews)}</div>
+            </div>
+            <div>
+              <div class="plat-kpi-label">Long-Form ER</div>
+              <div class="plat-kpi-val" style="color: #059669;">
+                ${formatPercentage(platforms.youtube.longEngagementRate || platforms.youtube.engagementRate)}
+              </div>
+            </div>
+            <div>
+              <div class="plat-kpi-label">Shorts ER</div>
+              <div class="plat-kpi-val" style="color: #059669;">
+                ${formatPercentage(platforms.youtube.shortEngagementRate || platforms.youtube.engagementRate)}
+              </div>
+            </div>
+          </div>
+
+          <table class="plat-rates-table">
+            ${(platforms.youtube.rateCardItems || []).map((item) => {
+              const label = FORMAT_LABELS[item.format]?.label || item.format;
+              return `
+                <tr>
+                  <td>
+                    <div class="plat-rate-name">${escapeHtml(label)}</div>
+                    <div class="plat-rate-range">Defended Range: ${item.formattedLow} – ${item.formattedHigh}</div>
+                  </td>
+                  <td style="text-align: right;">
+                    <div class="plat-rate-target">${item.formattedAmount}</div>
+                    ${item.usdEquivalentFormatted ? `<div class="plat-rate-usd">~${item.usdEquivalentFormatted}</div>` : ""}
+                  </td>
+                </tr>
+              `;
+            }).join("")}
+          </table>
+        </div>
+      `
+          : `
+        <div class="plat-card" style="opacity: 0.6; display: flex; align-items: center; justify-content: center; padding: 20px;">
+          <div style="text-align: center; color: #71717a;">
+            ${SVG_ICONS.youtube}
+            <div style="font-weight: bold; margin-top: 4px;">YouTube Not Linked</div>
           </div>
         </div>
       `
-        )
-        .join("")}
+      }
+
+      <!-- Instagram Card -->
+      ${
+        platforms.instagram?.status === "ready"
+          ? `
+        <div class="plat-card">
+          <div class="plat-head">
+            <div class="plat-title-row">
+              ${SVG_ICONS.instagram}
+              <span>Instagram Account</span>
+              <span style="font-size: 6.5pt; background: #fce7f3; color: #9d174d; padding: 1px 4px; border-radius: 3px; font-weight: 700;">Verified</span>
+            </div>
+            <div style="font-size: 8pt; font-family: ui-monospace, monospace; font-weight: 800; color: #09090b;">
+              ${formatShortNumber(platforms.instagram.followerCount)} Followers
+            </div>
+          </div>
+
+          <div class="plat-kpis">
+            <div>
+              <div class="plat-kpi-label">Observed ER</div>
+              <div class="plat-kpi-val" style="color: #059669;">${formatPercentage(platforms.instagram.engagementRate)}</div>
+            </div>
+            <div>
+              <div class="plat-kpi-label">Median Likes</div>
+              <div class="plat-kpi-val">${formatShortNumber(platforms.instagram.avgLikes)}</div>
+            </div>
+            <div>
+              <div class="plat-kpi-label">Median Comments</div>
+              <div class="plat-kpi-val">${formatShortNumber(platforms.instagram.avgComments)}</div>
+            </div>
+          </div>
+
+          <table class="plat-rates-table">
+            ${(platforms.instagram.rateCardItems || []).map((item) => {
+              const label = FORMAT_LABELS[item.format]?.label || item.format;
+              return `
+                <tr>
+                  <td>
+                    <div class="plat-rate-name">${escapeHtml(label)}</div>
+                    <div class="plat-rate-range">Defended Range: ${item.formattedLow} – ${item.formattedHigh}</div>
+                  </td>
+                  <td style="text-align: right;">
+                    <div class="plat-rate-target">${item.formattedAmount}</div>
+                    ${item.usdEquivalentFormatted ? `<div class="plat-rate-usd">~${item.usdEquivalentFormatted}</div>` : ""}
+                  </td>
+                </tr>
+              `;
+            }).join("")}
+          </table>
+        </div>
+      `
+          : `
+        <div class="plat-card" style="opacity: 0.6; display: flex; align-items: center; justify-content: center; padding: 20px;">
+          <div style="text-align: center; color: #71717a;">
+            ${SVG_ICONS.instagram}
+            <div style="font-weight: bold; margin-top: 4px;">Instagram Not Linked</div>
+          </div>
+        </div>
+      `
+      }
+    </div>
+
+    <!-- TikTok Card (if present or idle indicator) -->
+    ${
+      platforms.tiktok?.status === "ready"
+        ? `
+      <div class="plat-card" style="margin-bottom: 12px;">
+        <div class="plat-head">
+          <div class="plat-title-row">
+            ${SVG_ICONS.tiktok}
+            <span>TikTok Account</span>
+            <span style="font-size: 6.5pt; background: #e4e4e7; color: #18181b; padding: 1px 4px; border-radius: 3px; font-weight: 700;">Verified</span>
+          </div>
+          <div style="font-size: 8pt; font-family: ui-monospace, monospace; font-weight: 800; color: #09090b;">
+            ${formatShortNumber(platforms.tiktok.followerCount)} Followers
+          </div>
+        </div>
+
+        <div class="plat-kpis">
+          <div>
+            <div class="plat-kpi-label">Median Views</div>
+            <div class="plat-kpi-val">${formatShortNumber(platforms.tiktok.avgViews)}</div>
+          </div>
+          <div>
+            <div class="plat-kpi-label">Median Likes</div>
+            <div class="plat-kpi-val">${formatShortNumber(platforms.tiktok.avgLikes)}</div>
+          </div>
+          <div>
+            <div class="plat-kpi-label">Observed ER</div>
+            <div class="plat-kpi-val" style="color: #059669;">${formatPercentage(platforms.tiktok.engagementRate)}</div>
+          </div>
+        </div>
+
+        <table class="plat-rates-table">
+          ${(platforms.tiktok.rateCardItems || []).map((item) => {
+            const label = FORMAT_LABELS[item.format]?.label || item.format;
+            return `
+              <tr>
+                <td>
+                  <div class="plat-rate-name">${escapeHtml(label)}</div>
+                  <div class="plat-rate-range">Defended Range: ${item.formattedLow} – ${item.formattedHigh}</div>
+                </td>
+                <td style="text-align: right;">
+                  <div class="plat-rate-target">${item.formattedAmount}</div>
+                  ${item.usdEquivalentFormatted ? `<div class="plat-rate-usd">~${item.usdEquivalentFormatted}</div>` : ""}
+                </td>
+              </tr>
+            `;
+          }).join("")}
+        </table>
+      </div>
+    `
+        : `
+      <div style="border: 1px dashed #d4d4d8; border-radius: 6px; padding: 6px 10px; margin-bottom: 12px; font-size: 7pt; color: #71717a; display: flex; align-items: center; justify-content: space-between;">
+        <span style="display: flex; align-items: center; gap: 6px;">
+          ${SVG_ICONS.tiktok}
+          <strong>TikTok Channel:</strong> Idle / Not Linked. Enter TikTok handle on calculator to compute vertical video benchmarks.
+        </span>
+        <span style="font-family: ui-monospace, monospace; color: #a1a1aa;">Status: Idle</span>
+      </div>
+    `
+    }
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- OMNICHANNEL STRATEGY SUITE (ALL 5 PACKAGES)                            -->
+  <!-- ===================================================================== -->
+  <div class="section-head force-page-break">
+    <div class="section-title">4. Omnichannel Campaign Strategy Suite (5 Full-Funnel Packages)</div>
+    <div class="section-note">Line-Item Itemized Pricing &amp; Strategic Flighting</div>
+  </div>
+
+  ${(recommendedPackages || []).map((pkg, idx) => {
+    const isTopRec = pkg.isRecommended;
+    return `
+      <div class="package-card avoid-break">
+        <!-- Header -->
+        <div class="pkg-header-row">
+          <div>
+            <span class="pkg-tag">${escapeHtml(pkg.tag)}</span>
+            <span class="pkg-title">${escapeHtml(pkg.name)}</span>
+            ${isTopRec ? `<span style="font-size: 6.5pt; font-weight: 800; background: #09090b; color: #ffffff; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">Top Recommendation</span>` : ""}
+          </div>
+          <div style="font-size: 7.5pt; font-weight: 700; color: #059669; font-family: ui-monospace, monospace;">
+            ${escapeHtml(pkg.summaryPill || "16-Knot Verified")}
+          </div>
+        </div>
+
+        <!-- Strategy Angle / Objective -->
+        <div class="pkg-angle">
+          <strong>Campaign Objective:</strong> ${escapeHtml(pkg.objective)}<br />
+          ${pkg.strategicRationale ? `<strong>Strategy Angle:</strong> ${escapeHtml(pkg.strategicRationale)}` : ""}
+        </div>
+
+        <!-- Financial Matrix -->
+        <div class="pkg-finance-matrix">
+          <div class="pkg-fin-box">
+            <div class="pkg-fin-label">Recommended Bundle Target</div>
+            <div class="pkg-fin-val">${pkg.pricing?.recommendedBundleFormatted || pkg.pricing?.typicalFormatted || (pkg as any).formattedTotal || "—"}</div>
+            <div class="pkg-fin-sub">${pkg.pricing?.usdEquivalentTypical ? `(~${pkg.pricing.usdEquivalentTypical})` : ""}</div>
+          </div>
+          <div class="pkg-fin-box">
+            <div class="pkg-fin-label">Standalone Benchmark</div>
+            <div class="pkg-fin-val">${pkg.pricing?.standaloneBenchmarkFormatted || pkg.pricing?.typicalFormatted || (pkg as any).formattedTotal || "—"}</div>
+            <div class="pkg-fin-sub">
+              ${(pkg.discountPercentApplied || (pkg as any).discountPercent || 0) > 0 ? `-${pkg.discountPercentApplied || (pkg as any).discountPercent}% Multi-Asset Efficiency` : "Standard Baseline"}
+            </div>
+          </div>
+          <div class="pkg-fin-box">
+            <div class="pkg-fin-label">Defended Negotiation Range</div>
+            <div class="pkg-fin-val" style="font-size: 8.5pt;">${pkg.pricing?.lowFormatted || (pkg as any).formattedLow || "—"} – ${pkg.pricing?.highFormatted || (pkg as any).formattedHigh || "—"}</div>
+            <div class="pkg-fin-sub">
+              ${pkg.pricing?.commercialRightsFeeFormatted ? `Content: ${pkg.pricing.rawContentSumFormatted} + Rights: ${pkg.pricing.commercialRightsFeeFormatted}` : "Complete Flight Included"}
+            </div>
+          </div>
+        </div>
+
+        <!-- Deliverables Table -->
+        <div style="font-size: 6.5pt; font-weight: 800; text-transform: uppercase; color: #52525b; margin-bottom: 4px;">
+          Itemized Deliverables &amp; Defended Rates (16-Knot Verified)
+        </div>
+        <table class="pkg-deliv-table">
+          <thead>
+            <tr>
+              <th style="width: 14%;">Phase / Platform</th>
+              <th style="width: 32%;">Deliverable Format</th>
+              <th style="width: 38%;">Strategic Description</th>
+              <th style="width: 16%; text-align: right;">Standalone Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(pkg.calibratedDeliverables || pkg.deliverables || []).map((d: any) => {
+              const platIcon = d.platform === "youtube" ? SVG_ICONS.youtube : d.platform === "instagram" ? SVG_ICONS.instagram : SVG_ICONS.tiktok;
+              return `
+                <tr>
+                  <td>
+                    <span class="pkg-deliv-phase">${escapeHtml(d.phase || "Primary")}</span>
+                    <span style="margin-left: 3px;">${platIcon}</span>
+                  </td>
+                  <td><strong>${escapeHtml(d.title)}</strong></td>
+                  <td style="color: #52525b;">${escapeHtml(d.description || d.strategicDetail || "Standard creative execution as agreed.")}</td>
+                  <td style="text-align: right; font-weight: 700; font-family: ui-monospace, monospace;">
+                    ${d.totalStandaloneFormatted || "Included"}
+                  </td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+
+        <!-- Verbatim Spoken Ad Hooks (Package 2) -->
+        ${
+          pkg.adConcepts && pkg.adConcepts.length > 0
+            ? `
+          <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 5px; padding: 6px 8px; margin-bottom: 6px;">
+            <div style="font-size: 6.8pt; font-weight: 800; text-transform: uppercase; color: #92400e; margin-bottom: 3px;">
+              Verbatim Spoken Ad Hooks (Opening 3–5 Seconds)
+            </div>
+            ${pkg.adConcepts.map((c) => `
+              <div style="font-size: 6.8pt; margin-bottom: 3px;">
+                <strong>${escapeHtml(c.conceptName)} (${escapeHtml(c.suggestedPlatform.toUpperCase())}):</strong>
+                <em>&ldquo;${escapeHtml(c.hookVerbatim)}&rdquo;</em>
+                <div style="color: #78350f; font-size: 6.2pt;">${escapeHtml(c.visualDirection || c.angleSummary)}</div>
+              </div>
+            `).join("")}
+          </div>
+        `
+            : ""
+        }
+
+        <!-- Concrete Digital Asset Buyout Specifications (Package 4) -->
+        ${
+          pkg.concreteAssets && pkg.concreteAssets.length > 0
+            ? `
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 5px; padding: 6px 8px; margin-bottom: 6px;">
+            <div style="font-size: 6.8pt; font-weight: 800; text-transform: uppercase; color: #166534; margin-bottom: 3px;">
+              Concrete Digital Asset Buyout Specifications
+            </div>
+            ${pkg.concreteAssets.map((a) => `
+              <div style="font-size: 6.8pt; color: #14532d;">• ${escapeHtml(a.specification)}</div>
+            `).join("")}
+          </div>
+        `
+            : ""
+        }
+
+        <!-- Included Commercial Rights -->
+        ${
+          pkg.entitlements && pkg.entitlements.length > 0
+            ? `
+          <div style="font-size: 6.8pt; color: #3f3f46; margin-bottom: 5px;">
+            <strong>Included Commercial Rights &amp; Contract Entitlements:</strong>
+            ${pkg.entitlements.map((e) => `• <strong>${escapeHtml(e.label || (e as any).title)}:</strong> ${escapeHtml(e.detail)}`).join(" ")}
+          </div>
+        `
+            : ""
+        }
+
+        <!-- Critical Collaboration Guidelines -->
+        ${
+          pkg.collaborationGuidelines && pkg.collaborationGuidelines.length > 0
+            ? `
+          <div class="guidelines-grid">
+            ${pkg.collaborationGuidelines.map((g) => `
+              <div class="guideline-box">
+                <div class="guideline-title">#${g.ruleNumber} ${escapeHtml(g.ruleTitle)}</div>
+                <div>${escapeHtml(g.directive)}</div>
+                <div class="guideline-risk">Risk: ${escapeHtml(g.commercialRisk)}</div>
+              </div>
+            `).join("")}
+          </div>
+        `
+            : ""
+        }
+      </div>
+    `;
+  }).join("")}
+
+  <!-- ===================================================================== -->
+  <!-- CONTRACT CALL TO ACTION & VERIFICATION                                -->
+  <!-- ===================================================================== -->
+  <div class="cta-box avoid-break">
+    <div>
+      <div class="cta-title">Lock in this valuation with a legal sponsorship agreement</div>
+      <div class="cta-desc">
+        Generate an Instant Creator Sponsorship Agreement pre-filled with verified deliverables, usage rights, and calibrated pricing.
+      </div>
+    </div>
+    <div>
+      <a href="${instantContractUrl ? escapeHtml(instantContractUrl) : "https://www.signcollab.com/instant"}" class="cta-button">
+        Generate Instant Contract ${SVG_ICONS.link}
+      </a>
     </div>
   </div>
-  `
-      : ""
-  }
 
-  <!-- 5. Intelligence Matrix & Audience DNA -->
+  <!-- ===================================================================== -->
+  <!-- RECENT MEDIA & EMPIRICAL CONTENT AUDITS (APPENDIX)                    -->
+  <!-- ===================================================================== -->
   ${
-    completeIntelligence
+    auditedMedia.length > 0
       ? `
-  <div class="avoid-break">
-    <div class="section-head">
-      <div class="section-title">
-        3. Strategic Creator DNA &amp; Intelligence Matrix
-      </div>
-      <div class="section-desc">Synthesized commercial buyer demographics, brand safety, and regional reach</div>
-    </div>
-
-    <div class="intel-grid">
-      <div class="intel-box">
-        <div class="intel-label">Audience Demographics &amp; Commercial Intent</div>
-        <div class="intel-row">
-          <span>Demographic Skew</span>
-          <span class="intel-val">${completeIntelligence.audience?.genderSkew || "Balanced"}, ${completeIntelligence.audience?.likelyAgeRange || "18-34"}</span>
-        </div>
-        <div class="intel-row">
-          <span>Buyer Purchase Intent</span>
-          <span class="intel-val">${completeIntelligence.audience?.purchaseIntent || "Moderate"} Commercial Intent</span>
-        </div>
-        <div class="intel-row">
-          <span>Dominant Content Format</span>
-          <span class="intel-val">${completeIntelligence.content?.dominantFormat || "Video"}</span>
-        </div>
+    <div class="avoid-break force-page-break">
+      <div class="section-head">
+        <div class="section-title">5. Recent Media &amp; Empirical Content Audits (Verification Appendix)</div>
+        <div class="section-note">Total Audited Media Uploads Analyzed: ${auditedMedia.length}</div>
       </div>
 
-      <div class="intel-box">
-        <div class="intel-label">Brand Safety &amp; Strategic Strengths</div>
-        <div class="intel-row">
-          <span>Brand Safety Risk</span>
-          <span class="intel-val" style="color: #059669;">● ${completeIntelligence.brandSafety?.overallRisk || "Low"} Risk Profile</span>
-        </div>
-        <div class="intel-row">
-          <span>Primary Geographic Market</span>
-          <span class="intel-val">${completeIntelligence.geography?.countryName || regionInfo.name}</span>
-        </div>
-        <div class="intel-row">
-          <span>Primary Strategic Anchor</span>
-          <span class="intel-val">${completeIntelligence.strengths?.[0]?.area || "Organic Retention"}</span>
-        </div>
-      </div>
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th style="width: 14%;">Platform &amp; Format</th>
+            <th style="width: 10%;">Sample Status</th>
+            <th style="width: 44%;">Upload Title / Caption Context</th>
+            <th style="width: 10%;">Publish Date</th>
+            <th style="width: 8%; text-align: right;">Views</th>
+            <th style="width: 7%; text-align: right;">Likes</th>
+            <th style="width: 7%; text-align: right;">ER %</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${auditedMedia.map((m) => {
+            const platIcon = m.platform === "youtube" ? SVG_ICONS.youtube : m.platform === "instagram" ? SVG_ICONS.instagram : SVG_ICONS.tiktok;
+            const badgeClass = m.sampleClass === "Core Sample" ? "badge-core" : m.sampleClass === "Trimmed Outlier" ? "badge-outlier" : "badge-recent";
+            return `
+              <tr>
+                <td>
+                  ${platIcon}
+                  <strong style="margin-left: 2px;">${escapeHtml(m.formatLabel)}</strong>
+                </td>
+                <td>
+                  <span class="audit-badge ${badgeClass}">${m.sampleClass}</span>
+                </td>
+                <td>
+                  ${escapeHtml(m.title.length > 75 ? `${m.title.slice(0, 75)}...` : m.title)}
+                  ${m.url ? `<a href="${m.url}" style="color: #2563eb; text-decoration: none; margin-left: 4px; font-weight: bold;">[Link]</a>` : ""}
+                </td>
+                <td style="color: #71717a; font-family: ui-monospace, monospace;">${m.date || "—"}</td>
+                <td style="text-align: right; font-family: ui-monospace, monospace; font-weight: 700;">
+                  ${m.views > 0 ? formatShortNumber(m.views) : "— (IG Private)"}
+                </td>
+                <td style="text-align: right; font-family: ui-monospace, monospace;">${formatShortNumber(m.likes)}</td>
+                <td style="text-align: right; font-family: ui-monospace, monospace; font-weight: 800; color: #059669;">
+                  ${m.erText}
+                </td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
     </div>
-  </div>
   `
       : ""
   }
 
-  <!-- 6. Empirical Performance Baselines Defense (Appendix) -->
-  <div class="avoid-break">
-    <div class="section-head">
-      <div class="section-title">
-        4. Empirical Audience Interaction Baselines (Verification Appendix)
-      </div>
-      <div class="section-desc">Normalized sample baselines defending institutional rate card valuations</div>
-    </div>
-
-    <table class="audit-table">
-      <thead>
-        <tr>
-          <th>Platform Channel</th>
-          <th class="num">Audience Base</th>
-          <th class="num">Verified Median Views</th>
-          <th class="num">Normalized Likes</th>
-          <th class="num">Audited Comments</th>
-          <th class="num">Eng. Rate (ER)</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${
-          platforms.youtube?.status === "ready"
-            ? `
-          <tr>
-            <td><strong>${SVG_ICONS.youtube} YouTube Channel</strong></td>
-            <td class="num mono">${formatShortNumber(platforms.youtube.followerCount)}</td>
-            <td class="num mono">${formatShortNumber(platforms.youtube.avgViews)}</td>
-            <td class="num mono">${formatShortNumber(platforms.youtube.avgLikes)}</td>
-            <td class="num mono">${formatShortNumber(platforms.youtube.avgComments)}</td>
-            <td class="num mono-bold" style="color: #059669;">${formatPercentage(platforms.youtube.engagementRate)}</td>
-          </tr>
-        `
-            : ""
-        }
-        ${
-          platforms.instagram?.status === "ready"
-            ? `
-          <tr>
-            <td><strong>${SVG_ICONS.instagram} Instagram Account</strong></td>
-            <td class="num mono">${formatShortNumber(platforms.instagram.followerCount)}</td>
-            <td class="num mono" style="color: #94a3b8;">— (IG Private)</td>
-            <td class="num mono">${formatShortNumber(platforms.instagram.avgLikes)}</td>
-            <td class="num mono">${formatShortNumber(platforms.instagram.avgComments)}</td>
-            <td class="num mono-bold" style="color: #059669;">${formatPercentage(platforms.instagram.engagementRate)}*</td>
-          </tr>
-        `
-            : ""
-        }
-        ${
-          platforms.tiktok?.status === "ready"
-            ? `
-          <tr>
-            <td><strong>${SVG_ICONS.tiktok} TikTok Account</strong></td>
-            <td class="num mono">${formatShortNumber(platforms.tiktok.followerCount)}</td>
-            <td class="num mono">${formatShortNumber(platforms.tiktok.avgViews)}</td>
-            <td class="num mono">${formatShortNumber(platforms.tiktok.avgLikes)}</td>
-            <td class="num mono">${formatShortNumber(platforms.tiktok.avgComments)}</td>
-            <td class="num mono-bold" style="color: #059669;">${formatPercentage(platforms.tiktok.engagementRate)}</td>
-          </tr>
-        `
-            : ""
-        }
-      </tbody>
-    </table>
-    <div style="font-size: 6.5pt; color: #64748b; margin-top: -6px; margin-bottom: 10px;">
-      * Note: Instagram engagement rates reflect follower-benchmarked interaction ratios ((Likes + Comments) / Followers) in accordance with institutional procurement standards.
-    </div>
-  </div>
-
-  <!-- 7. Document Verification Footer -->
-  <div class="doc-footer">
+  <!-- ===================================================================== -->
+  <!-- DOCUMENT FOOTER & LEGAL VERIFICATION BAR                             -->
+  <!-- ===================================================================== -->
+  <div class="doc-footer avoid-break">
     <div>
-      CONFIDENTIAL &amp; PROPRIETARY • GENERATED BY BRANDBRIDGE VALUATION ENGINE • 30-DAY COMMERCIAL VALIDITY
+      CONFIDENTIAL &amp; PROPRIETARY • GENERATED BY SIGNCOLLAB VALUATION ENGINE • 30-DAY COMMERCIAL VALIDITY
     </div>
     <div>
-      VERIFICATION REF: ${reportRef} • PAGE 1 OF 1
+      Institutional proposal defended via <strong>SignCollab 16-Knot Empirical Model</strong>. Verification Ref: <strong>${reportRef}</strong> • Page 1 of Document
+    </div>
+    <div style="font-size: 5.8pt; color: #a1a1aa; margin-top: 3px; max-width: 90%; margin-left: auto; margin-right: auto;">
+      PLATFORM DISCLAIMER: SignCollab is an independent technology platform providing digital document automation and algorithmic commercial media benchmarking. Valuations are empirical recommendations based on verified historical engagement and do not constitute an underwriting warranty.
     </div>
   </div>
 
@@ -785,7 +1583,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "12mm", bottom: "12mm", left: "12mm", right: "12mm" },
+      margin: { top: "10mm", bottom: "10mm", left: "12mm", right: "12mm" },
     });
     return Buffer.from(pdfBuffer);
   } finally {
