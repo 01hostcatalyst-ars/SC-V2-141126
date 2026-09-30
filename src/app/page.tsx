@@ -1,11 +1,10 @@
 import React from "react";
 import type { Metadata } from "next";
-import { getCompanyConfig } from "@/lib/config";
 import { SuiteHeader } from "@/components/layout/PublicHeader";
 import { HomeHero } from "@/components/home/HomeHero";
-import { InteractiveBentoShowcase } from "@/components/home/InteractiveBentoShowcase";
-import { CreatorProofGrid } from "@/components/home/CreatorProofGrid";
-import { WorkflowBridgeSection } from "@/components/home/WorkflowBridgeSection";
+import { MarketIntelligenceHub } from "@/components/home/MarketIntelligenceHub";
+import { InstantContractsSection } from "@/components/home/InstantContractsSection";
+import { UpcomingToolsSection } from "@/components/home/UpcomingToolsSection";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
@@ -33,24 +32,22 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  const company = getCompanyConfig();
-
   return (
     <div className="min-h-screen bg-canvas flex flex-col relative selection:bg-zinc-950 selection:text-white">
       {/* Master Universal Suite Header */}
       <SuiteHeader activeRoute="/" />
 
-      {/* 1. Hero Section with Collabstr-style Omni-Search */}
+      {/* 1. Hero Section (Platform Positioning, Live Ecosystem Preview, Dual CTAs) */}
       <HomeHero />
 
-      {/* 2. Interactive Live Bento Showcase (Radar + Contract + SHA-256) */}
-      <InteractiveBentoShowcase />
+      {/* 2. Rate Intelligence & Market Sector Hub (16-Knot Valuation, Sector Tabs, Audited Cards) */}
+      <MarketIntelligenceHub />
 
-      {/* 3. Multi-Tier Creator Proof Grid */}
-      <CreatorProofGrid />
+      {/* 3. Instant Contracts & Legal Settlement (1-Page Bilateral Terms, Interactive Clauses, SHA-256) */}
+      <InstantContractsSection />
 
-      {/* 4. The 3-Step Bilateral Workflow Bridge */}
-      <WorkflowBridgeSection />
+      {/* 4. Upcoming Tools Suite (Creator Directory & Campaign Planner Roadmap + Free Beta Commitment) */}
+      <UpcomingToolsSection />
 
       {/* Master Public Footer */}
       <PublicFooter />
