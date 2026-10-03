@@ -698,15 +698,21 @@ export function InfluencerRadarDashboard() {
             avgLikes = Math.round(targetLongVids.reduce((s: number, v: { likeCount?: number }) => s + (v.likeCount || 0), 0) / targetLongVids.length);
             avgComments = Math.round(targetLongVids.reduce((s: number, v: { commentCount?: number }) => s + (v.commentCount || 0), 0) / targetLongVids.length);
             avgViews = avgLongViews || Math.round(targetLongVids.reduce((s: number, v: { viewCount?: number }) => s + (v.viewCount || 0), 0) / targetLongVids.length);
+            if (avgLongEngagementRate === 0 && avgViews > 0 && (avgLikes > 0 || avgComments > 0)) {
+              avgLongEngagementRate = Number((((avgLikes + avgComments) / avgViews) * 100).toFixed(2));
+            }
           }
 
           if (targetShortVids.length > 0) {
             avgShortLikes = Math.round(targetShortVids.reduce((s: number, v: { likeCount?: number }) => s + (v.likeCount || 0), 0) / targetShortVids.length);
             avgShortComments = Math.round(targetShortVids.reduce((s: number, v: { commentCount?: number }) => s + (v.commentCount || 0), 0) / targetShortVids.length);
             avgShortViews = avgShortViews || Math.round(targetShortVids.reduce((s: number, v: { viewCount?: number }) => s + (v.viewCount || 0), 0) / targetShortVids.length);
+            if (avgShortEngagementRate === 0 && avgShortViews > 0 && (avgShortLikes > 0 || avgShortComments > 0)) {
+              avgShortEngagementRate = Number((((avgShortLikes + avgShortComments) / avgShortViews) * 100).toFixed(2));
+            }
           }
 
-          engagementRate = avgLongEngagementRate;
+          engagementRate = avgLongEngagementRate || avgShortEngagementRate || 0;
 
           if (engagementRate === 0 && avgViews > 0 && (avgLikes > 0 || avgComments > 0)) {
             engagementRate = Number((((avgLikes + avgComments) / avgViews) * 100).toFixed(2));
@@ -814,8 +820,8 @@ export function InfluencerRadarDashboard() {
             avgComments,
             avgViews,
             engagementRate,
-            longEngagementRate: targetPlatform === "youtube" ? avgLongEngagementRate : undefined,
-            shortEngagementRate: targetPlatform === "youtube" ? avgShortEngagementRate : undefined,
+            longEngagementRate: targetPlatform === "youtube" ? (avgLongEngagementRate > 0 ? avgLongEngagementRate : undefined) : undefined,
+            shortEngagementRate: targetPlatform === "youtube" ? (avgShortEngagementRate > 0 ? avgShortEngagementRate : undefined) : undefined,
             avgLongViews: targetPlatform === "youtube" ? avgLongViews : undefined,
             avgShortViews: targetPlatform === "youtube" ? avgShortViews : undefined,
             posts: targetPlatform === "instagram" ? data.posts : undefined,
@@ -2951,17 +2957,19 @@ function PlatformRateCardItem({
               <div>
                 <div className="text-[10px] text-gray-400 uppercase font-medium">LF ER</div>
                 <div className="font-bold font-mono text-gray-950">
-                  {data.longEngagementRate !== undefined
+                  {data.longEngagementRate !== undefined && data.longEngagementRate > 0
                     ? `${data.longEngagementRate}%`
-                    : data.engagementRate !== undefined
+                    : data.engagementRate !== undefined && data.engagementRate > 0
                     ? `${data.engagementRate}%`
-                    : "—"}
+                    : "N/A"}
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-gray-400 uppercase font-medium">SF ER</div>
                 <div className="font-bold font-mono text-gray-950">
-                  {data.shortEngagementRate !== undefined ? `${data.shortEngagementRate}%` : "—"}
+                  {data.shortEngagementRate !== undefined && data.shortEngagementRate > 0
+                    ? `${data.shortEngagementRate}%`
+                    : "N/A"}
                 </div>
               </div>
             </div>

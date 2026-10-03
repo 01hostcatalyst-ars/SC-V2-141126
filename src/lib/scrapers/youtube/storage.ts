@@ -41,6 +41,15 @@ export async function getRecentYouTubeSnapshot(
   // If the record is younger than 24 hours, return it as a valid cache hit
   if (ageInHours < maxAgeHours) {
     const formatted = formatDbRecordToScraperData(latestRecord);
+
+    // Safeguard: Never serve an incomplete snapshot that has 0 videos captured if the channel has uploads
+    const totalVideos = formatted.longVideos.length + formatted.shortVideos.length;
+    const channelVideoCount = Number(latestRecord.videoCount || 0);
+    if (channelVideoCount > 0 && totalVideos === 0) {
+      console.warn(`[YouTube Storage] Cached snapshot for "${latestRecord.title}" had 0 videos captured. Ignoring cache to trigger fresh fetch.`);
+      return null;
+    }
+
     formatted.isCached = true;
     formatted.cacheAgeHours = Math.round(ageInHours * 10) / 10;
     return formatted;
@@ -60,6 +69,14 @@ export async function insertNewYouTubeSnapshot(data: YouTubeScraperData): Promis
   }
 
   const channel = data.channel;
+
+  // Safeguard: Do not persist empty video snapshots if the channel actually has uploads
+  const totalVideos = (data.longVideos?.length || 0) + (data.shortVideos?.length || 0);
+  const channelVideoCount = Number(channel.videoCount || 0);
+  if (channelVideoCount > 0 && totalVideos === 0) {
+    console.warn(`[YouTube Storage] Skipping DB insert for "${channel.title}" because 0 videos were captured despite channel having ${channelVideoCount} uploads.`);
+    return data;
+  }
 
   const newRecord = await prisma.youTubeScrape.create({
     data: {
