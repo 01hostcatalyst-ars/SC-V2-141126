@@ -15,12 +15,82 @@ import {
 
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
-function getApiKey(): string {
-  const apiKey = process.env.YOUTUBE_API_KEY;
-  if (!apiKey) {
-    throw new Error('YOUTUBE_API_KEY is not configured in server environment variables.');
+/**
+ * Resolves all configured YouTube API keys in order of priority:
+ * 1. Primary: YOUTUBE_API_KEY
+ * 2. Secondary / Backup: YOUTUBE_API_KEY_HOST_CAT
+ */
+function getApiKeys(): string[] {
+  const keys: string[] = [];
+  if (process.env.YOUTUBE_API_KEY?.trim()) {
+    keys.push(process.env.YOUTUBE_API_KEY.trim());
   }
-  return apiKey;
+  if (process.env.YOUTUBE_API_KEY_HOST_CAT?.trim()) {
+    const backupKey = process.env.YOUTUBE_API_KEY_HOST_CAT.trim();
+    if (!keys.includes(backupKey)) {
+      keys.push(backupKey);
+    }
+  }
+  if (keys.length === 0) {
+    throw new Error('Neither YOUTUBE_API_KEY nor YOUTUBE_API_KEY_HOST_CAT is configured in server environment variables.');
+  }
+  return keys;
+}
+
+// Global session cache of known exhausted keys to avoid repeating failing requests
+const exhaustedKeys = new Set<string>();
+
+/**
+ * Universal YouTube Data API fetcher with automatic quota failover.
+ * Tries the primary key first; if it returns quotaExceeded (403), seamlessly switches to secondary key.
+ */
+async function fetchYouTubeApiJson(endpointWithQuery: string): Promise<any> {
+  const keys = getApiKeys();
+  let lastError: any = null;
+
+  // Prioritize keys that haven't been marked as exhausted
+  const sortedKeys = [...keys].sort((a, b) => {
+    const aEx = exhaustedKeys.has(a) ? 1 : 0;
+    const bEx = exhaustedKeys.has(b) ? 1 : 0;
+    return aEx - bEx;
+  });
+
+  for (let i = 0; i < sortedKeys.length; i++) {
+    const apiKey = sortedKeys[i];
+    const separator = endpointWithQuery.includes('?') ? '&' : '?';
+    const fullUrl = `${BASE_URL}/${endpointWithQuery}${separator}key=${apiKey}`;
+
+    try {
+      const res = await fetch(fullUrl);
+      const data = await res.json();
+
+      if (data.error) {
+        const isQuota =
+          data.error.code === 403 &&
+          (data.error.errors?.some((e: any) => e.reason === 'quotaExceeded') ||
+           data.error.message?.includes('quota'));
+
+        if (isQuota) {
+          exhaustedKeys.add(apiKey);
+          console.warn(`[YouTube API Failover] Key ending in ...${apiKey.slice(-6)} exceeded daily quota. Switching to backup key...`);
+          lastError = new Error(`YouTube API Error: ${data.error.message || JSON.stringify(data.error)}`);
+          continue;
+        }
+
+        throw new Error(`YouTube API Error: ${data.error.message || JSON.stringify(data.error)}`);
+      }
+
+      return data;
+    } catch (err: any) {
+      lastError = err;
+      if (err.message?.includes('quotaExceeded') || err.message?.includes('quota')) {
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw lastError || new Error('All configured YouTube API keys have exhausted their daily quota.');
 }
 
 interface RawYouTubeChannel {
@@ -113,7 +183,6 @@ interface RawCommentThread {
  * Core YouTube Scraper function
  */
 export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperData> {
-  const apiKey = getApiKey();
   const parsedInput = extractYouTubeIdentifier(inputUrl);
 
   if (parsedInput.type === 'unknown' || !parsedInput.value) {
@@ -126,13 +195,7 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
 
   // If user provided a video URL, resolve its channel ID first
   if (parsedInput.type === 'videoId') {
-    const videoUrl = `${BASE_URL}/videos?part=snippet&id=${parsedInput.value}&key=${apiKey}`;
-    const vRes = await fetch(videoUrl);
-    const vData = await vRes.json();
-
-    if (vData.error) {
-      throw new Error(`YouTube API Error: ${vData.error.message || JSON.stringify(vData.error)}`);
-    }
+    const vData = await fetchYouTubeApiJson(`videos?part=snippet&id=${encodeURIComponent(parsedInput.value)}`);
 
     const item = vData.items?.[0];
     if (!item || !item.snippet?.channelId) {
@@ -157,21 +220,17 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     channelQueryParam = `forUsername=${encodeURIComponent(username)}`;
   }
 
-  const channelUrl = `${BASE_URL}/channels?part=snippet,contentDetails,statistics,brandingSettings,topicDetails&${channelQueryParam}&key=${apiKey}`;
-  const chRes = await fetch(channelUrl);
-  const chData = await chRes.json();
-
-  if (chData.error) {
-    throw new Error(`YouTube API Error: ${chData.error.message || JSON.stringify(chData.error)}`);
-  }
+  const chData = await fetchYouTubeApiJson(
+    `channels?part=snippet,contentDetails,statistics,brandingSettings,topicDetails&${channelQueryParam}`
+  );
 
   let rawChannel: RawYouTubeChannel | undefined = chData.items?.[0];
 
   // Fallback: If forHandle didn't find anything, try searching by handle as username
   if (!rawChannel && handle) {
-    const fallbackUrl = `${BASE_URL}/channels?part=snippet,contentDetails,statistics,brandingSettings,topicDetails&forUsername=${encodeURIComponent(handle)}&key=${apiKey}`;
-    const fbRes = await fetch(fallbackUrl);
-    const fbData = await fbRes.json();
+    const fbData = await fetchYouTubeApiJson(
+      `channels?part=snippet,contentDetails,statistics,brandingSettings,topicDetails&forUsername=${encodeURIComponent(handle)}`
+    );
     rawChannel = fbData.items?.[0];
   }
 
@@ -275,9 +334,9 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     while ((longVideos.length < 10 || shortVideos.length < 10) && pagesFetched < maxPages) {
       pagesFetched++;
       const pageParam = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
-      const plUrl = `${BASE_URL}/playlistItems?part=contentDetails&playlistId=${uploadsPlaylistId}&maxResults=50${pageParam}&key=${apiKey}`;
-      const plRes = await fetch(plUrl);
-      const plData = await plRes.json();
+      const plData = await fetchYouTubeApiJson(
+        `playlistItems?part=contentDetails&playlistId=${encodeURIComponent(uploadsPlaylistId)}&maxResults=50${pageParam}`
+      );
 
       const rawPlaylistItems: RawPlaylistItem[] = plData.items || [];
       if (rawPlaylistItems.length === 0) break;
@@ -288,9 +347,9 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
 
       if (videoIds.length > 0) {
         // Query video stats and duration in one batch
-        const vUrl = `${BASE_URL}/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${apiKey}`;
-        const vRes = await fetch(vUrl);
-        const vData = await vRes.json();
+        const vData = await fetchYouTubeApiJson(
+          `videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}`
+        );
 
         const rawVideos: RawVideoItem[] = vData.items || [];
 
@@ -366,9 +425,9 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
   // 4. Fetch Top 5 Comments for the Core Middle Sample Long-Form Videos
   for (const vid of longMetrics.sampleVideos.slice(0, 6)) {
     try {
-      const cUrl = `${BASE_URL}/commentThreads?part=snippet&videoId=${vid.id}&maxResults=5&order=time&key=${apiKey}`;
-      const cRes = await fetch(cUrl);
-      const cData = await cRes.json();
+      const cData = await fetchYouTubeApiJson(
+        `commentThreads?part=snippet&videoId=${encodeURIComponent(vid.id)}&maxResults=5&order=time`
+      );
 
       if (cData.items) {
         vid.comments = (cData.items as RawCommentThread[]).map(c => {
@@ -392,9 +451,9 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
   // 5. Fetch Top 5 Comments for the Core Middle Sample Shorts
   for (const vid of shortMetrics.sampleVideos.slice(0, 6)) {
     try {
-      const cUrl = `${BASE_URL}/commentThreads?part=snippet&videoId=${vid.id}&maxResults=5&order=time&key=${apiKey}`;
-      const cRes = await fetch(cUrl);
-      const cData = await cRes.json();
+      const cData = await fetchYouTubeApiJson(
+        `commentThreads?part=snippet&videoId=${encodeURIComponent(vid.id)}&maxResults=5&order=time`
+      );
 
       if (cData.items) {
         vid.comments = (cData.items as RawCommentThread[]).map(c => {

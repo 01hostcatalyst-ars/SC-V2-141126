@@ -5,7 +5,6 @@ import { PlatformRateCard, PlatformDataState } from "./PlatformRateCard";
 import { OmnichannelBundleCard } from "./OmnichannelBundleCard";
 import { Platform, RegionCode, DeliverableFormat } from "@/lib/calculator/types";
 import { FORMAT_LABELS } from "@/lib/calculator/constants";
-import { useRouter } from "next/navigation";
 import { CreatorAIClassification, MultiPlatformCreatorInput } from "@/lib/ai/gemini";
 import {
   Users,
@@ -56,8 +55,6 @@ export function MultiPlatformCalculatorGrid({
   primaryNicheId = 8,
   regionCode = "US",
 }: MultiPlatformCalculatorGridProps) {
-  const router = useRouter();
-
   // In-flight tracker ref to prevent duplicate scrapes across cascading triggers
   const inFlightScrapes = useRef<Set<string>>(new Set());
 
@@ -368,30 +365,7 @@ export function MultiPlatformCalculatorGrid({
     }
   }, [initialCreator, initialPlatform, initialRateCardItems, scrapeSinglePlatform]);
 
-  const handleDeliverableContract = (platform: Platform, format: DeliverableFormat, amount: number) => {
-    const label = FORMAT_LABELS[format]?.label || format;
-    const deliverablesData = [
-      {
-        type: format.toUpperCase(),
-        quantity: 1,
-        duration: "12 Months",
-        notes: label,
-      },
-    ];
 
-    const queryParams = new URLSearchParams({
-      from: "calculator",
-      platform: platform.toUpperCase(),
-      amount: amount.toString(),
-      currency: "USD",
-      region: regionCode,
-      deliverables: JSON.stringify(deliverablesData),
-      usageScope: "organic_repost",
-      usageDuration: "30_days",
-    });
-
-    router.push(`/instant?${queryParams.toString()}`);
-  };
 
   return (
     <div className="space-y-5">
@@ -629,7 +603,6 @@ export function MultiPlatformCalculatorGrid({
           platform="instagram"
           data={platformStates.instagram}
           onManualSearch={(handle) => scrapeSinglePlatform(handle, "instagram")}
-          onSelectDeliverableForContract={(fmt, amt) => handleDeliverableContract("instagram", fmt, amt)}
         />
 
         {/* Card 2: TikTok */}
@@ -637,7 +610,6 @@ export function MultiPlatformCalculatorGrid({
           platform="tiktok"
           data={platformStates.tiktok}
           onManualSearch={(handle) => scrapeSinglePlatform(handle, "tiktok")}
-          onSelectDeliverableForContract={(fmt, amt) => handleDeliverableContract("tiktok", fmt, amt)}
         />
 
         {/* Card 3: YouTube */}
@@ -645,7 +617,6 @@ export function MultiPlatformCalculatorGrid({
           platform="youtube"
           data={platformStates.youtube}
           onManualSearch={(handle) => scrapeSinglePlatform(handle, "youtube")}
-          onSelectDeliverableForContract={(fmt, amt) => handleDeliverableContract("youtube", fmt, amt)}
         />
 
         {/* Card 4: Omnichannel Bundle */}

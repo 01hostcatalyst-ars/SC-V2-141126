@@ -10,6 +10,7 @@ export interface RateCardPdfPayload {
     displayName: string;
     primaryUsername: string;
     avatarUrl?: string;
+    contactEmail?: string;
   };
   selectedRegion: RegionCode;
   activeNicheName?: string;
@@ -939,7 +940,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
       }
       <div>
         <div class="creator-name">${escapeHtml(creatorMeta.displayName)}</div>
-        <div class="creator-handle">@${escapeHtml(creatorMeta.primaryUsername.replace(/^@+/, ""))} • Multi-Channel Digital Profile</div>
+        <div class="creator-handle">@${escapeHtml(creatorMeta.primaryUsername.replace(/^@+/, ""))} • Multi-Channel Digital Profile${creatorMeta.contactEmail ? ` • Commercial Contact: ${escapeHtml(creatorMeta.contactEmail)}` : ""}</div>
         <div class="creator-pos">
           ${escapeHtml(completeIntelligence?.profile?.profilePositioning || "Multi-Channel Digital Storyteller & Video Creator")}
         </div>
@@ -1582,22 +1583,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- CONTRACT CALL TO ACTION & VERIFICATION                                -->
-  <!-- ===================================================================== -->
-  <div class="cta-box avoid-break">
-    <div>
-      <div class="cta-title">Lock in this valuation with a legal sponsorship agreement</div>
-      <div class="cta-desc">
-        Generate an Instant Creator Sponsorship Agreement pre-filled with verified deliverables, usage rights, and calibrated pricing.
-      </div>
-    </div>
-    <div>
-      <a href="${instantContractUrl ? escapeHtml(instantContractUrl) : "https://www.signcollab.com/instant"}" class="cta-button">
-        Generate Instant Contract ${SVG_ICONS.link}
-      </a>
-    </div>
-  </div>
+
 
   <!-- ===================================================================== -->
   <!-- RECENT MEDIA & EMPIRICAL CONTENT AUDITS (APPENDIX)                    -->

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { PlatformDataState } from "./PlatformRateCard";
 import { calculateInfluencerRate, roundCommercial } from "@/lib/calculator/engine";
 import { PricingInput, DeliverableItem, RegionCode } from "@/lib/calculator/types";
@@ -11,7 +10,6 @@ import {
   Flame,
   Crown,
   Clock,
-  ArrowRight,
   Copy,
   CheckCircle2,
   Sparkles,
@@ -32,7 +30,6 @@ export function OmnichannelBundleCard({
   primaryNicheId = 8, // Lifestyle default
   regionCode = "US",
 }: OmnichannelBundleCardProps) {
-  const router = useRouter();
   const [copied, setCopied] = useState(false);
 
   const readyPlatforms = useMemo(() => {
@@ -173,27 +170,7 @@ export function OmnichannelBundleCard({
     };
   }, [hasMultiplePlatforms, readyPlatforms, platforms, primaryNicheId, regionCode]);
 
-  const handleExportContract = (combo: NonNullable<typeof starterCombo>) => {
-    const deliverablesData = combo.deliverables.map((d) => ({
-      type: d.format.toUpperCase(),
-      quantity: d.quantity,
-      duration: "30 Days",
-      notes: `${FORMAT_LABELS[d.format]?.label || d.format} on ${d.platform.toUpperCase()}`,
-    }));
 
-    const queryParams = new URLSearchParams({
-      from: "calculator",
-      platform: combo.deliverables[0]?.platform.toUpperCase() || "INSTAGRAM",
-      amount: combo.typicalRaw.toString(),
-      currency: combo.currency,
-      region: regionCode,
-      deliverables: JSON.stringify(deliverablesData),
-      usageScope: "paid_partnership_ads",
-      usageDuration: "30_days",
-    });
-
-    router.push(`/instant?${queryParams.toString()}`);
-  };
 
   const handleCopyBundles = () => {
     if (!starterCombo && !authorityPack) return;
@@ -269,16 +246,8 @@ export function OmnichannelBundleCard({
                     <div className="text-[10px] text-emerald-400 font-medium">Save {starterCombo.savingsFormatted}</div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-1.5 border-t border-white/5 text-[10px] text-zinc-400">
+                <div className="pt-1.5 border-t border-white/5 text-[10px] text-zinc-400">
                   <span>Range: {starterCombo.formattedLow} – {starterCombo.formattedHigh}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleExportContract(starterCombo)}
-                    className="text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>Export Contract</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
                 </div>
               </div>
             )}
@@ -299,16 +268,8 @@ export function OmnichannelBundleCard({
                     <div className="text-[10px] text-emerald-400 font-medium">Save {authorityPack.savingsFormatted}</div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-1.5 border-t border-white/5 text-[10px] text-zinc-400">
+                <div className="pt-1.5 border-t border-white/5 text-[10px] text-zinc-400">
                   <span>Range: {authorityPack.formattedLow} – {authorityPack.formattedHigh}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleExportContract(authorityPack)}
-                    className="text-purple-300 hover:text-purple-200 font-medium inline-flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>Export Contract</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
                 </div>
               </div>
             )}

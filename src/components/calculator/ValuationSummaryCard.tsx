@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { CalculationResult, PricingInput } from "@/lib/calculator/types";
 import { FORMAT_LABELS } from "@/lib/calculator/constants";
 
@@ -11,7 +10,6 @@ interface ValuationSummaryCardProps {
 }
 
 export function ValuationSummaryCard({ result, input }: ValuationSummaryCardProps) {
-  const router = useRouter();
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -20,40 +18,6 @@ export function ValuationSummaryCard({ result, input }: ValuationSummaryCardProp
   const erPerformanceDiff = metrics.performanceMultiplier - 1.0;
   const isPerformanceBoost = erPerformanceDiff > 0.02;
   const isPerformancePenalty = erPerformanceDiff < -0.02;
-
-  const handleExportToContract = () => {
-    const primaryDeliverable = input.deliverables[0];
-    const platformParam = primaryDeliverable?.platform
-      ? primaryDeliverable.platform.toUpperCase()
-      : "INSTAGRAM";
-    const amountParam = valuationRange.typicalMedian.toString();
-    const currencyParam = metrics.currency;
-    const regionParam = metrics.regionApplied;
-
-    const deliverablesData = input.deliverables.map((d) => ({
-      type: d.format.toUpperCase(),
-      quantity: d.quantity,
-      duration: "12 Months",
-      notes: `${FORMAT_LABELS[d.format]?.label || d.format}${
-        d.isCrossPost ? " (Cross-posted asset -50%)" : ""
-      }`,
-    }));
-
-    const queryParams = new URLSearchParams({
-      from: "calculator",
-      platform: platformParam,
-      amount: amountParam,
-      currency: currencyParam,
-      region: regionParam,
-      deliverables: JSON.stringify(deliverablesData),
-      usageScope: input.commercialTerms?.usageRights?.scope || "organic_repost",
-      usageDuration: input.commercialTerms?.usageRights?.duration || "30_days",
-      exclusivityScope: input.commercialTerms?.exclusivity?.scope || "none",
-      exclusivityDuration: input.commercialTerms?.exclusivity?.duration || "14_days",
-    });
-
-    router.push(`/instant?${queryParams.toString()}`);
-  };
 
   const handleCopyRateCard = () => {
     const summaryText = `--- SIGNCOLLAB INFLUENCER VALUATION ---
@@ -234,28 +198,7 @@ Generated via SignCollab 16-Knot Rate Engine (Zero Mock Data / Database Verified
         )}
       </div>
 
-      {/* Primary Action Button: 1-Click Instant Contract Export */}
-      <div className="space-y-3 pt-2">
-        <button
-          type="button"
-          onClick={handleExportToContract}
-          className="w-full py-4 px-5 rounded-2xl bg-black text-white font-black text-xs sm:text-sm uppercase tracking-wider hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl cursor-pointer flex items-center justify-center gap-2.5 group"
-        >
-          <span>Create Contract with this Estimate</span>
-          <svg
-            className="w-4 h-4 transition-transform group-hover:translate-x-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
-        </button>
 
-        <p className="text-[11px] text-gray-500 text-center leading-tight font-medium">
-          Transfers deliverables, duration, commercial rights, and compensation into SignCollab bilateral contract wizard.
-        </p>
-      </div>
     </div>
   );
 }

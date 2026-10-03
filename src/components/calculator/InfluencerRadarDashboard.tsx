@@ -14,6 +14,8 @@ import {
   Package,
   FileText,
   Copy,
+  Check,
+  Mail,
   Globe,
   SlidersHorizontal,
   ChevronDown,
@@ -40,6 +42,7 @@ import { calculateInfluencerRate, roundCommercial } from "@/lib/calculator/engin
 import { generateOmnichannelPackages, GeneratedPackage, PackageId } from "@/lib/calculator/packages";
 import { FORMAT_LABELS, REGIONAL_CONFIG, PRIMARY_NICHES, SUB_NICHES, getSubNichesByPrimaryId } from "@/lib/calculator/constants";
 import { InstagramPostItem, YouTubeVideoItem, TikTokVideoItem } from "@/lib/scrapers/types";
+import { extractEmailFromBio } from "@/lib/scrapers/instagram/parser";
 import { CompleteCreatorIntelligence } from "@/lib/ai/types";
 import { MultiPlatformCreatorInput } from "@/lib/ai/gemini";
 
@@ -73,6 +76,7 @@ interface DiscoveredPlatformData {
   }>;
   error?: string;
   sourceNote?: string;
+  extractedEmail?: string;
 }
 
 interface ActivityEvent {
@@ -352,7 +356,17 @@ export function InfluencerRadarDashboard() {
     primaryUsername: string;
     avatarUrl?: string;
     primaryPlatform: Platform;
+    contactEmail?: string;
   } | null>(null);
+
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const handleCopyEmail = useCallback((email: string) => {
+    if (typeof window !== "undefined" && navigator?.clipboard) {
+      navigator.clipboard.writeText(email);
+      setCopiedEmail(true);
+      setTimeout(() => setCopiedEmail(false), 2000);
+    }
+  }, []);
 
   // Guard against duplicate in-flight scrapes
   const inFlightScrapes = useRef<Set<string>>(new Set());
@@ -613,6 +627,7 @@ export function InfluencerRadarDashboard() {
         let avgShortLikes = 0;
         let avgShortComments = 0;
         let channelCountry: string | undefined = undefined;
+        let extractedEmail: string | undefined = undefined;
 
         if (targetPlatform === "instagram") {
           const profile = data.profile || {};
@@ -631,6 +646,7 @@ export function InfluencerRadarDashboard() {
           displayName = profile.fullName || profile.username || username;
           avatarUrl = profile.avatarUrl || "";
           biography = profile.biography || "";
+          extractedEmail = profile.extractedEmail || (biography ? extractEmailFromBio(biography) : undefined);
 
           // Extract external links
           if (Array.isArray(profile.externalUrls)) {
@@ -700,6 +716,7 @@ export function InfluencerRadarDashboard() {
           displayName = channel.title || username;
           avatarUrl = channel.avatarUrl || "";
           biography = channel.description || "";
+          extractedEmail = channel.extractedEmail || (biography ? extractEmailFromBio(biography) : undefined);
 
           if (Array.isArray(channel.externalLinks)) {
             for (const u of channel.externalLinks) {
@@ -739,6 +756,7 @@ export function InfluencerRadarDashboard() {
           displayName = profile.nickname || profile.username || username;
           avatarUrl = profile.avatarUrl || "";
           biography = profile.biography || "";
+          extractedEmail = profile.extractedEmail || (biography ? extractEmailFromBio(biography) : undefined);
           const bioLink = profile.bioLink || "";
 
           if (bioLink.includes("youtube.com") || bioLink.includes("youtu.be")) {
@@ -809,6 +827,7 @@ export function InfluencerRadarDashboard() {
                 : undefined,
             rateCardItems,
             sourceNote,
+            extractedEmail,
           },
         }));
 
@@ -825,9 +844,13 @@ export function InfluencerRadarDashboard() {
               primaryUsername: username.replace(/^@+/, ""),
               avatarUrl,
               primaryPlatform: targetPlatform,
+              contactEmail: extractedEmail,
             };
           }
-          return prev;
+          return {
+            ...prev,
+            contactEmail: prev.contactEmail || extractedEmail,
+          };
         });
 
         // Trigger autonomous parallel scans for discovered links
@@ -1372,6 +1395,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
           displayName: creatorMeta.displayName,
           primaryUsername: creatorMeta.primaryUsername,
           avatarUrl: creatorMeta.avatarUrl,
+          contactEmail: creatorMeta.contactEmail,
         },
         selectedRegion,
         activeNicheName: activeNiche?.name,
@@ -1753,14 +1777,6 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                         )}
                         <span className="hidden md:inline">Download PDF</span>
                       </button>
-
-                      <Link
-                        href={buildContractHref()}
-                        className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>Create Contract</span>
-                      </Link>
                     </>
                   )}
                 </div>
@@ -1817,7 +1833,36 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Multi-Channel Profile
                         </span>
                       </div>
-                      <div className="text-xs text-zinc-400 font-mono">@{creatorMeta.primaryUsername.replace(/^@+/, "")}</div>
+                      <div className="flex items-center flex-wrap gap-2.5 mt-1">
+                        <span className="text-xs text-zinc-400 font-mono">@{creatorMeta.primaryUsername.replace(/^@+/, "")}</span>
+                        {creatorMeta.contactEmail && (
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-50 border border-zinc-200/80 text-[11px] text-zinc-700">
+                            <Mail className="w-3 h-3 text-zinc-400 shrink-0" />
+                            <a
+                              href={`mailto:${creatorMeta.contactEmail}`}
+                              className="font-mono hover:text-zinc-950 hover:underline transition-colors"
+                              title="Send inquiry email"
+                            >
+                              {creatorMeta.contactEmail}
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyEmail(creatorMeta.contactEmail!)}
+                              className="p-0.5 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer rounded ml-0.5"
+                              title={copiedEmail ? "Copied" : "Copy email address"}
+                            >
+                              {copiedEmail ? (
+                                <Check className="w-3 h-3 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
+                            {copiedEmail && (
+                              <span className="text-[10px] text-emerald-600 font-semibold font-sans">Copied</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -2576,30 +2621,6 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                   </div>
                 </div>
               )}
-
-              {/* SECTION 5.5: INSTANT SPONSORSHIP CONTRACT WORKFLOW CTA */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-zinc-200/90 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 animate-fadeIn">
-                <div className="space-y-1 text-left">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <h3 className="text-xs sm:text-sm font-semibold text-zinc-950">
-                      Lock in this valuation with a legal sponsorship agreement
-                    </h3>
-                  </div>
-                  <p className="text-[11px] text-zinc-500 max-w-xl">
-                    Generate an Instant Creator Sponsorship Agreement pre-filled with verified deliverables, usage rights, and calibrated pricing.
-                  </p>
-                </div>
-
-                <Link
-                  href={buildContractHref()}
-                  className="px-4 py-2.5 bg-zinc-900 hover:bg-black text-white text-xs font-semibold rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5 cursor-pointer"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Generate Instant Contract</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
 
               {/* SECTION 6: RECENT MEDIA & EMPIRICAL POST AUDITS */}
               <RecentMediaAuditFeed platforms={platforms} />

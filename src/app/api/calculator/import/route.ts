@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { detectPlatform, YouTubeScraper, InstagramScraper, TikTokScraper } from '@/lib/scrapers';
 import { InstagramScraperData } from '@/lib/scrapers/types';
+import { extractEmailFromBio } from '@/lib/scrapers/instagram/parser';
 import { enrichCreatorWithAI } from '@/lib/ai/gemini';
 import { calculateInfluencerRate } from '@/lib/calculator/engine';
 import { PricingInput, DeliverableFormat, Platform, RegionCode } from '@/lib/calculator/types';
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
     let platformComments: string[] = [];
     let externalLinks: Array<{ platform: string; url: string }> = [];
     let detectedCountry: string | undefined = regionCode;
+    let extractedEmail: string | undefined = undefined;
 
     // 1. Resolve Data from Scrapers (Cache-First)
     if (platform === 'youtube') {
@@ -52,6 +54,7 @@ export async function POST(req: NextRequest) {
       displayName = ytData.channel.title;
       biography = ytData.channel.description;
       avatarUrl = ytData.channel.avatarUrl;
+      extractedEmail = ytData.channel.extractedEmail;
       recentTitles = [...ytData.longVideos, ...ytData.shortVideos].map((v) => v.title);
       detectedCountry = (ytData.channel.country as RegionCode) || 'US';
 
@@ -129,6 +132,7 @@ export async function POST(req: NextRequest) {
       avatarUrl = igData.profile.avatarUrl;
       recentTitles = igData.posts.map((p) => p.caption || '');
       bioLink = igData.profile.externalUrls?.[0]?.url || '';
+      extractedEmail = igData.profile.extractedEmail || extractEmailFromBio(biography);
 
       // Check external links from bio for cross-platform triggers
       if (igData.profile.externalUrls) {
@@ -175,6 +179,9 @@ export async function POST(req: NextRequest) {
       avatarUrl = ttData.profile.avatarUrl;
       bioLink = ttData.profile.bioLink || '';
       recentTitles = ttData.videos.map((v) => v.description || '');
+      if (biography || bioLink) {
+        extractedEmail = extractEmailFromBio(biography) || extractEmailFromBio(bioLink);
+      }
 
       if (Array.isArray(ttData.videos)) {
         const unpinned = ttData.videos.filter((v) => !v.isPinned).slice(0, 5);
@@ -376,6 +383,7 @@ export async function POST(req: NextRequest) {
         avgViews,
         avgShares,
         externalLinks,
+        extractedEmail,
       },
       aiEnrichment,
       pricingInput,
