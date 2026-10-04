@@ -19,8 +19,29 @@ function normalizePlatform(raw: string): Platform {
 function cleanHandle(raw: string): string {
   if (!raw || typeof raw !== 'string') return '';
   let cleaned = raw.trim();
-  // Strip URL prefixes if full profile URL was provided
+
+  // If full URL was provided, extract the core handle segment
+  if (cleaned.startsWith('http://') || cleaned.startsWith('https://') || cleaned.includes('.com/')) {
+    try {
+      const urlStr = cleaned.startsWith('http') ? cleaned : `https://${cleaned}`;
+      const parsed = new URL(urlStr);
+      const segments = parsed.pathname.split('/').filter(Boolean);
+      if (segments.length > 0) {
+        if (segments[0] === 'channel' || segments[0] === 'c' || segments[0] === 'user') {
+          cleaned = segments[1] || segments[0];
+        } else {
+          cleaned = segments[0];
+        }
+      }
+    } catch {
+      // Fallback regex
+    }
+  }
+
+  // Strip URL prefixes if remaining
   cleaned = cleaned.replace(/^https?:\/\/(?:www\.)?(?:instagram\.com|youtube\.com|tiktok\.com)\/?(?:@|channel\/|c\/|user\/)?/i, '');
+  // Strip trailing subpaths (/videos, /shorts, /reels), query params (?si=...), and hash
+  cleaned = cleaned.split('/')[0].split('?')[0].split('#')[0];
   return cleaned.replace(/^@+/, '').replace(/\/+$/, '').trim().toLowerCase();
 }
 
@@ -260,8 +281,11 @@ export async function POST(req: NextRequest) {
     for (const link of discoveredExternalLinks) {
       if (link.platform === 'youtube' && !ytDataForMulti) {
         try {
-          const secYt = await YouTubeScraper.scrapeYouTube(link.url);
-          await YouTubeScraper.insertNewYouTubeSnapshot(secYt);
+          let secYt = !forceRefresh ? await YouTubeScraper.getRecentYouTubeSnapshot(link.url, CACHE_WINDOW_HOURS) : null;
+          if (!secYt) {
+            secYt = await YouTubeScraper.scrapeYouTube(link.url);
+            await YouTubeScraper.insertNewYouTubeSnapshot(secYt);
+          }
           ytDataForMulti = {
             handle: (secYt.channel.handle || secYt.channel.title || '').replace(/^@+/, ''),
             title: secYt.channel.title,
@@ -283,8 +307,11 @@ export async function POST(req: NextRequest) {
 
       if (link.platform === 'instagram' && !igDataForMulti) {
         try {
-          const secIg = await InstagramScraper.scrapeInstagram(link.url, { fastMode: false });
-          await InstagramScraper.insertNewInstagramSnapshot(secIg);
+          let secIg = !forceRefresh ? await InstagramScraper.getRecentInstagramSnapshot(link.url, CACHE_WINDOW_HOURS) : null;
+          if (!secIg) {
+            secIg = await InstagramScraper.scrapeInstagram(link.url, { fastMode: false });
+            await InstagramScraper.insertNewInstagramSnapshot(secIg);
+          }
           igDataForMulti = {
             username: secIg.profile.username,
             fullName: secIg.profile.fullName,
@@ -301,8 +328,11 @@ export async function POST(req: NextRequest) {
 
       if (link.platform === 'tiktok' && !ttDataForMulti) {
         try {
-          const secTt = await TikTokScraper.scrapeTikTok(link.url);
-          await TikTokScraper.insertNewTikTokSnapshot(secTt);
+          let secTt = !forceRefresh ? await TikTokScraper.getRecentTikTokSnapshot(link.url, CACHE_WINDOW_HOURS) : null;
+          if (!secTt) {
+            secTt = await TikTokScraper.scrapeTikTok(link.url);
+            await TikTokScraper.insertNewTikTokSnapshot(secTt);
+          }
           ttDataForMulti = {
             username: secTt.profile.username,
             nickname: secTt.profile.nickname,

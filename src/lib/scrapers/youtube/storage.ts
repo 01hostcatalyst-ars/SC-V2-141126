@@ -21,9 +21,10 @@ export async function getRecentYouTubeSnapshot(
     where: {
       OR: [
         { youtubeChannelId: cleanVal },
-        { handle: `@${cleanVal}` },
-        { handle: cleanVal },
-        { customUrl: `@${cleanVal}` },
+        { handle: { equals: `@${cleanVal}`, mode: 'insensitive' } },
+        { handle: { equals: cleanVal, mode: 'insensitive' } },
+        { customUrl: { equals: `@${cleanVal}`, mode: 'insensitive' } },
+        { customUrl: { equals: cleanVal, mode: 'insensitive' } },
         { title: { equals: cleanVal, mode: 'insensitive' } },
       ],
     },

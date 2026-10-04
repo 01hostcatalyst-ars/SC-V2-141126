@@ -103,8 +103,28 @@ export default function BatchIngestAdminPage() {
       if (rawPlat.includes('yt') || rawPlat.includes('youtube')) platform = 'youtube';
       else if (rawPlat.includes('tt') || rawPlat.includes('tiktok')) platform = 'tiktok';
 
-      const cleanHandle = rawHandle
+      let cleanHandle = rawHandle.trim();
+      if (cleanHandle.startsWith('http://') || cleanHandle.startsWith('https://') || cleanHandle.includes('.com/')) {
+        try {
+          const urlStr = cleanHandle.startsWith('http') ? cleanHandle : `https://${cleanHandle}`;
+          const parsedUrl = new URL(urlStr);
+          const segments = parsedUrl.pathname.split('/').filter(Boolean);
+          if (segments.length > 0) {
+            if (segments[0] === 'channel' || segments[0] === 'c' || segments[0] === 'user') {
+              cleanHandle = segments[1] || segments[0];
+            } else {
+              cleanHandle = segments[0];
+            }
+          }
+        } catch {
+          // Fallback
+        }
+      }
+      cleanHandle = cleanHandle
         .replace(/^https?:\/\/(?:www\.)?(?:instagram\.com|youtube\.com|tiktok\.com)\/?(?:@|channel\/|c\/|user\/)?/i, '')
+        .split('/')[0]
+        .split('?')[0]
+        .split('#')[0]
         .replace(/^@+/, '')
         .replace(/\/+$/, '')
         .trim()
