@@ -7,7 +7,7 @@ import { PricingInput, DeliverableFormat, Platform, RegionCode } from '@/lib/cal
 import { upsertCreatorIdentityCluster } from '@/lib/creators/identity';
 import { unrollAggregatorLinks, isLinkAggregatorUrl } from '@/lib/scrapers/linktree';
 
-const CACHE_WINDOW_HOURS = 72; // 3-Day Snapshot Cache
+const CACHE_WINDOW_HOURS = 876000; // Permanent Database Cache Window (Never rescrape any profile already in DB)
 
 function normalizePlatform(raw: string): Platform {
   const p = (raw || '').toLowerCase().trim();
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     console.log(`[Batch Ingest API] Processing @${handle} on ${platform.toUpperCase()} (forceRefresh: ${Boolean(forceRefresh)})...`);
 
     // -------------------------------------------------------------------------
-    // 1. 3-Day Cache Check (72 Hours)
+    // 1. Permanent Database Cache Check (Skip scraping if profile already exists in DB)
     // -------------------------------------------------------------------------
     if (!forceRefresh) {
       let cachedSnapshot: any = null;
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
         const avatarUrl = cachedSnapshot.channel?.avatarUrl || cachedSnapshot.profile?.avatarUrl || '';
         const followerCount = cachedSnapshot.channel?.subscriberCount || cachedSnapshot.profile?.followerCount || 0;
 
-        console.log(`[Batch Ingest API] [CACHE HIT] @${handle} found in database (${cachedSnapshot.cacheAgeHours || 0}h old). Returning instant result.`);
+        console.log(`[Batch Ingest API] [EXISTING IN DB] @${handle} found in database (${cachedSnapshot.cacheAgeHours || 0}h old). Skipping scrape.`);
 
         return NextResponse.json({
           success: true,
@@ -108,9 +108,9 @@ export async function POST(req: NextRequest) {
             followerCount,
             cacheAgeHours: cachedSnapshot.cacheAgeHours || 0,
           },
-          aiDossierSummary: cachedIntel?.intelligence?.summary?.oneLine || cachedIntel?.intelligence?.summary?.brandSummary || 'Pre-computed dossier active in 72h database cache.',
+          aiDossierSummary: cachedIntel?.intelligence?.summary?.oneLine || cachedIntel?.intelligence?.summary?.brandSummary || 'Active creator profile retrieved from database.',
           primaryNiche: cachedIntel?.intelligence?.profile?.primaryNiche?.name || 'Verified Creator',
-          rateCardTypical: 'Active (72h Cached)',
+          rateCardTypical: 'Active (Existing in DB)',
         });
       }
     }

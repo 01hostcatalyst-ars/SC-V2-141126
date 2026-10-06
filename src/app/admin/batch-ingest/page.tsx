@@ -56,6 +56,9 @@ export default function BatchIngestAdminPage() {
   const isRunningRef = useRef<boolean>(false);
   isRunningRef.current = isRunning;
 
+  const queueRef = useRef<QueuedCreator[]>(queue);
+  queueRef.current = queue;
+
   // Restore state from localStorage on initial load
   useEffect(() => {
     try {
@@ -167,6 +170,9 @@ export default function BatchIngestAdminPage() {
     setQueue((prev) =>
       prev.map((item) => (item.id === creator.id ? { ...item, status: 'processing' } : item))
     );
+    queueRef.current = queueRef.current.map((item) =>
+      item.id === creator.id ? { ...item, status: 'processing' } : item
+    );
 
     try {
       const res = await fetch('/api/admin/batch-ingest', {
@@ -210,12 +216,39 @@ export default function BatchIngestAdminPage() {
           };
         })
       );
+      queueRef.current = queueRef.current.map((item) => {
+        if (item.id !== creator.id) return item;
+        if (!data.success) {
+          return {
+            ...item,
+            status: 'failed',
+            error: data.error || 'Scrape execution failed.',
+            latencyMs: data.latencyMs,
+          };
+        }
+        return {
+          ...item,
+          status: data.status === 'cached' ? 'cached' : 'success',
+          latencyMs: data.latencyMs,
+          displayName: data.creator?.displayName || item.handle,
+          avatarUrl: data.creator?.avatarUrl || '',
+          followerCount: data.creator?.followerCount || 0,
+          primaryNiche: data.primaryNiche || 'General',
+          rateCardTypical: data.rateCardTypical || 'Standard',
+          aiDossierSummary: data.aiDossierSummary || '',
+          secondaryPlatformsDiscovered: data.creator?.secondaryPlatformsDiscovered || [],
+          cacheAgeHours: data.creator?.cacheAgeHours,
+        };
+      });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Network error during ingestion.';
       setQueue((prev) =>
         prev.map((item) =>
           item.id === creator.id ? { ...item, status: 'failed', error: msg } : item
         )
+      );
+      queueRef.current = queueRef.current.map((item) =>
+        item.id === creator.id ? { ...item, status: 'failed', error: msg } : item
       );
     }
   };
@@ -228,8 +261,8 @@ export default function BatchIngestAdminPage() {
 
     const runBatch = async () => {
       while (isRunningRef.current && isSubscribed) {
-        // Find next idle item
-        const nextItem = queue.find((q) => q.status === 'idle');
+        // Find next idle item from queueRef to avoid infinite re-render cycles
+        const nextItem = queueRef.current.find((q) => q.status === 'idle');
         if (!nextItem) {
           setIsRunning(false);
           break;
@@ -248,7 +281,7 @@ export default function BatchIngestAdminPage() {
     return () => {
       isSubscribed = false;
     };
-  }, [isRunning, queue, delayMs]);
+  }, [isRunning, delayMs]);
 
   // Retry a single failed creator
   const retrySingle = (creatorId: string) => {
@@ -460,7 +493,7 @@ export default function BatchIngestAdminPage() {
                   className="rounded border-slate-700 text-rose-500 focus:ring-0 bg-slate-950"
                 />
                 <span className="text-[11px] text-slate-300 font-medium">
-                  Force re-scrape (Bypass 72h DB cache)
+                  Force re-scrape (Bypass existing DB records)
                 </span>
               </label>
             </div>
@@ -554,7 +587,11 @@ export default function BatchIngestAdminPage() {
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    {filter === 'all' ? `All (${metrics.total})` : filter}
+                    {filter === 'all'
+                      ? `All (${metrics.total})`
+                      : filter === 'cached'
+                      ? `Existing in DB (${metrics.cached})`
+                      : filter}
                   </button>
                 ))}
               </div>
@@ -690,7 +727,7 @@ export default function BatchIngestAdminPage() {
                         )}
                         {item.status === 'cached' && (
                           <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
-                            72h Cached
+                            Existing in DB
                           </span>
                         )}
                         {item.status === 'failed' && (
