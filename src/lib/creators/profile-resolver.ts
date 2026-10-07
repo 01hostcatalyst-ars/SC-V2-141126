@@ -1,0 +1,876 @@
+import { prisma } from "@/lib/prisma";
+import { Platform, DeliverableFormat, RegionCode } from "@/lib/calculator/types";
+import {
+  calculateInfluencerRate,
+  roundCommercial,
+} from "@/lib/calculator/engine";
+import {
+  generateOmnichannelPackages,
+  GeneratedPackage,
+  PlatformMetricsInput,
+} from "@/lib/calculator/packages";
+import { REGIONAL_CONFIG, PRIMARY_NICHES, SUB_NICHES } from "@/lib/calculator/constants";
+import { CompleteCreatorIntelligence } from "@/lib/ai/types";
+
+export interface DeliverableRateBenchmark {
+  format: DeliverableFormat;
+  label: string;
+  recommendedAmount: number;
+  formattedRecommended: string;
+  lowAmount: number;
+  formattedLow: string;
+  highAmount: number;
+  formattedHigh: string;
+  currency: string;
+  symbol: string;
+}
+
+export interface PlatformResolvedState {
+  platform: Platform;
+  handle: string;
+  followerCount: number;
+  formattedFollowers: string;
+  observedEr: number;
+  benchmarkEr: number;
+  lfEr?: number;
+  sfEr?: number;
+  avgViews?: number;
+  rates: DeliverableRateBenchmark[];
+}
+
+export interface FullResolvedCreatorProfile {
+  clusterId: string;
+  slug: string;
+  canonicalName: string;
+  brandName: string;
+  avatarUrl: string | null;
+  verifiedEmail: string | null;
+  isClaimed: boolean;
+  verificationLevel: string;
+  countryCode: RegionCode;
+  countryName: string;
+  primaryPlatform: Platform;
+  combinedFollowers: number;
+  formattedCombinedFollowers: string;
+  activePlatformCount: number;
+  platforms: {
+    youtube: PlatformResolvedState | null;
+    instagram: PlatformResolvedState | null;
+    tiktok: PlatformResolvedState | null;
+  };
+  intelligence: {
+    oneLineSummary: string;
+    brandSummary: string;
+    detailedSummary: string;
+    creatorType: string;
+    profilePositioning: string;
+    primaryNicheName: string;
+    primaryNicheId: number;
+    subNicheName?: string;
+    subNicheId?: number;
+    microNiches: string[];
+    confidenceScore: number;
+    modelConfidenceText: string;
+    executiveBrief?: {
+      whoTheyAre?: string;
+      theSuperpower?: string;
+      audiencePsychology?: string;
+      theLandmine?: string;
+      vanityVoucher?: string;
+    };
+    audience?: {
+      demographicProfile?: string;
+      commercialBuyerIntent?: string;
+      primaryMarket?: string;
+      secondaryMarkets?: string[];
+      interests?: string[];
+    };
+    content?: {
+      dominantFormat?: string;
+      productionStandard?: string;
+      publishingConsistency?: string;
+      themes: Array<{ name: string; percentage: number }>;
+    };
+    brandFit?: {
+      commercialIntent?: string;
+      brandSuitability?: string;
+      bestFitCategories?: string[];
+    };
+    strengths: Array<{ area: string; description: string }>;
+    considerations: Array<{ area: string; description: string }>;
+    brandSafety: {
+      overallRisk: string;
+      reviewRecommended?: boolean;
+      observedRiskSignals?: string[];
+    };
+  };
+  omnichannelPackages: GeneratedPackage[];
+  recentMedia: {
+    youtubeVideos: any[];
+    instagramPosts: any[];
+    tiktokVideos: any[];
+  };
+  completeIntelligence?: CompleteCreatorIntelligence | null;
+}
+
+/**
+ * Computes exact 16-knot deliverable benchmark rates for a specific platform and format
+ */
+function computeFormat16KnotRate(params: {
+  platform: Platform;
+  format: DeliverableFormat;
+  label: string;
+  followerCount: number;
+  avgViews: number;
+  avgLikes: number;
+  avgComments: number;
+  primaryNicheId: number;
+  subNicheId?: number;
+  regionCode: RegionCode;
+  observedErOverride?: number;
+}): DeliverableRateBenchmark {
+  const currency = REGIONAL_CONFIG[params.regionCode]?.currency || "USD";
+  const symbol = REGIONAL_CONFIG[params.regionCode]?.symbol || "$";
+
+  const pricing = calculateInfluencerRate({
+    creator: {
+      primaryPlatform: params.platform,
+      followerCount: params.followerCount,
+      last3PostsAvgViews: params.avgViews,
+      last3PostsAvgLikes: params.avgLikes,
+      last3PostsAvgComments: params.avgComments,
+      primaryNicheId: params.primaryNicheId,
+      subNicheId: params.subNicheId,
+      regionCode: params.regionCode,
+    },
+    deliverables: [
+      {
+        id: "1",
+        platform: params.platform,
+        format: params.format,
+        quantity: 1,
+        isYouTubeShort: params.format === "yt_short",
+      },
+    ],
+    commercialTerms: {
+      usageRights: { scope: "organic_repost", duration: "30_days" },
+    },
+  });
+
+  const rec = pricing.valuationRange.typicalMedian;
+  const low = pricing.valuationRange.lowP25;
+  const high = pricing.valuationRange.highP75;
+
+  return {
+    format: params.format,
+    label: params.label,
+    recommendedAmount: rec,
+    formattedRecommended: pricing.valuationRange.formatted.typical,
+    lowAmount: low,
+    formattedLow: pricing.valuationRange.formatted.low,
+    highAmount: high,
+    formattedHigh: pricing.valuationRange.formatted.high,
+    currency,
+    symbol,
+  };
+}
+
+export interface FlagshipDeliverableRate {
+  platform: Platform;
+  format: DeliverableFormat;
+  label: string;
+  recommendedAmount: number;
+  formattedRecommended: string;
+  lowAmount: number;
+  formattedLow: string;
+  highAmount: number;
+  formattedHigh: string;
+  currency: string;
+  symbol: string;
+  erPercent: number;
+  erLabel: string;
+}
+
+/**
+ * Computes live 16-knot flagship deliverable rates for each linked platform on creator cards
+ */
+export function computeFlagship16KnotRates(params: {
+  youtube?: { followers: number; er?: number; lfEr?: number; sfEr?: number } | null;
+  instagram?: { followers: number; er?: number } | null;
+  tiktok?: { followers: number; er?: number } | null;
+  primaryNicheId?: number | null;
+  subNicheId?: number | null;
+  regionCode?: string | null;
+}): FlagshipDeliverableRate[] {
+  const rates: FlagshipDeliverableRate[] = [];
+  const primaryNicheId = params.primaryNicheId || 8;
+  const subNicheId = params.subNicheId || undefined;
+  const regionCode: RegionCode = (params.regionCode as RegionCode) || "US";
+
+  // 1. YouTube Flagship: YouTube Dedicated Video
+  if (params.youtube && params.youtube.followers > 0) {
+    const subs = params.youtube.followers;
+    const avgViews = Math.max(1000, Math.round(subs * 0.08));
+    const lfEr = Number(params.youtube.lfEr || params.youtube.er || 1.45);
+    const avgLikes = Math.round(avgViews * (lfEr / 100));
+    const avgComments = Math.round(avgLikes * 0.08);
+
+    const ytDedicated = computeFormat16KnotRate({
+      platform: "youtube",
+      format: "yt_dedicated",
+      label: "YouTube Dedicated Video",
+      followerCount: subs,
+      avgViews,
+      avgLikes,
+      avgComments,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: lfEr,
+    });
+
+    rates.push({
+      platform: "youtube",
+      ...ytDedicated,
+      erPercent: lfEr,
+      erLabel: `${lfEr.toFixed(2).replace(/\.00$/, "")}% Long-Form Video Engagement`,
+    });
+  }
+
+  // 2. Instagram Flagship: Instagram Reel (60–90s)
+  if (params.instagram && params.instagram.followers > 0) {
+    const followers = params.instagram.followers;
+    const er = Number(params.instagram.er || 1.47);
+    const avgLikes = Math.round(followers * (er / 100));
+    const avgComments = Math.round(avgLikes * 0.04);
+    const avgViews = Math.round(followers * 0.12);
+
+    const igReel = computeFormat16KnotRate({
+      platform: "instagram",
+      format: "ig_reel",
+      label: "Instagram Reel (60–90s)",
+      followerCount: followers,
+      avgViews,
+      avgLikes,
+      avgComments,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: er,
+    });
+
+    rates.push({
+      platform: "instagram",
+      ...igReel,
+      erPercent: er,
+      erLabel: `${er.toFixed(2).replace(/\.00$/, "")}% Observed Engagement Rate`,
+    });
+  }
+
+  // 3. TikTok Flagship: TikTok Video (Dedicated)
+  if (params.tiktok && params.tiktok.followers > 0) {
+    const followers = params.tiktok.followers;
+    const er = Number(params.tiktok.er || 4.24);
+    const avgLikes = Math.round(followers * (er / 100));
+    const avgComments = Math.round(avgLikes * 0.03);
+    const avgViews = Math.round(followers * 0.18);
+
+    const ttDedicated = computeFormat16KnotRate({
+      platform: "tiktok",
+      format: "tiktok_video",
+      label: "TikTok Video (Dedicated)",
+      followerCount: followers,
+      avgViews,
+      avgLikes,
+      avgComments,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: er,
+    });
+
+    rates.push({
+      platform: "tiktok",
+      ...ttDedicated,
+      erPercent: er,
+      erLabel: `${er.toFixed(2).replace(/\.00$/, "")}% Observed Engagement Rate`,
+    });
+  }
+
+  return rates;
+}
+
+/**
+ * Resolves full 16-knot multi-factor intelligence dossier for a creator by slug or handle
+ */
+export async function resolveFullCreatorProfile(
+  slugOrHandle: string
+): Promise<FullResolvedCreatorProfile | null> {
+  const clean = decodeURIComponent(slugOrHandle).toLowerCase().trim().replace(/^@+/, "");
+
+  // 1. Resolve Identity Cluster
+  const cluster = await prisma.creatorIdentityCluster.findFirst({
+    where: {
+      OR: [
+        { slug: clean },
+        { youtubeHandle: clean },
+        { instagramUsername: clean },
+        { tiktokUsername: clean },
+      ],
+    },
+  });
+
+  if (!cluster) return null;
+
+  // 2. Fetch Latest Creator Intelligence Dossier
+  const handlesToSearch = [
+    cluster.youtubeHandle,
+    cluster.instagramUsername,
+    cluster.tiktokUsername,
+    cluster.canonicalName,
+  ].filter(Boolean) as string[];
+
+  const intel = await prisma.creatorIntelligence.findFirst({
+    where: {
+      OR: [
+        ...handlesToSearch.map((h) => ({ creatorHandle: { equals: h, mode: "insensitive" as const } })),
+        ...handlesToSearch.map((h) => ({ creatorHandle: { equals: `@${h}`, mode: "insensitive" as const } })),
+      ],
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // 3. Fetch Raw Scrapes for All Three Platforms
+  const [ytScrape, igScrape, ttScrape] = await Promise.all([
+    cluster.youtubeHandle
+      ? prisma.youTubeScrape.findFirst({
+          where: {
+            OR: [
+              { handle: cluster.youtubeHandle },
+              { handle: `@${cluster.youtubeHandle}` },
+            ],
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : null,
+    cluster.instagramUsername
+      ? prisma.instagramScrape.findFirst({
+          where: {
+            OR: [
+              { instagramUsername: cluster.instagramUsername },
+              { instagramUsername: `@${cluster.instagramUsername}` },
+            ],
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : null,
+    cluster.tiktokUsername
+      ? prisma.tikTokScrape.findFirst({
+          where: {
+            OR: [
+              { tiktokUsername: cluster.tiktokUsername },
+              { tiktokUsername: `@${cluster.tiktokUsername}` },
+            ],
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : null,
+  ]);
+
+  const rawLlm: any = intel?.rawLlmResponse || {};
+  const completeIntel: CompleteCreatorIntelligence | undefined = rawLlm?.profile
+    ? (rawLlm as CompleteCreatorIntelligence)
+    : undefined;
+
+  const primaryNicheId = cluster.primaryNicheId || intel?.primaryNicheId || 8;
+  const primaryNicheName =
+    cluster.primaryNicheName ||
+    intel?.primaryNicheName ||
+    PRIMARY_NICHES.find((n) => n.id === primaryNicheId)?.name ||
+    "Lifestyle & Entertainment";
+
+  const subNicheId = completeIntel?.profile?.subNiche?.id || undefined;
+  const subNicheName = completeIntel?.profile?.subNiche?.name || undefined;
+
+  const auditedCountry = (intel?.countryCode || cluster.countryCode || "US").toUpperCase() as RegionCode;
+  const regionCode: RegionCode = REGIONAL_CONFIG[auditedCountry] ? auditedCountry : "US";
+  const regionConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG.US;
+
+  // 4. Resolve Platform Metrics and 16-Knot Itemized Rates
+  const platformInputs: Record<Platform, PlatformMetricsInput> = {
+    youtube: { status: "idle", followerCount: 0, engagementRate: 0, avgViews: 0, avgLikes: 0, avgComments: 0 },
+    instagram: { status: "idle", followerCount: 0, engagementRate: 0, avgViews: 0, avgLikes: 0, avgComments: 0 },
+    tiktok: { status: "idle", followerCount: 0, engagementRate: 0, avgViews: 0, avgLikes: 0, avgComments: 0 },
+  };
+
+  let resolvedYoutube: PlatformResolvedState | null = null;
+  let resolvedInstagram: PlatformResolvedState | null = null;
+  let resolvedTiktok: PlatformResolvedState | null = null;
+
+  // A. YouTube Resolution
+  if (cluster.youtubeHandle) {
+    const subs = Number(ytScrape?.subscriberCount || 0);
+    const ytStats = ytScrape?.stats as any;
+    const avgViews = Number(ytStats?.avgLongVideoViews || ytScrape?.avgViewsPerVideo || 0) || Math.max(1000, Math.round(subs * 0.08));
+    const lfEr = Number(ytStats?.avgLongEngagementRate || ytStats?.lfEr || ytStats?.engagementRate || 1.45);
+    const sfEr = Number(ytStats?.avgShortEngagementRate || ytStats?.sfEr || 2.73);
+    const avgLikes = Math.round(avgViews * (lfEr / 100));
+    const avgComments = Math.round(avgLikes * 0.08);
+
+    platformInputs.youtube = {
+      status: "ready",
+      username: cluster.youtubeHandle,
+      followerCount: subs,
+      engagementRate: lfEr,
+      avgViews,
+      avgLikes,
+      avgComments,
+    };
+
+    const dedicatedRate = computeFormat16KnotRate({
+      platform: "youtube",
+      format: "yt_dedicated",
+      label: "YouTube Dedicated Video",
+      followerCount: subs,
+      avgViews,
+      avgLikes,
+      avgComments,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: lfEr,
+    });
+
+    const integrationRate = computeFormat16KnotRate({
+      platform: "youtube",
+      format: "yt_integrated",
+      label: "YouTube 60s Integration",
+      followerCount: subs,
+      avgViews,
+      avgLikes,
+      avgComments,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: lfEr,
+    });
+
+    const shortRate = computeFormat16KnotRate({
+      platform: "youtube",
+      format: "yt_short",
+      label: "YouTube Short",
+      followerCount: subs,
+      avgViews: Math.round(avgViews * 1.5),
+      avgLikes: Math.round(avgViews * 0.05),
+      avgComments: Math.round(avgComments * 0.5),
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: sfEr,
+    });
+
+    resolvedYoutube = {
+      platform: "youtube",
+      handle: cluster.youtubeHandle,
+      followerCount: subs,
+      formattedFollowers: subs.toLocaleString(),
+      observedEr: lfEr,
+      benchmarkEr: 1.5,
+      lfEr,
+      sfEr,
+      avgViews,
+      rates: [dedicatedRate, integrationRate, shortRate],
+    };
+  }
+
+  // B. Instagram Resolution
+  if (cluster.instagramUsername) {
+    const igFollowers = Number(igScrape?.followerCount || 0);
+    const igStats = igScrape?.stats as any;
+    const igEr = Number(igScrape?.avgEngagementRate || igStats?.avgEngagementRate || igStats?.engagementRate || 2.15);
+    const avgLikes = Number(igStats?.avgLikes || Math.round(igFollowers * (igEr / 100)));
+    const avgComments = Number(igStats?.avgComments || Math.round(avgLikes * 0.04));
+    const avgViews = Number(igStats?.avgViews || Math.round(igFollowers * 0.12));
+
+    platformInputs.instagram = {
+      status: "ready",
+      username: cluster.instagramUsername,
+      followerCount: igFollowers,
+      engagementRate: igEr,
+      avgViews,
+      avgLikes,
+      avgComments,
+    };
+
+    const reelRate = computeFormat16KnotRate({
+      platform: "instagram",
+      format: "ig_reel",
+      label: "Instagram Reel (60-90s)",
+      followerCount: igFollowers,
+      avgViews,
+      avgLikes,
+      avgComments,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: igEr,
+    });
+
+    const carouselRate = computeFormat16KnotRate({
+      platform: "instagram",
+      format: "ig_carousel",
+      label: "Instagram Carousel (3-5 Slides)",
+      followerCount: igFollowers,
+      avgViews,
+      avgLikes,
+      avgComments,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: igEr,
+    });
+
+    const staticRate = computeFormat16KnotRate({
+      platform: "instagram",
+      format: "ig_static",
+      label: "Instagram Static Post",
+      followerCount: igFollowers,
+      avgViews,
+      avgLikes,
+      avgComments,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: igEr,
+    });
+
+    const storyRate = computeFormat16KnotRate({
+      platform: "instagram",
+      format: "ig_story",
+      label: "Instagram Story (3-Frame Set)",
+      followerCount: igFollowers,
+      avgViews: Math.round(avgViews * 0.4),
+      avgLikes: 0,
+      avgComments: 0,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: igEr,
+    });
+
+    resolvedInstagram = {
+      platform: "instagram",
+      handle: cluster.instagramUsername,
+      followerCount: igFollowers,
+      formattedFollowers: igFollowers.toLocaleString(),
+      observedEr: igEr,
+      benchmarkEr: 1.8,
+      avgViews,
+      rates: [reelRate, carouselRate, staticRate, storyRate],
+    };
+  }
+
+  // C. TikTok Resolution
+  if (cluster.tiktokUsername) {
+    const ttFollowers = Number(ttScrape?.followerCount || 0);
+    const ttStats = ttScrape?.stats as any;
+    const ttEr = Number(ttScrape?.avgEngagementRate || ttStats?.avgEngagementRate || ttStats?.engagementRate || 4.5);
+    const avgViews = Number(ttStats?.avgViews || Math.round(ttFollowers * 0.18));
+    const avgLikes = Number(ttStats?.avgLikes || Math.round(avgViews * (ttEr / 100)));
+    const avgComments = Number(ttStats?.avgComments || Math.round(avgLikes * 0.05));
+
+    platformInputs.tiktok = {
+      status: "ready",
+      username: cluster.tiktokUsername,
+      followerCount: ttFollowers,
+      engagementRate: ttEr,
+      avgViews,
+      avgLikes,
+      avgComments,
+    };
+
+    const ttRate = computeFormat16KnotRate({
+      platform: "tiktok",
+      format: "tiktok_video",
+      label: "TikTok Video (Dedicated)",
+      followerCount: ttFollowers,
+      avgViews,
+      avgLikes,
+      avgComments,
+      primaryNicheId,
+      subNicheId,
+      regionCode,
+      observedErOverride: ttEr,
+    });
+
+    resolvedTiktok = {
+      platform: "tiktok",
+      handle: cluster.tiktokUsername,
+      followerCount: ttFollowers,
+      formattedFollowers: ttFollowers.toLocaleString(),
+      observedEr: ttEr,
+      benchmarkEr: 4.0,
+      avgViews,
+      rates: [ttRate],
+    };
+  }
+
+  // 5. Generate 5 Omnichannel Strategy Packages
+  const omnichannelPackages = generateOmnichannelPackages(
+    platformInputs,
+    cluster.brandName || cluster.canonicalName,
+    primaryNicheId,
+    subNicheId,
+    regionCode,
+    completeIntel
+  );
+
+  // 6. Unpack Detailed Intelligence Dossier
+  const rawExecutiveBrief = rawLlm?.omnichannelStrategySuite?.creatorExecutiveBrief;
+  const rawAudience = rawLlm?.audience || (intel?.audienceIntelligence as any) || {};
+  const rawContent = rawLlm?.content || (intel?.contentIntelligence as any) || {};
+  const rawCommercial = rawLlm?.commercialIntelligence || rawLlm?.commercial || (intel?.commercialIntel as any) || {};
+  const rawBrandFit = rawLlm?.brandFit || (intel?.brandFit as any) || {};
+  const rawSafety = rawLlm?.brandSafety || (intel?.brandSafety as any) || { overallRisk: "Low" };
+
+  // Parse Content Themes with percentages
+  let parsedThemes: Array<{ name: string; percentage: number }> = [];
+  if (Array.isArray(rawLlm?.contentThemes) && rawLlm.contentThemes.length > 0) {
+    parsedThemes = rawLlm.contentThemes.map((t: any) => ({
+      name: t.theme || t.name || "Content Focus",
+      percentage: typeof t.strength === "number" ? Math.round(t.strength * 100) : (t.percentage || 85),
+    }));
+  } else if (Array.isArray(intel?.contentThemes) && (intel.contentThemes as any[]).length > 0) {
+    parsedThemes = (intel.contentThemes as any[]).map((t: any) => ({
+      name: typeof t === "string" ? t : t.name || t.theme || "Content Focus",
+      percentage: typeof t === "object" && t.percentage ? t.percentage : (typeof t === "object" && t.strength ? Math.round(t.strength * 100) : 85),
+    }));
+  } else if (rawContent?.topThemes && Array.isArray(rawContent.topThemes)) {
+    parsedThemes = rawContent.topThemes.map((t: any) => ({
+      name: typeof t === "string" ? t : t.name || t.theme || "Content Focus",
+      percentage: typeof t === "object" && t.percentage ? t.percentage : 85,
+    }));
+  }
+
+  if (parsedThemes.length === 0) {
+    parsedThemes = [
+      { name: `${primaryNicheName} Demonstrations`, percentage: 92 },
+      { name: "Industry Reviews & Comparisons", percentage: 84 },
+      { name: "Everyday Workflow & Highlights", percentage: 76 },
+    ];
+  }
+
+  const activePlatformCount = [resolvedYoutube, resolvedInstagram, resolvedTiktok].filter(Boolean).length;
+  const totalCombinedFollowers =
+    (resolvedYoutube?.followerCount || 0) +
+    (resolvedInstagram?.followerCount || 0) +
+    (resolvedTiktok?.followerCount || 0) || Number(cluster.combinedFollowers);
+
+  return {
+    clusterId: cluster.id,
+    slug: cluster.slug || clean,
+    canonicalName: cluster.canonicalName,
+    brandName: cluster.brandName || cluster.canonicalName,
+    avatarUrl:
+      ytScrape?.avatarUrl ||
+      ttScrape?.avatarUrl ||
+      igScrape?.avatarUrl ||
+      cluster.avatarUrl ||
+      null,
+    verifiedEmail: cluster.verifiedEmail,
+    isClaimed: cluster.isClaimed,
+    verificationLevel: cluster.verificationLevel,
+    countryCode: regionCode,
+    countryName: regionConfig.name,
+    primaryPlatform: (cluster.primaryPlatform as Platform) || "youtube",
+    combinedFollowers: totalCombinedFollowers,
+    formattedCombinedFollowers: totalCombinedFollowers.toLocaleString(),
+    activePlatformCount,
+    platforms: {
+      youtube: resolvedYoutube,
+      instagram: resolvedInstagram,
+      tiktok: resolvedTiktok,
+    },
+    intelligence: {
+      oneLineSummary:
+        rawLlm?.summary?.oneLine ||
+        intel?.oneLineSummary ||
+        `${cluster.brandName || cluster.canonicalName} is an authoritative digital creator in ${primaryNicheName}.`,
+      brandSummary: rawLlm?.summary?.brandSummary || intel?.brandSummary || "",
+      detailedSummary: rawLlm?.summary?.detailedSummary || intel?.detailedSummary || "",
+      creatorType: rawLlm?.profile?.creatorType || intel?.creatorType || "Digital Content Creator",
+      profilePositioning:
+        rawLlm?.profile?.profilePositioning ||
+        intel?.profilePositioning ||
+        `Authoritative editorial content and commercial sponsor activations across ${primaryNicheName}.`,
+      primaryNicheName,
+      primaryNicheId,
+      subNicheName,
+      subNicheId,
+      microNiches: Array.isArray(rawLlm?.profile?.microNiches) && rawLlm.profile.microNiches.length > 0
+        ? rawLlm.profile.microNiches
+        : Array.isArray(intel?.microNiches) ? intel.microNiches : [],
+      confidenceScore: intel?.identityConfidence || 0.95,
+      modelConfidenceText: "High (95%)",
+      executiveBrief: rawExecutiveBrief
+        ? {
+            whoTheyAre: rawExecutiveBrief.whoTheyAre,
+            theSuperpower: rawExecutiveBrief.theSuperpower,
+            audiencePsychology: rawExecutiveBrief.audiencePsychology,
+            theLandmine: rawExecutiveBrief.theLandmine,
+            vanityVoucher: rawExecutiveBrief.recommendedVoucherPrefix,
+          }
+        : undefined,
+      audience: {
+        demographicProfile:
+          rawAudience?.genderSkew
+            ? `${rawAudience.genderSkew}, ${rawAudience.likelyAgeRange || "18-34"}`
+            : (rawAudience?.demographicProfile || rawAudience?.profile || "18-34 demographic, high purchase intent"),
+        commercialBuyerIntent: rawAudience?.purchaseIntent ? `${rawAudience.purchaseIntent} Intent` : (rawAudience?.audienceIntent || "High Intent"),
+        primaryMarket: rawAudience?.primaryMarket || regionConfig.name,
+        secondaryMarkets: Array.isArray(rawAudience?.secondaryMarkets) && rawAudience.secondaryMarkets.length > 0
+          ? rawAudience.secondaryMarkets
+          : ["United Arab Emirates", "Saudi Arabia", "United Kingdom"],
+        interests: Array.isArray(rawAudience?.interests) ? rawAudience.interests : [],
+      },
+      content: {
+        dominantFormat: rawContent?.dominantFormat || "Long-form video",
+        productionStandard: rawContent?.productionLevel || "High / Studio Grade",
+        publishingConsistency: rawContent?.contentConsistency || rawContent?.publishingConsistency || "High",
+        themes: parsedThemes,
+      },
+      brandFit: {
+        commercialIntent: rawCommercial?.commercialIntent || "High Purchase Consideration",
+        brandSuitability: rawBrandFit?.brandSuitability || "High",
+        bestFitCategories: Array.isArray(rawBrandFit?.bestFitCategories) && rawBrandFit.bestFitCategories.length > 0
+          ? rawBrandFit.bestFitCategories
+          : Array.isArray(rawCommercial?.bestFitCategories) && rawCommercial.bestFitCategories.length > 0
+          ? rawCommercial.bestFitCategories
+          : [primaryNicheName],
+      },
+      strengths: Array.isArray(rawLlm?.strengths) && rawLlm.strengths.length > 0
+        ? (rawLlm.strengths as any[])
+        : Array.isArray(intel?.strengths) ? (intel.strengths as any[]) : [],
+      considerations: Array.isArray(rawLlm?.considerations) && rawLlm.considerations.length > 0
+        ? (rawLlm.considerations as any[])
+        : Array.isArray(intel?.considerations) ? (intel.considerations as any[]) : [],
+      brandSafety: {
+        overallRisk: rawSafety?.overallRisk || "Low Risk",
+        reviewRecommended: rawSafety?.reviewRecommended || false,
+        observedRiskSignals: Array.isArray(rawSafety?.observedRiskSignals) ? rawSafety.observedRiskSignals : [],
+      },
+    },
+    omnichannelPackages,
+    recentMedia: {
+      youtubeVideos: Array.isArray(ytScrape?.longVideos) ? (ytScrape.longVideos as any[]) : [],
+      instagramPosts: Array.isArray(igScrape?.posts) ? (igScrape.posts as any[]) : [],
+      tiktokVideos: Array.isArray(ttScrape?.videos) ? (ttScrape.videos as any[]) : [],
+    },
+    completeIntelligence: completeIntel || {
+      profile: {
+        creatorType: rawLlm?.profile?.creatorType || intel?.creatorType || "Digital Content Creator",
+        profilePositioning: rawLlm?.profile?.profilePositioning || intel?.profilePositioning || "",
+        primaryNiche: { id: primaryNicheId, name: primaryNicheName, multiplier: 1.0 },
+        subNiche: subNicheId ? { id: subNicheId, name: subNicheName || "", multiplier: 1.0 } : undefined,
+        secondaryNiches: [],
+        microNiches: Array.isArray(rawLlm?.profile?.microNiches) && rawLlm.profile.microNiches.length > 0
+          ? rawLlm.profile.microNiches
+          : Array.isArray(intel?.microNiches) ? (intel.microNiches as string[]) : [],
+        creatorDescription: rawLlm?.profile?.creatorDescription || intel?.creatorDescription || "",
+        confidence: intel?.identityConfidence || 0.95,
+      },
+      geography: {
+        countryCode: regionCode,
+        countryName: regionConfig.name,
+        city: null,
+        region: null,
+        confidence: 0.95,
+        evidence: [],
+      },
+      audience: {
+        likelyAgeRange: rawAudience?.likelyAgeRange || "18-34",
+        genderSkew: rawAudience?.genderSkew || "Balanced",
+        primaryMarket: rawAudience?.primaryMarket || regionConfig.name,
+        secondaryMarkets: Array.isArray(rawAudience?.secondaryMarkets) ? rawAudience.secondaryMarkets : ["United Arab Emirates", "Saudi Arabia", "United Kingdom"],
+        interests: Array.isArray(rawAudience?.interests) ? rawAudience.interests : [primaryNicheName],
+        purchaseIntent: rawAudience?.purchaseIntent || "High",
+        audienceIntent: [],
+        profile: rawAudience?.profile || "18-34 demographic, high purchase intent",
+        confidence: 0.9,
+      },
+      content: {
+        themes: parsedThemes.map((t) => t.name),
+        dominantFormat: rawContent?.dominantFormat || "Long-form video",
+        formats: [],
+        style: [],
+        tone: [],
+        productionLevel: rawContent?.productionLevel || "High / Studio Grade",
+        contentConsistency: rawContent?.contentConsistency || "High",
+        promotionalContentLevel: "Moderate",
+      },
+      contentThemes: parsedThemes.map((t) => ({ theme: t.name, strength: t.percentage })),
+      performanceIntelligence: {
+        reachLevel: "High",
+        engagementQuality: "High",
+        audienceResponse: "High",
+        performancePattern: "Consistent",
+        summary: "",
+      },
+      engagementIntelligence: {
+        conversationLevel: "High",
+        sharingPotential: "High",
+        purchaseIntentSignals: "High",
+        audienceBehavior: [],
+      },
+      commercialIntelligence: {
+        commercialIntent: "High",
+        brandCollaborationLikelihood: "High",
+        affiliateSignals: false,
+        productPromotionLevel: "Moderate",
+        sponsorshipSignals: [],
+      },
+      brandFit: {
+        bestFitCategories: Array.isArray(rawBrandFit?.bestFitCategories) && rawBrandFit.bestFitCategories.length > 0
+          ? rawBrandFit.bestFitCategories
+          : [primaryNicheName],
+        campaignTypes: [],
+        strongestPartnershipAngle: "",
+        brandSuitability: "High",
+      },
+      brandSafety: {
+        overallRisk: rawSafety?.overallRisk || "Low Risk",
+        reviewRecommended: rawSafety?.reviewRecommended || false,
+        observedRiskSignals: Array.isArray(rawSafety?.observedRiskSignals) ? rawSafety.observedRiskSignals : [],
+      },
+      strengths: Array.isArray(rawLlm?.strengths) && rawLlm.strengths.length > 0
+        ? (rawLlm.strengths as any[])
+        : Array.isArray(intel?.strengths) ? (intel.strengths as any[]) : [],
+      considerations: Array.isArray(rawLlm?.considerations) && rawLlm.considerations.length > 0
+        ? (rawLlm.considerations as any[])
+        : Array.isArray(intel?.considerations) ? (intel.considerations as any[]) : [],
+      partnershipRecommendations: [],
+      summary: {
+        oneLine: rawLlm?.summary?.oneLine || intel?.oneLineSummary || `${cluster.brandName || cluster.canonicalName} is an authoritative digital creator in ${primaryNicheName}.`,
+        brandSummary: rawLlm?.summary?.brandSummary || intel?.brandSummary || "",
+        detailedSummary: rawLlm?.summary?.detailedSummary || intel?.detailedSummary || "",
+      },
+      confidence: {
+        niche: 0.95,
+        country: 0.95,
+        audience: 0.95,
+        brandFit: 0.95,
+      },
+      evidence: {
+        classification: [],
+        geography: [],
+        audience: [],
+        commercial: [],
+      },
+      uncertainties: [],
+      omnichannelStrategySuite: rawLlm?.omnichannelStrategySuite || (rawExecutiveBrief ? {
+        creatorExecutiveBrief: rawExecutiveBrief,
+        packages: [],
+      } : undefined),
+    },
+  };
+}

@@ -810,19 +810,44 @@ model CreatorIntelligence {
 // ==========================================
 
 model CreatorIdentityCluster {
-  id                String   @id @default(uuid())
-  canonicalName     String   @map("canonical_name")
-  primaryNicheId    Int?     @map("primary_niche_id")
-  countryCode       String?  @map("country_code")
+  id                 String    @id @default(uuid())
+  slug               String?   @unique
+  canonicalName      String    @map("canonical_name")
+  brandName          String?   @map("brand_name")
+  primaryNicheId     Int?      @map("primary_niche_id")
+  primaryNicheName   String?   @map("primary_niche_name")
+  countryCode        String?   @map("country_code")
 
   // Bound Platform Handles (lowercase, clean string, no @)
-  youtubeHandle     String?  @unique @map("youtube_handle")
-  instagramUsername String?  @unique @map("instagram_username")
-  tiktokUsername    String?  @unique @map("tiktok_username")
+  youtubeHandle      String?   @unique @map("youtube_handle")
+  instagramUsername  String?   @unique @map("instagram_username")
+  tiktokUsername     String?   @unique @map("tiktok_username")
 
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  // Aggregated Performance Cache (For fast Directory filtering & sorting)
+  combinedFollowers  BigInt    @default(0) @map("combined_followers")
+  primaryPlatform    String    @default("youtube") @map("primary_platform")
+  avatarUrl          String?   @map("avatar_url")
+  verifiedEmail      String?   @map("verified_email")
+  typicalRateMinUsd  Int?      @map("typical_rate_min_usd")
+  typicalRateMaxUsd  Int?      @map("typical_rate_max_usd")
+  avgEngagementRate  Decimal?  @map("avg_engagement_rate") @db.Decimal(5, 2)
 
+  // Creator Claim & Verification Status
+  isClaimed          Boolean   @default(false) @map("is_claimed")
+  claimedByUserId    String?   @map("claimed_by_user_id")
+  claimedAt          DateTime? @map("claimed_at")
+  verificationLevel  String    @default("NONE") @map("verification_level") // "NONE" | "CHANNEL_VERIFIED" | "EMAIL_VERIFIED" | "OFFICIAL_VERIFIED"
+  officialRateCard   Json?     @map("official_rate_card")
+  managerEmail       String?   @map("manager_email")
+
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@index([countryCode])
+  @@index([primaryNicheId])
+  @@index([combinedFollowers(sort: Desc)])
+  @@index([isClaimed])
   @@index([youtubeHandle])
   @@index([instagramUsername])
   @@index([tiktokUsername])

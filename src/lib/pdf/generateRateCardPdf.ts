@@ -187,10 +187,22 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
 
   // Extract brief details from completeIntelligence
   const execBrief = completeIntelligence?.omnichannelStrategySuite?.creatorExecutiveBrief;
-  const whoTheyAre = execBrief?.whoTheyAre || completeIntelligence?.profile?.creatorDescription || "Established creator in high-growth digital entertainment and lifestyle verticals.";
-  const theSuperpower = execBrief?.theSuperpower || "Commands elite visual credibility and engagement across high-intent consumer demographics.";
-  const audiencePsychology = execBrief?.audiencePsychology || "Engages deeply with creator-led authentic storytelling; views brand placements as enablers of premium content.";
-  const theLandmine = execBrief?.theLandmine || "Mandating an inflexible, scripted corporate monologue that alienates audience rapport.";
+  const whoTheyAre =
+    execBrief?.whoTheyAre ||
+    completeIntelligence?.summary?.brandSummary ||
+    completeIntelligence?.profile?.creatorDescription ||
+    `${creatorMeta.displayName} is an established creator in ${activeNicheName || "digital entertainment"}.`;
+  const theSuperpower =
+    execBrief?.theSuperpower ||
+    completeIntelligence?.strengths?.[0]?.description ||
+    "Commands elite visual credibility and engagement across high-intent consumer demographics.";
+  const audiencePsychology =
+    execBrief?.audiencePsychology ||
+    (completeIntelligence?.audience?.purchaseIntent ? `Audience displays ${completeIntelligence.audience.purchaseIntent.toLowerCase()} purchase consideration with strong affinity for creator recommendations.` : "Engages deeply with creator-led authentic storytelling; views brand placements as enablers of premium content.");
+  const theLandmine =
+    execBrief?.theLandmine ||
+    completeIntelligence?.considerations?.[0]?.description ||
+    "Mandating an inflexible, scripted corporate monologue that alienates audience rapport.";
   const vanityVoucher = execBrief?.recommendedVoucherPrefix || `${creatorMeta.displayName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6).toUpperCase()}10`;
 
   // Aggregate audited media posts across platforms
@@ -949,7 +961,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
 
     <div style="text-align: right; font-size: 7.5pt; color: #52525b; line-height: 1.4;">
       <div>Sector: <strong>${escapeHtml(activeNicheName || completeIntelligence?.profile?.primaryNiche?.name || "Digital Media")}</strong></div>
-      <div>Sub-Niche: <strong>${escapeHtml(activeSubNicheName || completeIntelligence?.profile?.subNiche?.name || "Filmmaking & Visual Gear")}</strong></div>
+      <div>Sub-Niche: <strong>${escapeHtml(activeSubNicheName || completeIntelligence?.profile?.subNiche?.name || "General")}</strong></div>
       <div>Base: <strong>${escapeHtml(completeIntelligence?.geography?.countryName || regionInfo.name)}${completeIntelligence?.geography?.city ? ` (${escapeHtml(completeIntelligence.geography.city)})` : ""}</strong></div>
       <div style="color: #059669; font-weight: 700; margin-top: 2px;">
         ${SVG_ICONS.shield} Brand Safety Signal: ${escapeHtml(completeIntelligence?.brandSafety?.overallRisk || "Low")} Risk
@@ -996,7 +1008,13 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
       Empirical Intelligence &amp; Creator Positioning Directive
     </div>
     <div class="summary-quote">
-      “Empirical analysis confirms ${escapeHtml(creatorMeta.displayName)} as a Tier-1 brand partner for enterprise tech, mobility, and premium lifestyle brands targeting an affluent 18-34 demographic. Campaign flight structures prioritize narrative immersion and creator autonomy over rigid corporate scripts.”
+      “${escapeHtml(
+        completeIntelligence?.summary?.brandSummary ||
+        completeIntelligence?.summary?.detailedSummary ||
+        completeIntelligence?.summary?.oneLine ||
+        completeIntelligence?.profile?.creatorDescription ||
+        `Empirical analysis confirms ${creatorMeta.displayName} as a high-authority brand partner in ${activeNicheName || "digital media"}. Campaign flight structures prioritize narrative immersion and creator autonomy over rigid corporate scripts.`
+      )}”
     </div>
     ${
       completeIntelligence?.profile?.microNiches && completeIntelligence.profile.microNiches.length > 0
@@ -1014,7 +1032,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
   <div class="avoid-break">
     <div class="section-head">
       <div class="section-title">1. Creator Strategic DNA &amp; Talent Executive Brief</div>
-      <div class="section-note">Vanity Voucher: <strong>${escapeHtml(vanityVoucher)}</strong></div>
+      <div class="section-note">Commercial Positioning &amp; Audience Psychology</div>
     </div>
 
     <div class="brief-grid">
@@ -1050,23 +1068,31 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
         </div>
         <div class="dna-row">
           <span class="dna-label">Demographic Profile</span>
-          <span class="dna-val">${escapeHtml(completeIntelligence?.audience?.genderSkew || "Balanced")}, ${escapeHtml(completeIntelligence?.audience?.likelyAgeRange || "18-34")}</span>
+          <span class="dna-val">${escapeHtml(
+            completeIntelligence?.audience?.genderSkew
+              ? `${completeIntelligence.audience.genderSkew}, ${completeIntelligence.audience.likelyAgeRange || '18-34'}`
+              : (completeIntelligence?.audience?.profile || '18-34 demographic, high purchase intent')
+          )}</span>
         </div>
         <div class="dna-row">
           <span class="dna-label">Commercial Purchase Intent</span>
-          <span class="dna-val" style="color: #059669;">${escapeHtml(completeIntelligence?.audience?.purchaseIntent || "High")} Intent</span>
+          <span class="dna-val" style="color: #059669;">${escapeHtml(
+            completeIntelligence?.audience?.purchaseIntent
+              ? (completeIntelligence.audience.purchaseIntent.toLowerCase().includes("intent") ? completeIntelligence.audience.purchaseIntent : `${completeIntelligence.audience.purchaseIntent} Intent`)
+              : "High Intent"
+          )}</span>
         </div>
         <div class="dna-row">
           <span class="dna-label">Primary Regional Market</span>
-          <span class="dna-val">${escapeHtml(completeIntelligence?.audience?.primaryMarket || regionInfo.name)}</span>
+          <span class="dna-val">${escapeHtml(completeIntelligence?.audience?.primaryMarket || completeIntelligence?.geography?.countryName || regionInfo.name)}</span>
         </div>
         <div class="dna-row">
           <span class="dna-label">Secondary Regional Markets</span>
-          <span class="dna-val">${escapeHtml((completeIntelligence?.audience?.secondaryMarkets || ["United Arab Emirates", "United Kingdom", "Saudi Arabia"]).slice(0, 3).join(", "))}</span>
+          <span class="dna-val">${escapeHtml((completeIntelligence?.audience?.secondaryMarkets && completeIntelligence.audience.secondaryMarkets.length > 0 ? completeIntelligence.audience.secondaryMarkets : ["United Arab Emirates", "United Kingdom", "Saudi Arabia"]).slice(0, 3).join(", "))}</span>
         </div>
         <div class="dna-row">
           <span class="dna-label">Audience Interests</span>
-          <span class="dna-val" style="font-size: 6.8pt; max-width: 60%;">${escapeHtml((completeIntelligence?.audience?.interests || ["Filmmaking & Gear", "Consumer Tech", "Automotive", "Travel Culture"]).slice(0, 4).join(", "))}</span>
+          <span class="dna-val" style="font-size: 6.8pt; max-width: 60%;">${escapeHtml((completeIntelligence?.audience?.interests && completeIntelligence.audience.interests.length > 0 ? completeIntelligence.audience.interests : [activeNicheName || "Digital Media"]).slice(0, 4).join(", "))}</span>
         </div>
       </div>
 
@@ -1085,15 +1111,20 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
         </div>
         <div class="dna-row">
           <span class="dna-label">Publishing Consistency</span>
-          <span class="dna-val">${escapeHtml(completeIntelligence?.content?.contentConsistency || "Moderate")}</span>
+          <span class="dna-val">${escapeHtml(completeIntelligence?.content?.contentConsistency || "Consistent")}</span>
         </div>
         ${
-          (completeIntelligence?.contentThemes || [
-            { theme: "Cinematic Storytelling & Filmmaking", strength: 95 },
-            { theme: "Automotive & Motorsports Culture", strength: 88 },
-            { theme: "Travelogues & Cultural Documentaries", strength: 92 },
-            { theme: "Consumer Electronics & Camera Hardware", strength: 84 },
-          ])
+          (completeIntelligence?.contentThemes && completeIntelligence.contentThemes.length > 0
+            ? completeIntelligence.contentThemes.map((th: any) => ({
+                theme: th.theme || th.name || "Demonstrations",
+                strength: typeof th.strength === "number" ? Math.round(th.strength <= 1 ? th.strength * 100 : th.strength) : (th.percentage || 85),
+              }))
+            : [
+                { theme: `${activeNicheName || "Content"} Demonstrations`, strength: 92 },
+                { theme: "Community & Audience Interaction", strength: 86 },
+                { theme: "Everyday Highlights & Vlogs", strength: 78 },
+              ]
+          )
             .slice(0, 4)
             .map(
               (th) => `
@@ -1118,32 +1149,32 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
         <span style="font-size: 6.5pt; color: #059669; font-weight: 700;">Brand Suitability: High • Commercial Intent: High</span>
       </div>
       <div class="tag-row" style="margin-top: 2px;">
-        ${(completeIntelligence?.brandFit?.bestFitCategories || [
-          "Automotive & EV Mobility",
-          "Prosumer Electronics & Cameras",
-          "Premium Consumer Tech & Laptops",
-          "Airlines & Hospitality Boards",
-          "Lifestyle Apparel & Footwear",
-        ]).map((c) => `<span class="pill" style="background: #ffffff; font-weight: 700;">${escapeHtml(c)}</span>`).join("")}
+        ${(completeIntelligence?.brandFit?.bestFitCategories && completeIntelligence.brandFit.bestFitCategories.length > 0
+          ? completeIntelligence.brandFit.bestFitCategories
+          : [activeNicheName || "Consumer Lifestyle", "Digital Entertainment", "Brand Activations"]
+        ).map((c) => `<span class="pill" style="background: #ffffff; font-weight: 700;">${escapeHtml(c)}</span>`).join("")}
       </div>
     </div>
 
     <!-- 3 Key Strategic Strengths -->
     <div class="strengths-grid">
-      ${(completeIntelligence?.strengths || [
-        {
-          area: "Prestige Brand Association",
-          description: "Commands elite visual credibility in the South Asian ecosystem, imparting immediate production prestige and legitimacy to sponsoring partners.",
-        },
-        {
-          area: "Audience Trust & Attention Quality",
-          description: "Maintains high viewer retention and low ad-skipping behavior by embedding sponsor narratives directly into high-effort documentary story arcs.",
-        },
-        {
-          area: "Asset Production Value",
-          description: "Delivers commercial-grade 4K visuals, color grading, and b-roll sequences that exceed standard creator UGC, offering dual value for digital asset licensing.",
-        },
-      ]).slice(0, 3).map((st) => `
+      ${(completeIntelligence?.strengths && completeIntelligence.strengths.length > 0
+        ? completeIntelligence.strengths
+        : [
+            {
+              area: "High Scale Top-of-Funnel Reach",
+              description: `Commands massive multi-channel audience attention and cultural visibility across ${completeIntelligence?.geography?.countryName || regionInfo.name}.`,
+            },
+            {
+              area: "Audience Trust & Affinity",
+              description: "Maintains strong community loyalty and engagement through relatable persona and organic storytelling.",
+            },
+            {
+              area: "Commercial Campaign Value",
+              description: "Delivers rapid awareness and conversion velocity for brand partners across dedicated and integrated activations.",
+            },
+          ]
+      ).slice(0, 3).map((st) => `
         <div class="strength-card">
           <div class="strength-title">• ${escapeHtml(st.area)}</div>
           <div class="strength-desc">${escapeHtml(st.description)}</div>

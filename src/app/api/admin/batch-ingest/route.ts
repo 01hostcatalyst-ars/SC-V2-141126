@@ -371,13 +371,23 @@ export async function POST(req: NextRequest) {
     // 5. Persist to CreatorIdentityCluster
     // -------------------------------------------------------------------------
     try {
+      const combinedFollowers =
+        (ytDataForMulti?.subscriberCount || 0) +
+        (igDataForMulti?.followerCount || 0) +
+        (ttDataForMulti?.followerCount || 0) || followerCount;
+
       await upsertCreatorIdentityCluster({
         canonicalName: displayName || completeIntel.profile?.creatorType || handle,
-        youtubeHandle: ytDataForMulti?.handle,
-        instagramUsername: igDataForMulti?.username,
-        tiktokUsername: ttDataForMulti?.username,
+        brandName: displayName || handle,
+        youtubeHandle: ytDataForMulti?.handle || (platform === 'youtube' ? handle : undefined),
+        instagramUsername: igDataForMulti?.username || (platform === 'instagram' ? handle : undefined),
+        tiktokUsername: ttDataForMulti?.username || (platform === 'tiktok' ? handle : undefined),
         primaryNicheId: completeIntel.profile.primaryNiche.id,
+        primaryNicheName: completeIntel.profile.primaryNiche.name,
         countryCode: finalCountry,
+        combinedFollowers: BigInt(combinedFollowers),
+        primaryPlatform: platform,
+        avatarUrl: avatarUrl || undefined,
       });
     } catch (clusterErr) {
       console.warn('[Batch Ingest API] Non-critical cluster save warning:', clusterErr);

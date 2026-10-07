@@ -149,15 +149,40 @@ export async function resolveCreatorIdentity(
 }
 
 /**
+ * Generates a clean URL slug from creator name, brand, or handle
+ */
+export function generateCreatorSlug(nameOrBrand: string, fallbackHandle?: string): string {
+  const input = (nameOrBrand || fallbackHandle || 'creator').toLowerCase().trim();
+  const clean = input
+    .replace(/^@+/, '')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return clean || 'creator';
+}
+
+/**
  * Upserts a CreatorIdentityCluster, seamlessly merging handles if any already exist
  */
 export async function upsertCreatorIdentityCluster(params: {
   canonicalName?: string;
+  brandName?: string;
+  slug?: string;
   youtubeHandle?: string;
   instagramUsername?: string;
   tiktokUsername?: string;
   primaryNicheId?: number;
+  primaryNicheName?: string;
   countryCode?: string;
+  combinedFollowers?: bigint | number;
+  primaryPlatform?: string;
+  avatarUrl?: string;
+  verifiedEmail?: string;
+  typicalRateMinUsd?: number;
+  typicalRateMaxUsd?: number;
+  avgEngagementRate?: number;
 }): Promise<CreatorIdentityClusterRecord> {
   const yt = params.youtubeHandle ? normalizePlatformHandle(params.youtubeHandle) : undefined;
   const ig = params.instagramUsername ? normalizePlatformHandle(params.instagramUsername) : undefined;
@@ -176,17 +201,45 @@ export async function upsertCreatorIdentityCluster(params: {
   }
 
   const finalName = params.canonicalName?.trim() || existing?.canonicalName || yt || ig || tt || 'Creator';
+  const finalBrand = params.brandName?.trim() || existing?.brandName || finalName;
+  const targetSlug = params.slug || existing?.slug || generateCreatorSlug(finalBrand, yt || ig || tt);
+
+  // Ensure slug uniqueness if creating or if slug changed
+  let uniqueSlug = targetSlug;
+  if (!existing || !existing.slug) {
+    const slugCollision = await prisma.creatorIdentityCluster.findFirst({
+      where: { slug: uniqueSlug },
+    });
+    if (slugCollision && slugCollision.id !== existing?.id) {
+      const suffix = yt || ig || tt || params.countryCode?.toLowerCase() || Math.floor(Math.random() * 1000).toString();
+      uniqueSlug = `${targetSlug}-${suffix}`;
+    }
+  }
+
+  const combinedFollowersBigInt = params.combinedFollowers !== undefined
+    ? BigInt(params.combinedFollowers)
+    : existing?.combinedFollowers || BigInt(0);
 
   if (existing) {
     const updated = await prisma.creatorIdentityCluster.update({
       where: { id: existing.id },
       data: {
         canonicalName: finalName,
+        brandName: finalBrand,
+        slug: existing.slug || uniqueSlug,
         youtubeHandle: yt || existing.youtubeHandle,
         instagramUsername: ig || existing.instagramUsername,
         tiktokUsername: tt || existing.tiktokUsername,
         primaryNicheId: params.primaryNicheId || existing.primaryNicheId,
+        primaryNicheName: params.primaryNicheName || existing.primaryNicheName,
         countryCode: params.countryCode || existing.countryCode,
+        combinedFollowers: combinedFollowersBigInt,
+        primaryPlatform: params.primaryPlatform || existing.primaryPlatform,
+        avatarUrl: params.avatarUrl || existing.avatarUrl,
+        verifiedEmail: params.verifiedEmail || existing.verifiedEmail,
+        typicalRateMinUsd: params.typicalRateMinUsd !== undefined ? params.typicalRateMinUsd : existing.typicalRateMinUsd,
+        typicalRateMaxUsd: params.typicalRateMaxUsd !== undefined ? params.typicalRateMaxUsd : existing.typicalRateMaxUsd,
+        avgEngagementRate: params.avgEngagementRate !== undefined ? params.avgEngagementRate : existing.avgEngagementRate,
       },
     });
 
@@ -206,11 +259,21 @@ export async function upsertCreatorIdentityCluster(params: {
   const created = await prisma.creatorIdentityCluster.create({
     data: {
       canonicalName: finalName,
+      brandName: finalBrand,
+      slug: uniqueSlug,
       youtubeHandle: yt,
       instagramUsername: ig,
       tiktokUsername: tt,
       primaryNicheId: params.primaryNicheId,
+      primaryNicheName: params.primaryNicheName,
       countryCode: params.countryCode,
+      combinedFollowers: combinedFollowersBigInt,
+      primaryPlatform: params.primaryPlatform || 'youtube',
+      avatarUrl: params.avatarUrl,
+      verifiedEmail: params.verifiedEmail,
+      typicalRateMinUsd: params.typicalRateMinUsd,
+      typicalRateMaxUsd: params.typicalRateMaxUsd,
+      avgEngagementRate: params.avgEngagementRate,
     },
   });
 

@@ -16,6 +16,7 @@ import {
   BookOpen,
   Tag,
   CheckCircle2,
+  Users,
 } from "lucide-react";
 
 export interface PublicHeaderProps {
@@ -37,6 +38,16 @@ interface ToolItem {
 }
 
 const SUITE_TOOLS: ToolItem[] = [
+  {
+    id: "creators",
+    name: "Creator Directory",
+    description: "Database of 1,500+ multi-platform creators, rates & reach",
+    href: "/creators",
+    icon: Users,
+    accentColor: "text-blue-600 bg-blue-50 border-blue-200/80",
+    badge: "Active",
+    activePattern: /^\/creators/,
+  },
   {
     id: "contracts",
     name: "Commercial Agreements",
@@ -78,6 +89,7 @@ const SUITE_TOOLS: ToolItem[] = [
 ];
 
 const NAV_LINKS = [
+  { name: "Creators", href: "/creators", icon: Users },
   { name: "Pricing", href: "/pricing", icon: Tag },
   { name: "Academy", href: "/knowledge", icon: BookOpen },
   { name: "Verify", href: "/verify", icon: ShieldCheck },
