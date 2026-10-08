@@ -35,6 +35,7 @@ export interface PlatformResolvedState {
   lfEr?: number;
   sfEr?: number;
   avgViews?: number;
+  avgShortViews?: number;
   rates: DeliverableRateBenchmark[];
 }
 
@@ -124,8 +125,12 @@ function computeFormat16KnotRate(params: {
   avgViews: number;
   avgLikes: number;
   avgComments: number;
+  avgShares?: number;
   primaryNicheId: number;
   subNicheId?: number;
+  secondaryNicheIds?: number[];
+  productionLevel?: string;
+  isLuxuryOrHighEnd?: boolean;
   regionCode: RegionCode;
   observedErOverride?: number;
 }): DeliverableRateBenchmark {
@@ -139,8 +144,12 @@ function computeFormat16KnotRate(params: {
       last3PostsAvgViews: params.avgViews,
       last3PostsAvgLikes: params.avgLikes,
       last3PostsAvgComments: params.avgComments,
+      last3PostsAvgShares: params.avgShares || 0,
       primaryNicheId: params.primaryNicheId,
       subNicheId: params.subNicheId,
+      secondaryNicheIds: params.secondaryNicheIds,
+      productionLevel: params.productionLevel,
+      isLuxuryOrHighEnd: params.isLuxuryOrHighEnd,
       regionCode: params.regionCode,
     },
     deliverables: [
@@ -200,11 +209,17 @@ export function computeFlagship16KnotRates(params: {
   tiktok?: { followers: number; er?: number } | null;
   primaryNicheId?: number | null;
   subNicheId?: number | null;
+  secondaryNicheIds?: number[] | null;
+  productionLevel?: string | null;
+  isLuxuryOrHighEnd?: boolean | null;
   regionCode?: string | null;
 }): FlagshipDeliverableRate[] {
   const rates: FlagshipDeliverableRate[] = [];
   const primaryNicheId = params.primaryNicheId || 8;
   const subNicheId = params.subNicheId || undefined;
+  const secondaryNicheIds = params.secondaryNicheIds || undefined;
+  const productionLevel = params.productionLevel || "High";
+  const isLuxuryOrHighEnd = params.isLuxuryOrHighEnd ?? undefined;
   const regionCode: RegionCode = (params.regionCode as RegionCode) || "US";
 
   // 1. YouTube Flagship: YouTube Dedicated Video
@@ -225,6 +240,9 @@ export function computeFlagship16KnotRates(params: {
       avgComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: lfEr,
     });
@@ -255,6 +273,9 @@ export function computeFlagship16KnotRates(params: {
       avgComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: er,
     });
@@ -285,6 +306,9 @@ export function computeFlagship16KnotRates(params: {
       avgComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: er,
     });
@@ -392,6 +416,26 @@ export async function resolveFullCreatorProfile(
   const subNicheId = completeIntel?.profile?.subNiche?.id || undefined;
   const subNicheName = completeIntel?.profile?.subNiche?.name || undefined;
 
+  const secondaryNicheIds: number[] | undefined =
+    completeIntel?.profile?.secondaryNiches?.map((s) => s.id) ||
+    (Array.isArray(intel?.secondaryNiches)
+      ? (intel.secondaryNiches as any[]).map((n) => (typeof n === "object" && n?.id ? n.id : Number(n))).filter(Boolean)
+      : undefined);
+
+  const rawContent = rawLlm?.content || (intel?.contentIntelligence as any) || {};
+  const rawProfile = rawLlm?.profile || {};
+  const productionLevel: string =
+    completeIntel?.content?.productionLevel ||
+    rawContent?.productionLevel ||
+    rawContent?.productionStandard ||
+    (intel?.contentIntelligence as any)?.productionStandard ||
+    "Medium-High";
+
+  const isLuxuryOrHighEnd: boolean | undefined =
+    rawProfile?.isLuxuryOrHighEnd !== undefined
+      ? rawProfile.isLuxuryOrHighEnd
+      : undefined;
+
   const auditedCountry = (intel?.countryCode || cluster.countryCode || "US").toUpperCase() as RegionCode;
   const regionCode: RegionCode = REGIONAL_CONFIG[auditedCountry] ? auditedCountry : "US";
   const regionConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG.US;
@@ -408,23 +452,57 @@ export async function resolveFullCreatorProfile(
   let resolvedTiktok: PlatformResolvedState | null = null;
 
   // A. YouTube Resolution
-  if (cluster.youtubeHandle) {
+  if (cluster.youtubeHandle && (Number(ytScrape?.subscriberCount || 0) > 0 || ytScrape)) {
     const subs = Number(ytScrape?.subscriberCount || 0);
     const ytStats = ytScrape?.stats as any;
     const avgViews = Number(ytStats?.avgLongVideoViews || ytScrape?.avgViewsPerVideo || 0) || Math.max(1000, Math.round(subs * 0.08));
     const lfEr = Number(ytStats?.avgLongEngagementRate || ytStats?.lfEr || ytStats?.engagementRate || 1.45);
     const sfEr = Number(ytStats?.avgShortEngagementRate || ytStats?.sfEr || 2.73);
-    const avgLikes = Math.round(avgViews * (lfEr / 100));
-    const avgComments = Math.round(avgLikes * 0.08);
+
+    const longVideosList = Array.isArray(ytScrape?.longVideos) ? (ytScrape.longVideos as any[]) : [];
+    const sampleLongVids = longVideosList.filter((v: any) => v.isErSample);
+    const targetLongVids = sampleLongVids.length > 0 ? sampleLongVids : longVideosList;
+
+    let avgLikes = 0;
+    let avgComments = 0;
+    if (targetLongVids.length > 0) {
+      avgLikes = Math.round(targetLongVids.reduce((s: number, v: any) => s + Number(v.likeCount || 0), 0) / targetLongVids.length);
+      avgComments = Math.round(targetLongVids.reduce((s: number, v: any) => s + Number(v.commentCount || 0), 0) / targetLongVids.length);
+    } else {
+      avgLikes = Math.round(avgViews * (lfEr / 100));
+      avgComments = Math.round(avgLikes * 0.08);
+    }
+
+    const shortVideosList = Array.isArray(ytScrape?.shortVideos) ? (ytScrape.shortVideos as any[]) : [];
+    const hasActualShorts = shortVideosList.length > 0 || Number(ytStats?.totalShortVideosFetched || 0) > 0;
+    const avgShortViews = hasActualShorts && Number(ytStats?.avgShortVideoViews || 0) > 0
+      ? Number(ytStats.avgShortVideoViews)
+      : 0;
+    const sampleShortVids = shortVideosList.filter((v: any) => v.isErSample);
+    const targetShortVids = sampleShortVids.length > 0 ? sampleShortVids : shortVideosList;
+    let avgShortLikes = 0;
+    let avgShortComments = 0;
+    if (targetShortVids.length > 0) {
+      avgShortLikes = Math.round(targetShortVids.reduce((s: number, v: any) => s + Number(v.likeCount || 0), 0) / targetShortVids.length);
+      avgShortComments = Math.round(targetShortVids.reduce((s: number, v: any) => s + Number(v.commentCount || 0), 0) / targetShortVids.length);
+    } else if (hasActualShorts && Number(ytStats?.avgShortEngagementRate || 0) > 0 && avgShortViews > 0) {
+      avgShortLikes = Math.round(avgShortViews * (Number(ytStats.avgShortEngagementRate) / 100));
+      avgShortComments = Math.round(avgShortLikes * 0.05);
+    }
 
     platformInputs.youtube = {
       status: "ready",
       username: cluster.youtubeHandle,
       followerCount: subs,
       engagementRate: lfEr,
+      longEngagementRate: lfEr,
+      shortEngagementRate: hasActualShorts ? sfEr : undefined,
       avgViews,
       avgLikes,
       avgComments,
+      avgShortViews,
+      avgShortLikes,
+      avgShortComments,
     };
 
     const dedicatedRate = computeFormat16KnotRate({
@@ -437,6 +515,9 @@ export async function resolveFullCreatorProfile(
       avgComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: lfEr,
     });
@@ -451,6 +532,9 @@ export async function resolveFullCreatorProfile(
       avgComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: lfEr,
     });
@@ -460,13 +544,16 @@ export async function resolveFullCreatorProfile(
       format: "yt_short",
       label: "YouTube Short",
       followerCount: subs,
-      avgViews: Math.round(avgViews * 1.5),
-      avgLikes: Math.round(avgViews * 0.05),
-      avgComments: Math.round(avgComments * 0.5),
+      avgViews: avgShortViews,
+      avgLikes: avgShortLikes,
+      avgComments: avgShortComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
-      observedErOverride: sfEr,
+      observedErOverride: hasActualShorts ? sfEr : undefined,
     });
 
     resolvedYoutube = {
@@ -477,20 +564,21 @@ export async function resolveFullCreatorProfile(
       observedEr: lfEr,
       benchmarkEr: 1.5,
       lfEr,
-      sfEr,
+      sfEr: hasActualShorts ? sfEr : undefined,
       avgViews,
+      avgShortViews,
       rates: [dedicatedRate, integrationRate, shortRate],
     };
   }
 
   // B. Instagram Resolution
-  if (cluster.instagramUsername) {
+  if (cluster.instagramUsername && (Number(igScrape?.followerCount || 0) > 0 || igScrape)) {
     const igFollowers = Number(igScrape?.followerCount || 0);
     const igStats = igScrape?.stats as any;
     const igEr = Number(igScrape?.avgEngagementRate || igStats?.avgEngagementRate || igStats?.engagementRate || 2.15);
-    const avgLikes = Number(igStats?.avgLikes || Math.round(igFollowers * (igEr / 100)));
-    const avgComments = Number(igStats?.avgComments || Math.round(avgLikes * 0.04));
-    const avgViews = Number(igStats?.avgViews || Math.round(igFollowers * 0.12));
+    const avgLikes = Number(igStats?.avgLikesPerPost || igStats?.avgLikes || Math.round(igFollowers * (igEr / 100)));
+    const avgComments = Number(igStats?.avgCommentsPerPost || igStats?.avgComments || Math.round(avgLikes * 0.04));
+    const avgViews = Number(igStats?.avgViewsPerPost || igStats?.avgViews || Math.round(igFollowers * 0.12));
 
     platformInputs.instagram = {
       status: "ready",
@@ -512,6 +600,9 @@ export async function resolveFullCreatorProfile(
       avgComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: igEr,
     });
@@ -526,6 +617,9 @@ export async function resolveFullCreatorProfile(
       avgComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: igEr,
     });
@@ -540,6 +634,9 @@ export async function resolveFullCreatorProfile(
       avgComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: igEr,
     });
@@ -549,11 +646,14 @@ export async function resolveFullCreatorProfile(
       format: "ig_story",
       label: "Instagram Story (3-Frame Set)",
       followerCount: igFollowers,
-      avgViews: Math.round(avgViews * 0.4),
-      avgLikes: 0,
-      avgComments: 0,
+      avgViews,
+      avgLikes,
+      avgComments,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: igEr,
     });
@@ -571,13 +671,14 @@ export async function resolveFullCreatorProfile(
   }
 
   // C. TikTok Resolution
-  if (cluster.tiktokUsername) {
+  if (cluster.tiktokUsername && (Number(ttScrape?.followerCount || 0) > 0 || ttScrape)) {
     const ttFollowers = Number(ttScrape?.followerCount || 0);
     const ttStats = ttScrape?.stats as any;
     const ttEr = Number(ttScrape?.avgEngagementRate || ttStats?.avgEngagementRate || ttStats?.engagementRate || 4.5);
-    const avgViews = Number(ttStats?.avgViews || Math.round(ttFollowers * 0.18));
-    const avgLikes = Number(ttStats?.avgLikes || Math.round(avgViews * (ttEr / 100)));
-    const avgComments = Number(ttStats?.avgComments || Math.round(avgLikes * 0.05));
+    const avgViews = Number(ttStats?.avgViewsPerVideo || ttStats?.avgViews || Math.round(ttFollowers * 0.18));
+    const avgLikes = Number(ttStats?.avgLikesPerVideo || ttStats?.avgLikes || Math.round(avgViews * (ttEr / 100)));
+    const avgComments = Number(ttStats?.avgCommentsPerVideo || ttStats?.avgComments || Math.round(avgLikes * 0.05));
+    const avgShares = Number(ttStats?.avgSharesPerVideo || ttStats?.avgShares || 0);
 
     platformInputs.tiktok = {
       status: "ready",
@@ -597,8 +698,12 @@ export async function resolveFullCreatorProfile(
       avgViews,
       avgLikes,
       avgComments,
+      avgShares: 0,
       primaryNicheId,
       subNicheId,
+      secondaryNicheIds,
+      productionLevel,
+      isLuxuryOrHighEnd,
       regionCode,
       observedErOverride: ttEr,
     });
@@ -616,6 +721,10 @@ export async function resolveFullCreatorProfile(
   }
 
   // 5. Generate 5 Omnichannel Strategy Packages
+  if (completeIntel && completeIntel.content) {
+    completeIntel.content.productionLevel = completeIntel.content.productionLevel || productionLevel;
+  }
+
   const omnichannelPackages = generateOmnichannelPackages(
     platformInputs,
     cluster.brandName || cluster.canonicalName,
@@ -625,10 +734,9 @@ export async function resolveFullCreatorProfile(
     completeIntel
   );
 
-  // 6. Unpack Detailed Intelligence Dossier
   const rawExecutiveBrief = rawLlm?.omnichannelStrategySuite?.creatorExecutiveBrief;
   const rawAudience = rawLlm?.audience || (intel?.audienceIntelligence as any) || {};
-  const rawContent = rawLlm?.content || (intel?.contentIntelligence as any) || {};
+  // Reuse rawContent declared in step 4
   const rawCommercial = rawLlm?.commercialIntelligence || rawLlm?.commercial || (intel?.commercialIntel as any) || {};
   const rawBrandFit = rawLlm?.brandFit || (intel?.brandFit as any) || {};
   const rawSafety = rawLlm?.brandSafety || (intel?.brandSafety as any) || { overallRisk: "Low" };
@@ -710,8 +818,8 @@ export async function resolveFullCreatorProfile(
       microNiches: Array.isArray(rawLlm?.profile?.microNiches) && rawLlm.profile.microNiches.length > 0
         ? rawLlm.profile.microNiches
         : Array.isArray(intel?.microNiches) ? intel.microNiches : [],
-      confidenceScore: intel?.identityConfidence || 0.95,
-      modelConfidenceText: "High (95%)",
+      confidenceScore: completeIntel?.confidence?.audience ? completeIntel.confidence.audience : (intel?.identityConfidence || 0.88),
+      modelConfidenceText: `High (${Math.round((completeIntel?.confidence?.audience || intel?.identityConfidence || 0.88) * 100)}%)`,
       executiveBrief: rawExecutiveBrief
         ? {
             whoTheyAre: rawExecutiveBrief.whoTheyAre,
@@ -762,7 +870,10 @@ export async function resolveFullCreatorProfile(
     },
     omnichannelPackages,
     recentMedia: {
-      youtubeVideos: Array.isArray(ytScrape?.longVideos) ? (ytScrape.longVideos as any[]) : [],
+      youtubeVideos: [
+        ...(Array.isArray(ytScrape?.longVideos) ? (ytScrape.longVideos as any[]) : []),
+        ...(Array.isArray(ytScrape?.shortVideos) ? (ytScrape.shortVideos as any[]) : []),
+      ],
       instagramPosts: Array.isArray(igScrape?.posts) ? (igScrape.posts as any[]) : [],
       tiktokVideos: Array.isArray(ttScrape?.videos) ? (ttScrape.videos as any[]) : [],
     },

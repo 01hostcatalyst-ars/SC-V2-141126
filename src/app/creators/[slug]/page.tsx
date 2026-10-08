@@ -129,7 +129,11 @@ export default async function CreatorProfilePage({ params }: PageProps) {
             username: platforms.youtube.handle,
             followerCount: platforms.youtube.followerCount,
             avgViews: platforms.youtube.avgViews,
+            avgLongViews: platforms.youtube.avgViews,
+            avgShortViews: platforms.youtube.avgShortViews,
             engagementRate: platforms.youtube.lfEr,
+            longEngagementRate: platforms.youtube.lfEr,
+            shortEngagementRate: platforms.youtube.sfEr,
             rateCardItems: platforms.youtube.rates.map((r) => ({
               format: r.format,
               amount: r.recommendedAmount,

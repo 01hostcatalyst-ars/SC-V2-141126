@@ -1230,7 +1230,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
             <div>
               <div class="plat-kpi-label">Shorts ER</div>
               <div class="plat-kpi-val" style="color: #059669;">
-                ${formatPercentage(platforms.youtube.shortEngagementRate || platforms.youtube.engagementRate)}
+                ${platforms.youtube.shortEngagementRate ? formatPercentage(platforms.youtube.shortEngagementRate) : "N/A"}
               </div>
             </div>
           </div>

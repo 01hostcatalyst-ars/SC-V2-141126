@@ -18,6 +18,7 @@ export async function backfillCreatorIdentityClusters(): Promise<{
 
   for (const yt of yts) {
     if (!yt.handle) continue;
+    if (Number(yt.subscriberCount || 0) < 5000) continue;
     const cleanYt = yt.handle.toLowerCase().trim().replace(/^@+/, '');
     if (isExcludedBrand(cleanYt) || isExcludedBrand(yt.title)) continue;
 
@@ -75,6 +76,7 @@ export async function backfillCreatorIdentityClusters(): Promise<{
 
   for (const ig of igs) {
     if (!ig.instagramUsername) continue;
+    if (Number(ig.followerCount || 0) < 5000) continue;
     const cleanIg = ig.instagramUsername.toLowerCase().trim().replace(/^@+/, '');
     if (isExcludedBrand(cleanIg) || isExcludedBrand(ig.fullName)) continue;
 

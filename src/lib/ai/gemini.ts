@@ -245,7 +245,8 @@ function buildCuratedPromptContext(input: MultiPlatformCreatorInput): string {
  */
 export async function generateCompleteCreatorIntelligence(
   input: MultiPlatformCreatorInput,
-  bypassCache = false
+  bypassCache = false,
+  maxCacheHours = 24
 ): Promise<CompleteCreatorIntelligence> {
   const rootHandle =
     input.youtube?.handle ||
@@ -254,9 +255,9 @@ export async function generateCompleteCreatorIntelligence(
     input.creatorName ||
     'creator';
 
-  // 1. Check 24-Hour PostgreSQL Cache First
+  // 1. Check PostgreSQL Cache First (Default: 24h)
   if (!bypassCache) {
-    const cached = await getRecentCreatorIntelligence(rootHandle, 24);
+    const cached = await getRecentCreatorIntelligence(rootHandle, maxCacheHours);
     if (cached?.intelligence) {
       // Guard against corrupted cache or legacy cache missing the omnichannel strategy suite
       const isBogusCache =

@@ -360,6 +360,17 @@ export async function GET(request: NextRequest) {
         (Array.isArray(foundIntel?.secondaryNiches) && foundIntel.secondaryNiches[0] ? String(foundIntel.secondaryNiches[0]) : null) ||
         null;
       const subNicheId: number | undefined = rawLlm?.profile?.subNiche?.id || undefined;
+      const secondaryNicheIds: number[] | undefined =
+        rawLlm?.profile?.secondaryNiches?.map((s: any) => s.id) ||
+        (Array.isArray(foundIntel?.secondaryNiches)
+          ? (foundIntel.secondaryNiches as any[]).map((n) => typeof n === "object" && n?.id ? n.id : Number(n)).filter(Boolean)
+          : undefined);
+      const productionLevel: string =
+        rawLlm?.content?.productionLevel ||
+        rawLlm?.content?.productionStandard ||
+        (foundIntel?.contentIntelligence as any)?.productionStandard ||
+        "High";
+      const isLuxuryOrHighEnd: boolean | undefined = rawLlm?.profile?.isLuxuryOrHighEnd;
 
       const primaryNicheName: string =
         c.primaryNicheName ||
@@ -376,28 +387,31 @@ export async function GET(request: NextRequest) {
         c.countryCode ||
         'United States';
 
-      const ytObj = cleanYt
+      const ytFollowers = ytData?.followers || (c.primaryPlatform === 'youtube' ? Number(c.combinedFollowers) : 0);
+      const ytObj = cleanYt && ytFollowers >= 5000
         ? {
             handle: cleanYt,
-            followers: ytData?.followers || (c.primaryPlatform === 'youtube' ? Number(c.combinedFollowers) : 0),
+            followers: ytFollowers,
             er: ytData?.er || 1.8,
             lfEr: ytData?.lfEr || 1.8,
             sfEr: ytData?.sfEr || 2.5,
           }
         : null;
 
-      const igObj = cleanIg
+      const igFollowers = igData?.followers || (c.primaryPlatform === 'instagram' ? Number(c.combinedFollowers) : 0);
+      const igObj = cleanIg && igFollowers >= 5000
         ? {
             handle: cleanIg,
-            followers: igData?.followers || (c.primaryPlatform === 'instagram' ? Number(c.combinedFollowers) : 0),
+            followers: igFollowers,
             er: igData?.er || (c.avgEngagementRate ? Number(c.avgEngagementRate) : 3.2),
           }
         : null;
 
-      const ttObj = cleanTt
+      const ttFollowers = ttData?.followers || (c.primaryPlatform === 'tiktok' ? Number(c.combinedFollowers) : 0);
+      const ttObj = cleanTt && ttFollowers >= 5000
         ? {
             handle: cleanTt,
-            followers: ttData?.followers || (c.primaryPlatform === 'tiktok' ? Number(c.combinedFollowers) : 0),
+            followers: ttFollowers,
             er: ttData?.er || 4.5,
           }
         : null;
@@ -409,6 +423,9 @@ export async function GET(request: NextRequest) {
         tiktok: ttObj,
         primaryNicheId: c.primaryNicheId || foundIntel?.primaryNicheId,
         subNicheId,
+        secondaryNicheIds,
+        productionLevel,
+        isLuxuryOrHighEnd,
         regionCode,
       });
 
@@ -430,9 +447,9 @@ export async function GET(request: NextRequest) {
         combinedFollowers: Number(c.combinedFollowers),
         avgEngagementRate: c.avgEngagementRate ? Number(c.avgEngagementRate) : null,
         handles: {
-          youtube: cleanYt,
-          instagram: cleanIg,
-          tiktok: cleanTt,
+          youtube: ytObj ? cleanYt : null,
+          instagram: igObj ? cleanIg : null,
+          tiktok: ttObj ? cleanTt : null,
         },
         platforms: {
           youtube: ytObj,

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import Link from 'next/link';
 import {
   Play,
   Pause,
@@ -18,7 +19,15 @@ import {
   ChevronRight,
   ShieldCheck,
   Search,
+  Globe,
 } from 'lucide-react';
+
+function formatCompactNumber(num?: number | null): string {
+  if (num == null || isNaN(num)) return '0';
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return num.toLocaleString();
+}
 
 interface QueuedCreator {
   id: string;
@@ -31,10 +40,17 @@ interface QueuedCreator {
   avatarUrl?: string;
   followerCount?: number;
   primaryNiche?: string;
+  subNiche?: string;
   rateCardTypical?: string;
+  rateMinUsd?: number;
+  rateMaxUsd?: number;
   aiDossierSummary?: string;
   secondaryPlatformsDiscovered?: string[];
   cacheAgeHours?: number;
+  slug?: string;
+  countryCode?: string;
+  countryName?: string;
+  platforms?: Record<string, { followers?: number; er?: number; rates?: any[] }>;
 }
 
 const STORAGE_KEY = 'signcollab_batch_ingest_state_v1';
@@ -85,9 +101,9 @@ export default function BatchIngestAdminPage() {
     }
   }, [queue]);
 
-  // Parse raw text into structured queue
-  const handleParseInput = () => {
-    const lines = inputText
+  // Helper to parse text into structured queue items
+  const parseInputToQueue = (text: string): QueuedCreator[] => {
+    const lines = text
       .split('\n')
       .map((l) => l.trim())
       .filter(Boolean);
@@ -140,14 +156,37 @@ export default function BatchIngestAdminPage() {
       seen.add(dedupeKey);
 
       parsed.push({
-        id: `creator-${Date.now()}-${i}`,
+        id: `creator-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 6)}`,
         handle: cleanHandle,
         platform,
         status: 'idle',
       });
     }
 
+    return parsed;
+  };
+
+  // Parse raw text into structured queue
+  const handleParseInput = () => {
+    const parsed = parseInputToQueue(inputText);
     setQueue(parsed);
+    queueRef.current = parsed;
+  };
+
+  // Start handler that automatically parses if queue is empty or finished
+  const handleStart = () => {
+    let currentQueue = queueRef.current;
+    if (currentQueue.length === 0 || currentQueue.every((q) => q.status !== 'idle')) {
+      const parsed = parseInputToQueue(inputText);
+      if (parsed.length > 0) {
+        setQueue(parsed);
+        queueRef.current = parsed;
+        currentQueue = parsed;
+      }
+    }
+    if (currentQueue.some((q) => q.status === 'idle')) {
+      setIsRunning(true);
+    }
   };
 
   // CSV File Upload handler
@@ -167,13 +206,6 @@ export default function BatchIngestAdminPage() {
 
   // Execution worker loop
   const processNextCreator = async (creator: QueuedCreator) => {
-    setQueue((prev) =>
-      prev.map((item) => (item.id === creator.id ? { ...item, status: 'processing' } : item))
-    );
-    queueRef.current = queueRef.current.map((item) =>
-      item.id === creator.id ? { ...item, status: 'processing' } : item
-    );
-
     try {
       const res = await fetch('/api/admin/batch-ingest', {
         method: 'POST',
@@ -201,19 +233,27 @@ export default function BatchIngestAdminPage() {
             };
           }
 
-          return {
+          const updatedItem: QueuedCreator = {
             ...item,
             status: data.status === 'cached' ? 'cached' : 'success',
             latencyMs: data.latencyMs,
             displayName: data.creator?.displayName || item.handle,
             avatarUrl: data.creator?.avatarUrl || '',
-            followerCount: data.creator?.followerCount || 0,
-            primaryNiche: data.primaryNiche || 'General',
-            rateCardTypical: data.rateCardTypical || 'Standard',
+            followerCount: data.creator?.combinedFollowers || data.creator?.followerCount || 0,
+            primaryNiche: data.primaryNiche || data.creator?.primaryNiche || 'General',
+            subNiche: data.subNiche || data.creator?.subNiche,
+            rateCardTypical: data.rateCardTypical || data.creator?.rateCardTypical || 'Standard',
+            rateMinUsd: data.creator?.rateMinUsd,
+            rateMaxUsd: data.creator?.rateMaxUsd,
             aiDossierSummary: data.aiDossierSummary || '',
             secondaryPlatformsDiscovered: data.creator?.secondaryPlatformsDiscovered || [],
             cacheAgeHours: data.creator?.cacheAgeHours,
+            slug: data.creator?.slug,
+            countryCode: data.creator?.countryCode,
+            countryName: data.creator?.countryName,
+            platforms: data.creator?.platforms,
           };
+          return updatedItem;
         })
       );
       queueRef.current = queueRef.current.map((item) => {
@@ -232,12 +272,19 @@ export default function BatchIngestAdminPage() {
           latencyMs: data.latencyMs,
           displayName: data.creator?.displayName || item.handle,
           avatarUrl: data.creator?.avatarUrl || '',
-          followerCount: data.creator?.followerCount || 0,
-          primaryNiche: data.primaryNiche || 'General',
-          rateCardTypical: data.rateCardTypical || 'Standard',
+          followerCount: data.creator?.combinedFollowers || data.creator?.followerCount || 0,
+          primaryNiche: data.primaryNiche || data.creator?.primaryNiche || 'General',
+          subNiche: data.subNiche || data.creator?.subNiche,
+          rateCardTypical: data.rateCardTypical || data.creator?.rateCardTypical || 'Standard',
+          rateMinUsd: data.creator?.rateMinUsd,
+          rateMaxUsd: data.creator?.rateMaxUsd,
           aiDossierSummary: data.aiDossierSummary || '',
           secondaryPlatformsDiscovered: data.creator?.secondaryPlatformsDiscovered || [],
           cacheAgeHours: data.creator?.cacheAgeHours,
+          slug: data.creator?.slug,
+          countryCode: data.creator?.countryCode,
+          countryName: data.creator?.countryName,
+          platforms: data.creator?.platforms,
         };
       });
     } catch (err: unknown) {
@@ -253,25 +300,42 @@ export default function BatchIngestAdminPage() {
     }
   };
 
-  // Main runner controller
+  // Main runner controller supporting True Multi-Worker Concurrency (1-3 parallel workers)
   useEffect(() => {
     if (!isRunning) return;
 
     let isSubscribed = true;
 
-    const runBatch = async () => {
+    // Single worker loop
+    const runWorker = async () => {
       while (isRunningRef.current && isSubscribed) {
-        // Find next idle item from queueRef to avoid infinite re-render cycles
+        // Atomically claim the next idle item from queueRef
         const nextItem = queueRef.current.find((q) => q.status === 'idle');
-        if (!nextItem) {
-          setIsRunning(false);
-          break;
-        }
+        if (!nextItem) break;
+
+        // Reserve it immediately
+        nextItem.status = 'processing';
+        setQueue((prev) =>
+          prev.map((item) => (item.id === nextItem.id ? { ...item, status: 'processing' } : item))
+        );
 
         await processNextCreator(nextItem);
 
-        if (delayMs > 0 && isRunningRef.current) {
+        if (delayMs > 0 && isRunningRef.current && isSubscribed) {
           await new Promise((r) => setTimeout(r, delayMs));
+        }
+      }
+    };
+
+    const runBatch = async () => {
+      const workerCount = Math.max(1, Math.min(concurrency || 2, 4));
+      const workers = Array.from({ length: workerCount }, () => runWorker());
+      await Promise.all(workers);
+
+      if (isSubscribed) {
+        const stillIdle = queueRef.current.some((q) => q.status === 'idle');
+        if (!stillIdle) {
+          setIsRunning(false);
         }
       }
     };
@@ -281,7 +345,7 @@ export default function BatchIngestAdminPage() {
     return () => {
       isSubscribed = false;
     };
-  }, [isRunning, delayMs]);
+  }, [isRunning, concurrency, delayMs]);
 
   // Retry a single failed creator
   const retrySingle = (creatorId: string) => {
@@ -341,7 +405,11 @@ export default function BatchIngestAdminPage() {
         return (
           item.handle.toLowerCase().includes(q) ||
           (item.displayName && item.displayName.toLowerCase().includes(q)) ||
-          item.platform.toLowerCase().includes(q)
+          item.platform.toLowerCase().includes(q) ||
+          (item.countryCode && item.countryCode.toLowerCase().includes(q)) ||
+          (item.countryName && item.countryName.toLowerCase().includes(q)) ||
+          (item.primaryNiche && item.primaryNiche.toLowerCase().includes(q)) ||
+          (item.subNiche && item.subNiche.toLowerCase().includes(q))
         );
       }
       return true;
@@ -361,7 +429,7 @@ export default function BatchIngestAdminPage() {
               </span>
               <span className="text-[11px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                72h Snapshot Cache Active
+                30-Day Database Cache Active
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
@@ -501,19 +569,19 @@ export default function BatchIngestAdminPage() {
             <div className="pt-2">
               {!isRunning ? (
                 <button
-                  onClick={() => setIsRunning(true)}
-                  disabled={queue.length === 0 || metrics.processed === metrics.total}
-                  className="w-full py-2.5 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-950/40 disabled:opacity-40 transition flex items-center justify-center gap-2"
+                  onClick={handleStart}
+                  disabled={!inputText.trim() && queue.length === 0}
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-950/40 disabled:opacity-40 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Play className="w-4 h-4 fill-white" />
-                  {metrics.processed > 0 && metrics.processed < metrics.total
+                  {queue.length > 0 && metrics.processed > 0 && metrics.processed < metrics.total
                     ? 'Resume Ingestion'
                     : 'Start Batch Ingestion'}
                 </button>
               ) : (
                 <button
                   onClick={() => setIsRunning(false)}
-                  className="w-full py-2.5 px-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2"
+                  className="w-full py-2.5 px-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Pause className="w-4 h-4 fill-amber-300" />
                   Pause Ingestion
@@ -547,7 +615,7 @@ export default function BatchIngestAdminPage() {
                 </span>
                 <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center gap-1.5">
                   <Database className="w-3.5 h-3.5" />
-                  {metrics.cached} Cached (72h)
+                  {metrics.cached} Cached (30d)
                 </span>
                 {metrics.failed > 0 && (
                   <button
@@ -613,13 +681,12 @@ export default function BatchIngestAdminPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-950/60 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-800">
                   <tr>
-                    <th className="py-3 px-4">Creator</th>
-                    <th className="py-3 px-3">Seed</th>
-                    <th className="py-3 px-3">Discovered Channels</th>
-                    <th className="py-3 px-3">Niche</th>
-                    <th className="py-3 px-3">Typical Rate Card</th>
+                    <th className="py-3 px-4">Creator Identity</th>
+                    <th className="py-3 px-3">Country &amp; Niche</th>
+                    <th className="py-3 px-3">Platforms &amp; Observed ER%</th>
+                    <th className="py-3 px-3">Deliverable Valuation</th>
                     <th className="py-3 px-3">Latency</th>
-                    <th className="py-3 px-4 text-right">Status</th>
+                    <th className="py-3 px-4 text-right">Status / Profile</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
@@ -630,20 +697,20 @@ export default function BatchIngestAdminPage() {
                         item.status === 'processing' ? 'bg-rose-500/5' : ''
                       }`}
                     >
-                      {/* Creator Avatar & Handle */}
+                      {/* Creator Avatar, Handle & Total Audience */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2.5">
                           {item.avatarUrl ? (
                             <img
                               src={item.avatarUrl}
                               alt={item.handle}
-                              className="w-7 h-7 rounded-full object-cover border border-slate-700 bg-slate-800"
+                              className="w-8 h-8 rounded-full object-cover border border-slate-700 bg-slate-800 flex-shrink-0"
                               onError={(e) => {
                                 (e.target as HTMLElement).style.display = 'none';
                               }}
                             />
                           ) : (
-                            <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-[10px] text-slate-400">
+                            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-[10px] text-slate-400 flex-shrink-0">
                               {item.handle.slice(0, 2).toUpperCase()}
                             </div>
                           )}
@@ -651,55 +718,95 @@ export default function BatchIngestAdminPage() {
                             <div className="font-semibold text-slate-200">
                               @{item.handle}
                             </div>
-                            <div className="text-[10px] text-slate-400 truncate max-w-[160px]">
-                              {item.displayName || ''}
+                            <div className="text-[10px] text-slate-400 truncate max-w-[150px]">
+                              {item.displayName || (item.followerCount ? `${formatCompactNumber(item.followerCount)} followers` : '')}
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      {/* Seed Platform */}
+                      {/* Country & Niche */}
                       <td className="py-3 px-3">
-                        <span
-                          className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                            item.platform === 'youtube'
-                              ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                              : item.platform === 'tiktok'
-                              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                          }`}
-                        >
-                          {item.platform}
-                        </span>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            {item.countryCode && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-rose-300 border border-slate-700">
+                                {item.countryCode}
+                              </span>
+                            )}
+                            <span className="text-[11px] font-semibold text-slate-200 truncate max-w-[140px]">
+                              {item.primaryNiche || '-'}
+                            </span>
+                          </div>
+                          {item.subNiche && (
+                            <div className="text-[10px] text-slate-400 truncate max-w-[160px]">
+                              {item.subNiche}
+                            </div>
+                          )}
+                        </div>
                       </td>
 
-                      {/* Discovered Channels */}
+                      {/* Platforms & Observed ER% */}
                       <td className="py-3 px-3">
-                        {item.secondaryPlatformsDiscovered &&
-                        item.secondaryPlatformsDiscovered.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {item.secondaryPlatformsDiscovered.map((sec, idx) => (
-                              <span
-                                key={idx}
-                                className="text-[9px] font-medium bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700"
-                              >
-                                {sec}
+                        {item.platforms && Object.keys(item.platforms).length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.platforms.youtube && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-red-500/15 text-red-300 border border-red-500/30">
+                                YT: {formatCompactNumber(item.platforms.youtube.followers)}
+                                {item.platforms.youtube.er ? ` (${item.platforms.youtube.er.toFixed(1)}% ER)` : ''}
                               </span>
-                            ))}
+                            )}
+                            {item.platforms.instagram && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                                IG: {formatCompactNumber(item.platforms.instagram.followers)}
+                                {item.platforms.instagram.er ? ` (${item.platforms.instagram.er.toFixed(1)}% ER)` : ''}
+                              </span>
+                            )}
+                            {item.platforms.tiktok && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                                TT: {formatCompactNumber(item.platforms.tiktok.followers)}
+                                {item.platforms.tiktok.er ? ` (${item.platforms.tiktok.er.toFixed(1)}% ER)` : ''}
+                              </span>
+                            )}
                           </div>
                         ) : (
-                          <span className="text-[10px] text-slate-600">None</span>
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                                item.platform === 'youtube'
+                                  ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                                  : item.platform === 'tiktok'
+                                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                                  : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                              }`}
+                            >
+                              {item.platform}
+                            </span>
+                            {item.secondaryPlatformsDiscovered && item.secondaryPlatformsDiscovered.length > 0 && (
+                              <span className="text-[9px] text-slate-500">
+                                +{item.secondaryPlatformsDiscovered.join(', ')}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </td>
 
-                      {/* Niche */}
-                      <td className="py-3 px-3 text-slate-300 text-[11px]">
-                        {item.primaryNiche || '-'}
-                      </td>
-
-                      {/* Rate Card */}
-                      <td className="py-3 px-3 text-slate-200 font-semibold text-[11px]">
-                        {item.rateCardTypical || '-'}
+                      {/* Valuation Range */}
+                      <td className="py-3 px-3">
+                        {item.rateMinUsd != null && item.rateMaxUsd != null && item.rateMaxUsd > 0 ? (
+                          <div>
+                            <div className="text-slate-200 font-bold text-[11px]">
+                              ${item.rateMinUsd.toLocaleString()} - ${item.rateMaxUsd.toLocaleString()}
+                            </div>
+                            <div className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">
+                              Audited Deliverables
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-slate-300 font-semibold text-[11px]">
+                            {item.rateCardTypical || '-'}
+                          </div>
+                        )}
                       </td>
 
                       {/* Latency */}
@@ -707,46 +814,60 @@ export default function BatchIngestAdminPage() {
                         {item.latencyMs ? `${(item.latencyMs / 1000).toFixed(1)}s` : '-'}
                       </td>
 
-                      {/* Status */}
+                      {/* Status / Profile Link */}
                       <td className="py-3 px-4 text-right">
-                        {item.status === 'idle' && (
-                          <span className="text-[10px] text-slate-500 uppercase font-semibold">
-                            Queued
-                          </span>
-                        )}
-                        {item.status === 'processing' && (
-                          <span className="text-[10px] text-rose-400 uppercase font-bold animate-pulse flex items-center justify-end gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
-                            Scraping &amp; AI
-                          </span>
-                        )}
-                        {item.status === 'success' && (
-                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                            Saved to DB
-                          </span>
-                        )}
-                        {item.status === 'cached' && (
-                          <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
-                            Existing in DB
-                          </span>
-                        )}
-                        {item.status === 'failed' && (
-                          <div className="flex items-center justify-end gap-2">
-                            <span
-                              title={item.error}
-                              className="text-[10px] font-bold text-rose-400 bg-rose-500/20 px-2 py-0.5 rounded border border-rose-500/30 truncate max-w-[120px]"
-                            >
-                              Failed
+                        <div className="flex flex-col items-end gap-1">
+                          {item.status === 'idle' && (
+                            <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                              Queued
                             </span>
-                            <button
-                              onClick={() => retrySingle(item.id)}
-                              className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded"
-                              title="Retry single creator"
+                          )}
+                          {item.status === 'processing' && (
+                            <span className="text-[10px] text-amber-400 font-bold flex items-center justify-end gap-1.5 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                              Scraping &amp; AI...
+                            </span>
+                          )}
+                          {item.status === 'success' && (
+                            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                              Saved to DB
+                            </span>
+                          )}
+                          {item.status === 'cached' && (
+                            <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
+                              Existing in DB (30d)
+                            </span>
+                          )}
+                          {item.status === 'failed' && (
+                            <div className="flex items-center justify-end gap-2">
+                              <span
+                                title={item.error}
+                                className="text-[10px] font-bold text-rose-400 bg-rose-500/20 px-2 py-0.5 rounded border border-rose-500/30 truncate max-w-[120px]"
+                              >
+                                Failed
+                              </span>
+                              <button
+                                onClick={() => retrySingle(item.id)}
+                                className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded"
+                                title="Retry single creator"
+                              >
+                                <RotateCcw className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Live Profile Link */}
+                          {(item.status === 'success' || item.status === 'cached') && item.slug && (
+                            <Link
+                              href={`/creators/${item.slug}`}
+                              target="_blank"
+                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-400 hover:text-rose-300 hover:underline transition"
                             >
-                              <RotateCcw className="w-3 h-3" />
-                            </button>
-                          </div>
-                        )}
+                              <span>View Dossier</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </Link>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
