@@ -163,6 +163,27 @@ export function generateCreatorSlug(nameOrBrand: string, fallbackHandle?: string
   return clean || 'creator';
 }
 
+export const EXCLUDED_CORPORATE_BRANDS = new Set([
+  'realmadrid',
+  'real-madrid',
+  'adidas',
+  'lamborghini',
+  'lamborghani',
+  'redbullracing',
+  'oracle-red-bull-racing',
+  'bugatti',
+  'netflixjr',
+  'netflix-jr',
+  'spotify',
+]);
+
+export function isExcludedBrand(handleOrName?: string | null): boolean {
+  if (!handleOrName) return false;
+  const clean = handleOrName.toLowerCase().replace(/^@+/, '').replace(/\s+/g, '-').trim();
+  const raw = handleOrName.toLowerCase().replace(/^@+/, '').replace(/[\s-_.]/g, '').trim();
+  return EXCLUDED_CORPORATE_BRANDS.has(clean) || EXCLUDED_CORPORATE_BRANDS.has(raw);
+}
+
 /**
  * Upserts a CreatorIdentityCluster, seamlessly merging handles if any already exist
  */
@@ -187,6 +208,18 @@ export async function upsertCreatorIdentityCluster(params: {
   const yt = params.youtubeHandle ? normalizePlatformHandle(params.youtubeHandle) : undefined;
   const ig = params.instagramUsername ? normalizePlatformHandle(params.instagramUsername) : undefined;
   const tt = params.tiktokUsername ? normalizePlatformHandle(params.tiktokUsername) : undefined;
+
+  // Prevent corporate brands/companies from being saved as individual creators
+  if (
+    isExcludedBrand(params.canonicalName) ||
+    isExcludedBrand(params.brandName) ||
+    isExcludedBrand(yt) ||
+    isExcludedBrand(ig) ||
+    isExcludedBrand(tt) ||
+    isExcludedBrand(params.slug)
+  ) {
+    return null as any;
+  }
 
   const conditions: Array<Record<string, string>> = [];
   if (yt) conditions.push({ youtubeHandle: yt });

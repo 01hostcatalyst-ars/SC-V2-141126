@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { generateCreatorSlug } from './identity';
+import { generateCreatorSlug, isExcludedBrand } from './identity';
 
 export async function backfillCreatorIdentityClusters(): Promise<{
   processed: number;
@@ -19,6 +19,7 @@ export async function backfillCreatorIdentityClusters(): Promise<{
   for (const yt of yts) {
     if (!yt.handle) continue;
     const cleanYt = yt.handle.toLowerCase().trim().replace(/^@+/, '');
+    if (isExcludedBrand(cleanYt) || isExcludedBrand(yt.title)) continue;
 
     const existing = await prisma.creatorIdentityCluster.findFirst({
       where: {
@@ -75,6 +76,7 @@ export async function backfillCreatorIdentityClusters(): Promise<{
   for (const ig of igs) {
     if (!ig.instagramUsername) continue;
     const cleanIg = ig.instagramUsername.toLowerCase().trim().replace(/^@+/, '');
+    if (isExcludedBrand(cleanIg) || isExcludedBrand(ig.fullName)) continue;
 
     const existing = await prisma.creatorIdentityCluster.findFirst({
       where: {
