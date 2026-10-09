@@ -61,6 +61,8 @@ interface DiscoveredPlatformData {
   shortEngagementRate?: number;
   avgLongViews?: number;
   avgShortViews?: number;
+  avgShortLikes?: number;
+  avgShortComments?: number;
   posts?: InstagramPostItem[];
   videos?: Array<Record<string, unknown>>;
   rateCardItems?: Array<{
@@ -530,8 +532,8 @@ export function InfluencerRadarDashboard() {
               targetNicheId,
               targetRegion,
               {
-                avgShortLikes: 0,
-                avgShortComments: 0,
+                avgShortLikes: updated.youtube.avgShortLikes,
+                avgShortComments: updated.youtube.avgShortComments,
                 avgShortViews: updated.youtube.avgShortViews || 0,
               },
               targetSubNicheId,
@@ -824,6 +826,8 @@ export function InfluencerRadarDashboard() {
             shortEngagementRate: targetPlatform === "youtube" ? (avgShortEngagementRate > 0 ? avgShortEngagementRate : undefined) : undefined,
             avgLongViews: targetPlatform === "youtube" ? avgLongViews : undefined,
             avgShortViews: targetPlatform === "youtube" ? avgShortViews : undefined,
+            avgShortLikes: targetPlatform === "youtube" ? avgShortLikes : undefined,
+            avgShortComments: targetPlatform === "youtube" ? avgShortComments : undefined,
             posts: targetPlatform === "instagram" ? data.posts : undefined,
             videos:
               targetPlatform === "youtube"
