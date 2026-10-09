@@ -115,6 +115,26 @@ export interface FullResolvedCreatorProfile {
 }
 
 /**
+ * Formats follower counts into clean compact representations (e.g. 27.7M, 5.1M, 850K)
+ */
+export function formatCompactFollowers(num: number): string {
+  if (!num || isNaN(num)) return "0";
+  if (num >= 1_000_000_000) {
+    const v = (num / 1_000_000_000).toFixed(1).replace(/\.0$/, "");
+    return `${v}B`;
+  }
+  if (num >= 1_000_000) {
+    const v = (num / 1_000_000).toFixed(1).replace(/\.0$/, "");
+    return `${v}M`;
+  }
+  if (num >= 1_000) {
+    const v = (num / 1_000).toFixed(1).replace(/\.0$/, "");
+    return `${v}K`;
+  }
+  return num.toLocaleString();
+}
+
+/**
  * Computes exact 16-knot deliverable benchmark rates for a specific platform and format
  */
 function computeFormat16KnotRate(params: {
@@ -607,7 +627,7 @@ export async function resolveFullCreatorProfile(
       platform: "youtube",
       handle: cluster.youtubeHandle,
       followerCount: subs,
-      formattedFollowers: subs.toLocaleString(),
+      formattedFollowers: formatCompactFollowers(subs),
       observedEr: lfEr,
       benchmarkEr: 1.5,
       lfEr,
@@ -709,7 +729,7 @@ export async function resolveFullCreatorProfile(
       platform: "instagram",
       handle: cluster.instagramUsername,
       followerCount: igFollowers,
-      formattedFollowers: igFollowers.toLocaleString(),
+      formattedFollowers: formatCompactFollowers(igFollowers),
       observedEr: igEr,
       benchmarkEr: 1.8,
       avgViews,
@@ -759,7 +779,7 @@ export async function resolveFullCreatorProfile(
       platform: "tiktok",
       handle: cluster.tiktokUsername,
       followerCount: ttFollowers,
-      formattedFollowers: ttFollowers.toLocaleString(),
+      formattedFollowers: formatCompactFollowers(ttFollowers),
       observedEr: ttEr,
       benchmarkEr: 4.0,
       avgViews,

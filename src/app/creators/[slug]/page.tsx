@@ -439,7 +439,10 @@ export default async function CreatorProfilePage({ params }: PageProps) {
                 <div className="mt-3">
                   {platforms.youtube ? (
                     <>
-                      <div className="text-lg font-bold text-zinc-900 dark:text-white">
+                      <div
+                        className="text-lg font-bold text-zinc-900 dark:text-white cursor-default"
+                        title={`${platforms.youtube.followerCount.toLocaleString()} Subscribers`}
+                      >
                         {platforms.youtube.formattedFollowers}
                       </div>
                       <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 flex items-center gap-2">
@@ -487,7 +490,10 @@ export default async function CreatorProfilePage({ params }: PageProps) {
                 <div className="mt-3">
                   {platforms.instagram ? (
                     <>
-                      <div className="text-lg font-bold text-zinc-900 dark:text-white">
+                      <div
+                        className="text-lg font-bold text-zinc-900 dark:text-white cursor-default"
+                        title={`${platforms.instagram.followerCount.toLocaleString()} Followers`}
+                      >
                         {platforms.instagram.formattedFollowers}
                       </div>
                       <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 flex items-center gap-2">
@@ -535,7 +541,10 @@ export default async function CreatorProfilePage({ params }: PageProps) {
                 <div className="mt-3">
                   {platforms.tiktok ? (
                     <>
-                      <div className="text-lg font-bold text-zinc-900 dark:text-white">
+                      <div
+                        className="text-lg font-bold text-zinc-900 dark:text-white cursor-default"
+                        title={`${platforms.tiktok.followerCount.toLocaleString()} Followers`}
+                      >
                         {platforms.tiktok.formattedFollowers}
                       </div>
                       <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 flex items-center gap-2">
@@ -726,7 +735,10 @@ export default async function CreatorProfilePage({ params }: PageProps) {
                       <PlatformBadge platform="youtube" size="lg" />
                       <div>
                         <h3 className="text-sm font-bold text-zinc-900 dark:text-white">YouTube</h3>
-                        <p className="text-[11px] text-zinc-500 font-mono">
+                        <p
+                          className="text-[11px] text-zinc-500 font-mono"
+                          title={`${platforms.youtube.followerCount.toLocaleString()} Subscribers`}
+                        >
                           {platforms.youtube.formattedFollowers} Subscribers
                         </p>
                       </div>
@@ -772,7 +784,10 @@ export default async function CreatorProfilePage({ params }: PageProps) {
                       <PlatformBadge platform="instagram" size="lg" />
                       <div>
                         <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Instagram</h3>
-                        <p className="text-[11px] text-zinc-500 font-mono">
+                        <p
+                          className="text-[11px] text-zinc-500 font-mono"
+                          title={`${platforms.instagram.followerCount.toLocaleString()} Followers`}
+                        >
                           {platforms.instagram.formattedFollowers} Followers
                         </p>
                       </div>
@@ -818,7 +833,10 @@ export default async function CreatorProfilePage({ params }: PageProps) {
                       <PlatformBadge platform="tiktok" size="lg" />
                       <div>
                         <h3 className="text-sm font-bold text-zinc-900 dark:text-white">TikTok</h3>
-                        <p className="text-[11px] text-zinc-500 font-mono">
+                        <p
+                          className="text-[11px] text-zinc-500 font-mono"
+                          title={`${platforms.tiktok.followerCount.toLocaleString()} Followers`}
+                        >
                           {platforms.tiktok.formattedFollowers} Followers
                         </p>
                       </div>
