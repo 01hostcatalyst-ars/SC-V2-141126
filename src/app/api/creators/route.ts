@@ -209,6 +209,8 @@ export async function GET(request: NextRequest) {
               handle: true,
               subscriberCount: true,
               stats: true,
+              avgViewsPerVideo: true,
+              longVideos: true,
               avatarUrl: true,
             },
             orderBy: { createdAt: 'desc' },
@@ -226,6 +228,7 @@ export async function GET(request: NextRequest) {
               instagramUsername: true,
               followerCount: true,
               avgEngagementRate: true,
+              stats: true,
               avatarUrl: true,
             },
             orderBy: { createdAt: 'desc' },
@@ -243,6 +246,7 @@ export async function GET(request: NextRequest) {
               tiktokUsername: true,
               followerCount: true,
               avgEngagementRate: true,
+              stats: true,
               avatarUrl: true,
             },
             orderBy: { createdAt: 'desc' },
@@ -262,20 +266,49 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Build lookup maps by clean handle
-    const ytMap = new Map<string, { followers: number; er: number; lfEr: number; sfEr: number; avatarUrl?: string | null }>();
+    const ytMap = new Map<string, {
+      followers: number;
+      er: number;
+      lfEr: number;
+      sfEr: number;
+      avgViews?: number;
+      avgLikes?: number;
+      avgComments?: number;
+      avatarUrl?: string | null;
+    }>();
     for (const s of ytScrapes) {
       const cleanH = (s.handle || '').toLowerCase().replace(/^@+/, '');
       if (cleanH) {
         const stats: any = s.stats || {};
         const lf = stats?.avgLongEngagementRate ? Number(stats.avgLongEngagementRate) : (stats?.lfEr ? Number(stats.lfEr) : 1.8);
         const sf = stats?.avgShortEngagementRate ? Number(stats.avgShortEngagementRate) : (stats?.sfEr ? Number(stats.sfEr) : 2.5);
+        const subs = Number(s.subscriberCount || 0);
+        const avgViews = Number(stats?.avgLongVideoViews || s.avgViewsPerVideo || 0) || Math.max(1000, Math.round(subs * 0.08));
+
+        const longVideosList = Array.isArray(s.longVideos) ? (s.longVideos as any[]) : [];
+        const sampleLongVids = longVideosList.filter((v: any) => v.isErSample);
+        const targetLongVids = sampleLongVids.length > 0 ? sampleLongVids : longVideosList;
+
+        let avgLikes = 0;
+        let avgComments = 0;
+        if (targetLongVids.length > 0) {
+          avgLikes = Math.round(targetLongVids.reduce((sum: number, v: any) => sum + Number(v.likeCount || 0), 0) / targetLongVids.length);
+          avgComments = Math.round(targetLongVids.reduce((sum: number, v: any) => sum + Number(v.commentCount || 0), 0) / targetLongVids.length);
+        } else {
+          avgLikes = Math.round(avgViews * (lf / 100));
+          avgComments = Math.round(avgLikes * 0.08);
+        }
+
         const existing = ytMap.get(cleanH);
         if (!existing) {
           ytMap.set(cleanH, {
-            followers: Number(s.subscriberCount || 0),
+            followers: subs,
             er: lf,
             lfEr: lf,
             sfEr: sf,
+            avgViews,
+            avgLikes,
+            avgComments,
             avatarUrl: s.avatarUrl || null,
           });
         } else if (!existing.avatarUrl && s.avatarUrl) {
@@ -284,15 +317,32 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const igMap = new Map<string, { followers: number; er: number; avatarUrl?: string | null }>();
+    const igMap = new Map<string, {
+      followers: number;
+      er: number;
+      avgViews?: number;
+      avgLikes?: number;
+      avgComments?: number;
+      avatarUrl?: string | null;
+    }>();
     for (const s of igScrapes) {
       const cleanH = s.instagramUsername.toLowerCase().replace(/^@+/, '');
       if (cleanH) {
+        const stats: any = s.stats || {};
+        const er = s.avgEngagementRate ? Number(Number(s.avgEngagementRate).toFixed(2)) : (stats?.avgEngagementRate ? Number(stats.avgEngagementRate) : 3.2);
+        const followers = Number(s.followerCount || 0);
+        const avgLikes = Number(stats?.avgLikesPerPost || stats?.avgLikes || Math.round(followers * (er / 100)));
+        const avgComments = Number(stats?.avgCommentsPerPost || stats?.avgComments || Math.round(avgLikes * 0.04));
+        const avgViews = Number(stats?.avgViewsPerPost || stats?.avgViews || Math.round(followers * 0.12));
+
         const existing = igMap.get(cleanH);
         if (!existing) {
           igMap.set(cleanH, {
-            followers: Number(s.followerCount || 0),
-            er: s.avgEngagementRate ? Number(Number(s.avgEngagementRate).toFixed(2)) : 3.2,
+            followers,
+            er,
+            avgViews,
+            avgLikes,
+            avgComments,
             avatarUrl: s.avatarUrl || null,
           });
         } else if (!existing.avatarUrl && s.avatarUrl) {
@@ -301,15 +351,32 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const ttMap = new Map<string, { followers: number; er: number; avatarUrl?: string | null }>();
+    const ttMap = new Map<string, {
+      followers: number;
+      er: number;
+      avgViews?: number;
+      avgLikes?: number;
+      avgComments?: number;
+      avatarUrl?: string | null;
+    }>();
     for (const s of ttScrapes) {
       const cleanH = s.tiktokUsername.toLowerCase().replace(/^@+/, '');
       if (cleanH) {
+        const stats: any = s.stats || {};
+        const er = s.avgEngagementRate ? Number(Number(s.avgEngagementRate).toFixed(2)) : (stats?.avgEngagementRate ? Number(stats.avgEngagementRate) : 4.5);
+        const followers = Number(s.followerCount || 0);
+        const avgLikes = Number(stats?.avgLikesPerVideo || stats?.avgLikes || Math.round(followers * (er / 100)));
+        const avgComments = Number(stats?.avgCommentsPerVideo || stats?.avgComments || Math.round(avgLikes * 0.03));
+        const avgViews = Number(stats?.avgViewsPerVideo || stats?.avgViews || Math.round(followers * 0.18));
+
         const existing = ttMap.get(cleanH);
         if (!existing) {
           ttMap.set(cleanH, {
-            followers: Number(s.followerCount || 0),
-            er: s.avgEngagementRate ? Number(Number(s.avgEngagementRate).toFixed(2)) : 4.5,
+            followers,
+            er,
+            avgViews,
+            avgLikes,
+            avgComments,
             avatarUrl: s.avatarUrl || null,
           });
         } else if (!existing.avatarUrl && s.avatarUrl) {
@@ -395,6 +462,9 @@ export async function GET(request: NextRequest) {
             er: ytData?.er || 1.8,
             lfEr: ytData?.lfEr || 1.8,
             sfEr: ytData?.sfEr || 2.5,
+            avgViews: ytData?.avgViews,
+            avgLikes: ytData?.avgLikes,
+            avgComments: ytData?.avgComments,
           }
         : null;
 
@@ -404,6 +474,9 @@ export async function GET(request: NextRequest) {
             handle: cleanIg,
             followers: igFollowers,
             er: igData?.er || (c.avgEngagementRate ? Number(c.avgEngagementRate) : 3.2),
+            avgViews: igData?.avgViews,
+            avgLikes: igData?.avgLikes,
+            avgComments: igData?.avgComments,
           }
         : null;
 
@@ -413,6 +486,9 @@ export async function GET(request: NextRequest) {
             handle: cleanTt,
             followers: ttFollowers,
             er: ttData?.er || 4.5,
+            avgViews: ttData?.avgViews,
+            avgLikes: ttData?.avgLikes,
+            avgComments: ttData?.avgComments,
           }
         : null;
 

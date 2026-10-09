@@ -204,9 +204,29 @@ export interface FlagshipDeliverableRate {
  * Computes live 16-knot flagship deliverable rates for each linked platform on creator cards
  */
 export function computeFlagship16KnotRates(params: {
-  youtube?: { followers: number; er?: number; lfEr?: number; sfEr?: number } | null;
-  instagram?: { followers: number; er?: number } | null;
-  tiktok?: { followers: number; er?: number } | null;
+  youtube?: {
+    followers: number;
+    er?: number;
+    lfEr?: number;
+    sfEr?: number;
+    avgViews?: number;
+    avgLikes?: number;
+    avgComments?: number;
+  } | null;
+  instagram?: {
+    followers: number;
+    er?: number;
+    avgViews?: number;
+    avgLikes?: number;
+    avgComments?: number;
+  } | null;
+  tiktok?: {
+    followers: number;
+    er?: number;
+    avgViews?: number;
+    avgLikes?: number;
+    avgComments?: number;
+  } | null;
   primaryNicheId?: number | null;
   subNicheId?: number | null;
   secondaryNicheIds?: number[] | null;
@@ -225,10 +245,19 @@ export function computeFlagship16KnotRates(params: {
   // 1. YouTube Flagship: YouTube Dedicated Video
   if (params.youtube && params.youtube.followers > 0) {
     const subs = params.youtube.followers;
-    const avgViews = Math.max(1000, Math.round(subs * 0.08));
     const lfEr = Number(params.youtube.lfEr || params.youtube.er || 1.45);
-    const avgLikes = Math.round(avgViews * (lfEr / 100));
-    const avgComments = Math.round(avgLikes * 0.08);
+    const avgViews =
+      params.youtube.avgViews !== undefined && params.youtube.avgViews > 0
+        ? params.youtube.avgViews
+        : Math.max(1000, Math.round(subs * 0.08));
+    const avgLikes =
+      params.youtube.avgLikes !== undefined && params.youtube.avgLikes > 0
+        ? params.youtube.avgLikes
+        : Math.round(avgViews * (lfEr / 100));
+    const avgComments =
+      params.youtube.avgComments !== undefined && params.youtube.avgComments >= 0
+        ? params.youtube.avgComments
+        : Math.round(avgLikes * 0.08);
 
     const ytDedicated = computeFormat16KnotRate({
       platform: "youtube",
@@ -259,9 +288,18 @@ export function computeFlagship16KnotRates(params: {
   if (params.instagram && params.instagram.followers > 0) {
     const followers = params.instagram.followers;
     const er = Number(params.instagram.er || 1.47);
-    const avgLikes = Math.round(followers * (er / 100));
-    const avgComments = Math.round(avgLikes * 0.04);
-    const avgViews = Math.round(followers * 0.12);
+    const avgViews =
+      params.instagram.avgViews !== undefined && params.instagram.avgViews > 0
+        ? params.instagram.avgViews
+        : Math.round(followers * 0.12);
+    const avgLikes =
+      params.instagram.avgLikes !== undefined && params.instagram.avgLikes > 0
+        ? params.instagram.avgLikes
+        : Math.round(followers * (er / 100));
+    const avgComments =
+      params.instagram.avgComments !== undefined && params.instagram.avgComments >= 0
+        ? params.instagram.avgComments
+        : Math.round(avgLikes * 0.04);
 
     const igReel = computeFormat16KnotRate({
       platform: "instagram",
@@ -292,9 +330,18 @@ export function computeFlagship16KnotRates(params: {
   if (params.tiktok && params.tiktok.followers > 0) {
     const followers = params.tiktok.followers;
     const er = Number(params.tiktok.er || 4.24);
-    const avgLikes = Math.round(followers * (er / 100));
-    const avgComments = Math.round(avgLikes * 0.03);
-    const avgViews = Math.round(followers * 0.18);
+    const avgViews =
+      params.tiktok.avgViews !== undefined && params.tiktok.avgViews > 0
+        ? params.tiktok.avgViews
+        : Math.round(followers * 0.18);
+    const avgLikes =
+      params.tiktok.avgLikes !== undefined && params.tiktok.avgLikes > 0
+        ? params.tiktok.avgLikes
+        : Math.round(followers * (er / 100));
+    const avgComments =
+      params.tiktok.avgComments !== undefined && params.tiktok.avgComments >= 0
+        ? params.tiktok.avgComments
+        : Math.round(avgLikes * 0.03);
 
     const ttDedicated = computeFormat16KnotRate({
       platform: "tiktok",
