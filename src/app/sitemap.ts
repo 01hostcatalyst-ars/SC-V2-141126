@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { getKnowledgeArticles } from "@/lib/gdocs";
+import { prisma } from "@/lib/prisma";
 
 export const revalidate = 3600; // Revalidate sitemap every hour
 
@@ -13,6 +14,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/creators`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.95,
     },
     {
       url: `${baseUrl}/instant`,
@@ -96,5 +103,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Failed to fetch knowledge articles for sitemap:", error);
   }
 
-  return [...staticRoutes, ...articleRoutes];
+  // Dynamic creator profile routes fetched from CreatorIdentityCluster
+  let creatorRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const creators = await prisma.creatorIdentityCluster.findMany({
+      where: {
+        slug: {
+          not: null,
+        },
+      },
+      select: {
+        slug: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        combinedFollowers: "desc",
+      },
+    });
+
+    creatorRoutes = creators
+      .filter((creator): creator is { slug: string; updatedAt: Date } => Boolean(creator.slug && creator.slug.trim()))
+      .map((creator) => ({
+        url: `${baseUrl}/creators/${creator.slug.trim()}`,
+        lastModified: creator.updatedAt ? new Date(creator.updatedAt) : new Date(),
+        changeFrequency: "weekly",
+        priority: 0.8,
+      }));
+  } catch (error) {
+    console.error("Failed to fetch creator profiles for sitemap:", error);
+  }
+
+  return [...staticRoutes, ...articleRoutes, ...creatorRoutes];
 }

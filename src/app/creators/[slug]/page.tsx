@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { resolveFullCreatorProfile } from "@/lib/creators/profile-resolver";
+import { buildCreatorProfileJsonLd, safeJsonLdStringify } from "@/lib/creators/schema";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 import {
@@ -194,33 +195,9 @@ export default async function CreatorProfilePage({ params }: PageProps) {
     instantContractUrl: `/instant?creatorName=${encodeURIComponent(brandName)}&platform=${primaryPlatform}&followers=${combinedFollowers}`,
   };
 
-  // Schema.org JSON-LD structured data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: canonicalName,
-    alternateName: brandName || undefined,
-    url: `https://signcollab.com/creators/${profile.slug}`,
-    image: avatarUrl || undefined,
-    jobTitle: intelligence.creatorType,
-    description: intelligence.oneLineSummary,
-    interactionStatistic: [
-      {
-        "@type": "InteractionCounter",
-        interactionType: "https://schema.org/FollowAction",
-        userInteractionCount: combinedFollowers,
-      },
-    ],
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: allRates[0]?.currency || (countryCode === "PK" ? "PKR" : "USD"),
-      lowPrice: minRate,
-      highPrice: maxRate,
-      offerCount: allRates.length.toString(),
-      name: "SignCollab 16-Knot Empirical Rate Card",
-    },
-    dateModified: new Date().toISOString(),
-  };
+  // Penalty-proof, multi-country Schema.org JSON-LD structured data graph
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
+  const jsonLd = buildCreatorProfileJsonLd(profile, baseUrl);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans">
@@ -229,7 +206,7 @@ export default async function CreatorProfilePage({ params }: PageProps) {
       {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
 
       <main className="flex-1 pb-24">

@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/influencer-rate-calculator", "/calculator", "/knowledge", "/survey", "/verify", "/contact"],
+        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/influencer-rate-calculator", "/calculator", "/knowledge", "/survey", "/verify", "/contact", "/creators"],
         disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers"],
       },
       {
@@ -28,7 +28,7 @@ export default function robots(): MetadataRoute.Robots {
           "ByteSpider",
           "cohere-ai",
         ],
-        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/influencer-rate-calculator", "/calculator", "/knowledge", "/survey", "/verify", "/contact"],
+        allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/influencer-rate-calculator", "/calculator", "/knowledge", "/survey", "/verify", "/contact", "/creators"],
         disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers"],
       },
     ],

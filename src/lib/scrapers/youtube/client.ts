@@ -18,21 +18,26 @@ const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 /**
  * Resolves all configured YouTube API keys in order of priority:
  * 1. Primary: YOUTUBE_API_KEY
- * 2. Secondary / Backup: YOUTUBE_API_KEY_HOST_CAT
+ * 2. Secondary / Backup 1: YOUTUBE_API_KEY_HOST_CAT
+ * 3. Tertiary / Backup 2: YOUTUBE_API_KEY_NFT
  */
 function getApiKeys(): string[] {
   const keys: string[] = [];
-  if (process.env.YOUTUBE_API_KEY?.trim()) {
-    keys.push(process.env.YOUTUBE_API_KEY.trim());
-  }
-  if (process.env.YOUTUBE_API_KEY_HOST_CAT?.trim()) {
-    const backupKey = process.env.YOUTUBE_API_KEY_HOST_CAT.trim();
-    if (!keys.includes(backupKey)) {
-      keys.push(backupKey);
+  const candidateKeys = [
+    process.env.YOUTUBE_API_KEY,
+    process.env.YOUTUBE_API_KEY_HOST_CAT,
+    process.env.YOUTUBE_API_KEY_NFT,
+    process.env.YOUTUBE_API_KEY_BACKUP,
+  ];
+
+  for (const cand of candidateKeys) {
+    if (cand?.trim() && !keys.includes(cand.trim())) {
+      keys.push(cand.trim());
     }
   }
+
   if (keys.length === 0) {
-    throw new Error('Neither YOUTUBE_API_KEY nor YOUTUBE_API_KEY_HOST_CAT is configured in server environment variables.');
+    throw new Error('Neither YOUTUBE_API_KEY, YOUTUBE_API_KEY_HOST_CAT, nor YOUTUBE_API_KEY_NFT is configured in server environment variables.');
   }
   return keys;
 }
