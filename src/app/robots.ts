@@ -32,6 +32,16 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers", "/admin/", "/admin"],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: [
+      `${baseUrl}/sitemap.xml`,
+      `${baseUrl}/sitemaps/static.xml`,
+      `${baseUrl}/sitemaps/knowledge.xml`,
+      `${baseUrl}/sitemaps/creators-1.xml`,
+      `${baseUrl}/sitemaps/creators-2.xml`,
+      `${baseUrl}/sitemaps/creators-3.xml`,
+      `${baseUrl}/sitemaps/creators-4.xml`,
+      `${baseUrl}/sitemaps/creators-5.xml`,
+      `${baseUrl}/sitemaps/creators-6.xml`,
+    ],
   };
 }
