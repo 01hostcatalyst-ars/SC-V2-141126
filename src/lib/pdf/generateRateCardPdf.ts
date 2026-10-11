@@ -221,19 +221,21 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
 
   const auditedMedia: MergedMediaItem[] = [];
 
-  // YouTube videos
+  // YouTube videos (Core Samples Only)
   if (platforms.youtube?.videos && Array.isArray(platforms.youtube.videos)) {
-    for (const v of platforms.youtube.videos.slice(0, 16)) {
+    const rawYt = platforms.youtube.videos;
+    const coreOnly = rawYt.filter((v: any) => v.isErSample);
+    const targetYt = coreOnly.length > 0 ? coreOnly : rawYt.slice(0, 12);
+    for (const v of targetYt) {
       const views = Number(v.viewCount || 0);
       const likes = Number(v.likeCount || 0);
       const comments = Number(v.commentCount || 0);
       const er = calcEngagementRate(likes, comments, views);
       const isShort = Boolean(v.isShort);
-      const isCore = !isShort && views > 0;
       auditedMedia.push({
         platform: "youtube",
         formatLabel: isShort ? "Shorts" : "Long Video",
-        sampleClass: isCore ? "Core Sample" : isShort ? "Recent" : "Trimmed Outlier",
+        sampleClass: "Core Sample",
         title: v.title || "YouTube Upload",
         date: formatDate(v.publishedAt),
         views,
@@ -245,9 +247,12 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
     }
   }
 
-  // Instagram posts
+  // Instagram posts (Core Samples Only)
   if (platforms.instagram?.posts && Array.isArray(platforms.instagram.posts)) {
-    for (const p of platforms.instagram.posts.slice(0, 12)) {
+    const rawIg = platforms.instagram.posts;
+    const coreOnly = rawIg.filter((p: any) => p.isEnrichedSample);
+    const targetIg = coreOnly.length > 0 ? coreOnly : rawIg.slice(0, 8);
+    for (const p of targetIg) {
       const likes = Number(p.likes || 0);
       const comments = Number(p.commentsCount || 0);
       const er = calcFollowerEr(likes, comments, platforms.instagram.followerCount);
@@ -256,7 +261,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
       auditedMedia.push({
         platform: "instagram",
         formatLabel,
-        sampleClass: p.isPinned ? "Pinned" : p.isEnrichedSample ? "Core Sample" : "Recent",
+        sampleClass: "Core Sample",
         title: p.caption || "Instagram Media",
         date: formatDate(p.datetime),
         views: 0,
@@ -268,9 +273,12 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
     }
   }
 
-  // TikTok videos
+  // TikTok videos (Core Samples Only)
   if (platforms.tiktok?.videos && Array.isArray(platforms.tiktok.videos)) {
-    for (const t of platforms.tiktok.videos.slice(0, 8)) {
+    const rawTt = platforms.tiktok.videos;
+    const coreOnly = rawTt.filter((t: any) => t.isEnrichedSample);
+    const targetTt = coreOnly.length > 0 ? coreOnly : rawTt.slice(0, 8);
+    for (const t of targetTt) {
       const views = Number(t.playCount || 0);
       const likes = Number(t.diggCount || 0);
       const comments = Number(t.commentCount || 0);
@@ -278,7 +286,7 @@ export async function generateRateCardPDF(payload: RateCardPdfPayload): Promise<
       auditedMedia.push({
         platform: "tiktok",
         formatLabel: "TikTok Video",
-        sampleClass: t.isPinned ? "Pinned" : "Recent",
+        sampleClass: "Core Sample",
         title: t.description || "TikTok Video",
         date: formatDate(t.createDate),
         views,

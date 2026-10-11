@@ -3269,7 +3269,11 @@ function InstagramAuditCard({
   const cleanUsername = username?.replace(/^@+/, "");
 
   return (
-    <div className="rounded-xl border border-gray-200/90 bg-white hover:border-gray-300 hover:shadow-xs transition-all flex flex-col justify-between p-3.5 sm:p-4 space-y-3">
+    <div
+      className={`rounded-xl border bg-white hover:border-gray-300 hover:shadow-xs transition-all flex flex-col justify-between p-3.5 sm:p-4 space-y-3 ${
+        post.isEnrichedSample ? "border-emerald-200/90 shadow-2xs" : "border-gray-200/90"
+      }`}
+    >
       {/* Top Header: Platform Logo + Name + Format Pill | Sample Status */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
@@ -3368,7 +3372,11 @@ function TikTokAuditCard({
   const cleanUsername = username?.replace(/^@+/, "");
 
   return (
-    <div className="rounded-xl border border-gray-200/90 bg-white hover:border-gray-300 hover:shadow-xs transition-all flex flex-col justify-between p-3.5 sm:p-4 space-y-3">
+    <div
+      className={`rounded-xl border bg-white hover:border-gray-300 hover:shadow-xs transition-all flex flex-col justify-between p-3.5 sm:p-4 space-y-3 ${
+        video.isEnrichedSample ? "border-emerald-200/90 shadow-2xs" : "border-gray-200/90"
+      }`}
+    >
       {/* Top Header: Platform Logo + Name + Format Pill | Status */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
@@ -3386,6 +3394,11 @@ function TikTokAuditCard({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
               Pinned
+            </span>
+          ) : video.isEnrichedSample ? (
+            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold text-[10px] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Core Sample
             </span>
           ) : (
             <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 border border-gray-200 font-medium text-[10px]">
@@ -3461,15 +3474,24 @@ function RecentMediaAuditFeed({
   platforms: Record<Platform, DiscoveredPlatformData>;
 }) {
   const ytVideos = useMemo(() => {
-    return (platforms.youtube.videos as unknown as YouTubeVideoItem[]) || [];
+    const raw = (platforms.youtube.videos as unknown as YouTubeVideoItem[]) || [];
+    // Only show uploads that were used in Core Benchmark Samples
+    const coreOnly = raw.filter((v) => v.isErSample);
+    return coreOnly.length > 0 ? coreOnly : raw;
   }, [platforms.youtube.videos]);
 
   const igPosts = useMemo(() => {
-    return platforms.instagram.posts || [];
+    const raw = platforms.instagram.posts || [];
+    // Only show posts that were used in Core Samples (middle 4 unpinned posts by interaction)
+    const coreOnly = raw.filter((p) => p.isEnrichedSample);
+    return coreOnly.length > 0 ? coreOnly : raw;
   }, [platforms.instagram.posts]);
 
   const ttVideos = useMemo(() => {
-    return (platforms.tiktok.videos as unknown as TikTokVideoItem[]) || [];
+    const raw = (platforms.tiktok.videos as unknown as TikTokVideoItem[]) || [];
+    // Only show videos that were used in Core Samples (middle 4 unpinned videos by views)
+    const coreOnly = raw.filter((v) => v.isEnrichedSample);
+    return coreOnly.length > 0 ? coreOnly : raw;
   }, [platforms.tiktok.videos]);
 
   const totalCount = ytVideos.length + igPosts.length + ttVideos.length;
@@ -3609,11 +3631,11 @@ function RecentMediaAuditFeed({
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gray-950" />
               <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                All Audited Media ({allUnifiedCards.length})
+                Audited Core Samples ({allUnifiedCards.length})
               </h4>
             </div>
             <span className="text-[11px] text-gray-500">
-              Chronological audit feed across all verified channels
+              Empirical core sample uploads used in interaction baseline valuations
             </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -3632,11 +3654,11 @@ function RecentMediaAuditFeed({
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
                   <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                    Long-Form Video Audits ({ytLongVideos.length})
+                    Long-Form Video Core Benchmarks ({ytLongVideos.length})
                   </h4>
                 </div>
                 <span className="text-[11px] text-gray-500">
-                  6 Core Benchmark uploads defend median baseline rate (top 2 viral outliers and bottom 2 flops trimmed)
+                  Middle core benchmark uploads defending median baseline rate (viral spikes and flops trimmed)
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -3658,11 +3680,11 @@ function RecentMediaAuditFeed({
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
                   <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                    Short-Form / Shorts Audits ({ytShortVideos.length})
+                    Shorts Core Benchmarks ({ytShortVideos.length})
                   </h4>
                 </div>
                 <span className="text-[11px] text-gray-500">
-                  6 Core Benchmark shorts defend median baseline rate (top 2 viral outliers and bottom 2 flops trimmed)
+                  Middle core benchmark shorts defending median baseline rate (viral spikes and flops trimmed)
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -3686,11 +3708,11 @@ function RecentMediaAuditFeed({
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-pink-600" />
               <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                Instagram Content Audits ({igPosts.length})
+                Instagram Core Samples ({igPosts.length})
               </h4>
             </div>
             <span className="text-[11px] text-gray-500">
-              Categorized by Reel, Carousel, and Image formats • Follower ER benchmarked
+              Unpinned trimmed-mean core posts analyzed for follower interaction baselines
             </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -3713,11 +3735,11 @@ function RecentMediaAuditFeed({
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gray-950" />
               <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                TikTok Content Audits ({ttVideos.length})
+                TikTok Core Samples ({ttVideos.length})
               </h4>
             </div>
             <span className="text-[11px] text-gray-500">
-              Recent uploads analyzed for play velocity, shares, and engagement rates
+              Unpinned trimmed-mean core uploads analyzed for median play velocity and engagement baselines
             </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
