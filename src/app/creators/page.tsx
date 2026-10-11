@@ -10,13 +10,13 @@ import {
 } from "@/lib/creators/schema";
 
 export const metadata: Metadata = {
-  title: "Creator Directory - 1,500+ Verified Creators, Rates & Analytics | SignCollab",
+  title: "Creator Directory - Verified Creators, Commercial Rates & Analytics | SignCollab",
   description:
     "Explore the premier institutional creator directory. Filter multi-platform creators across YouTube, Instagram, and TikTok by country, niche, reach, and empirical commercial rates.",
   openGraph: {
     title: "Creator Commercial Directory | SignCollab",
     description:
-      "Empirical rates, verified cross-platform reach, and instant bilateral contracts for 1,500+ creators.",
+      "Empirical rates, verified cross-platform reach, and instant bilateral contracts for verified creators.",
   },
 };
 

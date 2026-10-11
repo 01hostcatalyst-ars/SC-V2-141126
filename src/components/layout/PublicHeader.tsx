@@ -41,7 +41,7 @@ const SUITE_TOOLS: ToolItem[] = [
   {
     id: "creators",
     name: "Creator Directory",
-    description: "Database of 1,500+ multi-platform creators, rates & reach",
+    description: "Directory of verified multi-platform creators, rates & reach",
     href: "/creators",
     icon: Users,
     accentColor: "text-blue-600 bg-blue-50 border-blue-200/80",

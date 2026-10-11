@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/influencer-rate-calculator", "/calculator", "/knowledge", "/survey", "/verify", "/contact", "/creators"],
-        disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers"],
+        disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers", "/admin/", "/admin"],
       },
       {
         userAgent: [
@@ -29,7 +29,7 @@ export default function robots(): MetadataRoute.Robots {
           "cohere-ai",
         ],
         allow: ["/", "/about", "/instant", "/features", "/pricing", "/vision", "/terms", "/influencer-rate-calculator", "/calculator", "/knowledge", "/survey", "/verify", "/contact", "/creators"],
-        disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers"],
+        disallow: ["/api/", "/dashboard/", "/scrapers/", "/scrapers", "/admin/", "/admin"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

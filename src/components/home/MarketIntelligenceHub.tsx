@@ -362,7 +362,7 @@ export function MarketIntelligenceHub() {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 text-xs font-bold transition shadow-2xs hover:shadow-sm"
           >
             <Users className="w-3.5 h-3.5 text-zinc-500" />
-            <span>Explore All 1,500+ Profiles in Creator Directory</span>
+            <span>Explore Verified Profiles in Creator Directory</span>
             <ArrowRight className="w-3.5 h-3.5 ml-1 text-zinc-400" />
           </Link>
         </div>

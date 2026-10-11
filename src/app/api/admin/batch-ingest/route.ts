@@ -165,6 +165,20 @@ function computePlatformRates(
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
 
+  // Verify authorization: allow dev localhost auto-access, require passkey in production
+  const host = req.headers.get('host') || '';
+  const isDevLocal = process.env.NODE_ENV !== 'production' && (host.includes('localhost') || host.includes('127.0.0.1'));
+  const configuredKey = (process.env.ADMIN_BATCH_INGEST_KEY || process.env.ADMIN_PASSWORD || 'signcollab-admin-ingest-2026').trim();
+  const providedKey = (req.headers.get('x-admin-key') || req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '').trim();
+
+  if (!isDevLocal && providedKey !== configuredKey) {
+    return NextResponse.json({
+      success: false,
+      status: 'failed',
+      error: 'Unauthorized: Valid admin passkey required to execute batch ingestion.',
+    }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const { handle: rawHandle, platform: rawPlatform, regionCode: inputRegionCode = 'US', forceRefresh = false } = body;
