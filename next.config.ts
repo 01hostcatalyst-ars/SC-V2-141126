@@ -51,6 +51,26 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/scrapers",
+        destination: "/influencer-rate-calculator",
+        permanent: true,
+      },
+      {
+        source: "/scrapers/instagram",
+        destination: "/influencer-rate-calculator",
+        permanent: true,
+      },
+      {
+        source: "/scrapers/youtube",
+        destination: "/influencer-rate-calculator",
+        permanent: true,
+      },
+      {
+        source: "/scrapers/tiktok",
+        destination: "/influencer-rate-calculator",
+        permanent: true,
+      },
+      {
         source: "/signup",
         destination: "/login",
         permanent: false,

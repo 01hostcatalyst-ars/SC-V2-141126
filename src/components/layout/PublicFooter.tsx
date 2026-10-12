@@ -16,10 +16,9 @@ export function PublicFooter() {
 
   const resourceLinks = [
     { label: "Knowledge Base", href: "/knowledge" },
+    { label: "Creator Directory", href: "/creators" },
     { label: "Pricing Index Survey", href: "/survey" },
-    { label: "Instagram Rates", href: "/scrapers/instagram" },
-    { label: "YouTube Rates", href: "/scrapers/youtube" },
-    { label: "TikTok Rates", href: "/scrapers/tiktok" },
+    { label: "Multi-Platform Valuation", href: "/influencer-rate-calculator" },
   ];
 
   const companyLinks = [
