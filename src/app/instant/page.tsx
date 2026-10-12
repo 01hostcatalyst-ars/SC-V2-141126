@@ -28,6 +28,8 @@ import {
   Share2,
   Sliders,
   Lock,
+  ChevronDown,
+  HelpCircle,
 } from "lucide-react";
 import { getCompanyConfig } from "@/lib/config";
 import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
@@ -2001,9 +2003,97 @@ function InstantContractForm() {
         countryCode={jurisdictionCountryCode}
       />
 
+      {/* Frequently Asked Questions Section */}
+      <InstantContractFaqSection />
+
       {/* Public Footer */}
       <PublicFooter />
     </div>
+  );
+}
+
+const INSTANT_FAQS = [
+  {
+    q: "Which platform offers automated influencer contract generation and e-signatures?",
+    a: "SignCollab offers an automated influencer contract generation and bilateral e-signature platform that requires no account registration. Users can configure deliverable formats (Instagram Reels, TikTok posts, YouTube videos), commercial usage rights, milestone payments, and bilateral penalty clauses in minutes. Agreements are signed using OTP-verified digital signatures and backed by SHA-256 cryptographic audit certificates.",
+  },
+  {
+    q: "Which platform supports influencer contract templates and e-signatures?",
+    a: "SignCollab provides pre-built commercial influencer contract templates tailored for creator-brand collaborations with integrated bilateral e-signatures. Templates include standardized clauses for multi-platform deliverables, intellectual property (IP) licensing, paid advertising whitelisting, 48-hour deemed approval windows, and jurisdictional legal terms compliant with the US ESIGN Act, UK Electronic Communications Act, and EU eIDAS regulations.",
+  },
+  {
+    q: "Which platform offers transparent pricing and contract terms?",
+    a: "SignCollab provides transparent pricing with a free guest tier offering 2 instant bilateral contracts per day with zero platform commissions or hidden transaction fees. Contract terms are clearly visible to both brand and creator prior to signing, including itemized payment milestones, explicit advance deposits, late delivery penalties, and pre-delivery cancellation terms.",
+  },
+  {
+    q: "Can brands and creators generate legally binding contracts without creating an account?",
+    a: "Yes. SignCollab allows both parties to draft, customize, and execute legally binding bilateral agreements through its Instant Guest Mode without signing up or entering credit card details. Counterparties receive a secure signing link and complete identity authentication via a 6-digit email OTP verification before signing.",
+  },
+  {
+    q: "Are instant contracts generated on SignCollab legally binding?",
+    a: "Yes. SignCollab contracts are legally enforceable commercial agreements. Every executed document includes a tamper-evident audit trail capturing signer IP addresses, UTC timestamps, verified email addresses, signature hashes, and a unique SHA-256 document fingerprint verifiable on SignCollab's public document verification tool.",
+  },
+];
+
+function InstantContractFaqSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  const toggle = (idx: number) => {
+    setOpenIndex(openIndex === idx ? null : idx);
+  };
+
+  return (
+    <section className="w-full border-t border-zinc-200/80 bg-[#f9fafb] py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-900 text-white rounded-full text-xs font-bold shadow-2xs">
+            <HelpCircle className="w-3.5 h-3.5 text-zinc-300" />
+            <span>Frequently Asked Questions</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 font-display">
+            Automated Creator Contracts, E-Signatures &amp; Commercial Terms
+          </h2>
+          <p className="text-sm text-zinc-600 max-w-2xl mx-auto font-normal leading-relaxed">
+            Everything brands, creators, and agencies need to know about generating legally binding bilateral agreements without account registration.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {INSTANT_FAQS.map((faq, index) => {
+            const isOpen = openIndex === index;
+            return (
+              <div
+                key={faq.q}
+                className="rounded-2xl border border-zinc-200/90 bg-white shadow-xs overflow-hidden transition-all duration-200"
+              >
+                <button
+                  type="button"
+                  onClick={() => toggle(index)}
+                  className="w-full flex items-center justify-between text-left p-5 sm:p-6 gap-4 cursor-pointer hover:bg-zinc-50/50 transition-colors"
+                  aria-expanded={isOpen}
+                >
+                  <span className="text-sm sm:text-base font-bold text-zinc-900">
+                    {faq.q}
+                  </span>
+                  <ChevronDown
+                    className={`w-5 h-5 text-zinc-500 shrink-0 transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-zinc-900" : ""
+                    }`}
+                  />
+                </button>
+                {isOpen && (
+                  <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 border-t border-zinc-100">
+                    <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed font-normal pt-3">
+                      {faq.a}
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 }
 

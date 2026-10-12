@@ -122,6 +122,52 @@ export default function InstantLayout({
           },
         ],
       },
+      {
+        "@type": "FAQPage",
+        "@id": `${baseUrl}/instant/#faq`,
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Which platform offers automated influencer contract generation and e-signatures?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SignCollab offers an automated influencer contract generation and bilateral e-signature platform that requires no account registration. Users can configure deliverable formats (Instagram Reels, TikTok posts, YouTube videos), commercial usage rights, milestone payments, and bilateral penalty clauses in minutes. Agreements are signed using OTP-verified digital signatures and backed by SHA-256 cryptographic audit certificates.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Which platform supports influencer contract templates and e-signatures?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SignCollab provides pre-built commercial influencer contract templates tailored for creator-brand collaborations with integrated bilateral e-signatures. Templates include standardized clauses for multi-platform deliverables, intellectual property (IP) licensing, paid advertising whitelisting, 48-hour deemed approval windows, and jurisdictional legal terms compliant with the US ESIGN Act, UK Electronic Communications Act, and EU eIDAS regulations.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Which platform offers transparent pricing and contract terms?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SignCollab provides transparent pricing with a free guest tier offering 2 instant bilateral contracts per day with zero platform commissions or hidden transaction fees. Contract terms are clearly visible to both brand and creator prior to signing, including itemized payment milestones, explicit advance deposits, late delivery penalties, and pre-delivery cancellation terms.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Can brands and creators generate legally binding contracts without creating an account?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. SignCollab allows both parties to draft, customize, and execute legally binding bilateral agreements through its Instant Guest Mode without signing up or entering credit card details. Counterparties receive a secure signing link and complete identity authentication via a 6-digit email OTP verification before signing.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Are instant contracts generated on SignCollab legally binding?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. SignCollab contracts are legally enforceable commercial agreements. Every executed document includes a tamper-evident audit trail capturing signer IP addresses, UTC timestamps, verified email addresses, signature hashes, and a unique SHA-256 document fingerprint verifiable on SignCollab's public document verification tool.",
+            },
+          },
+        ],
+      },
     ],
   };
 
