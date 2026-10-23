@@ -25,9 +25,9 @@ export function InstantContractsSection() {
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div className="space-y-2 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 text-zinc-800 text-[11px] font-bold uppercase tracking-wider border border-zinc-200">
-            <FileText className="w-3.5 h-3.5 text-zinc-950" />
-            <span>Tool 02 • Legal Execution Infrastructure</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 text-[11px] font-bold uppercase tracking-wider border border-indigo-200">
+            <FileText className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Commercial Contracting Infrastructure</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-semibold text-zinc-950 font-display tracking-tight">
             Stop Sealing Deals in DMs. Start Signing Them.
@@ -175,9 +175,12 @@ export function InstantContractsSection() {
           {/* Document Header */}
           <div className="flex items-start justify-between border-b border-zinc-100 pb-5 gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="font-mono text-xs font-bold text-zinc-950">
                   SC-2026-INSTANT-0842
+                </span>
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 font-mono">
+                  Interactive Demonstration Model
                 </span>
                 <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                   Bilateral 1-Page Term Sheet
@@ -325,9 +328,9 @@ export function InstantContractsSection() {
 
         <div className="space-y-1.5">
           <span className="font-mono text-xs font-bold text-zinc-400 block">STEP 03</span>
-          <h4 className="text-sm font-bold text-zinc-950">Cryptographic Legal Audit Trail</h4>
+          <h4 className="text-sm font-bold text-zinc-950">Tamper-Evident SHA-256 Audit Trail</h4>
           <p className="text-xs text-zinc-500 leading-relaxed">
-            A permanent SHA-256 tamper-proof PDF audit certificate is minted with microsecond UTC timestamps and verifiable signature hashes.
+            Every signed agreement produces a permanent cryptographic certificate with verified signer timestamps, OTP authentication, and public SHA-256 validation.
           </p>
         </div>
       </div>

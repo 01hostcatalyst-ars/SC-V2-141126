@@ -30,7 +30,7 @@ const SECTORS: SectorConfig[] = [
     nicheId: null,
     tagline: "High-velocity cross-platform creator profiles indexed across our global database.",
     medianCpm: "$24 – $38",
-    buyerIntent: "9.1 / 10",
+    buyerIntent: "High Intent",
     activeGeo: "US, UK, PK & Global",
   },
   {
@@ -39,7 +39,7 @@ const SECTORS: SectorConfig[] = [
     nicheId: 6,
     tagline: "Benchmark specifications, hardware teardowns, prosumer computing, and mobile flagships.",
     medianCpm: "$28 – $45",
-    buyerIntent: "9.4 / 10",
+    buyerIntent: "Very High Intent",
     activeGeo: "Tier-1 Global Markets",
   },
   {
@@ -48,7 +48,7 @@ const SECTORS: SectorConfig[] = [
     nicheId: 8,
     tagline: "Universal consumer culture, daily narrative vlogs, relatable comedy, and mass audience reach.",
     medianCpm: "$18 – $28",
-    buyerIntent: "8.7 / 10",
+    buyerIntent: "Moderate-High Intent",
     activeGeo: "US, UK, PK & GCC",
   },
   {
@@ -57,7 +57,7 @@ const SECTORS: SectorConfig[] = [
     nicheId: 14,
     tagline: "Live interactive streams, AAA game titles, esports gameplay, and gaming peripherals.",
     medianCpm: "$16 – $26",
-    buyerIntent: "8.5 / 10",
+    buyerIntent: "High Engagement",
     activeGeo: "Global Esports Audiences",
   },
   {
@@ -66,7 +66,7 @@ const SECTORS: SectorConfig[] = [
     nicheId: 17,
     tagline: "OEM automaker ad budgets, electric vehicles, performance cars, and powersports.",
     medianCpm: "$30 – $52",
-    buyerIntent: "9.2 / 10",
+    buyerIntent: "High Commercial Intent",
     activeGeo: "US, UK & Regional OEM",
   },
   {
@@ -75,7 +75,7 @@ const SECTORS: SectorConfig[] = [
     nicheId: 12,
     tagline: "Prestige luxury styling, streetwear drops, seasonal lookbooks, and designer accessories.",
     medianCpm: "$22 – $35",
-    buyerIntent: "8.9 / 10",
+    buyerIntent: "High Intent",
     activeGeo: "Tier-1 Metro & Global",
   },
   {
@@ -84,7 +84,7 @@ const SECTORS: SectorConfig[] = [
     nicheId: 18,
     tagline: "Cinematic creators imparting premium narrative credibility, lens optics, and production craft.",
     medianCpm: "$22 – $36",
-    buyerIntent: "8.9 / 10",
+    buyerIntent: "High Intent",
     activeGeo: "Global Cross-Border",
   },
 ];
@@ -193,15 +193,15 @@ export function MarketIntelligenceHub() {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 text-[11px] font-bold uppercase tracking-wider border border-emerald-200 dark:border-emerald-800/60">
-              <Activity className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Tool 01 • Rate Intelligence Engine</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-wider border border-indigo-200 dark:border-indigo-800/60">
+              <Activity className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>Empirical Rate Intelligence &amp; Market Benchmarks</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-semibold text-zinc-950 dark:text-white font-display tracking-tight">
               Know What You&apos;re Worth. Know What to Pay.
             </h2>
             <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 font-medium">
-              Every search enriches our database. Explore empirical rates audited via our 16-Knot Quantitative Valuation Matrix.
+              Explore live, multi-platform creator valuations benchmarked against retention, view velocity, and real geographic audience purchasing power.
             </p>
           </div>
 
