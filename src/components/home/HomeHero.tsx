@@ -11,15 +11,9 @@ import {
   BookOpen,
   ShieldCheck,
   UserCheck,
-  Globe,
   ArrowRight,
   ChevronRight,
   CheckCircle2,
-  Check,
-  Sparkles,
-  BarChart3,
-  Search,
-  Lock,
 } from "lucide-react";
 
 export function HomeHero() {
@@ -132,31 +126,35 @@ export function HomeHero() {
                   </linearGradient>
                 </defs>
 
-                {/* Lines radiating from Center (approx 350, 310) to Satellites */}
-                <line x1="320" y1="290" x2="170" y2="160" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
-                <line x1="340" y1="240" x2="330" y2="120" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
-                <line x1="430" y1="260" x2="520" y2="140" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
-                <line x1="460" y1="320" x2="550" y2="280" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
-                <line x1="450" y1="380" x2="530" y2="440" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
-                <line x1="410" y1="460" x2="460" y2="540" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
-                <line x1="310" y1="460" x2="280" y2="540" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
-                <line x1="260" y1="370" x2="160" y2="410" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                {/* 1. To Creator Directory (Upper-Left) */}
+                <line x1="270" y1="190" x2="180" y2="95" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                {/* 2. To Rate Intelligence (Upper-Right) */}
+                <line x1="445" y1="190" x2="535" y2="95" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                {/* 3. To Campaign Planner (Mid-Right) */}
+                <line x1="475" y1="270" x2="570" y2="245" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                {/* 4. To Contracts (Lower-Right) */}
+                <line x1="465" y1="365" x2="550" y2="395" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                {/* 5. To Knowledge Base (Bottom-Right) */}
+                <line x1="400" y1="430" x2="440" y2="530" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                {/* 6. To Verification (Bottom-Left) */}
+                <line x1="300" y1="430" x2="250" y2="530" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                {/* 7. To Creator Profiles (Mid-Left) */}
+                <line x1="240" y1="280" x2="180" y2="270" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
 
                 {/* Connection Nodes */}
-                <circle cx="320" cy="290" r="3" fill="#6366f1" />
-                <circle cx="340" cy="240" r="3" fill="#6366f1" />
-                <circle cx="430" cy="260" r="3" fill="#6366f1" />
-                <circle cx="460" cy="320" r="3" fill="#6366f1" />
-                <circle cx="450" cy="380" r="3" fill="#6366f1" />
-                <circle cx="410" cy="460" r="3" fill="#6366f1" />
-                <circle cx="310" cy="460" r="3" fill="#6366f1" />
-                <circle cx="260" cy="370" r="3" fill="#6366f1" />
+                <circle cx="270" cy="190" r="3" fill="#6366f1" />
+                <circle cx="445" cy="190" r="3" fill="#6366f1" />
+                <circle cx="475" cy="270" r="3" fill="#6366f1" />
+                <circle cx="465" cy="365" r="3" fill="#6366f1" />
+                <circle cx="400" cy="430" r="3" fill="#6366f1" />
+                <circle cx="300" cy="430" r="3" fill="#6366f1" />
+                <circle cx="240" cy="280" r="3" fill="#6366f1" />
               </svg>
 
-              {/* 1. TOP-CENTER: Creator Directory Card */}
+              {/* 1. TOP-LEFT: Creator Directory Card */}
               <Link
                 href="/creators"
-                className="absolute top-2 left-[200px] z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+                className="absolute top-4 left-6 z-10 w-[215px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -179,7 +177,7 @@ export function HomeHero() {
                     <img className="inline-block h-4 w-4 rounded-full ring-1 ring-white object-cover" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=50&h=50&fit=crop" alt="c3" />
                   </div>
                   <span className="text-[9px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded-full">
-                    10K+ creators
+                    3,000+ creators
                   </span>
                 </div>
               </Link>
@@ -187,7 +185,7 @@ export function HomeHero() {
               {/* 2. TOP-RIGHT: Rate Intelligence Card */}
               <Link
                 href="/influencer-rate-calculator"
-                className="absolute top-12 right-2 z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+                className="absolute top-4 right-6 z-10 w-[215px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -214,7 +212,7 @@ export function HomeHero() {
               </Link>
 
               {/* 3. RIGHT-MID: Campaign Planner Card */}
-              <div className="absolute top-[200px] right-0 z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl transition-all group">
+              <div className="absolute top-[185px] right-0 z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl transition-all group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <div className="w-5 h-5 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -239,7 +237,7 @@ export function HomeHero() {
               {/* 4. RIGHT-BOTTOM: Contracts Card */}
               <Link
                 href="/instant"
-                className="absolute top-[350px] right-4 z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+                className="absolute top-[350px] right-4 z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -264,7 +262,7 @@ export function HomeHero() {
               {/* 5. BOTTOM-RIGHT: Knowledge Base Card */}
               <Link
                 href="/knowledge"
-                className="absolute bottom-2 right-[90px] z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+                className="absolute bottom-2 right-[110px] z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -288,7 +286,7 @@ export function HomeHero() {
               {/* 6. BOTTOM-LEFT: Verification Card */}
               <Link
                 href="/verify"
-                className="absolute bottom-4 left-[90px] z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+                className="absolute bottom-4 left-[90px] z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -315,7 +313,7 @@ export function HomeHero() {
               {/* 7. LEFT-MID: Creator Profiles Card */}
               <Link
                 href="/creators"
-                className="absolute top-[320px] left-0 z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+                className="absolute top-[210px] left-0 z-10 w-[215px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -335,33 +333,6 @@ export function HomeHero() {
                   <span className="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded">Audience</span>
                   <span className="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded">Engagement</span>
                   <span className="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded">Growth</span>
-                </div>
-              </Link>
-
-              {/* 8. TOP-LEFT: Market Intelligence Card */}
-              <Link
-                href="/survey"
-                className="absolute top-16 left-2 z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                      <Globe className="w-3 h-3" />
-                    </div>
-                    <span className="text-[11px] font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
-                      Market Intelligence
-                    </span>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600 transition-colors" />
-                </div>
-                <p className="text-[10px] text-zinc-500 leading-tight mt-1">
-                  Real-time trends, rates and regional insights.
-                </p>
-                <div className="flex items-center justify-between pt-2 mt-2 border-t border-zinc-100 text-[9px]">
-                  <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded font-medium">
-                    17 Countries
-                  </span>
-                  <span className="text-zinc-400">Regional PPP</span>
                 </div>
               </Link>
 
@@ -468,7 +439,7 @@ export function HomeHero() {
                 <Link href="/creators" className="p-3 rounded-xl bg-white border border-zinc-200 shadow-xs text-left">
                   <Users className="w-4 h-4 text-indigo-600 mb-1" />
                   <div className="text-xs font-bold text-zinc-900">Creator Directory</div>
-                  <div className="text-[10px] text-zinc-500">10K+ Creators</div>
+                  <div className="text-[10px] text-zinc-500">3,000+ Creators</div>
                 </Link>
                 <Link href="/influencer-rate-calculator" className="p-3 rounded-xl bg-white border border-zinc-200 shadow-xs text-left">
                   <TrendingUp className="w-4 h-4 text-purple-600 mb-1" />
