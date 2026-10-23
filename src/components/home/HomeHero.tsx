@@ -2,226 +2,573 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
+  Users,
+  TrendingUp,
+  Calendar,
   FileText,
-  Activity,
-  ArrowRight,
+  BookOpen,
   ShieldCheck,
+  UserCheck,
+  Globe,
+  ArrowRight,
+  ChevronRight,
   CheckCircle2,
+  Check,
+  Sparkles,
+  BarChart3,
+  Search,
   Lock,
 } from "lucide-react";
 
 export function HomeHero() {
-  const scrollToValuation = (e: React.MouseEvent) => {
+  const scrollToExplore = (e: React.MouseEvent) => {
     e.preventDefault();
-    const el = document.getElementById("valuation-hub");
+    const el = document.getElementById("valuation-hub") || document.getElementById("directory-preview");
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
-      window.location.href = "/influencer-rate-calculator";
+      window.location.href = "/creators";
     }
   };
 
   return (
-    <section className="relative pt-12 pb-16 md:pt-20 md:pb-24 overflow-hidden text-center">
-      {/* Subtle Directional Ambient Spotlight */}
-      <div className="absolute top-0 inset-x-0 h-[520px] ambient-spotlight-emerald pointer-events-none z-0" />
+    <section className="relative pt-8 pb-16 md:pt-14 md:pb-24 overflow-hidden bg-gradient-to-b from-[#fafaff] via-white to-[#f7f8fc]">
+      {/* Subtle Ambient Background Gradients */}
+      <div className="absolute top-0 right-1/4 w-[650px] h-[650px] bg-indigo-200/20 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-20 right-0 w-[480px] h-[480px] bg-purple-200/20 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-1/2 left-0 w-[420px] h-[420px] bg-blue-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center">
-        {/* Eyebrow Platform Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900 text-white text-xs font-semibold shadow-sm border border-zinc-800 mb-6 animate-fadeIn max-w-[94vw]">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <span className="font-mono text-[10px] sm:text-[11px] text-emerald-400 font-bold uppercase tracking-wider shrink-0">
-            100% Free Public Beta
-          </span>
-          <span className="text-zinc-600 font-light">•</span>
-          <span className="text-zinc-200 truncate text-[11px] sm:text-xs">
-            The Commercial Operating System for Creators, Brands &amp; Agencies
-          </span>
-        </div>
-
-        {/* Master Category Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold text-zinc-950 tracking-tight leading-[1.08] font-display max-w-4xl">
-          Where Creator Deals are{" "}
-          <span className="text-zinc-950 relative inline-block">
-            Valued, Negotiated, and Signed.
-            <svg
-              className="absolute -bottom-2 left-0 w-full text-emerald-500/80"
-              height="8"
-              viewBox="0 0 100 8"
-              preserveAspectRatio="none"
-              fill="currentColor"
-            >
-              <path d="M0 7c30-5 70-5 100 0v1H0z" />
-            </svg>
-          </span>
-        </h1>
-
-        {/* Subtitle Value Proposition */}
-        <p className="mt-6 text-base sm:text-lg text-zinc-600 max-w-2xl leading-relaxed font-medium">
-          SignCollab replaces chaotic DMs and guesswork pricing with empirical deliverable valuations, 1-page bilateral agreements, and automated campaign workflows. Fast, transparent, and completely free.
-        </p>
-
-        {/* Dual High-Intent CTAs */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-md">
-          <button
-            type="button"
-            onClick={scrollToValuation}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs sm:text-sm font-semibold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Activity className="w-4 h-4 text-emerald-400" />
-            <span>Explore Valuation Radar</span>
-            <ArrowRight className="w-4 h-4 text-zinc-400" />
-          </button>
-
-          <Link
-            href="/instant"
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white hover:bg-zinc-50 text-zinc-900 text-xs sm:text-sm font-semibold transition-all border border-zinc-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <FileText className="w-4 h-4 text-zinc-700" />
-            <span>Draft Instant Contract</span>
-          </Link>
-        </div>
-
-        {/* Trust Subtext */}
-        <div className="mt-3 text-xs text-zinc-600 font-medium">
-          No credit card or registration required • Instant Guest Mode enabled
-        </div>
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ========================================================= */}
-        {/* HERO PRODUCT ECOSYSTEM PREVIEW                            */}
+        {/* TOP ROW: 2-COLUMN HERO (COPY + CONSTELLATION)             */}
         {/* ========================================================= */}
-        <div className="w-full max-w-5xl mt-12 surface-card p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-zinc-200/90 shadow-xl bg-white/95 backdrop-blur-sm text-left">
-          <div className="flex items-center justify-between px-2 pb-3 mb-3 border-b border-zinc-100 text-xs font-semibold text-zinc-500">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <span className="font-mono text-zinc-900 uppercase tracking-wider text-[11px]">
-                SignCollab Bilateral Commercial Flow
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+          {/* LEFT COLUMN: HERO COPY & CALL TO ACTION (5 COLS) */}
+          <div className="lg:col-span-5 text-left space-y-6 z-10">
+            {/* Eyebrow Label */}
+            <div className="inline-block">
+              <span className="text-xs sm:text-sm font-black tracking-widest uppercase text-indigo-600 font-mono">
+                The Commercial Operating System for the Creator Economy
               </span>
             </div>
-            <div className="hidden sm:flex items-center gap-2 text-[11px] text-zinc-400 font-mono">
-              <Lock className="w-3 h-3 text-zinc-400" /> SHA-256 Tamper-Proof Infrastructure
+
+            {/* Master Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black tracking-tight text-zinc-950 leading-[1.08] font-display">
+              Everything You Need to Navigate the{" "}
+              <span className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-600 bg-clip-text text-transparent">
+                Creator Economy.
+              </span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-base sm:text-lg text-zinc-600 leading-relaxed font-normal max-w-xl">
+              Discover creators, understand market value, plan campaigns, structure deals, and build better creator partnerships — all through one connected platform.
+            </p>
+
+            {/* Primary Action Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={scrollToExplore}
+                className="group px-7 py-3.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-indigo-500/25 transition-all duration-200 flex items-center gap-2.5 cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <span>Explore the Platform</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            </div>
+
+            {/* Social Proof Stack */}
+            <div className="pt-4 flex items-center gap-3">
+              <div className="flex -space-x-2 overflow-hidden shrink-0">
+                <img
+                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces"
+                  alt="Creator avatar 1"
+                />
+                <img
+                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces"
+                  alt="Creator avatar 2"
+                />
+                <img
+                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
+                  src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces"
+                  alt="Creator avatar 3"
+                />
+                <img
+                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
+                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces"
+                  alt="Creator avatar 4"
+                />
+                <img
+                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
+                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces"
+                  alt="Creator avatar 5"
+                />
+              </div>
+              <span className="text-xs sm:text-sm text-zinc-600 font-medium">
+                Trusted by 10,000+ brands and creators worldwide
+              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-11 gap-4 items-center">
-            {/* Left Box: Rate Intelligence Card */}
-            <div className="lg:col-span-5 p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600 font-mono">
-                  Phase 1 • Empirical Valuation Radar
-                </span>
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600" /> Model Confidence 94%
-                </span>
+          {/* RIGHT COLUMN: THE CONNECTED CONSTELLATION GRAPHIC (7 COLS) */}
+          <div className="lg:col-span-7 relative">
+            {/* =================================================== */}
+            {/* DESKTOP CONSTELLATION VIEW (Visible on lg+)        */}
+            {/* =================================================== */}
+            <div className="hidden lg:block relative w-full h-[620px]">
+              {/* Dynamic SVG Connector Lines */}
+              <svg
+                className="absolute inset-0 w-full h-full pointer-events-none z-0"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <defs>
+                  <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#818cf8" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#c084fc" stopOpacity="0.2" />
+                  </linearGradient>
+                </defs>
+
+                {/* Lines radiating from Center (approx 350, 310) to Satellites */}
+                <line x1="320" y1="290" x2="170" y2="160" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                <line x1="340" y1="240" x2="330" y2="120" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                <line x1="430" y1="260" x2="520" y2="140" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                <line x1="460" y1="320" x2="550" y2="280" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                <line x1="450" y1="380" x2="530" y2="440" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                <line x1="410" y1="460" x2="460" y2="540" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                <line x1="310" y1="460" x2="280" y2="540" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+                <line x1="260" y1="370" x2="160" y2="410" stroke="url(#lineGrad)" strokeWidth="1.5" strokeDasharray="3 3" />
+
+                {/* Connection Nodes */}
+                <circle cx="320" cy="290" r="3" fill="#6366f1" />
+                <circle cx="340" cy="240" r="3" fill="#6366f1" />
+                <circle cx="430" cy="260" r="3" fill="#6366f1" />
+                <circle cx="460" cy="320" r="3" fill="#6366f1" />
+                <circle cx="450" cy="380" r="3" fill="#6366f1" />
+                <circle cx="410" cy="460" r="3" fill="#6366f1" />
+                <circle cx="310" cy="460" r="3" fill="#6366f1" />
+                <circle cx="260" cy="370" r="3" fill="#6366f1" />
+              </svg>
+
+              {/* 1. TOP-CENTER: Creator Directory Card */}
+              <Link
+                href="/creators"
+                className="absolute top-2 left-[200px] z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <Users className="w-3 h-3" />
+                    </div>
+                    <span className="text-[11px] font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                      Creator Directory
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600 transition-colors" />
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-tight mt-1">
+                  Discover the right creators for your brand.
+                </p>
+                <div className="flex items-center justify-between pt-2 mt-2 border-t border-zinc-100">
+                  <div className="flex -space-x-1 overflow-hidden">
+                    <img className="inline-block h-4 w-4 rounded-full ring-1 ring-white object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=50&h=50&fit=crop" alt="c1" />
+                    <img className="inline-block h-4 w-4 rounded-full ring-1 ring-white object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop" alt="c2" />
+                    <img className="inline-block h-4 w-4 rounded-full ring-1 ring-white object-cover" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=50&h=50&fit=crop" alt="c3" />
+                  </div>
+                  <span className="text-[9px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded-full">
+                    10K+ creators
+                  </span>
+                </div>
+              </Link>
+
+              {/* 2. TOP-RIGHT: Rate Intelligence Card */}
+              <Link
+                href="/influencer-rate-calculator"
+                className="absolute top-12 right-2 z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                      <TrendingUp className="w-3 h-3" />
+                    </div>
+                    <span className="text-[11px] font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                      Rate Intelligence
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600 transition-colors" />
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-tight mt-1">
+                  Know what creators are worth.
+                </p>
+                <div className="flex items-center justify-between pt-2 mt-2 border-t border-zinc-100">
+                  <span className="text-[10px] font-mono font-bold text-zinc-900 bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">
+                    $2.4K – $12.8K
+                  </span>
+                  <svg className="w-12 h-4 text-purple-500" viewBox="0 0 50 16" fill="none">
+                    <path d="M0 12 Q 12 4, 25 8 T 50 2" stroke="currentColor" strokeWidth="2" fill="none" />
+                  </svg>
+                </div>
+              </Link>
+
+              {/* 3. RIGHT-MID: Campaign Planner Card */}
+              <div className="absolute top-[200px] right-0 z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl transition-all group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <Calendar className="w-3 h-3" />
+                    </div>
+                    <span className="text-[11px] font-bold text-zinc-900">
+                      Campaign Planner
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-tight mt-1">
+                  Plan smarter, get better results.
+                </p>
+                <div className="flex items-center gap-1 pt-2 mt-2 border-t border-zinc-100 text-[9px] text-zinc-600">
+                  <span className="bg-zinc-100 px-1.5 py-0.5 rounded">Budget</span>
+                  <span className="bg-zinc-100 px-1.5 py-0.5 rounded">Audience</span>
+                  <span className="bg-zinc-100 px-1.5 py-0.5 rounded">Goals</span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-zinc-950 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                  IJ
+              {/* 4. RIGHT-BOTTOM: Contracts Card */}
+              <Link
+                href="/instant"
+                className="absolute top-[350px] right-4 z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
+                      <FileText className="w-3 h-3" />
+                    </div>
+                    <span className="text-[11px] font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                      Contracts
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600 transition-colors" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-zinc-950 truncate">Irfan Junejo</div>
-                  <div className="text-[11px] font-mono text-zinc-500 truncate">
-                    @irfanjunejo • Filmmaking &amp; Visual Media
+                <p className="text-[10px] text-zinc-500 leading-tight mt-1">
+                  Secure, fast and compliant agreements.
+                </p>
+                <div className="flex items-center justify-between pt-2 mt-2 border-t border-zinc-100 text-[9px]">
+                  <span className="text-zinc-600">1-Page • eSign • SHA-256</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                </div>
+              </Link>
+
+              {/* 5. BOTTOM-RIGHT: Knowledge Base Card */}
+              <Link
+                href="/knowledge"
+                className="absolute bottom-2 right-[90px] z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <BookOpen className="w-3 h-3" />
+                    </div>
+                    <span className="text-[11px] font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                      Knowledge Base
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600 transition-colors" />
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-tight mt-1">
+                  Learn, grow and stay ahead in the creator economy.
+                </p>
+                <div className="flex items-center gap-1 pt-2 mt-2 border-t border-zinc-100 text-[9px] text-zinc-500">
+                  <span>Guides • Tutorials • Insights</span>
+                </div>
+              </Link>
+
+              {/* 6. BOTTOM-LEFT: Verification Card */}
+              <Link
+                href="/verify"
+                className="absolute bottom-4 left-[90px] z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                      <ShieldCheck className="w-3 h-3" />
+                    </div>
+                    <span className="text-[11px] font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                      Verification
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600 transition-colors" />
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-tight mt-1">
+                  Trust verified creator data and authentic profiles.
+                </p>
+                <div className="flex items-center justify-between pt-2 mt-2 border-t border-zinc-100 text-[9px]">
+                  <span className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded font-mono font-semibold">
+                    SHA-256 • Verified
+                  </span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                </div>
+              </Link>
+
+              {/* 7. LEFT-MID: Creator Profiles Card */}
+              <Link
+                href="/creators"
+                className="absolute top-[320px] left-0 z-10 w-[210px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <UserCheck className="w-3 h-3" />
+                    </div>
+                    <span className="text-[11px] font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                      Creator Profiles
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600 transition-colors" />
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-tight mt-1">
+                  Deep insights into audiences, engagement and performance.
+                </p>
+                <div className="flex items-center gap-1 pt-2 mt-2 border-t border-zinc-100 text-[9px] text-zinc-500">
+                  <span className="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded">Audience</span>
+                  <span className="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded">Engagement</span>
+                  <span className="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded">Growth</span>
+                </div>
+              </Link>
+
+              {/* 8. TOP-LEFT: Market Intelligence Card */}
+              <Link
+                href="/survey"
+                className="absolute top-16 left-2 z-10 w-[205px] p-3 rounded-2xl bg-white/95 backdrop-blur-sm border border-zinc-200/90 shadow-md hover:shadow-xl hover:border-indigo-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <Globe className="w-3 h-3" />
+                    </div>
+                    <span className="text-[11px] font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                      Market Intelligence
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600 transition-colors" />
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-tight mt-1">
+                  Real-time trends, rates and regional insights.
+                </p>
+                <div className="flex items-center justify-between pt-2 mt-2 border-t border-zinc-100 text-[9px]">
+                  <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded font-medium">
+                    17 Countries
+                  </span>
+                  <span className="text-zinc-400">Regional PPP</span>
+                </div>
+              </Link>
+
+              {/* =================================================== */}
+              {/* THE CENTRAL ANCHOR: CREATOR PROFILE CARD           */}
+              {/* =================================================== */}
+              <div className="absolute top-[160px] left-[240px] z-20 w-[235px] rounded-3xl bg-white p-2.5 border border-indigo-100 shadow-2xl shadow-indigo-500/15 transform hover:scale-[1.02] transition-transform duration-300">
+                {/* Creator Image */}
+                <div className="relative w-full h-[145px] rounded-2xl overflow-hidden bg-zinc-100">
+                  <Image
+                    src="/images/creator_hero_portrait.jpg"
+                    alt="Areeba Hassaan - Travel & Lifestyle Creator"
+                    fill
+                    sizes="240px"
+                    priority
+                    className="object-cover object-center"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                </div>
+
+                {/* Creator Identity */}
+                <div className="pt-2.5 px-1 space-y-1">
+                  <div className="flex items-center gap-1">
+                    <h3 className="text-xs font-black text-zinc-950 truncate">
+                      Areeba Hassaan
+                    </h3>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0 fill-blue-600 text-white" />
+                  </div>
+                  <p className="text-[10px] text-zinc-500 font-medium">
+                    Travel &amp; Lifestyle
+                  </p>
+                </div>
+
+                {/* Platform Metric Badges */}
+                <div className="grid grid-cols-3 gap-1 pt-2 px-1 text-[9px] font-mono">
+                  <div className="flex items-center gap-0.5 bg-red-50 text-red-700 px-1.5 py-1 rounded-md font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-600 shrink-0" />
+                    <span>1.2M</span>
+                  </div>
+                  <div className="flex items-center gap-0.5 bg-pink-50 text-pink-700 px-1.5 py-1 rounded-md font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-600 shrink-0" />
+                    <span>892K</span>
+                  </div>
+                  <div className="flex items-center gap-0.5 bg-zinc-100 text-zinc-800 px-1.5 py-1 rounded-md font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-900 shrink-0" />
+                    <span>654K</span>
                   </div>
                 </div>
-                <div className="ml-auto text-right shrink-0">
-                  <div className="text-xs font-bold font-mono text-zinc-950">2.75M</div>
-                  <div className="text-[9px] uppercase font-bold text-zinc-600">Combined Reach</div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                <div className="p-2 rounded-lg bg-white border border-zinc-200/80">
-                  <span className="text-[10px] text-zinc-600 block">Dedicated Video (YT)</span>
-                  <span className="text-xs font-bold font-mono text-zinc-950">$5,600 USD</span>
-                </div>
-                <div className="p-2 rounded-lg bg-white border border-zinc-200/80">
-                  <span className="text-[10px] text-zinc-600 block">Organic Reel (IG)</span>
-                  <span className="text-xs font-bold font-mono text-zinc-950">$2,425 USD</span>
+                {/* Combined Reach & Growth Footer */}
+                <div className="mt-2.5 pt-2 px-1 border-t border-zinc-100 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] text-zinc-400 block font-medium">
+                      Combined Reach
+                    </span>
+                    <span className="text-xs font-black font-mono text-zinc-950">
+                      2.7M
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 font-mono">
+                      +12%
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Center Bridge Indicator */}
-            <div className="lg:col-span-1 flex flex-row lg:flex-col items-center justify-center gap-1.5 py-1 text-center">
-              <div className="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700">
-                <ArrowRight className="w-4 h-4 rotate-90 lg:rotate-0 text-emerald-600" />
-              </div>
-              <span className="text-[9px] font-mono font-bold uppercase text-zinc-600 tracking-wider">
-                1-Click
-              </span>
-            </div>
-
-            {/* Right Box: Bilateral 1-Page Contract */}
-            <div className="lg:col-span-5 p-4 rounded-xl bg-zinc-900 text-white border border-zinc-800 space-y-3 shadow-md">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300 font-mono">
-                  Phase 2 • 1-Page Bilateral Agreement
-                </span>
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-zinc-800 text-emerald-400 border border-zinc-700 flex items-center gap-1 font-mono">
-                  SC-2026-INSTANT
-                </span>
-              </div>
-
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-800/80 border border-zinc-700">
-                  <span className="text-[11px] text-zinc-300">48h Deemed Approval Clause</span>
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase font-mono">Enforced</span>
+            {/* =================================================== */}
+            {/* MOBILE & TABLET FALLBACK VIEW (Screens under lg)    */}
+            {/* =================================================== */}
+            <div className="block lg:hidden space-y-6 pt-4">
+              {/* Central Card Centered */}
+              <div className="max-w-[280px] mx-auto rounded-3xl bg-white p-3 border border-indigo-100 shadow-xl">
+                <div className="relative w-full h-[170px] rounded-2xl overflow-hidden bg-zinc-100">
+                  <Image
+                    src="/images/creator_hero_portrait.jpg"
+                    alt="Areeba Hassaan"
+                    fill
+                    sizes="280px"
+                    className="object-cover"
+                  />
                 </div>
-                <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-800/80 border border-zinc-700">
-                  <span className="text-[11px] text-zinc-300">Paid Whitelisting Usage Limit</span>
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase font-mono">30 Days Capped</span>
+                <div className="pt-3 px-1 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-zinc-950">Areeba Hassaan</h3>
+                    <CheckCircle2 className="w-4 h-4 text-blue-600 fill-blue-600 text-white" />
+                  </div>
+                  <p className="text-xs text-zinc-500 font-medium">Travel &amp; Lifestyle</p>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5 pt-2.5 px-1 text-[10px] font-mono font-bold">
+                  <div className="bg-red-50 text-red-700 p-1.5 rounded text-center">YT 1.2M</div>
+                  <div className="bg-pink-50 text-pink-700 p-1.5 rounded text-center">IG 892K</div>
+                  <div className="bg-zinc-100 text-zinc-800 p-1.5 rounded text-center">TT 654K</div>
+                </div>
+                <div className="mt-3 pt-2 px-1 border-t border-zinc-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-700">Combined Reach: 2.7M</span>
+                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+12%</span>
                 </div>
               </div>
 
-              <div className="pt-1 flex items-center justify-between text-[11px] border-t border-zinc-800 text-zinc-400">
-                <span className="flex items-center gap-1 text-emerald-400">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Bilateral Digital Signatures
-                </span>
-                <span className="font-mono text-[10px] text-zinc-300">Ready to Sign in 60s</span>
+              {/* Grid of Platform Capabilities */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <Link href="/creators" className="p-3 rounded-xl bg-white border border-zinc-200 shadow-xs text-left">
+                  <Users className="w-4 h-4 text-indigo-600 mb-1" />
+                  <div className="text-xs font-bold text-zinc-900">Creator Directory</div>
+                  <div className="text-[10px] text-zinc-500">10K+ Creators</div>
+                </Link>
+                <Link href="/influencer-rate-calculator" className="p-3 rounded-xl bg-white border border-zinc-200 shadow-xs text-left">
+                  <TrendingUp className="w-4 h-4 text-purple-600 mb-1" />
+                  <div className="text-xs font-bold text-zinc-900">Rate Intelligence</div>
+                  <div className="text-[10px] text-zinc-500">Empirical 16-Knot</div>
+                </Link>
+                <Link href="/instant" className="p-3 rounded-xl bg-white border border-zinc-200 shadow-xs text-left">
+                  <FileText className="w-4 h-4 text-violet-600 mb-1" />
+                  <div className="text-xs font-bold text-zinc-900">Contracts</div>
+                  <div className="text-[10px] text-zinc-500">1-Page Bilateral</div>
+                </Link>
+                <Link href="/verify" className="p-3 rounded-xl bg-white border border-zinc-200 shadow-xs text-left">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 mb-1" />
+                  <div className="text-xs font-bold text-zinc-900">Verification</div>
+                  <div className="text-[10px] text-zinc-500">SHA-256 Audit</div>
+                </Link>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 3 Pillars Overview Strip */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl text-left border-t border-zinc-200/80 pt-8">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-xs">
-                1
+        {/* ========================================================= */}
+        {/* BOTTOM VALUE BAR: 5 HORIZONTAL PILLARS (TRUST STRIP)      */}
+        {/* ========================================================= */}
+        <div className="mt-16 pt-10 border-t border-zinc-200/80">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 text-left">
+            {/* Pillar 1 */}
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
+                <Users className="w-4 h-4" />
               </div>
-              <h3 className="text-sm font-bold text-zinc-950">Empirical Rate Valuation</h3>
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-zinc-950">
+                  Scalable Creator Database
+                </h4>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  Thousands of vetted creators across 20+ verticals and 17 regions.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-zinc-500 leading-relaxed pl-8">
-              Defended via our 16-knot quantitative matrix. Eliminates arbitrary follower multipliers using unpinned retention, view velocity, and 17-country PPP adjustments.
-            </p>
-          </div>
 
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-xs">
-                2
+            {/* Pillar 2 */}
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0 mt-0.5">
+                <TrendingUp className="w-4 h-4" />
               </div>
-              <h3 className="text-sm font-bold text-zinc-950">Bilateral 1-Page Contracts</h3>
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-zinc-950">
+                  Data-Driven Valuations
+                </h4>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  16-Knot quantitative model with global PPP adjustments.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-zinc-500 leading-relaxed pl-8">
-              Converts agreed valuations into legally binding 1-page contracts with protective clauses for 48h deemed approvals, paid whitelisting scope, and tamper-proof SHA-256 e-sign.
-            </p>
-          </div>
 
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-xs">
-                3
+            {/* Pillar 3 */}
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600 shrink-0 mt-0.5">
+                <ShieldCheck className="w-4 h-4" />
               </div>
-              <h3 className="text-sm font-bold text-zinc-950">Commercial Campaign OS</h3>
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-zinc-950">
+                  Secure Contracts
+                </h4>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  1-page contracts, 48h approval, SHA-256 audit trail.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-zinc-500 leading-relaxed pl-8">
-              Expanding suite featuring talent discovery directory and algorithmic budget allocation to plan, price, and execute creator campaigns with zero friction.
-            </p>
+
+            {/* Pillar 4 */}
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0 mt-0.5">
+                <Calendar className="w-4 h-4" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-zinc-950">
+                  Campaign Tools
+                </h4>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  Budget allocation, deliverables, timeline and tracking.
+                </p>
+              </div>
+            </div>
+
+            {/* Pillar 5 */}
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-zinc-950">
+                  Built for Trust
+                </h4>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  Verify profiles, audit deals, ensure compliance.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
