@@ -3,12 +3,10 @@
 import React from "react";
 import {
   AlertTriangle,
-  MessageSquareX,
-  FileQuestion,
-  ShieldAlert,
-  ArrowRight,
+  Search,
+  HelpCircle,
+  FileText,
   CheckCircle2,
-  Sparkles,
 } from "lucide-react";
 
 export function ProblemStatementSection() {
@@ -35,70 +33,70 @@ export function ProblemStatementSection() {
 
         {/* 3 Problem vs Solution Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Fragmented Discovery */}
+          {/* Card 1: Finding the Right Creators Takes Too Long */}
           <div className="p-6 sm:p-8 rounded-3xl bg-zinc-50 border border-zinc-200/80 shadow-xs flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-red-100/80 text-red-700 flex items-center justify-center">
-                <MessageSquareX className="w-6 h-6" />
+                <Search className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-zinc-950">
-                Chaotic Outreach &amp; DMs
+                Finding the Right Creators Takes Too Long
               </h3>
               <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
-                Brand marketers spend days chasing creators across email inboxes and WhatsApp threads without knowing their real engagement quality, responsiveness, or availability.
+                Brands waste hours searching across social platforms, chasing replies, and trying to figure out which creators are right for their campaigns.
               </p>
             </div>
             <div className="pt-4 border-t border-zinc-200/60">
               <div className="flex items-start gap-2 text-xs font-semibold text-indigo-700">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600 mt-0.5" />
                 <span>
-                  <strong>SignCollab Solution:</strong> Centralized directory of 3,000+ audited creator profiles with direct rate intelligence.
+                  <strong>How SignCollab Helps:</strong> Discover creators in one place. Explore thousands of creator profiles with audience insights, platform data, and estimated rates.
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Card 2: Opaque Pricing */}
+          {/* Card 2: What Is a Creator Really Worth? */}
           <div className="p-6 sm:p-8 rounded-3xl bg-zinc-50 border border-zinc-200/80 shadow-xs flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-amber-100/80 text-amber-700 flex items-center justify-center">
-                <FileQuestion className="w-6 h-6" />
+                <HelpCircle className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-zinc-950">
-                Opaque &amp; Arbitrary Pricing
+                What Is a Creator Really Worth?
               </h3>
               <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
-                Creators struggle to defend their rate cards, while brands fear overpaying based on vanity follower counts that fail to convert into actual commercial reach.
+                Creators struggle to justify their prices. Brands struggle to know whether they&apos;re paying a fair rate. Follower counts alone don&apos;t tell the full story.
               </p>
             </div>
             <div className="pt-4 border-t border-zinc-200/60">
               <div className="flex items-start gap-2 text-xs font-semibold text-indigo-700">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600 mt-0.5" />
                 <span>
-                  <strong>SignCollab Solution:</strong> 16-Knot empirical valuation model benchmarked against retention, velocity, and PPP.
+                  <strong>How SignCollab Helps:</strong> Make better pricing decisions. Get data-informed rate estimates based on audience, engagement, views, and market conditions.
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Card 3: Unprotected Deals */}
+          {/* Card 3: Deals Shouldn't Depend on DMs */}
           <div className="p-6 sm:p-8 rounded-3xl bg-zinc-50 border border-zinc-200/80 shadow-xs flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-violet-100/80 text-violet-700 flex items-center justify-center">
-                <ShieldAlert className="w-6 h-6" />
+                <FileText className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-zinc-950">
-                Unprotected Agreements
+                Deals Shouldn&apos;t Depend on DMs
               </h3>
               <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
-                Handshake deals lead to scope creep, endless revisions, unpaid usage rights, and delayed payments without legal recourse or audit trails.
+                Unclear deliverables, endless revisions, unexpected usage demands, and late payments can turn a promising partnership into a frustrating experience.
               </p>
             </div>
             <div className="pt-4 border-t border-zinc-200/60">
               <div className="flex items-start gap-2 text-xs font-semibold text-indigo-700">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600 mt-0.5" />
                 <span>
-                  <strong>SignCollab Solution:</strong> 1-page bilateral contracts with 48h deemed approvals, capped whitelisting, and SHA-256 e-sign.
+                  <strong>How SignCollab Helps:</strong> Put the agreement in writing. Define deliverables, payment terms, approval deadlines, and content usage rights in a clear agreement with an electronic signing and verification trail.
                 </span>
               </div>
             </div>
