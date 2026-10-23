@@ -60,7 +60,10 @@ export function EcosystemWorkflowSection() {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-[#fbfbfe] border-t border-zinc-200/80 text-left">
+    <section
+      id="commercial-lifecycle"
+      className="py-16 md:py-24 bg-[#fbfbfe] border-t border-zinc-200/80 text-left scroll-mt-20"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -79,6 +82,29 @@ export function EcosystemWorkflowSection() {
 
           <div className="text-xs font-mono font-bold text-zinc-500 bg-white px-4 py-2 rounded-xl border border-zinc-200 shadow-2xs shrink-0">
             End-to-End Infrastructure
+          </div>
+        </div>
+
+        {/* Linear System Pipeline Progress Bar (Desktop) */}
+        <div className="hidden lg:flex items-center justify-between relative px-6 py-3 rounded-2xl bg-white border border-zinc-200/80 shadow-xs">
+          <div className="flex items-center gap-2 text-xs font-bold text-indigo-700">
+            <span className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center font-mono text-[10px]">1</span>
+            <span>01 Talent Discovery</span>
+          </div>
+          <div className="h-px flex-1 mx-4 bg-gradient-to-r from-indigo-200 via-purple-200 to-blue-200" />
+          <div className="flex items-center gap-2 text-xs font-bold text-purple-700">
+            <span className="w-6 h-6 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center font-mono text-[10px]">2</span>
+            <span>02 Rate Intelligence</span>
+          </div>
+          <div className="h-px flex-1 mx-4 bg-gradient-to-r from-purple-200 via-blue-200 to-violet-200" />
+          <div className="flex items-center gap-2 text-xs font-bold text-blue-700">
+            <span className="w-6 h-6 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center font-mono text-[10px]">3</span>
+            <span>03 Campaign Planning</span>
+          </div>
+          <div className="h-px flex-1 mx-4 bg-gradient-to-r from-blue-200 via-violet-200 to-emerald-200" />
+          <div className="flex items-center gap-2 text-xs font-bold text-violet-700">
+            <span className="w-6 h-6 rounded-full bg-violet-50 border border-violet-200 flex items-center justify-center font-mono text-[10px]">4</span>
+            <span>04 Contract Execution</span>
           </div>
         </div>
 

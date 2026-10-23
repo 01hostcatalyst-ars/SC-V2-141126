@@ -315,6 +315,94 @@ export function MarketIntelligenceHub() {
           </div>
         </div>
 
+        {/* Large Financial Valuation Engine Visualization */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-zinc-950 text-white border border-zinc-800 shadow-xl space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Terminal Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4 relative z-10">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">
+                16-Knot Empirical Valuation Engine
+              </span>
+              <span className="text-zinc-600 hidden sm:inline">•</span>
+              <span className="text-xs text-zinc-400 font-mono hidden sm:inline">
+                Active Sector: {currentSector.label}
+              </span>
+            </div>
+            <div className="text-[11px] font-mono text-zinc-400">
+              Benchmark: Dedicated Long-Form Integration (10-15 Min)
+            </div>
+          </div>
+
+          {/* Valuation Centerpiece */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center relative z-10">
+            {/* Left: The Computed Benchmark Figure */}
+            <div className="space-y-2">
+              <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 block">
+                Computed Commercial Benchmark
+              </span>
+              <div className="text-4xl sm:text-5xl font-black font-mono text-white tracking-tight">
+                {currentSector.id === "tech" ? "$14,800" : currentSector.id === "auto" ? "$18,500" : currentSector.id === "fashion" ? "$9,200" : currentSector.id === "gaming" ? "$7,800" : currentSector.id === "creative" ? "$11,200" : "$12,400"}
+              </div>
+              <p className="text-xs text-zinc-400 font-normal leading-relaxed">
+                Mathematically defended deliverable price based on 30-day view velocity and buyer purchasing power.
+              </p>
+            </div>
+
+            {/* Center: The Defended Range Slider / Visual Track */}
+            <div className="lg:col-span-2 space-y-3 p-4 sm:p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-zinc-400">Floor Rate (Min)</span>
+                <span className="text-purple-400 font-bold">Defended Market Range</span>
+                <span className="text-zinc-400">Ceiling Rate (Max)</span>
+              </div>
+
+              {/* Visual Range Bar */}
+              <div className="relative w-full h-3 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="absolute left-[15%] right-[15%] top-0 bottom-0 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 rounded-full" />
+                <div className="absolute left-[50%] -translate-x-1/2 top-0 bottom-0 w-3 bg-white rounded-full shadow-lg" />
+              </div>
+
+              <div className="flex items-center justify-between text-xs font-mono font-bold text-zinc-300">
+                <span>{currentSector.id === "tech" ? "$11,200" : currentSector.id === "auto" ? "$14,000" : currentSector.id === "fashion" ? "$6,800" : currentSector.id === "gaming" ? "$5,500" : currentSector.id === "creative" ? "$8,400" : "$9,800"}</span>
+                <span className="text-white bg-purple-950 px-2 py-0.5 rounded border border-purple-800/60">
+                  Target: {currentSector.id === "tech" ? "$14,800" : currentSector.id === "auto" ? "$18,500" : currentSector.id === "fashion" ? "$9,200" : currentSector.id === "gaming" ? "$7,800" : currentSector.id === "creative" ? "$11,200" : "$12,400"}
+                </span>
+                <span>{currentSector.id === "tech" ? "$19,500" : currentSector.id === "auto" ? "$24,000" : currentSector.id === "fashion" ? "$12,500" : currentSector.id === "gaming" ? "$10,800" : currentSector.id === "creative" ? "$15,000" : "$16,200"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom: 4 Empirical Valuation Multipliers Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 relative z-10">
+            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 space-y-1">
+              <span className="text-[10px] font-mono uppercase text-zinc-500 block">01 Base Sector CPM</span>
+              <div className="text-sm font-bold font-mono text-zinc-200">{currentSector.medianCpm}</div>
+              <span className="text-[10px] text-zinc-500 block">Deliverable baseline</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 space-y-1">
+              <span className="text-[10px] font-mono uppercase text-zinc-500 block">02 View Velocity</span>
+              <div className="text-sm font-bold font-mono text-emerald-400">1.84x Velocity</div>
+              <span className="text-[10px] text-zinc-500 block">72h vs 30d reach ratio</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 space-y-1">
+              <span className="text-[10px] font-mono uppercase text-zinc-500 block">03 Retention Score</span>
+              <div className="text-sm font-bold font-mono text-indigo-400">64.8% Retained</div>
+              <span className="text-[10px] text-zinc-500 block">Skip-resistance index</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 space-y-1">
+              <span className="text-[10px] font-mono uppercase text-zinc-500 block">04 Geographic PPP</span>
+              <div className="text-sm font-bold font-mono text-purple-400">1.42x PPP Factor</div>
+              <span className="text-[10px] text-zinc-500 block">{currentSector.activeGeo}</span>
+            </div>
+          </div>
+        </div>
+
         {/* Creators Grid Container: Same Cards as Creators Directory */}
         <div className="relative">
           {loading ? (
