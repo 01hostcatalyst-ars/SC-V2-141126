@@ -34,74 +34,76 @@ interface FeaturedCreator {
 
 const FEATURED_CREATORS: FeaturedCreator[] = [
   {
-    name: "Dhar Mann Studios",
-    handle: "@dharmann",
-    slug: "dhar-mann-bonus",
+    name: "Taylor Bell",
+    handle: "@taylorbell",
+    slug: "taylor-bell",
     avatarUrl:
-      "https://yt3.ggpht.com/osxs7UlkTYpb0Ug57x02xu87r5jRTLh8q7LIsBEPJaqoplqfHSdSN3xi86AEetbJBvXFO1qonQ=s800-c-k-c0x00ffffff-no-rj",
-    vertical: "Scripted Narrative Drama",
+      "https://yt3.ggpht.com/ytc/AIdro_lXTiF6VGosOCfOCHMhRUE8e1TQ5xs-qQOrsDFyQswdzhA=s800-c-k-c0x00ffffff-no-rj",
+    vertical: "Lifestyle & Entertainment",
     country: "United States (US)",
-    reach: "23.4M Subs",
+    reach: "1.1M Reach",
     platforms: {
-      youtube: "23.4M",
-      instagram: "5.8M",
-      tiktok: "12.1M",
+      youtube: "958K",
+      instagram: "142K",
+      tiktok: "31.8K",
     },
-    rateRange: "$18,000 – $28,500",
+    rateRange: "$290 – $23,200",
     buyerIntent: "High Intent",
-    safetyScore: "99% Brand Safe",
+    safetyScore: "100% Brand Safe",
   },
   {
-    name: "Marques Brownlee",
-    handle: "@mkbhd",
-    slug: "marques-brownlee-mkbhd",
+    name: "Ellie Hoad",
+    handle: "@ellena_fit",
+    slug: "ellie-hoad",
     avatarUrl:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop",
-    vertical: "Consumer Tech & Hardware",
-    country: "United States (US)",
-    reach: "18.6M Subs",
+      "https://yt3.ggpht.com/2FinkOCbsOIcnFM_N2BF8Um-VV52eL6XcKUx9baTlHrzTPA955Jhn93K5JY4jNOwPimEZZNwbQ=s800-c-k-c0x00ffffff-no-rj",
+    vertical: "Health & Fitness",
+    country: "United Kingdom (GB)",
+    reach: "981K Reach",
     platforms: {
-      youtube: "18.6M",
-      instagram: "4.7M",
+      youtube: "67K",
+      instagram: "488K",
+      tiktok: "426K",
     },
-    rateRange: "$28,000 – $45,000",
+    rateRange: "$170 – $3,825",
+    buyerIntent: "High Engagement",
+    safetyScore: "100% Brand Safe",
+  },
+  {
+    name: "The Chan Fam",
+    handle: "@thechanfam",
+    slug: "the-chan-fam",
+    avatarUrl:
+      "https://yt3.ggpht.com/6tZ1SpiG0xDIczHIlInmVnjUVkJ8Or6m0RPNOVzNELBapZotI5fbGkGoujas6T_WhpHg2-jHfAQ=s800-c-k-c0x00ffffff-no-rj",
+    vertical: "Family & Parenting",
+    country: "Canada (CA)",
+    reach: "402K Reach",
+    platforms: {
+      youtube: "365K",
+      instagram: "21K",
+      tiktok: "16.7K",
+    },
+    rateRange: "$130 – $7,150",
+    buyerIntent: "High Engagement",
+    safetyScore: "100% Brand Safe",
+  },
+  {
+    name: "#ABtalks",
+    handle: "@abtalks",
+    slug: "abtalks",
+    avatarUrl:
+      "https://yt3.ggpht.com/6BzQy5ZNP48AotNkOzIlh-R03JqxR7W16B4qbFBC-fdABIJacPbzvaFTJbUoksBZY8NAHjSb=s800-c-k-c0x00ffffff-no-rj",
+    vertical: "Lifestyle & Human Stories",
+    country: "United Arab Emirates (AE)",
+    reach: "10.2M Reach",
+    platforms: {
+      youtube: "3.7M",
+      instagram: "3.4M",
+      tiktok: "3.1M",
+    },
+    rateRange: "$7,075 – $110,000",
     buyerIntent: "Very High Intent",
     safetyScore: "100% Brand Safe",
-  },
-  {
-    name: "Ali Abdaal",
-    handle: "@aliabdaal",
-    slug: "ali-abdaal",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
-    vertical: "Productivity & Prosumer",
-    country: "United Kingdom (UK)",
-    reach: "5.4M Subs",
-    platforms: {
-      youtube: "5.4M",
-      instagram: "1.2M",
-      tiktok: "850K",
-    },
-    rateRange: "$12,000 – $19,500",
-    buyerIntent: "High Intent",
-    safetyScore: "100% Brand Safe",
-  },
-  {
-    name: "Areeba Hassaan",
-    handle: "@areebahassaan",
-    slug: "areeba-hassaan",
-    avatarUrl: "/images/creator_hero_portrait.jpg",
-    vertical: "Travel & Lifestyle",
-    country: "Pakistan & GCC",
-    reach: "2.7M Reach",
-    platforms: {
-      youtube: "1.2M",
-      instagram: "892K",
-      tiktok: "654K",
-    },
-    rateRange: "$2,400 – $4,800",
-    buyerIntent: "High Engagement",
-    safetyScore: "98% Brand Safe",
   },
 ];
 
@@ -223,7 +225,7 @@ export function LiveDirectoryShowcase() {
                 {/* Header: Photo + Name + Handle */}
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-zinc-100 shrink-0 ring-1 ring-zinc-200">
+                    <div className="relative w-14 h-14 rounded-full overflow-hidden bg-zinc-100 shrink-0 ring-1 ring-zinc-200">
                       <img
                         src={creator.avatarUrl}
                         alt={creator.name}
@@ -238,7 +240,7 @@ export function LiveDirectoryShowcase() {
                       />
                       <div
                         style={{ display: "none" }}
-                        className="w-full h-full bg-indigo-50 text-indigo-700 font-bold text-base flex items-center justify-center"
+                        className="w-full h-full bg-indigo-50 text-indigo-700 font-bold text-base flex items-center justify-center rounded-full"
                       >
                         {creator.name.charAt(0)}
                       </div>
