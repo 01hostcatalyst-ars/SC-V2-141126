@@ -19,12 +19,12 @@ export function ProblemStatementSection() {
           <div className="lg:col-span-7 flex items-center justify-center">
             <div className="relative w-full max-w-lg lg:max-w-none flex items-center justify-center">
               <Image
-                src="/images/creator_economy_dilemma_workflow.png"
-                alt="The fragmented creator economy commercial workflow illustrating scattered DMs, spreadsheets, and contract disputes"
-                width={491}
-                height={572}
+                src="/images/Creator Workflow Ecosystem-SignCollab.png"
+                alt="Creator Workflow Ecosystem illustrating fragmented DMs, spreadsheets, and contract disputes"
+                width={1086}
+                height={1448}
                 priority
-                className="w-full max-w-[500px] lg:max-w-[540px] h-auto object-contain select-none"
+                className="w-full max-w-[480px] lg:max-w-[560px] h-auto object-contain select-none rounded-2xl"
               />
             </div>
           </div>
