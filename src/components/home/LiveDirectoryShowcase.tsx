@@ -13,6 +13,11 @@ import {
   TrendingUp,
   Globe,
 } from "lucide-react";
+import {
+  YouTubeIcon,
+  InstagramIcon,
+  TikTokIcon,
+} from "@/components/icons/PlatformIcons";
 
 interface FeaturedCreator {
   name: string;
@@ -270,35 +275,40 @@ export function LiveDirectoryShowcase() {
                   </div>
 
                   {/* Platform Metrics Strip */}
-                  <div className="grid grid-cols-3 gap-1 pt-1 text-[10px] font-mono font-bold text-center">
+                  <div className="grid grid-cols-3 gap-1.5 pt-1">
                     {creator.platforms.youtube && (
-                      <div className="p-1 rounded bg-red-50 text-red-700">
-                        <span className="block text-[9px] text-red-500">YT</span>
-                        {creator.platforms.youtube}
+                      <div className="p-2 rounded-xl bg-red-50/50 border border-red-100/70 flex flex-col items-center justify-center text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <YouTubeIcon className="w-3.5 h-3.5 shrink-0" />
+                          <span className="text-[10px] font-semibold text-zinc-700">YouTube</span>
+                        </div>
+                        <span className="text-xs font-bold font-mono text-zinc-950">
+                          {creator.platforms.youtube}
+                        </span>
                       </div>
                     )}
                     {creator.platforms.instagram && (
-                      <div className="p-1 rounded bg-pink-50 text-pink-700">
-                        <span className="block text-[9px] text-pink-500">IG</span>
-                        {creator.platforms.instagram}
+                      <div className="p-2 rounded-xl bg-pink-50/40 border border-pink-100/70 flex flex-col items-center justify-center text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <InstagramIcon className="w-3.5 h-3.5 shrink-0 rounded-[3px]" />
+                          <span className="text-[10px] font-semibold text-zinc-700">Instagram</span>
+                        </div>
+                        <span className="text-xs font-bold font-mono text-zinc-950">
+                          {creator.platforms.instagram}
+                        </span>
                       </div>
                     )}
                     {creator.platforms.tiktok && (
-                      <div className="p-1 rounded bg-zinc-100 text-zinc-800">
-                        <span className="block text-[9px] text-zinc-500">TT</span>
-                        {creator.platforms.tiktok}
+                      <div className="p-2 rounded-xl bg-zinc-50 border border-zinc-200/70 flex flex-col items-center justify-center text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <TikTokIcon className="w-3.5 h-3.5 shrink-0 rounded-[3px]" />
+                          <span className="text-[10px] font-semibold text-zinc-700">TikTok</span>
+                        </div>
+                        <span className="text-xs font-bold font-mono text-zinc-950">
+                          {creator.platforms.tiktok}
+                        </span>
                       </div>
                     )}
-                  </div>
-
-                  {/* Valuation Range Box */}
-                  <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 space-y-0.5">
-                    <span className="text-[10px] uppercase font-mono font-bold text-purple-700 block">
-                      Audited Valuation
-                    </span>
-                    <div className="text-xs font-black font-mono text-zinc-950">
-                      {creator.rateRange}
-                    </div>
                   </div>
                 </div>
 
@@ -308,7 +318,7 @@ export function LiveDirectoryShowcase() {
                     href={`/creators/${creator.slug}`}
                     className="inline-flex items-center justify-between w-full px-3 py-2 rounded-xl bg-zinc-50 hover:bg-indigo-50 text-zinc-800 hover:text-indigo-700 text-xs font-bold transition-all"
                   >
-                    <span>View Profile</span>
+                    <span>View Profile and Rates</span>
                     <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </div>
