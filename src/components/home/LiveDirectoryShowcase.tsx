@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Users,
-  Search,
   ArrowRight,
   Sparkles,
   CheckCircle2,
@@ -113,19 +111,6 @@ const FEATURED_CREATORS: FeaturedCreator[] = [
 ];
 
 export function LiveDirectoryShowcase() {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = searchQuery.trim();
-    if (q) {
-      router.push(`/creators?q=${encodeURIComponent(q)}`);
-    } else {
-      router.push("/creators");
-    }
-  };
-
   const popularNiches = [
     { label: "Tech & Hardware", nicheId: 6 },
     { label: "Lifestyle & Entertainment", nicheId: 8 },
@@ -165,42 +150,20 @@ export function LiveDirectoryShowcase() {
           </Link>
         </div>
 
-        {/* Search Bar & Filter Strip */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-indigo-100 shadow-xl shadow-indigo-500/5 space-y-6">
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-center gap-3">
-            <div className="relative flex-1 w-full">
-              <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by creator name, @handle, or topic (e.g. tech, fitness, travel)..."
-                className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm text-zinc-900 placeholder:text-zinc-400 font-medium transition-all"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs sm:text-sm transition-colors shrink-0 cursor-pointer"
+        {/* Popular Vertical Chips */}
+        <div className="flex items-center gap-2 flex-wrap p-4 sm:p-5 rounded-2xl bg-white border border-zinc-200/80 shadow-xs">
+          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider font-mono mr-1">
+            Popular Verticals:
+          </span>
+          {popularNiches.map((niche) => (
+            <Link
+              key={niche.nicheId}
+              href={`/creators?nicheId=${niche.nicheId}`}
+              className="px-3 py-1.5 rounded-xl bg-zinc-50 hover:bg-indigo-50 text-zinc-700 hover:text-indigo-700 border border-zinc-200/80 hover:border-indigo-200 text-xs font-semibold transition-all cursor-pointer"
             >
-              Search Creators
-            </button>
-          </form>
-
-          {/* Popular Vertical Chips */}
-          <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-zinc-100">
-            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider font-mono mr-1">
-              Popular Verticals:
-            </span>
-            {popularNiches.map((niche) => (
-              <Link
-                key={niche.nicheId}
-                href={`/creators?nicheId=${niche.nicheId}`}
-                className="px-3 py-1.5 rounded-xl bg-zinc-50 hover:bg-indigo-50 text-zinc-700 hover:text-indigo-700 border border-zinc-200/80 hover:border-indigo-200 text-xs font-semibold transition-all cursor-pointer"
-              >
-                {niche.label}
-              </Link>
-            ))}
-          </div>
+              {niche.label}
+            </Link>
+          ))}
         </div>
 
         {/* The Living Creator Database Showcase (4 Prominent Creator Tiles) */}
