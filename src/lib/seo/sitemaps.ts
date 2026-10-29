@@ -90,6 +90,12 @@ export function buildUrlSetXml(entries: SitemapEntry[]): string {
 export function getStaticSitemapEntries(baseUrl: string): SitemapEntry[] {
   const now = new Date();
   return [
+    ...["privacy", "data-deletion"].map((path): SitemapEntry => ({
+      url: `${baseUrl}/${path}`,
+      lastModified: new Date("2026-10-29T00:00:00Z"),
+      changeFrequency: "monthly",
+      priority: 0.3,
+    })),
     {
       url: `${baseUrl}`,
       lastModified: now,

@@ -26,6 +26,8 @@ export function PublicFooter() {
     { label: "Vision & Mission", href: "/vision" },
     { label: "Contact & Support", href: "/contact" },
     { label: "Terms of Service", href: "/terms" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Data Deletion", href: "/data-deletion" },
   ];
 
   return (
