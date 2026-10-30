@@ -1,3 +1,5 @@
+import { latestProfileRefresh } from "./refresh-records";
+import { oldestSourceDate, sourcesFromSteps, ProfileFreshness, ProfileSources, RefreshAccounts, RefreshSteps } from "./refresh-policy";
 import { prisma } from "@/lib/prisma";
 import { Platform, DeliverableFormat, RegionCode } from "@/lib/calculator/types";
 import {
@@ -40,6 +42,7 @@ export interface PlatformResolvedState {
 }
 
 export interface FullResolvedCreatorProfile {
+  freshness?: ProfileFreshness;
   clusterId: string;
   slug: string;
   canonicalName: string;
@@ -107,6 +110,7 @@ export interface FullResolvedCreatorProfile {
   };
   omnichannelPackages: GeneratedPackage[];
   recentMedia: {
+    collectedAt?: Partial<Record<Platform, string>>;
     youtubeVideos: any[];
     instagramPosts: any[];
     tiktokVideos: any[];
@@ -137,7 +141,7 @@ export function formatCompactFollowers(num: number): string {
 /**
  * Computes exact 16-knot deliverable benchmark rates for a specific platform and format
  */
-function computeFormat16KnotRate(params: {
+export function computeFormat16KnotRate(params: {
   platform: Platform;
   format: DeliverableFormat;
   label: string;
@@ -395,12 +399,13 @@ export function computeFlagship16KnotRates(params: {
  * Resolves full 16-knot multi-factor intelligence dossier for a creator by slug or handle
  */
 export async function resolveFullCreatorProfile(
-  slugOrHandle: string
+  slugOrHandle: string,
+  options: { sources?: ProfileSources; accounts?: RefreshAccounts } = {}
 ): Promise<FullResolvedCreatorProfile | null> {
   const clean = decodeURIComponent(slugOrHandle).toLowerCase().trim().replace(/^@+/, "");
 
   // 1. Resolve Identity Cluster
-  const cluster = await prisma.creatorIdentityCluster.findFirst({
+  const savedCluster = await prisma.creatorIdentityCluster.findFirst({
     where: {
       OR: [
         { slug: clean },
@@ -411,7 +416,12 @@ export async function resolveFullCreatorProfile(
     },
   });
 
-  if (!cluster) return null;
+  if (!savedCluster) return null;
+  const cluster = options.accounts ? { ...savedCluster,
+    youtubeHandle: options.accounts.youtube || savedCluster.youtubeHandle,
+    instagramUsername: options.accounts.instagram || savedCluster.instagramUsername,
+    tiktokUsername: options.accounts.tiktok || savedCluster.tiktokUsername } : savedCluster;
+  const refresh = options.sources ? null : await latestProfileRefresh(cluster.id);
 
   // 2. Fetch Latest Creator Intelligence Dossier
   const handlesToSearch = [
@@ -421,7 +431,7 @@ export async function resolveFullCreatorProfile(
     cluster.canonicalName,
   ].filter(Boolean) as string[];
 
-  const intel = await prisma.creatorIntelligence.findFirst({
+  const latestIntel = await prisma.creatorIntelligence.findFirst({
     where: {
       OR: [
         ...handlesToSearch.map((h) => ({ creatorHandle: { equals: h, mode: "insensitive" as const } })),
@@ -431,10 +441,21 @@ export async function resolveFullCreatorProfile(
     orderBy: { createdAt: "desc" },
   });
 
+  const newerOrdinaryAnalysis = refresh && latestIntel && !latestIntel.youtubeScrapeId && !latestIntel.instagramScrapeId && !latestIntel.tiktokScrapeId && latestIntel.id !== refresh.intelligenceId
+    && latestIntel.createdAt.getTime() > (refresh.completedAt || refresh.createdAt).getTime();
+  const refreshStillActive = refresh && ["collecting", "analyzing"].includes(refresh.status) && refresh.expiresAt.getTime() > Date.now();
+  if (refresh && refresh.status !== "completed" && (refreshStillActive || !newerOrdinaryAnalysis)) {
+    const baseline = refresh.baselineProfile as unknown as FullResolvedCreatorProfile;
+    return { ...baseline, isClaimed: cluster.isClaimed, verifiedEmail: cluster.verifiedEmail, verificationLevel: cluster.verificationLevel };
+  }
+  const sources = options.sources || (refresh?.status === "completed" && !newerOrdinaryAnalysis
+    ? sourcesFromSteps(refresh.steps as RefreshSteps, refresh.intelligenceId) : undefined);
+  const intel = sources ? (sources.intelligence ? await prisma.creatorIntelligence.findUnique({ where: { id: sources.intelligence } }) : null) : latestIntel;
+
   // 3. Fetch Raw Scrapes for All Three Platforms
   const [ytScrape, igScrape, ttScrape] = await Promise.all([
     cluster.youtubeHandle
-      ? prisma.youTubeScrape.findFirst({
+      ? sources ? (sources.youtube ? prisma.youTubeScrape.findUnique({ where: { id: sources.youtube } }) : null) : prisma.youTubeScrape.findFirst({
           where: {
             OR: [
               { handle: cluster.youtubeHandle },
@@ -445,7 +466,7 @@ export async function resolveFullCreatorProfile(
         })
       : null,
     cluster.instagramUsername
-      ? prisma.instagramScrape.findFirst({
+      ? sources ? (sources.instagram ? prisma.instagramScrape.findUnique({ where: { id: sources.instagram } }) : null) : prisma.instagramScrape.findFirst({
           where: {
             OR: [
               { instagramUsername: cluster.instagramUsername },
@@ -456,7 +477,7 @@ export async function resolveFullCreatorProfile(
         })
       : null,
     cluster.tiktokUsername
-      ? prisma.tikTokScrape.findFirst({
+      ? sources ? (sources.tiktok ? prisma.tikTokScrape.findUnique({ where: { id: sources.tiktok } }) : null) : prisma.tikTokScrape.findFirst({
           where: {
             OR: [
               { tiktokUsername: cluster.tiktokUsername },
@@ -473,9 +494,9 @@ export async function resolveFullCreatorProfile(
     ? (rawLlm as CompleteCreatorIntelligence)
     : undefined;
 
-  const primaryNicheId = cluster.primaryNicheId || intel?.primaryNicheId || 8;
+  const primaryNicheId = (sources ? intel?.primaryNicheId : cluster.primaryNicheId) || intel?.primaryNicheId || 8;
   const primaryNicheName =
-    cluster.primaryNicheName ||
+    (sources ? intel?.primaryNicheName : cluster.primaryNicheName) ||
     intel?.primaryNicheName ||
     PRIMARY_NICHES.find((n) => n.id === primaryNicheId)?.name ||
     "Lifestyle & Entertainment";
@@ -842,6 +863,15 @@ export async function resolveFullCreatorProfile(
     (resolvedTiktok?.followerCount || 0) || Number(cluster.combinedFollowers);
 
   return {
+    freshness: {
+      oldestSourceAt: oldestSourceDate([
+        ...(cluster.youtubeHandle ? [ytScrape?.lastScrapedAt || ytScrape?.createdAt] : []),
+        ...(cluster.instagramUsername ? [igScrape?.lastScrapedAt || igScrape?.createdAt] : []),
+        ...(cluster.tiktokUsername ? [ttScrape?.lastScrapedAt || ttScrape?.createdAt] : []),
+        intel?.createdAt,
+      ]),
+      sources: { youtube: ytScrape?.id, instagram: igScrape?.id, tiktok: ttScrape?.id, intelligence: intel?.id },
+    },
     clusterId: cluster.id,
     slug: cluster.slug || clean,
     canonicalName: cluster.canonicalName,
@@ -937,6 +967,10 @@ export async function resolveFullCreatorProfile(
     },
     omnichannelPackages,
     recentMedia: {
+      collectedAt: Object.fromEntries(Object.entries({ youtube: ytScrape, instagram: igScrape, tiktok: ttScrape }).flatMap(([platform, scrape]) => {
+        const date = scrape?.lastScrapedAt || scrape?.createdAt;
+        return date ? [[platform, new Date(date).toISOString()]] : [];
+      })),
       youtubeVideos: [
         ...(Array.isArray(ytScrape?.longVideos) ? (ytScrape.longVideos as any[]) : []),
         ...(Array.isArray(ytScrape?.shortVideos) ? (ytScrape.shortVideos as any[]) : []),

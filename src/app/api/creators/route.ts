@@ -1,7 +1,11 @@
+import { refreshedDirectoryCard } from "@/lib/creators/refresh-directory";
+import { refreshSchemaMissing } from "@/lib/creators/refresh-records";
+import { resolveFullCreatorProfile } from "@/lib/creators/profile-resolver";
+import { resolveAudienceCountry } from "@/lib/creators/audience-country";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { computeFlagship16KnotRates } from '@/lib/creators/profile-resolver';
+import { computeFlagship16KnotRates, computeFormat16KnotRate } from '@/lib/creators/profile-resolver';
 import { REGIONAL_CONFIG, PRIMARY_NICHES } from '@/lib/calculator/constants';
 import type { RegionCode } from '@/lib/calculator/types';
 
@@ -211,6 +215,7 @@ export async function GET(request: NextRequest) {
               stats: true,
               avgViewsPerVideo: true,
               longVideos: true,
+              shortVideos: true,
               avatarUrl: true,
             },
             orderBy: { createdAt: 'desc' },
@@ -271,6 +276,10 @@ export async function GET(request: NextRequest) {
       er: number;
       lfEr: number;
       sfEr: number;
+      hasActualShorts: boolean;
+      avgShortViews: number;
+      avgShortLikes: number;
+      avgShortComments: number;
       avgViews?: number;
       avgLikes?: number;
       avgComments?: number;
@@ -299,6 +308,23 @@ export async function GET(request: NextRequest) {
           avgComments = Math.round(avgLikes * 0.08);
         }
 
+        // Match the profile resolver's Shorts sampling and input preparation.
+        const shortVideosList = Array.isArray(s.shortVideos) ? (s.shortVideos as any[]) : [];
+        const hasActualShorts = shortVideosList.length > 0 || Number(stats?.totalShortVideosFetched || 0) > 0;
+        const avgShortViews = hasActualShorts && Number(stats?.avgShortVideoViews || 0) > 0
+          ? Number(stats.avgShortVideoViews) : 0;
+        const sampleShortVids = shortVideosList.filter((v: any) => v.isErSample);
+        const targetShortVids = sampleShortVids.length > 0 ? sampleShortVids : shortVideosList;
+        let avgShortLikes = 0;
+        let avgShortComments = 0;
+        if (targetShortVids.length > 0) {
+          avgShortLikes = Math.round(targetShortVids.reduce((sum: number, v: any) => sum + Number(v.likeCount || 0), 0) / targetShortVids.length);
+          avgShortComments = Math.round(targetShortVids.reduce((sum: number, v: any) => sum + Number(v.commentCount || 0), 0) / targetShortVids.length);
+        } else if (hasActualShorts && Number(stats?.avgShortEngagementRate || 0) > 0 && avgShortViews > 0) {
+          avgShortLikes = Math.round(avgShortViews * (Number(stats.avgShortEngagementRate) / 100));
+          avgShortComments = Math.round(avgShortLikes * 0.05);
+        }
+
         const existing = ytMap.get(cleanH);
         if (!existing) {
           ytMap.set(cleanH, {
@@ -306,6 +332,10 @@ export async function GET(request: NextRequest) {
             er: lf,
             lfEr: lf,
             sfEr: sf,
+            hasActualShorts,
+            avgShortViews,
+            avgShortLikes,
+            avgShortComments,
             avgViews,
             avgLikes,
             avgComments,
@@ -412,16 +442,27 @@ export async function GET(request: NextRequest) {
         c.canonicalName,
       ].filter(Boolean) as string[];
 
-      let foundIntel: any = null;
-      for (const cand of candidates) {
-        const match = intelMap.get(cand.toLowerCase().replace(/^@+/, ''));
-        if (match) {
-          foundIntel = match;
-          break;
-        }
-      }
+      // Aliases identify one creator; select by freshness, not alias priority.
+      const foundIntel = candidates
+        .map((cand) => intelMap.get(cand.toLowerCase().replace(/^@+/, '')))
+        .filter(Boolean)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] || null;
 
       const rawLlm: any = foundIntel?.rawLlmResponse || {};
+      const rawAudience = rawLlm?.audience || foundIntel?.audienceIntelligence || {};
+      const audienceText = (value: unknown): string | undefined =>
+        typeof value === "string" && value.trim() ? value.trim() : undefined;
+      const audienceFit = {
+        demographicProfile: audienceText(rawAudience.genderSkew)
+          ? [audienceText(rawAudience.genderSkew), audienceText(rawAudience.likelyAgeRange)].filter(Boolean).join(" · ")
+          : audienceText(rawAudience.demographicProfile) || audienceText(rawAudience.profile),
+        commercialBuyerIntent: audienceText(rawAudience.purchaseIntent)
+          ? `${audienceText(rawAudience.purchaseIntent)} Intent`
+          : audienceText(rawAudience.audienceIntent),
+        interests: Array.isArray(rawAudience.interests)
+          ? rawAudience.interests.filter((item: unknown): item is string => typeof item === "string" && item.trim().length > 0)
+          : [],
+      };
       const subNicheName: string | null =
         rawLlm?.profile?.subNiche?.name ||
         (Array.isArray(foundIntel?.secondaryNiches) && foundIntel.secondaryNiches[0] ? String(foundIntel.secondaryNiches[0]) : null) ||
@@ -505,6 +546,31 @@ export async function GET(request: NextRequest) {
         regionCode,
       });
 
+      if (ytObj && ytData?.hasActualShorts) {
+        const shortRate = computeFormat16KnotRate({
+          platform: "youtube",
+          format: "yt_short",
+          label: "YouTube Short",
+          followerCount: ytObj.followers,
+          avgViews: ytData.avgShortViews,
+          avgLikes: ytData.avgShortLikes,
+          avgComments: ytData.avgShortComments,
+          primaryNicheId: c.primaryNicheId || foundIntel?.primaryNicheId || 8,
+          subNicheId,
+          secondaryNicheIds,
+          productionLevel,
+          isLuxuryOrHighEnd,
+          regionCode,
+          observedErOverride: ytData.sfEr,
+        });
+        flagshipRates.push({
+          platform: "youtube",
+          ...shortRate,
+          erPercent: ytData.sfEr,
+          erLabel: `${ytData.sfEr}% Shorts Engagement`,
+        });
+      }
+
       // Platform avatar priority: YouTube -> TikTok -> Instagram -> Cluster fallback -> null
       const resolvedAvatarUrl =
         ytData?.avatarUrl ||
@@ -533,14 +599,29 @@ export async function GET(request: NextRequest) {
           tiktok: ttObj,
         },
         flagshipRates,
+        audienceFit,
+        primaryAudienceCountry: resolveAudienceCountry(rawAudience.primaryMarket),
       };
     });
+
+    let completedCreators: Array<(typeof formattedCreators)[number] | import("@/components/creators/CreatorCard").CreatorItem> = formattedCreators;
+    try {
+      const refreshes = await prisma.creatorProfileRefresh.findMany({ where: { clusterId: { in: creators.map(creator => creator.id) } }, select: { clusterId: true }, distinct: ["clusterId"] });
+      const refreshedIds = new Set(refreshes.map(refresh => refresh.clusterId));
+      completedCreators = await Promise.all(formattedCreators.map(async creator => {
+        if (!refreshedIds.has(creator.id) || !creator.slug) return creator;
+        const profile = await resolveFullCreatorProfile(creator.slug);
+        return profile ? { ...creator, ...refreshedDirectoryCard({ ...creator, slug: creator.slug }, profile) } : creator;
+      }));
+    } catch (error) {
+      if (!refreshSchemaMissing(error)) throw error;
+    }
 
     const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
       success: true,
-      creators: formattedCreators,
+      creators: completedCreators,
       pagination: {
         totalCount,
         totalPages,

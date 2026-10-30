@@ -1724,7 +1724,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
 
           {/* DOCKED STICKY BAR WHEN SCROLLED PAST HERO */}
           {isStickyBarVisible && (
-            <div className="sticky top-16 sm:top-20 z-30 w-full transition-all duration-300 animate-slideDown">
+            <div className="sticky top-20 sm:top-24 z-30 w-full transition-all duration-300 animate-slideDown">
               <div className="surface-card p-2 sm:p-2.5 rounded-2xl shadow-lg border border-zinc-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shrink-0">

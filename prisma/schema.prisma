@@ -854,3 +854,21 @@ model CreatorIdentityCluster {
   @@map("creator_identity_clusters")
 }
 
+
+// A browser-driven refresh and its exact source records. Existing snapshots stay immutable.
+model CreatorProfileRefresh {
+  id String @id @default(uuid())
+  clusterId String @map("cluster_id")
+  tokenHash String @map("token_hash")
+  status String @default("collecting")
+  accounts Json
+  steps Json
+  baselineProfile Json @map("baseline_profile")
+  intelligenceId String? @map("intelligence_id")
+  oldestSourceAt DateTime? @map("oldest_source_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+  completedAt DateTime? @map("completed_at")
+  @@index([clusterId, createdAt(sort: Desc)])
+  @@map("creator_profile_refreshes")
+}

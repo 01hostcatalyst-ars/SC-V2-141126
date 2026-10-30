@@ -73,6 +73,7 @@ export interface YouTubeScraperData {
     avgLongEngagementRate: number;
     avgShortEngagementRate: number;
   };
+  snapshotId?: string;
   scrapedAt: string;
   isCached?: boolean;
   cacheAgeHours?: number;
@@ -165,6 +166,7 @@ export interface InstagramScraperData {
     avgCommentsFormatted: string;
     avgEngagementRate: number;
   };
+  snapshotId?: string;
   scrapedAt: string;
   isCached?: boolean;
   cacheAgeHours?: number;
@@ -239,6 +241,7 @@ export interface TikTokScraperData {
     avgSharesFormatted: string;
     avgEngagementRate: number;
   };
+  snapshotId?: string;
   scrapedAt: string;
   isCached?: boolean;
   cacheAgeHours?: number;

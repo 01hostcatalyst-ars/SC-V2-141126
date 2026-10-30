@@ -1,25 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useTransition } from "react";
-import Link from "next/link";
+import React, { useState, useEffect, useCallback, useTransition, useRef, useId } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Search,
-  Filter,
-  Users,
-  DollarSign,
-  TrendingUp,
-  ShieldCheck,
-  ArrowRight,
-  ExternalLink,
-  ChevronLeft,
-  ChevronRight,
-  RotateCcw,
-  SlidersHorizontal,
-  X,
-  FileText,
-  Sparkles,
-} from "lucide-react";
+import { Search, Users, ChevronLeft, ChevronRight, ChevronDown, Check, X, ArrowUpDown } from "lucide-react";
 import { PRIMARY_NICHES } from "@/lib/calculator/constants";
 import {
   YouTubeIcon,
@@ -27,6 +10,7 @@ import {
   TikTokIcon,
 } from "@/components/icons/PlatformIcons";
 import { CreatorCard, CreatorItem } from "./CreatorCard";
+import { buildCreatorsDirectoryJsonLd, type DirectoryCreatorItem } from "@/lib/creators/directory-schema";
 
 interface ApiResponse {
   success: boolean;
@@ -63,6 +47,52 @@ const FOLLOWER_TIERS = [
   { id: "nano", label: "Nano (< 10K)" },
 ];
 
+const SORT_OPTIONS = [
+  { value: "followers_desc", label: "Most followers" },
+  { value: "followers_asc", label: "Fewest followers" },
+  { value: "rate_desc", label: "Highest estimated rate" },
+  { value: "rate_asc", label: "Lowest estimated rate" },
+  { value: "name_asc", label: "Name: A–Z" },
+  { value: "recent", label: "Recently discovered" },
+];
+
+function DirectoryFilterChip({ label, value, options, onChange, active = false, sortControl = false }: {
+  label: string;
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+  active?: boolean;
+  sortControl?: boolean;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const id = useId();
+  const [anchor, setAnchor] = useState({ left: 0, top: 0 });
+  const selected = options.find((option) => option.value === value)?.label;
+  const open = () => {
+    const rect = trigger.current?.getBoundingClientRect();
+    if (rect) setAnchor({ left: Math.max(12, Math.min(rect.left, window.innerWidth - 332)), top: Math.min(rect.bottom + 8, Math.max(12, window.innerHeight - 360)) });
+    dialog.current?.showModal();
+  };
+  return (
+    <>
+      <button ref={trigger} type="button" className="directory-filter-chip" data-active={active} aria-haspopup="dialog" onClick={open}>
+        {sortControl && <ArrowUpDown aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />}
+        <span>{sortControl ? selected : active ? `${label}: ${selected}` : label}</span>
+        <ChevronDown aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+      </button>
+      <dialog ref={dialog} className="directory-filter-dialog" aria-labelledby={id} style={{ "--filter-left": `${anchor.left}px`, "--filter-top": `${anchor.top}px` } as React.CSSProperties} onClick={(event) => { if (event.target === event.currentTarget) dialog.current?.close(); }}>
+        <div className="directory-filter-panel">
+          <div className="directory-filter-panel-heading"><h2 id={id}>{sortControl ? "Sort creators" : label === "Followers" ? "Combined follower bracket" : label}</h2><button type="button" aria-label={`Close ${label}`} onClick={() => dialog.current?.close()}><X aria-hidden="true" className="h-4 w-4" /></button></div>
+          <div className="directory-filter-options" role="group" aria-label={label}>
+            {options.map((option) => <button key={option.value} type="button" aria-pressed={value === option.value} onClick={() => { onChange(option.value); dialog.current?.close(); }}><span>{option.label}</span>{value === option.value && <Check aria-hidden="true" className="h-4 w-4 shrink-0" />}</button>)}
+          </div>
+        </div>
+      </dialog>
+    </>
+  );
+}
+
 export function CreatorDirectoryView() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -87,8 +117,10 @@ export function CreatorDirectoryView() {
   const [page, setPage] = useState(initialPage);
 
   const [data, setData] = useState<ApiResponse | null>(null);
+  const [resultQuery, setResultQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const pageSize = 10;
 
   // Debounce search
   useEffect(() => {
@@ -102,6 +134,7 @@ export function CreatorDirectoryView() {
   // Sync state to URL and fetch data
   const fetchData = useCallback(async () => {
     setIsLoading(true);
+    setLoadError(null);
     const params = new URLSearchParams();
 
     if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
@@ -111,7 +144,7 @@ export function CreatorDirectoryView() {
     if (tier && tier !== "all") params.set("tier", tier);
     if (sort) params.set("sort", sort);
     if (page > 1) params.set("page", page.toString());
-    params.set("limit", "24");
+    params.set("limit", String(pageSize));
 
     const queryStr = params.toString();
     startTransition(() => {
@@ -121,15 +154,17 @@ export function CreatorDirectoryView() {
     try {
       const res = await fetch(`/api/creators?${queryStr}`);
       const json = await res.json();
-      if (json.success) {
-        setData(json);
+      if (!res.ok || !json.success) {
+        throw new Error("Creator directory request failed");
       }
-    } catch (err) {
-      console.error("Failed to load creators:", err);
+      setData(json);
+      setResultQuery(queryStr);
+    } catch {
+      setLoadError("We couldn’t load the creator directory. Please try again shortly.");
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearch, platform, country, nicheId, tier, sort, page, router]);
+  }, [debouncedSearch, platform, country, nicheId, tier, sort, page, pageSize, router]);
 
   useEffect(() => {
     fetchData();
@@ -153,39 +188,55 @@ export function CreatorDirectoryView() {
     Boolean(nicheId) ||
     tier !== "all";
 
+  // Build markup from the exact API result used to render cards, not a second query.
+  const visibleSchema = data && !isLoading && !loadError
+    ? buildCreatorsDirectoryJsonLd(data.creators.map((creator): DirectoryCreatorItem => ({
+        slug: creator.slug,
+        name: creator.canonicalName,
+        alternateName: creator.brandName,
+        avatarUrl: creator.avatarUrl,
+        primaryNiche: creator.primaryNicheName || "",
+        secondaryNiche: creator.subNicheName,
+        countryCode: creator.countryCode,
+        countryName: creator.countryName,
+        combinedFollowers: creator.combinedFollowers,
+        platforms: {
+          youtube: creator.platforms?.youtube ? { handle: creator.platforms.youtube.handle, url: `https://www.youtube.com/@${creator.platforms.youtube.handle}`, followerCount: creator.platforms.youtube.followers } : null,
+          instagram: creator.platforms?.instagram ? { handle: creator.platforms.instagram.handle, url: `https://www.instagram.com/${creator.platforms.instagram.handle}`, followerCount: creator.platforms.instagram.followers } : null,
+          tiktok: creator.platforms?.tiktok ? { handle: creator.platforms.tiktok.handle, url: `https://www.tiktok.com/@${creator.platforms.tiktok.handle}`, followerCount: creator.platforms.tiktok.followers } : null,
+        },
+      })), data.pagination.totalCount, process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com", resultQuery)
+    : null;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="discovery-shell" data-range-style="soft">
+      {visibleSchema && <script id="creator-directory-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(visibleSchema).replace(/</g, "\\u003c") }} />}
+
+      <div className="discovery-workspace space-y-7">
       {/* Hero Header */}
       <div className="space-y-4">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-          <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-          <span>Institutional Creator Discovery Protocol</span>
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-            Creator Commercial Directory
-          </h1>
-          <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 max-w-3xl leading-relaxed">
-            Search multi-platform creators with verified cross-network reach,
-            empirical SignCollab market valuations, and direct bilateral legal agreement execution.
-          </p>
+        <div className="directory-intro">
+          <p className="directory-intro-label">Creator discovery</p>
+          <h1>Find your next creator.</h1>
+          <p className="directory-intro-description">Compare platform performance, audience fit, and estimated rates.</p>
         </div>
 
-        {/* Global Search and Platform Switcher */}
-        <div className="pt-2 flex flex-col md:flex-row gap-3">
-          <div className="relative flex-1">
+        <div className="directory-discovery-controls">
+          <div className="directory-search-field relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by creator name, channel brand, handle (@mkbhd), or slug..."
+              aria-label="Search creators"
+              placeholder="Search creators, brands, or @handles"
               className="w-full pl-10 pr-10 py-3 text-sm rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-2xs"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm("")}
+                aria-label="Clear search"
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
               >
                 <X className="w-4 h-4" />
@@ -194,7 +245,7 @@ export function CreatorDirectoryView() {
           </div>
 
           {/* Platform Filter Buttons */}
-          <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl shrink-0">
+          <div className="directory-platform-tabs inline-flex flex-wrap p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl shrink-0">
             {[
               { id: "all", label: "All Platforms" },
               { id: "youtube", label: "YouTube" },
@@ -204,6 +255,7 @@ export function CreatorDirectoryView() {
               <button
                 key={p.id}
                 type="button"
+                aria-pressed={platform === p.id}
                 onClick={() => {
                   setPlatform(p.id);
                   setPage(1);
@@ -214,150 +266,36 @@ export function CreatorDirectoryView() {
                     : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
+                {p.id === "all" && <Users aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />}
                 {p.id === "youtube" && <YouTubeIcon className="w-3.5 h-3.5 shrink-0" />}
                 {p.id === "instagram" && <InstagramIcon className="w-3.5 h-3.5 shrink-0" />}
                 {p.id === "tiktok" && <TikTokIcon className="w-3.5 h-3.5 shrink-0" />}
-                <span>{p.label}</span>
+                <span>{p.id === "all" ? "All" : p.label}</span>
               </button>
             ))}
           </div>
 
-          {/* Mobile Filter Toggle */}
-          <button
-            type="button"
-            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-            className="md:hidden flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            <span>Filters</span>
-          </button>
+          <div className="directory-chip-toolbar">
+            <div className="directory-filter-chips">
+              <DirectoryFilterChip label="Country" value={country} active={country !== "ALL"} options={POPULAR_COUNTRIES.map((item) => ({ value: item.code, label: item.name }))} onChange={(value) => { setCountry(value); setPage(1); }} />
+              <DirectoryFilterChip label="Niche" value={nicheId} active={Boolean(nicheId)} options={[{ value: "", label: "All niches" }, ...PRIMARY_NICHES.map((item) => ({ value: String(item.id), label: item.name }))]} onChange={(value) => { setNicheId(value); setPage(1); }} />
+              <DirectoryFilterChip label="Followers" value={tier} active={tier !== "all"} options={FOLLOWER_TIERS.map((item) => ({ value: item.id, label: item.label }))} onChange={(value) => { setTier(value); setPage(1); }} />
+            </div>
+            <DirectoryFilterChip label="Sort" value={sort} options={SORT_OPTIONS} sortControl onChange={(value) => { setSort(value); setPage(1); }} />
+          </div>
         </div>
       </div>
 
-      {/* Main Directory Body: Sidebar + Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Left Filter Sidebar */}
-        <aside
-          className={`space-y-6 md:block ${
-            mobileFilterOpen ? "block" : "hidden"
-          } p-5 md:p-0 rounded-2xl md:rounded-none bg-white md:bg-transparent dark:bg-zinc-900 md:dark:bg-transparent border md:border-0 border-zinc-200 dark:border-zinc-800`}
-        >
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-zinc-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-blue-500" />
-              <span>Filter Criteria</span>
-            </h3>
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-              >
-                <RotateCcw className="w-3 h-3" />
-                Reset
-              </button>
-            )}
-          </div>
-
-          {/* Follower Tiers */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Follower Bracket
-            </label>
-            <div className="space-y-1">
-              {FOLLOWER_TIERS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => {
-                    setTier(t.id);
-                    setPage(1);
-                  }}
-                  className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-                    tier === t.id
-                      ? "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold"
-                      : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60"
-                  }`}
-                >
-                  <span>{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Primary Niche */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Primary Niche
-            </label>
-            <select
-              value={nicheId}
-              onChange={(e) => {
-                setNicheId(e.target.value);
-                setPage(1);
-              }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            >
-              <option value="">All Niches (Global)</option>
-              {PRIMARY_NICHES.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Country Selector */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Primary Geography
-            </label>
-            <select
-              value={country}
-              onChange={(e) => {
-                setCountry(e.target.value);
-                setPage(1);
-              }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            >
-              {POPULAR_COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sort Order */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Sort Sequence
-            </label>
-            <select
-              value={sort}
-              onChange={(e) => {
-                setSort(e.target.value);
-                setPage(1);
-              }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            >
-              <option value="followers_desc">Most Followers (Default)</option>
-              <option value="followers_asc">Least Followers</option>
-              <option value="rate_desc">Highest Estimated Rate</option>
-              <option value="rate_asc">Lowest Estimated Rate</option>
-              <option value="name_asc">Alphabetical (A-Z)</option>
-              <option value="recent">Recently Discovered</option>
-            </select>
-          </div>
-        </aside>
-
+      <div>
         {/* Right Creators Grid */}
-        <section className="md:col-span-3 space-y-6">
+        <section className="min-w-0 space-y-5">
           {/* Status bar */}
           <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
             <div>
-              {isLoading ? (
-                <span>Auditing creators database...</span>
+              {loadError ? (
+                <span>Directory temporarily unavailable</span>
+              ) : isLoading ? (
+                <span>Loading creators...</span>
               ) : (
                 <span>
                   Found <strong className="text-zinc-900 dark:text-white">{data?.pagination.totalCount || 0}</strong> creators
@@ -365,16 +303,35 @@ export function CreatorDirectoryView() {
               )}
             </div>
 
-            {data && data.pagination.totalPages > 1 && (
+            {!loadError && data && data.pagination.totalPages > 1 && (
               <div>
                 Page {data.pagination.currentPage} of {data.pagination.totalPages}
               </div>
             )}
           </div>
 
+          {hasActiveFilters && (
+            <div className="directory-active-filters" aria-label="Active filters">
+              {[
+                { key: "search", label: debouncedSearch.trim() ? `Search: ${debouncedSearch.trim()}` : "", clear: () => { setSearchTerm(""); setDebouncedSearch(""); } },
+                { key: "platform", label: platform !== "all" ? platform === "youtube" ? "YouTube" : platform === "instagram" ? "Instagram" : "TikTok" : "", clear: () => setPlatform("all") },
+                { key: "country", label: country !== "ALL" ? POPULAR_COUNTRIES.find((item) => item.code === country)?.name || country : "", clear: () => setCountry("ALL") },
+                { key: "niche", label: nicheId ? PRIMARY_NICHES.find((item) => String(item.id) === nicheId)?.name || nicheId : "", clear: () => setNicheId("") },
+                { key: "tier", label: tier !== "all" ? FOLLOWER_TIERS.find((item) => item.id === tier)?.label || tier : "", clear: () => setTier("all") },
+              ].filter((item) => item.label).map((item) => <button key={item.key} type="button" aria-label={`Remove ${item.label} filter`} onClick={() => { item.clear(); setPage(1); }}><span>{item.label}</span><X aria-hidden="true" className="h-3 w-3 shrink-0" /></button>)}
+              <button type="button" className="directory-clear-filters" onClick={handleResetFilters}>Clear all</button>
+            </div>
+          )}
+
           {/* Grid of Cards */}
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {loadError ? (
+            <div role="alert" className="rounded-xl border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="text-base font-semibold">Unable to load creators</h2>
+              <p className="mt-2 text-sm text-zinc-500">{loadError}</p>
+              <button type="button" onClick={() => void fetchData()} className="mt-5 min-h-11 rounded-lg bg-zinc-900 px-5 text-sm font-semibold text-white dark:bg-white dark:text-zinc-900">Try again</button>
+            </div>
+          ) : isLoading ? (
+            <div className="grid grid-cols-1 gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
@@ -392,9 +349,9 @@ export function CreatorDirectoryView() {
               ))}
             </div>
           ) : data && data.creators.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 items-start gap-4">
               {data.creators.map((creator) => (
-                <CreatorCard key={creator.id} creator={creator} />
+                <CreatorCard key={creator.id} creator={creator} layout="directory" />
               ))}
             </div>
           ) : (
@@ -419,7 +376,7 @@ export function CreatorDirectoryView() {
           )}
 
           {/* Pagination Controls */}
-          {data && data.pagination.totalPages > 1 && (
+          {!loadError && data && data.pagination.totalPages > 1 && (
             <div className="flex items-center justify-between pt-6 border-t border-zinc-200 dark:border-zinc-800">
               <button
                 type="button"
@@ -447,6 +404,7 @@ export function CreatorDirectoryView() {
             </div>
           )}
         </section>
+      </div>
       </div>
     </div>
   );

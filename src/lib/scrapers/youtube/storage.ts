@@ -194,6 +194,7 @@ export function formatDbRecordToScraperData(record: {
     longVideos,
     shortVideos,
     stats,
+    snapshotId: record.id,
     scrapedAt: record.createdAt.toISOString(),
   };
 }

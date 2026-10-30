@@ -3,11 +3,7 @@ import { Metadata } from "next";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 import { CreatorDirectoryView } from "@/components/creators/CreatorDirectoryView";
-import {
-  fetchDirectoryFeaturedCreators,
-  buildCreatorsDirectoryJsonLd,
-  safeJsonLdStringify,
-} from "@/lib/creators/schema";
+
 
 export const metadata: Metadata = {
   title: "Creator Directory - Verified Creators, Commercial Rates & Analytics | SignCollab",
@@ -21,20 +17,9 @@ export const metadata: Metadata = {
 };
 
 export default async function CreatorsPage() {
-  const { featuredCreators, totalCount } = await fetchDirectoryFeaturedCreators(30);
-
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
-  const jsonLd = buildCreatorsDirectoryJsonLd(featuredCreators, totalCount, baseUrl);
-
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans">
       <PublicHeader />
-
-      {/* Directory CollectionPage + ItemList Schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
-      />
 
       <main className="flex-1">
         <Suspense

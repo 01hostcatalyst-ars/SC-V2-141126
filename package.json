@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "prisma generate && node --max-old-space-size=4096 node_modules/next/dist/bin/next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:profile-refresh": "node --test tests/profile-refresh.test.cjs",
+    "db:profile-refresh": "node scripts/install-profile-refresh.cjs"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.2.0",

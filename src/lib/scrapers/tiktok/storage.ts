@@ -142,6 +142,7 @@ export function formatDbRecordToTikTokData(record: {
     profile,
     videos,
     stats,
+    snapshotId: record.id,
     scrapedAt: record.createdAt.toISOString(),
   };
 }

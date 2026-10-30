@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { Suspense, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -22,10 +22,14 @@ import { JURISDICTIONS } from "@/lib/config/jurisdictions";
 type AuthTab = "signin" | "signup";
 type Role = "CREATOR" | "BRAND" | "AGENCY";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [authTab, setAuthTab] = useState<AuthTab>("signin");
+  useEffect(() => {
+    setAuthTab(searchParams.get("tab") === "signup" ? "signup" : "signin");
+  }, [searchParams]);
   const [role, setRole] = useState<Role>("CREATOR");
 
   // Sign In state
@@ -389,4 +393,8 @@ export default function LoginPage() {
       <PublicFooter />
     </div>
   );
+}
+
+export default function LoginPage() {
+  return <Suspense fallback={<div className="min-h-screen bg-canvas" />}><LoginContent /></Suspense>;
 }

@@ -183,6 +183,7 @@ export function formatDbRecordToInstagramData(record: {
     profile,
     posts: targetPosts,
     stats,
+    snapshotId: record.id,
     scrapedAt: record.createdAt.toISOString(),
   };
 }
