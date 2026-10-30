@@ -85,6 +85,7 @@ export default async function CreatorProfilePage({ params }: PageProps) {
 
   // Payload for PDF Rate Card Dossier Export
   const pdfPayload = {
+    profile,
     creatorMeta: {
       displayName: brandName || canonicalName,
       primaryUsername: platforms.youtube?.handle || platforms.instagram?.handle || platforms.tiktok?.handle || profile.slug,

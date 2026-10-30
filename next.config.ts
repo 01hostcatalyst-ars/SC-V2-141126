@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   outputFileTracingIncludes: {
-    "/api/calculator/export-pdf": ["node_modules/@sparticuz/chromium/bin/**/*"],
+    "/api/calculator/export-pdf": ["node_modules/@sparticuz/chromium/bin/**/*", "public/fonts/**/*"],
     "/api/contracts/[id]/pdf": ["node_modules/@sparticuz/chromium/bin/**/*"],
     "/api/contracts/[id]/sign": ["node_modules/@sparticuz/chromium/bin/**/*"],
     "/api/contracts/[id]/certificate": ["node_modules/@sparticuz/chromium/bin/**/*"],
