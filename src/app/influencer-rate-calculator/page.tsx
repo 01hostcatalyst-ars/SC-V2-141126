@@ -171,7 +171,7 @@ const jsonLd = {
 
 export default function InfluencerRateCalculatorPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 font-sans text-zinc-900 selection:bg-pink-500 selection:text-white relative overflow-hidden antialiased">
+    <div className="min-h-screen flex flex-col bg-zinc-50 font-sans text-zinc-900 selection:bg-pink-500 selection:text-white relative overflow-x-clip antialiased">
       {/* Structured JSON-LD for Search Engines & AI Crawlers */}
       <script
         type="application/ld+json"
@@ -180,7 +180,7 @@ export default function InfluencerRateCalculatorPage() {
 
       <PublicHeader activeRoute="/influencer-rate-calculator" />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 relative z-10">
+      <main className="calculator-route-main flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 relative z-10">
         {/* Breadcrumb Trail */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 mb-6">
           <Link href="/" className="hover:text-zinc-900 transition-colors">
@@ -194,7 +194,7 @@ export default function InfluencerRateCalculatorPage() {
         <InfluencerRadarDashboard />
 
         {/* Option A: Below-the-Fold Crawlable Methodology & FAQs Section */}
-        <section className="mt-20 sm:mt-24 pt-12 border-t border-zinc-200/90 space-y-12">
+        <section className="calculator-methodology mt-20 sm:mt-24 pt-12 border-t border-zinc-200/90 space-y-12">
           <div className="max-w-3xl text-left space-y-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
