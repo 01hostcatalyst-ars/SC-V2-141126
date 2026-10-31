@@ -96,7 +96,7 @@ const jsonLd = {
           "name": "What is the SignCollab Influencer Rate Calculator & Creator Intelligence Engine?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The SignCollab Influencer Rate Calculator is an AI-powered creator valuation system that analyzes creator footprints across Instagram, YouTube, and TikTok to provide methodology-based sponsorship rate ranges, itemized deliverable pricing, and strategic creator intelligence dossiers.",
+            "text": "SignCollab estimates sponsorship rates with a calculation engine calibrated using creator surveys, pricing research, case studies, agency deal history, and contract data. AI analyzes supplied creator data to produce audience and content insights; it does not calculate prices.",
           },
         },
         {
@@ -104,7 +104,7 @@ const jsonLd = {
           "name": "How does the SignCollab 16-Knot Quantitative Valuation Matrix calculate creator rates?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The SignCollab 16-Knot Quantitative Valuation Matrix calculates creator sponsorship rates across four empirical layers: Audience Dynamics & Liquidity (scale curves, cross-channel reach consolidation, regional PPP, demographic skew), Interaction Velocity & Retention Physics (trimmed-median views, organic engagement, format decay curves, retention pacing), Commercial Capital Intensity & Equity (industry vertical multipliers, micro-niche authority, buyer purchasing intent, production caliber), and Transaction Governance & Rights (whitelisting surcharges, digital asset buyouts, exclusivity protections, and multi-asset bundle discounts).",
+            "text": "Our 16-knot pricing engine uses platform metrics, content formats, niche, and the selected pricing market to calculate estimated rate ranges. Campaign packages also account for deliverables and commercial scope. Benchmarks are calibrated using creator surveys, pricing research, case studies, agency deal history, and contract data. AI provides profile insights and classifications; it does not calculate prices. Estimates support negotiation and are not confirmed creator quotes.",
           },
         },
         {
@@ -171,10 +171,7 @@ const jsonLd = {
 
 export default function InfluencerRateCalculatorPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-theme-gradient font-sans text-zinc-900 selection:bg-emerald-500 selection:text-white relative overflow-hidden antialiased">
-      {/* Background ambient spotlight */}
-      <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[850px] h-[450px] rounded-full ambient-spotlight-emerald pointer-events-none z-0" />
-
+    <div className="min-h-screen flex flex-col bg-zinc-50 font-sans text-zinc-900 selection:bg-pink-500 selection:text-white relative overflow-hidden antialiased">
       {/* Structured JSON-LD for Search Engines & AI Crawlers */}
       <script
         type="application/ld+json"
@@ -201,10 +198,10 @@ export default function InfluencerRateCalculatorPage() {
           <div className="max-w-3xl text-left space-y-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Scientific Commercial Benchmarks</span>
+              <span>How our estimates work</span>
             </span>
-            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 font-display">
-              Influencer Valuation &amp; Creator Intelligence Methodology
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 font-sans">
+              How we build your rate report
             </h2>
             <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed max-w-2xl">
               SignCollab combines cross-platform profile scanning, empirical engagement benchmarking, and AI creator intelligence to establish defensible, data-informed sponsorship rates for brands and talent.
@@ -221,7 +218,7 @@ export default function InfluencerRateCalculatorPage() {
                 <span>1. Automatic Profile Discovery</span>
               </div>
               <p className="text-zinc-500 leading-relaxed pl-9">
-                Connects public footprints across Instagram, YouTube, and TikTok from a single link to provide unified omnichannel reach and rate analysis.
+                Connects public footprints across Instagram, YouTube, and TikTok from a single link to provide a report with separate platform metrics and estimated rates.
               </p>
             </div>
 
@@ -242,7 +239,7 @@ export default function InfluencerRateCalculatorPage() {
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
                   <Sparkles className="w-4 h-4" />
                 </div>
-                <span>3. 19-Point Creator Intelligence</span>
+                <span>3. Audience & content insights</span>
               </div>
               <p className="text-zinc-500 leading-relaxed pl-9">
                 Synthesizes audience demographics, commercial purchasing intent, content DNA, brand safety ratings, and actionable campaign angles.
@@ -254,7 +251,7 @@ export default function InfluencerRateCalculatorPage() {
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
                   <Globe className="w-4 h-4" />
                 </div>
-                <span>4. Regional Economic Calibration</span>
+                <span>4. Market & currency settings</span>
               </div>
               <p className="text-zinc-500 leading-relaxed pl-9">
                 Applies purchasing-power parity adjustments across 17 regional markets with native currency rates alongside USD equivalents.
@@ -266,7 +263,7 @@ export default function InfluencerRateCalculatorPage() {
           <div className="space-y-4 pt-4 border-t border-zinc-200/70 text-left">
             <div className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-zinc-500" />
-              <h3 className="text-base font-semibold text-zinc-900 font-display">
+              <h3 className="text-base font-semibold text-zinc-900 font-sans">
                 Frequently Asked Questions
               </h3>
             </div>
@@ -278,7 +275,7 @@ export default function InfluencerRateCalculatorPage() {
                   <span className="text-zinc-400 group-open:rotate-180 transition-transform text-xs">▼</span>
                 </summary>
                 <p className="text-xs text-zinc-500 leading-relaxed mt-2.5 pt-2 border-t border-zinc-100">
-                  The SignCollab Influencer Rate Calculator is an AI-powered creator valuation system that analyzes creator footprints across Instagram, YouTube, and TikTok to provide methodology-based sponsorship rate ranges, itemized deliverable pricing, and strategic creator intelligence dossiers.
+                  SignCollab estimates sponsorship rates with a calculation engine calibrated using creator surveys, pricing research, case studies, agency deal history, and contract data. AI analyzes supplied creator data to produce audience and content insights; it does not calculate prices.
                 </p>
               </details>
 
@@ -290,73 +287,7 @@ export default function InfluencerRateCalculatorPage() {
                   </span>
                   <span className="text-zinc-400 group-open:rotate-180 transition-transform text-xs">▼</span>
                 </summary>
-                <div className="text-xs text-zinc-600 leading-relaxed mt-3 pt-3 border-t border-zinc-100 space-y-3.5">
-                  <p>
-                    Unlike simplistic follower-tier multipliers, the <strong>SignCollab 16-Knot Quantitative Valuation Matrix</strong> operates on a multi-layer vector architecture that evaluates creator pricing across four interdependent commercial dimensions:
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                    {/* Layer 1 */}
-                    <div className="p-3.5 rounded-xl bg-zinc-50/80 border border-zinc-200/80 space-y-2">
-                      <div className="text-[11px] font-bold text-zinc-900 uppercase tracking-wide border-b border-zinc-200 pb-1.5 flex items-center justify-between">
-                        <span>Layer 1: Audience Dynamics &amp; Liquidity</span>
-                        <span className="text-[10px] text-zinc-500 font-mono">Knots 01–04</span>
-                      </div>
-                      <ul className="space-y-1.5 text-[11px] text-zinc-600">
-                        <li>• <strong className="text-zinc-800">Knot 01:</strong> Empirical Audience Tier Spline (Non-linear scale curve)</li>
-                        <li>• <strong className="text-zinc-800">Knot 02:</strong> Cross-Channel Reach Consolidation &amp; Deduplication</li>
-                        <li>• <strong className="text-zinc-800">Knot 03:</strong> Regional Purchasing Power Parity (PPP &amp; Local FX Index)</li>
-                        <li>• <strong className="text-zinc-800">Knot 04:</strong> Core Buying Demographic Density (Affluent 18–34 Skew)</li>
-                      </ul>
-                    </div>
-
-                    {/* Layer 2 */}
-                    <div className="p-3.5 rounded-xl bg-zinc-50/80 border border-zinc-200/80 space-y-2">
-                      <div className="text-[11px] font-bold text-zinc-900 uppercase tracking-wide border-b border-zinc-200 pb-1.5 flex items-center justify-between">
-                        <span>Layer 2: Interaction Velocity &amp; Retention</span>
-                        <span className="text-[10px] text-zinc-500 font-mono">Knots 05–08</span>
-                      </div>
-                      <ul className="space-y-1.5 text-[11px] text-zinc-600">
-                        <li>• <strong className="text-zinc-800">Knot 05:</strong> Trimmed-Median View Velocity (Viral Outlier Scrubbing)</li>
-                        <li>• <strong className="text-zinc-800">Knot 06:</strong> Observed Organic Engagement Ratio (Unpinned Interactions)</li>
-                        <li>• <strong className="text-zinc-800">Knot 07:</strong> Format Decay &amp; Consumption Curve (Dedicated vs Shorts)</li>
-                        <li>• <strong className="text-zinc-800">Knot 08:</strong> Watch-Time Pacing &amp; Skip-Resistance Retention</li>
-                      </ul>
-                    </div>
-
-                    {/* Layer 3 */}
-                    <div className="p-3.5 rounded-xl bg-zinc-50/80 border border-zinc-200/80 space-y-2">
-                      <div className="text-[11px] font-bold text-zinc-900 uppercase tracking-wide border-b border-zinc-200 pb-1.5 flex items-center justify-between">
-                        <span>Layer 3: Commercial Capital Intensity &amp; Equity</span>
-                        <span className="text-[10px] text-zinc-500 font-mono">Knots 09–12</span>
-                      </div>
-                      <ul className="space-y-1.5 text-[11px] text-zinc-600">
-                        <li>• <strong className="text-zinc-800">Knot 09:</strong> Industry Vertical Capital Multiplier (Enterprise vs Lifestyle)</li>
-                        <li>• <strong className="text-zinc-800">Knot 10:</strong> Micro-Niche Authority &amp; Specialist Scarcity Premium</li>
-                        <li>• <strong className="text-zinc-800">Knot 11:</strong> Buyer Commercial Intent &amp; Transaction Propensity Index</li>
-                        <li>• <strong className="text-zinc-800">Knot 12:</strong> Production Caliber &amp; Commercial Asset Longevity Rating</li>
-                      </ul>
-                    </div>
-
-                    {/* Layer 4 */}
-                    <div className="p-3.5 rounded-xl bg-zinc-50/80 border border-zinc-200/80 space-y-2">
-                      <div className="text-[11px] font-bold text-zinc-900 uppercase tracking-wide border-b border-zinc-200 pb-1.5 flex items-center justify-between">
-                        <span>Layer 4: Transaction Governance &amp; Rights</span>
-                        <span className="text-[10px] text-zinc-500 font-mono">Knots 13–16</span>
-                      </div>
-                      <ul className="space-y-1.5 text-[11px] text-zinc-600">
-                        <li>• <strong className="text-zinc-800">Knot 13:</strong> Paid Whitelisting Licensing Surcharge (Ads Manager Access)</li>
-                        <li>• <strong className="text-zinc-800">Knot 14:</strong> Digital Asset Buyout &amp; Multi-Channel Repurposing (PDP/Web)</li>
-                        <li>• <strong className="text-zinc-800">Knot 15:</strong> Category Exclusivity &amp; Competitive Blackout Protection Cost</li>
-                        <li>• <strong className="text-zinc-800">Knot 16:</strong> Multi-Asset Non-Linear Portfolio Discount Curve</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <p className="text-[10px] text-zinc-400 italic pt-1.5 border-t border-zinc-100">
-                    * Proprietary Valuation Model Notice: The analytical factors above represent the active commercial vectors of the SignCollab 16-Knot Empirical Model. The internal covariance matrix, non-linear regression weights, and knot threshold multipliers are proprietary to SignCollab and continually calibrated against live verified media transactions.
-                  </p>
-                </div>
+                <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed mt-3 pt-3 border-t border-zinc-100">Our 16-knot pricing engine uses platform metrics, content formats, niche, and the selected pricing market to calculate estimated rate ranges. Campaign packages also account for deliverables and commercial scope. Benchmarks are calibrated using creator surveys, pricing research, case studies, agency deal history, and contract data. AI provides profile insights and classifications; it does not calculate prices. Estimates support negotiation and are not confirmed creator quotes.</p>
               </details>
 
               <details className="group surface-card p-4 rounded-xl border border-zinc-200/90 shadow-2xs open:border-zinc-300 transition-all">

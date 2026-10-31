@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { CalculatorSearch, CalculatorAnalysis } from "./CalculatorJourney";
 import {
   Search,
   ArrowRight,
@@ -78,6 +79,7 @@ interface DiscoveredPlatformData {
   }>;
   error?: string;
   sourceNote?: string;
+  retryInput?: string;
   extractedEmail?: string;
 }
 
@@ -87,50 +89,6 @@ interface ActivityEvent {
   message: string;
   type: "info" | "success" | "discovery";
 }
-
-interface PlatformTickerStep {
-  step: number;
-  percent: number;
-  text: string;
-}
-
-const INSTAGRAM_TICKER_STEPS: PlatformTickerStep[] = [
-  { step: 1, percent: 12, text: "Initial handshake & entity resolution for target account" },
-  { step: 2, percent: 25, text: "Ingesting profile telemetry, follower graphs & verification status" },
-  { step: 3, percent: 38, text: "Auditing 12 recent chronological uploads & filtering pinned media" },
-  { step: 4, percent: 50, text: "Extracting cross-platform identity links & bio semantic vectors" },
-  { step: 5, percent: 65, text: "LLM Neural Classifier: Indexing creator primary & secondary niches" },
-  { step: 6, percent: 80, text: "Deep-auditing pure unpinned Reels & empirical interaction signals" },
-  { step: 7, percent: 92, text: "Executing 16-knot empirical rate valuation & commercial modeling" },
-  { step: 8, percent: 100, text: "Instagram Telemetry Active: Multi-tier defended rates verified" },
-];
-
-const YOUTUBE_TICKER_STEPS: PlatformTickerStep[] = [
-  { step: 1, percent: 15, text: "Resolving channel entity, handle & subscriber baseline telemetry" },
-  { step: 2, percent: 30, text: "Connecting to video stream indexer & upload archive registry" },
-  { step: 3, percent: 48, text: "Auditing long-form video performance & view-velocity distribution" },
-  { step: 4, percent: 65, text: "Analyzing YouTube Shorts retention & audience engagement signals" },
-  { step: 5, percent: 80, text: "LLM Content Indexing: Extracting topic vectors & category classification" },
-  { step: 6, percent: 92, text: "Computing dedicated, integrated & short video valuation matrices" },
-  { step: 7, percent: 100, text: "YouTube Telemetry Active: Channel metrics & rates defensible" },
-];
-
-const TIKTOK_TICKER_STEPS: PlatformTickerStep[] = [
-  { step: 1, percent: 15, text: "Resolving TikTok creator handle & follower baseline telemetry" },
-  { step: 2, percent: 35, text: "Extracting short-form video telemetry & play-count velocity" },
-  { step: 3, percent: 55, text: "Auditing likes, comments & viral share distribution metrics" },
-  { step: 4, percent: 75, text: "LLM Behavioral Modeling: Synthesizing interaction coefficients" },
-  { step: 5, percent: 90, text: "Executing 16-knot short-form video deliverable commercial valuation" },
-  { step: 6, percent: 100, text: "TikTok Telemetry Active: Defended video deliverable rate verified" },
-];
-
-const LLM_SYNTHESIS_STEPS: PlatformTickerStep[] = [
-  { step: 1, percent: 82, text: "SignCollab Profile LLM Engine: Ingesting cross-platform media telemetry & transcripts..." },
-  { step: 2, percent: 86, text: "SignCollab Profile LLM Engine: Synthesizing 19-point creator intelligence dossier..." },
-  { step: 3, percent: 91, text: "SignCollab Profile LLM Engine: Classifying buyer intent, micro-niche & audience DNA..." },
-  { step: 4, percent: 96, text: "SignCollab Profile LLM Engine: Calibrating 16-knot defended rate sheets & package tiers..." },
-  { step: 5, percent: 100, text: "SignCollab Profile LLM Engine: Intelligence verified · Mounting institutional rate dashboard" },
-];
 
 function formatShortNumber(num: number | undefined | null): string {
   if (num === undefined || num === null || isNaN(num)) return "0";
@@ -152,12 +110,12 @@ export function InfluencerRadarDashboard() {
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("instagram");
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isResolvingIdentity, setIsResolvingIdentity] = useState(false);
 
   // Progressive Scroll UX Refs & Sticky Search Bar
   const heroSectionRef = useRef<HTMLDivElement>(null);
   const telemetrySectionRef = useRef<HTMLDivElement>(null);
   const valuationDashboardRef = useRef<HTMLDivElement>(null);
-  const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
 
   // Calibration State (Country & Niche)
   const [selectedRegion, setSelectedRegion] = useState<RegionCode>("US");
@@ -172,11 +130,6 @@ export function InfluencerRadarDashboard() {
     tiktok: "",
   });
   const forceNextSynthesisBypassCache = useRef(false);
-
-  // Platform Ticker Step State (6-8 steps each)
-  const [igStepIdx, setIgStepIdx] = useState(0);
-  const [ytStepIdx, setYtStepIdx] = useState(0);
-  const [ttStepIdx, setTtStepIdx] = useState(0);
 
   // Terminal / Activity Feed
   const [activityFeed, setActivityFeed] = useState<ActivityEvent[]>([]);
@@ -208,149 +161,23 @@ export function InfluencerRadarDashboard() {
     platformsRef.current = platforms;
   }, [platforms]);
 
-  // Track scroll position to reveal sticky search / creator bar when scrolled past hero
+  // Reveal only after all collection, insight generation and rate calculation settle.
+  const reportReady = isValuationCalibrated && !isSearching && !isResolvingIdentity && !isSynthesizing && !Object.values(platforms).some(channel => channel.status === "loading");
+  const [reportRevealed, setReportRevealed] = useState(false);
   useEffect(() => {
-    const handleScroll = () => {
-      if (hasSearched && window.scrollY > 280) {
-        setIsStickyBarVisible(true);
-      } else {
-        setIsStickyBarVisible(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasSearched]);
+    if (!reportReady) { setReportRevealed(false); return; }
+    const timer = setTimeout(() => setReportRevealed(true), 500);
+    return () => clearTimeout(timer);
+  }, [reportReady]);
 
-  // Stage 3 Smooth Auto-Scroll down to Valuation Dashboard when calibrated
   useEffect(() => {
-    if (isValuationCalibrated && valuationDashboardRef.current) {
+    if (reportRevealed && valuationDashboardRef.current) {
       const timer = setTimeout(() => {
         valuationDashboardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 350);
       return () => clearTimeout(timer);
     }
-  }, [isValuationCalibrated]);
-
-  // Instagram Ticker Step Progression
-  useEffect(() => {
-    if (platforms.instagram.status === "loading") {
-      setIgStepIdx(0);
-      const interval = setInterval(() => {
-        setIgStepIdx((prev) => (prev < INSTAGRAM_TICKER_STEPS.length - 2 ? prev + 1 : prev));
-      }, 3500);
-      return () => clearInterval(interval);
-    } else if (platforms.instagram.status === "ready") {
-      setIgStepIdx(INSTAGRAM_TICKER_STEPS.length - 1);
-    }
-  }, [platforms.instagram.status]);
-
-  // YouTube Ticker Step Progression
-  useEffect(() => {
-    if (platforms.youtube.status === "loading") {
-      setYtStepIdx(0);
-      const interval = setInterval(() => {
-        setYtStepIdx((prev) => (prev < YOUTUBE_TICKER_STEPS.length - 2 ? prev + 1 : prev));
-      }, 1800);
-      return () => clearInterval(interval);
-    } else if (platforms.youtube.status === "ready") {
-      setYtStepIdx(YOUTUBE_TICKER_STEPS.length - 1);
-    }
-  }, [platforms.youtube.status]);
-
-  // TikTok Ticker Step Progression
-  useEffect(() => {
-    if (platforms.tiktok.status === "loading") {
-      setTtStepIdx(0);
-      const interval = setInterval(() => {
-        setTtStepIdx((prev) => (prev < TIKTOK_TICKER_STEPS.length - 2 ? prev + 1 : prev));
-      }, 1800);
-      return () => clearInterval(interval);
-    } else if (platforms.tiktok.status === "ready") {
-      setTtStepIdx(TIKTOK_TICKER_STEPS.length - 1);
-    }
-  }, [platforms.tiktok.status]);
-
-  // SignCollab Profile LLM Engine Ticker Step Progression (80% - 100%)
-  const [llmStepIdx, setLlmStepIdx] = useState(0);
-  useEffect(() => {
-    if (isSynthesizing) {
-      setLlmStepIdx(0);
-      const interval = setInterval(() => {
-        setLlmStepIdx((prev) => (prev < LLM_SYNTHESIS_STEPS.length - 2 ? prev + 1 : prev));
-      }, 2200);
-      return () => clearInterval(interval);
-    } else if (isValuationCalibrated) {
-      setLlmStepIdx(LLM_SYNTHESIS_STEPS.length - 1);
-    }
-  }, [isSynthesizing, isValuationCalibrated]);
-
-  // Unified 80/20 Overall Progress Calculation:
-  // 0% - 80%: Multi-Platform Scraper Pipeline
-  // 80% - 100%: SignCollab Profile LLM Engine Synthesis & Valuation Calibration
-  const overallProgress = useMemo(() => {
-    if (isValuationCalibrated) {
-      return 100;
-    }
-    if (isSynthesizing) {
-      const step = LLM_SYNTHESIS_STEPS[Math.min(llmStepIdx, LLM_SYNTHESIS_STEPS.length - 1)] || LLM_SYNTHESIS_STEPS[0];
-      return step.percent;
-    }
-
-    const isYtLoading = platforms.youtube.status === "loading";
-    const isIgLoading = platforms.instagram.status === "loading";
-    const isTtLoading = platforms.tiktok.status === "loading";
-
-    let maxScraperPercent = 10;
-    if (isYtLoading) {
-      const ytPct = YOUTUBE_TICKER_STEPS[Math.min(ytStepIdx, YOUTUBE_TICKER_STEPS.length - 1)]?.percent || 15;
-      maxScraperPercent = Math.max(maxScraperPercent, ytPct);
-    }
-    if (isIgLoading) {
-      const igPct = INSTAGRAM_TICKER_STEPS[Math.min(igStepIdx, INSTAGRAM_TICKER_STEPS.length - 1)]?.percent || 12;
-      maxScraperPercent = Math.max(maxScraperPercent, igPct);
-    }
-    if (isTtLoading) {
-      const ttPct = TIKTOK_TICKER_STEPS[Math.min(ttStepIdx, TIKTOK_TICKER_STEPS.length - 1)]?.percent || 15;
-      maxScraperPercent = Math.max(maxScraperPercent, ttPct);
-    }
-
-    if (!isYtLoading && !isIgLoading && !isTtLoading) {
-      const hasAnyReady = platforms.youtube.status === "ready" || platforms.instagram.status === "ready" || platforms.tiktok.status === "ready";
-      return hasAnyReady ? 80 : 0;
-    }
-
-    return Math.min(Math.round(maxScraperPercent * 0.80), 80);
-  }, [isValuationCalibrated, isSynthesizing, llmStepIdx, platforms, ytStepIdx, igStepIdx, ttStepIdx]);
-
-  const activeTickerText = useMemo(() => {
-    if (isValuationCalibrated) {
-      return "SignCollab Profile LLM Engine: Intelligence verified · Rates calibrated";
-    }
-    if (isSynthesizing) {
-      const step = LLM_SYNTHESIS_STEPS[Math.min(llmStepIdx, LLM_SYNTHESIS_STEPS.length - 1)] || LLM_SYNTHESIS_STEPS[0];
-      return `${step.text} (${step.percent}%)`;
-    }
-    if (platforms.youtube.status === "loading") {
-      const step = YOUTUBE_TICKER_STEPS[Math.min(ytStepIdx, YOUTUBE_TICKER_STEPS.length - 1)] || YOUTUBE_TICKER_STEPS[0];
-      const scaledPct = Math.round(step.percent * 0.80);
-      return `YouTube: ${step.text} (${scaledPct}%)`;
-    }
-    if (platforms.instagram.status === "loading") {
-      const step = INSTAGRAM_TICKER_STEPS[Math.min(igStepIdx, INSTAGRAM_TICKER_STEPS.length - 1)] || INSTAGRAM_TICKER_STEPS[0];
-      const scaledPct = Math.round(step.percent * 0.80);
-      return `Instagram: ${step.text} (${scaledPct}%)`;
-    }
-    if (platforms.tiktok.status === "loading") {
-      const step = TIKTOK_TICKER_STEPS[Math.min(ttStepIdx, TIKTOK_TICKER_STEPS.length - 1)] || TIKTOK_TICKER_STEPS[0];
-      const scaledPct = Math.round(step.percent * 0.80);
-      return `TikTok: ${step.text} (${scaledPct}%)`;
-    }
-    const hasAnyReady = platforms.youtube.status === "ready" || platforms.instagram.status === "ready" || platforms.tiktok.status === "ready";
-    if (hasAnyReady) {
-      return "SignCollab Profile LLM Engine: Cross-platform data verified · Engaging neural synthesis... (80%)";
-    }
-    return "Awaiting channel discovery or direct input";
-  }, [isValuationCalibrated, isSynthesizing, llmStepIdx, platforms, ytStepIdx, igStepIdx, ttStepIdx]);
+  }, [reportRevealed]);
 
   // Creator General Info
   const [creatorMeta, setCreatorMeta] = useState<{
@@ -587,6 +414,7 @@ export function InfluencerRadarDashboard() {
         [targetPlatform]: {
           ...prev[targetPlatform],
           status: "loading",
+          retryInput: targetInput,
           sourceNote: sourceNote || `Direct scan for ${targetPlatform}`,
         },
       }));
@@ -905,6 +733,7 @@ export function InfluencerRadarDashboard() {
         setPlatforms((prev) => ({
           ...prev,
           [targetPlatform]: {
+            ...prev[targetPlatform],
             status: "error",
             error: errorMsg,
           },
@@ -914,22 +743,24 @@ export function InfluencerRadarDashboard() {
         inFlightScrapes.current.delete(scrapeKey);
       }
     },
-    [addActivity, computePlatformRateCards, activeNicheId, activeSubNicheId, selectedRegion]
+    [addActivity, computePlatformRateCards, activeNicheId, activeSubNicheId, selectedRegion, isValuationCalibrated]
   );
 
   // Main Form Submit
-  const handleStart = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStart = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     const query = inputQuery.trim();
     if (!query) return;
 
     setIsSearching(true);
+    setIsResolvingIdentity(true);
     setHasSearched(true);
     setIsValuationCalibrated(false);
     hasUserManuallySelectedRegion.current = false;
     setActivityFeed([]);
     setCreatorMeta(null);
     setCompleteIntelligence(null);
+    synthesizedHash.current = "";
     forceNextSynthesisBypassCache.current = false;
 
     // Reset platform states
@@ -957,6 +788,7 @@ export function InfluencerRadarDashboard() {
     try {
       const resolveRes = await fetch(`/api/creators/resolve-identity?query=${encodeURIComponent(query)}&platform=${initialTargetPlatform}`);
       const resolveJson = await resolveRes.json();
+      setIsResolvingIdentity(false);
       if (resolveJson.success && resolveJson.resolved && resolveJson.cluster?.accounts) {
         const accounts = resolveJson.cluster.accounts;
         const availablePlatforms: Array<{ plat: Platform; input: string }> = [];
@@ -979,16 +811,12 @@ export function InfluencerRadarDashboard() {
         }
       }
     } catch (e) {
+      setIsResolvingIdentity(false);
       console.warn('[Identity Resolver Pre-check Error]:', e);
     }
 
     await scrapePlatform(query, initialTargetPlatform);
     setIsSearching(false);
-  };
-
-  const handleQuickTest = (url: string, plat: Platform) => {
-    setInputQuery(url);
-    setSelectedPlatform(plat);
   };
 
   // Compute Total Combined Reach
@@ -1160,12 +988,15 @@ export function InfluencerRadarDashboard() {
           "success"
         );
       } else {
+        // Mark this attempt settled so recalculation does not silently retry synthesis.
+        synthesizedHash.current = currentHash;
         // Fallback: unlock valuation with current defaults so user is never stuck
         recomputeAllPlatformRates(selectedRegion, activeNicheId, activeSubNicheId);
         setIsValuationCalibrated(true);
       }
     } catch (e) {
       console.warn("[InfluencerRadar AI Synthesis Warning]:", e);
+      synthesizedHash.current = currentHash;
       // Fallback: unlock valuation with current defaults
       recomputeAllPlatformRates(selectedRegion, activeNicheId, activeSubNicheId);
       setIsValuationCalibrated(true);
@@ -1459,6 +1290,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
     platforms,
     recommendedPackages,
     completeIntelligence,
+    buildContractHref,
   ]);
 
   return (
@@ -1467,356 +1299,24 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
       {/* STAGE 1: HERO SEARCH SECTION                              */}
       {/* ========================================================= */}
       {!hasSearched ? (
-        /* INITIAL LANDING: CENTERED HERO IN VIEWPORT */
-        <div
-          ref={heroSectionRef}
-          className="relative w-full rounded-2xl sm:rounded-3xl border border-zinc-200/90 bg-white/80 backdrop-blur-xs overflow-hidden p-6 sm:p-10 lg:p-14 shadow-sm min-h-[72vh] flex flex-col items-center justify-center text-center transition-all duration-500"
-        >
-          {/* Background Map Image with refined contrast */}
-          <div
-            className="absolute inset-0 pointer-events-none opacity-30 sm:opacity-35 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
-            style={{ backgroundImage: "url('/hero-image-calcuator.webp')" }}
-          />
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/90 via-white/80 to-white/95" />
-
-          <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 text-white text-[11px] font-medium tracking-wide shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>2025–2026 Multi-Channel Rate Engine</span>
-            </div>
-
-            <div className="space-y-2.5">
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-zinc-900 leading-tight">
-                Influencer Rate Calculator
-              </h1>
-              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-xl mx-auto">
-                Enter a creator profile link or handle. Our autonomous radar discovers connected channels, audits engagement velocity, and calibrates defended deliverable rates.
-              </p>
-            </div>
-
-            {/* Centered Search Card */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-200 shadow-md p-3 sm:p-4 space-y-3 text-left max-w-xl mx-auto">
-              <form onSubmit={handleStart} className="space-y-2.5">
-                <div className="relative flex items-center bg-zinc-50/90 rounded-xl border border-zinc-200 focus-within:border-zinc-900 focus-within:bg-white focus-within:ring-1 focus-within:ring-zinc-900 transition-all p-1">
-                  <div className="pl-2.5 sm:pl-3 pr-1 text-zinc-400 shrink-0">
-                    <Search className="w-4 h-4" />
-                  </div>
-
-                  <input
-                    type="text"
-                    value={inputQuery}
-                    onChange={(e) => setInputQuery(e.target.value)}
-                    placeholder="Paste URL or handle (@creator)"
-                    className="w-full min-w-0 px-2 py-1.5 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 bg-transparent outline-none font-medium"
-                  />
-
-                  <button
-                    type="submit"
-                    disabled={isSearching || !inputQuery.trim()}
-                    className="px-3.5 sm:px-4 py-2 bg-zinc-900 hover:bg-black disabled:opacity-40 text-white font-medium text-xs rounded-lg transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    {isSearching ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Scanning</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Start</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Conditional Platform Selector (Only for handle) */}
-                {hasHandleInput && (
-                  <div className="flex flex-wrap items-center justify-between p-2 rounded-xl bg-zinc-50/70 border border-zinc-150 text-xs gap-1.5 animate-fadeIn">
-                    <span className="text-zinc-500 font-medium text-[11px] sm:text-xs">Handle Platform:</span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPlatform("instagram")}
-                        className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
-                          selectedPlatform === "instagram"
-                            ? "bg-zinc-900 text-white shadow-2xs"
-                            : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
-                        }`}
-                      >
-                        Instagram
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPlatform("youtube")}
-                        className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
-                          selectedPlatform === "youtube"
-                            ? "bg-zinc-900 text-white shadow-2xs"
-                            : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
-                        }`}
-                      >
-                        YouTube
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPlatform("tiktok")}
-                        className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
-                          selectedPlatform === "tiktok"
-                            ? "bg-zinc-900 text-white shadow-2xs"
-                            : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
-                        }`}
-                      >
-                        TikTok
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </form>
-
-              {/* Quick Examples */}
-              <div className="pt-1.5 border-t border-zinc-100 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-500">
-                <span className="text-zinc-400 font-medium">Try:</span>
-                <button
-                  type="button"
-                  onClick={() => handleQuickTest("https://www.instagram.com/irfanjunejo/", "instagram")}
-                  className="px-2 py-0.5 rounded-md bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-all border border-zinc-200/60 cursor-pointer"
-                >
-                  @irfanjunejo <span className="hidden sm:inline">(Multi-Channel Bio)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickTest("https://www.youtube.com/@mkbhd", "youtube")}
-                  className="px-2 py-0.5 rounded-md bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-all border border-zinc-200/60 cursor-pointer"
-                >
-                  @mkbhd <span className="hidden sm:inline">(YouTube)</span>
-                </button>
-              </div>
-            </div>
-          </div>
+        <div ref={heroSectionRef}>
+          <CalculatorSearch query={inputQuery} onQuery={setInputQuery} platform={selectedPlatform} onPlatform={setSelectedPlatform} showPlatforms={hasHandleInput} onSubmit={handleStart} />
         </div>
       ) : (
-        /* STAGES 2 & 3: HERO AT TOP + PROGRESSIVE SCROLL FLOW */
         <>
-          {/* Top Hero Section (Scrollable Back Up) */}
-          <div
-            ref={heroSectionRef}
-            className="relative w-full rounded-2xl sm:rounded-3xl border border-zinc-200/90 bg-white/70 backdrop-blur-xs overflow-hidden p-4 sm:p-6 lg:p-8 shadow-sm transition-all duration-500"
-          >
-            <div
-              className="absolute inset-0 pointer-events-none opacity-30 sm:opacity-35 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
-              style={{ backgroundImage: "url('/hero-image-calcuator.webp')" }}
-            />
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/80 via-white/70 to-white/90 sm:bg-gradient-to-r sm:from-white/95 sm:via-white/80 sm:to-white/95" />
-
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center">
-              <div className="lg:col-span-6 space-y-2 text-left">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-900 text-white text-[10px] sm:text-[11px] font-medium tracking-wide shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Live Radar Station Active</span>
-                </div>
-
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-zinc-900 leading-tight">
-                  Influencer Rate Calculator
-                </h1>
-
-                <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-lg">
-                  Auditing live engagement velocity, cross-platform bio links, and regional commercial market standards.
-                </p>
-              </div>
-
-              <div className="lg:col-span-6">
-                <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-200 shadow-md p-3 sm:p-4 space-y-2.5 text-left">
-                  <form onSubmit={handleStart} className="space-y-2.5">
-                    <div className="relative flex items-center bg-zinc-50/90 rounded-xl border border-zinc-200 focus-within:border-zinc-900 focus-within:bg-white focus-within:ring-1 focus-within:ring-zinc-900 transition-all p-1">
-                      <div className="pl-2.5 sm:pl-3 pr-1 text-zinc-400 shrink-0">
-                        <Search className="w-4 h-4" />
-                      </div>
-
-                      <input
-                        type="text"
-                        value={inputQuery}
-                        onChange={(e) => setInputQuery(e.target.value)}
-                        placeholder="Paste URL or handle (@creator)"
-                        className="w-full min-w-0 px-2 py-1.5 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 bg-transparent outline-none font-medium"
-                      />
-
-                      <button
-                        type="submit"
-                        disabled={isSearching || !inputQuery.trim()}
-                        className="px-3.5 sm:px-4 py-2 bg-zinc-900 hover:bg-black disabled:opacity-40 text-white font-medium text-xs rounded-lg transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed"
-                      >
-                        {isSearching ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Scanning</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>Start</span>
-                            <ArrowRight className="w-3 h-3" />
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {hasHandleInput && (
-                      <div className="flex flex-wrap items-center justify-between p-2 rounded-xl bg-zinc-50/70 border border-zinc-150 text-xs gap-1.5 animate-fadeIn">
-                        <span className="text-zinc-500 font-medium text-[11px] sm:text-xs">Handle Platform:</span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedPlatform("instagram")}
-                            className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
-                              selectedPlatform === "instagram"
-                                ? "bg-zinc-900 text-white shadow-2xs"
-                                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
-                            }`}
-                          >
-                            Instagram
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedPlatform("youtube")}
-                            className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
-                              selectedPlatform === "youtube"
-                                ? "bg-zinc-900 text-white shadow-2xs"
-                                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
-                            }`}
-                          >
-                            YouTube
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedPlatform("tiktok")}
-                            className={`px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
-                              selectedPlatform === "tiktok"
-                                ? "bg-zinc-900 text-white shadow-2xs"
-                                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
-                            }`}
-                          >
-                            TikTok
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </form>
-
-                  <div className="pt-1.5 border-t border-zinc-100 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-500">
-                    <span className="text-zinc-400 font-medium">Try:</span>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickTest("https://www.instagram.com/irfanjunejo/", "instagram")}
-                      className="px-2 py-0.5 rounded-md bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-all border border-zinc-200/60 cursor-pointer"
-                    >
-                      @irfanjunejo <span className="hidden sm:inline">(Multi-Channel Bio)</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickTest("https://www.youtube.com/@mkbhd", "youtube")}
-                      className="px-2 py-0.5 rounded-md bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-all border border-zinc-200/60 cursor-pointer"
-                    >
-                      @mkbhd <span className="hidden sm:inline">(YouTube)</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* DOCKED STICKY BAR WHEN SCROLLED PAST HERO */}
-          {isStickyBarVisible && (
-            <div className="sticky top-20 sm:top-24 z-30 w-full transition-all duration-300 animate-slideDown">
-              <div className="surface-card p-2 sm:p-2.5 rounded-2xl shadow-lg border border-zinc-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shrink-0">
-                    {selectedPlatform === "youtube" ? (
-                      <Video className="w-4 h-4 text-red-500" />
-                    ) : selectedPlatform === "tiktok" ? (
-                      <Music2 className="w-4 h-4 text-cyan-400" />
-                    ) : (
-                      <Camera className="w-4 h-4 text-pink-500" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-semibold text-zinc-900 truncate">
-                        {creatorMeta?.displayName || inputQuery}
-                      </span>
-                      {creatorMeta?.primaryUsername && (
-                        <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">
-                          @{creatorMeta.primaryUsername.replace(/^@+/, "")}
-                        </span>
-                      )}
-                      {isValuationCalibrated ? (
-                        <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-medium border border-emerald-200/60 hidden md:inline-flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Calibrated
-                        </span>
-                      ) : (
-                        <span className="px-1.5 py-0.5 rounded-md bg-cyan-50 text-cyan-700 text-[10px] font-mono hidden md:inline-flex items-center gap-1">
-                          <Loader2 className="w-3 h-3 animate-spin text-cyan-500" /> Radar In Progress
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      heroSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                    className="px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <ArrowUp className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">New Search</span>
-                  </button>
-
-                  {isValuationCalibrated && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleExportPDF}
-                        disabled={isExportingPdf}
-                        className="px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-xs font-medium rounded-xl transition-all border border-zinc-200 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                        title="Download PDF Valuation Report"
-                      >
-                        {isExportingPdf ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-600" />
-                        ) : (
-                          <Download className="w-3.5 h-3.5 text-zinc-700" />
-                        )}
-                        <span className="hidden md:inline">Download PDF</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================= */}
-          {/* SECTION 2: RADAR PROGRESS STATION (0–80% CHANNEL ANALYSIS / 80–100% LLM) */}
-          {/* ========================================================= */}
-          <div
-            ref={telemetrySectionRef}
-            className="space-y-4 scroll-mt-24 transition-all duration-500 animate-fadeIn"
-          >
-            <RadarProgressStation
-              inputQuery={inputQuery}
-              overallProgress={overallProgress}
-              activeTickerText={activeTickerText}
-              platforms={platforms}
-              verifiedChannelsCount={verifiedChannelsCount}
-              onOpenMissingModal={() => setIsMissingModalOpen(true)}
-              isSynthesizing={isSynthesizing}
-              isValuationCalibrated={isValuationCalibrated}
-            />
-          </div>
-
+          {!reportRevealed && <div ref={telemetrySectionRef} className="scroll-mt-28">
+            <CalculatorAnalysis complete={reportReady} query={inputQuery} platforms={platforms} searching={isSearching} resolving={isResolvingIdentity} synthesizing={isSynthesizing} intelligenceReady={Boolean(completeIntelligence)} onRetry={() => { void handleStart(); }} onNewSearch={() => setHasSearched(false)} onLink={() => setIsMissingModalOpen(true)} />
+          </div>}
+          {reportRevealed && !completeIntelligence && <p role="status" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">Audience insights are unavailable for this report. Rates use the available platform data and current market settings, which you can adjust below.</p>}
+          {reportRevealed && Object.values(platforms).some(channel => channel.status === "error") && <p role="status" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">Some platforms could not be collected. This report includes the accounts that completed successfully.</p>}
+          {reportRevealed && <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+            <div><p className="text-xs text-pink-700 mb-1">Your creator report</p><h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Rates, performance & audience insights</h1></div>
+            <button type="button" onClick={() => { setHasSearched(false); setInputQuery(""); }} className="inline-flex items-center gap-2 text-sm text-zinc-600 hover:text-pink-700 rounded-full border border-zinc-200 bg-white px-4 py-2.5">New search <Search className="w-4 h-4" /></button>
+          </div>}
           {/* ========================================================= */}
           {/* SECTION 3+: FULL VALUATION DASHBOARD (MOUNTS ON CALIBRATION) */}
           {/* ========================================================= */}
-          {isValuationCalibrated && (
+          {reportRevealed && (
             <div
               ref={valuationDashboardRef}
               className="space-y-8 scroll-mt-24 transition-all duration-500 animate-fadeIn"
@@ -1840,17 +1340,17 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                       <div className="flex items-center gap-2">
                         <h2 className="text-sm sm:text-base font-semibold text-zinc-950">{creatorMeta.displayName}</h2>
                         <span className="px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 text-[10px] font-medium flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Multi-Channel Profile
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Creator profile
                         </span>
                       </div>
                       <div className="flex items-center flex-wrap gap-2.5 mt-1">
-                        <span className="text-xs text-zinc-400 font-mono">@{creatorMeta.primaryUsername.replace(/^@+/, "")}</span>
+                        <span className="text-xs text-zinc-400 font-sans">@{creatorMeta.primaryUsername.replace(/^@+/, "")}</span>
                         {creatorMeta.contactEmail && (
                           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-50 border border-zinc-200/80 text-[11px] text-zinc-700">
                             <Mail className="w-3 h-3 text-zinc-400 shrink-0" />
                             <a
                               href={`mailto:${creatorMeta.contactEmail}`}
-                              className="font-mono hover:text-zinc-950 hover:underline transition-colors"
+                              className="font-sans hover:text-zinc-950 hover:underline transition-colors"
                               title="Send inquiry email"
                             >
                               {creatorMeta.contactEmail}
@@ -1876,37 +1376,17 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                     </div>
                   </div>
 
-                  {/* Combined Audience Badge & PDF Export */}
-                  <div className="flex flex-wrap items-center gap-3 shrink-0">
-                    <div className="flex items-center gap-3 sm:gap-4 text-xs bg-zinc-50 p-2.5 rounded-xl border border-zinc-200/70 shrink-0">
-                      <div>
-                        <div className="text-[10px] text-zinc-400 font-medium uppercase">Combined Reach</div>
-                        <div className="text-sm font-semibold font-mono text-zinc-950">
-                          {formatShortNumber(totalAudienceCount)}
-                        </div>
-                      </div>
-                      <div className="w-px h-6 bg-zinc-200" />
-                      <div>
-                        <div className="text-[10px] text-zinc-400 font-medium uppercase">Audited Channels</div>
-                        <div className="text-sm font-semibold font-mono text-zinc-950">
-                          {verifiedChannelsCount} Platforms
-                        </div>
-                      </div>
-                      <div className="w-px h-6 bg-zinc-200 hidden sm:block" />
-                      <div className="hidden sm:block">
-                        <div className="text-[10px] text-zinc-400 font-medium uppercase">Model Confidence</div>
-                        <div className="text-sm font-semibold font-mono text-emerald-600 flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> High ({completeIntelligence?.confidence?.audience ? Math.round(completeIntelligence.confidence.audience * 100) : 94}%)
-                        </div>
-                      </div>
+                  {/* Separate platform audiences and report export */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap gap-4 text-xs">
+                      {(["youtube", "instagram", "tiktok"] as Platform[]).filter(key => platforms[key].status === "ready").map(key => <div key={key}><p className="text-zinc-500 capitalize">{key === "youtube" ? "YouTube subscribers" : `${key === "tiktok" ? "TikTok" : "Instagram"} followers`}</p><p className="font-semibold text-zinc-900 mt-1">{formatShortNumber(platforms[key].followerCount)}</p></div>)}
                     </div>
-
                     <button
                       type="button"
                       onClick={handleExportPDF}
                       disabled={isExportingPdf}
                       className="px-3.5 py-2.5 text-xs font-semibold bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl transition-all shadow-xs inline-flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                      title="Download Official Valuation Dossier (PDF)"
+                      title="Download creator rate card (PDF)"
                     >
                       {isExportingPdf ? (
                         <>
@@ -1916,7 +1396,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                       ) : (
                         <>
                           <Download className="w-3.5 h-3.5 text-zinc-300" />
-                          <span>Download PDF Report</span>
+                          <span>Download rate card</span>
                         </>
                       )}
                     </button>
@@ -2044,6 +1524,46 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                 </div>
               )}
 
+              {/* SECTION 4: THE 3-PLATFORM EMPIRICAL RATE SHEETS */}
+              <section aria-labelledby="calculator-rates-title" className="space-y-4"><div><h2 id="calculator-rates-title" className="text-lg font-semibold tracking-tight">Platform performance & estimated rates</h2><p className="text-xs text-zinc-500 mt-1">Pricing benchmarks per deliverable. Final terms are agreed with the creator.</p></div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+                {/* 1. Instagram Card */}
+                <PlatformRateCardItem
+                  platform="instagram"
+                  platformName="Instagram"
+                  icon={<Camera className="w-4 h-4 text-pink-500" />}
+                  data={platforms.instagram}
+                  metricLabel="Followers"
+                  onManualSearch={(handle) => scrapePlatform(handle, "instagram")}
+                  isValuationCalibrated={isValuationCalibrated}
+                />
+
+                {/* 2. YouTube Card */}
+                <PlatformRateCardItem
+                  platform="youtube"
+                  platformName="YouTube"
+                  icon={<Video className="w-4 h-4 text-red-500" />}
+                  data={platforms.youtube}
+                  metricLabel="Subscribers"
+                  onManualSearch={(handle) => scrapePlatform(handle, "youtube")}
+                  isValuationCalibrated={isValuationCalibrated}
+                />
+
+                {/* 3. TikTok Card */}
+                <PlatformRateCardItem
+                  platform="tiktok"
+                  platformName="TikTok"
+                  icon={<Music2 className="w-3.5 h-3.5 text-cyan-500" />}
+                  data={platforms.tiktok}
+                  metricLabel="Followers"
+                  onManualSearch={(handle) => scrapePlatform(handle, "tiktok")}
+                  isValuationCalibrated={isValuationCalibrated}
+                />
+              </div>
+
+              </section>
+
+              <section className="space-y-4" aria-labelledby="calculator-insights-title"><h2 id="calculator-insights-title" className="text-lg font-semibold tracking-tight">Audience & content insights</h2>
               {/* SECTION 3.5: COMPLETE 19-POINT CREATOR INTELLIGENCE DOSSIER */}
               {completeIntelligence ? (
                 <div className="p-5 sm:p-6 rounded-2xl bg-white border border-zinc-200 shadow-sm space-y-4 animate-fadeIn">
@@ -2085,7 +1605,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
 
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-zinc-500 font-medium flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 24h Verified Cache
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Cached profile insights
                       </span>
                       <button
                         type="button"
@@ -2239,7 +1759,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                             </div>
                           ))
                         ) : (
-                          <div className="text-zinc-500 text-xs">High organic retention and consistent performance.</div>
+                          <div className="text-zinc-500 text-xs">No additional performance strengths are available.</div>
                         )}
                       </div>
                     </div>
@@ -2248,85 +1768,51 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
               ) : isSynthesizing ? (
                 <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 animate-pulse flex items-center justify-center gap-2 text-xs font-semibold text-zinc-600">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900" />
-                  <span>SignCollab LLM Engine: Synthesizing 19-point Creator Intelligence Dossier...</span>
+                  <span>Preparing audience and content insights…</span>
                 </div>
               ) : null}
 
-              {/* SECTION 4: THE 3-PLATFORM EMPIRICAL RATE SHEETS */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
-                {/* 1. Instagram Card */}
-                <PlatformRateCardItem
-                  platform="instagram"
-                  platformName="Instagram"
-                  icon={<Camera className="w-4 h-4 text-pink-500" />}
-                  data={platforms.instagram}
-                  metricLabel="Followers"
-                  onManualSearch={(handle) => scrapePlatform(handle, "instagram")}
-                  isValuationCalibrated={isValuationCalibrated}
-                />
-
-                {/* 2. YouTube Card */}
-                <PlatformRateCardItem
-                  platform="youtube"
-                  platformName="YouTube"
-                  icon={<Video className="w-4 h-4 text-red-500" />}
-                  data={platforms.youtube}
-                  metricLabel="Subscribers"
-                  onManualSearch={(handle) => scrapePlatform(handle, "youtube")}
-                  isValuationCalibrated={isValuationCalibrated}
-                />
-
-                {/* 3. TikTok Card */}
-                <PlatformRateCardItem
-                  platform="tiktok"
-                  platformName="TikTok"
-                  icon={<Music2 className="w-3.5 h-3.5 text-cyan-500" />}
-                  data={platforms.tiktok}
-                  metricLabel="Followers"
-                  onManualSearch={(handle) => scrapePlatform(handle, "tiktok")}
-                  isValuationCalibrated={isValuationCalibrated}
-                />
-              </div>
+              </section>
 
               {/* SECTION 5: STRATEGIC OMNICHANNEL PACKAGES (ZERO TABS, FULL FUNNEL STACK) */}
               {recommendedPackages.length > 0 && (
                 <div className="space-y-6 animate-fadeIn">
                   {/* Creator Strategic DNA Executive Brief */}
                   {completeIntelligence?.omnichannelStrategySuite?.creatorExecutiveBrief && (
-                    <div className="p-5 sm:p-6 rounded-2xl bg-zinc-950 text-white border border-zinc-800 shadow-xl space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+                    <div className="p-5 sm:p-6 rounded-2xl bg-white text-zinc-900 border border-zinc-200 shadow-sm space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-3">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-cyan-400 font-mono">
-                            Creator Strategic DNA &amp; Talent Executive Brief
+                          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-sky-700 font-sans">
+                            Creator overview
                           </h3>
                         </div>
                         {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.recommendedVoucherPrefix && (
-                          <span className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-white/10 text-zinc-300 border border-white/15">
-                            Vanity Voucher: <strong className="text-emerald-400">{completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.recommendedVoucherPrefix}10</strong>
+                          <span className="text-[11px] font-sans px-2.5 py-1 rounded-lg bg-zinc-50 text-zinc-600 border border-zinc-200">
+                            Vanity Voucher: <strong className="text-emerald-700">{completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.recommendedVoucherPrefix}10</strong>
                           </span>
                         )}
                       </div>
 
-                      <div className="text-sm sm:text-base font-semibold text-zinc-100">
+                      <div className="text-sm sm:text-base font-semibold text-zinc-900">
                         {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.whoTheyAre}
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                        <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                          <div className="text-[10px] font-mono uppercase text-emerald-400 font-bold tracking-wider">
-                            Commercial Superpower
+                        <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1">
+                          <div className="text-[10px] font-sans uppercase text-emerald-700 font-bold tracking-wider">
+                            Commercial strengths
                           </div>
-                          <div className="text-xs text-zinc-200 leading-relaxed">
+                          <div className="text-xs text-zinc-600 leading-relaxed">
                             {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.theSuperpower}
                           </div>
                         </div>
 
-                        <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                          <div className="text-[10px] font-mono uppercase text-cyan-400 font-bold tracking-wider">
+                        <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1">
+                          <div className="text-[10px] font-sans uppercase text-sky-700 font-bold tracking-wider">
                             Audience Buying Mindset
                           </div>
-                          <div className="text-xs text-zinc-200 leading-relaxed">
+                          <div className="text-xs text-zinc-600 leading-relaxed">
                             {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.audiencePsychology}
                           </div>
                         </div>
@@ -2334,13 +1820,13 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
 
                       {/* The #1 Creative Landmine Callout */}
                       {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.theLandmine && (
-                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-200 text-xs flex items-start gap-2.5">
+                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-800 text-xs flex items-start gap-2.5">
                           <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                           <div>
-                            <span className="font-bold text-white uppercase tracking-wider text-[10px] block font-mono">
-                              The #1 Creative Landmine to Avoid
+                            <span className="font-bold text-zinc-900 uppercase tracking-wider text-[10px] block font-sans">
+                              Creative consideration
                             </span>
-                            <span className="text-zinc-200 text-xs leading-relaxed">
+                            <span className="text-zinc-600 text-xs leading-relaxed">
                               {completeIntelligence.omnichannelStrategySuite.creatorExecutiveBrief.theLandmine}
                             </span>
                           </div>
@@ -2353,16 +1839,16 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-zinc-950 flex items-center gap-2">
-                        <span>Omnichannel Campaign Strategy Suite</span>
-                        <span className="text-xs font-normal text-zinc-500 font-mono">
-                          (5 Full-Funnel Packages)
+                        <span>Campaign packages</span>
+                        <span className="text-xs font-normal text-zinc-500 font-sans">
+                          (5 suggested scopes)
                         </span>
                       </h3>
                       <p className="text-xs text-zinc-500 mt-0.5">
-                        Itemized line-item pricing and strategic flighting calibrated in native currency.
+                        Compare deliverables, rights, and estimated package pricing in your selected market.
                       </p>
                     </div>
-                    <div className="text-[11px] font-mono text-zinc-500 bg-zinc-100 px-3 py-1 rounded-xl border border-zinc-200 shrink-0">
+                    <div className="text-[11px] font-sans text-zinc-500 bg-zinc-100 px-3 py-1 rounded-xl border border-zinc-200 shrink-0">
                       Market Applied: {REGIONAL_CONFIG[selectedRegion]?.name} ({REGIONAL_CONFIG[selectedRegion]?.currency})
                     </div>
                   </div>
@@ -2375,66 +1861,66 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                       return (
                         <div
                           key={pkg.id}
-                          className={`p-5 sm:p-6 rounded-2xl bg-zinc-950 text-white shadow-xl space-y-5 border transition-all ${
-                            isRec ? "border-amber-400/40 ring-1 ring-amber-400/20" : "border-white/10"
+                          className={`p-5 sm:p-6 rounded-2xl bg-white text-zinc-900 shadow-sm space-y-5 border transition-all ${
+                            isRec ? "border-pink-200 ring-1 ring-pink-100" : "border-zinc-200"
                           }`}
                         >
                           {/* Top Header: Identity & Financials */}
-                          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 border-b border-white/10 pb-4">
+                          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 border-b border-zinc-200 pb-4">
                             <div className="space-y-2 max-w-2xl">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+                                <span className="text-[10px] font-sans uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-700 font-semibold border border-emerald-500/30">
                                   {pkg.tag}
                                 </span>
-                                <h4 className="text-base sm:text-lg font-bold text-white">
+                                <h4 className="text-base sm:text-lg font-bold text-zinc-900">
                                   {pkg.name}
                                 </h4>
                                 {isRec && (
-                                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30 flex items-center gap-1">
+                                  <span className="text-[10px] font-sans uppercase px-2 py-0.5 rounded-md bg-amber-400/20 text-pink-700 font-bold border border-amber-400/30 flex items-center gap-1">
                                     <Sparkles className="w-3 h-3" />
                                     <span>Top Recommendation</span>
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-zinc-300 leading-relaxed">
+                              <p className="text-xs text-zinc-600 leading-relaxed">
                                 {pkg.objective}
                               </p>
                               {pkg.strategicRationale && (
-                                <div className="text-[11px] text-zinc-400 italic bg-white/5 p-2.5 rounded-lg border border-white/5">
+                                <div className="text-[11px] text-zinc-500 italic bg-zinc-50 p-2.5 rounded-lg border border-zinc-200">
                                   Strategy Angle: {pkg.strategicRationale}
                                 </div>
                               )}
                             </div>
 
                             {/* Financial Summary */}
-                            <div className="text-left lg:text-right shrink-0 bg-white/5 p-3.5 rounded-xl border border-white/10 space-y-1">
-                              <div className="text-[10px] font-mono uppercase text-zinc-400 tracking-wider">
+                            <div className="text-left lg:text-right shrink-0 bg-zinc-50 p-3.5 rounded-xl border border-zinc-200 space-y-1">
+                              <div className="text-[10px] font-sans uppercase text-zinc-500 tracking-wider">
                                 Recommended Bundle Target
                               </div>
-                              <div className="text-xl sm:text-2xl font-black font-mono text-white">
+                              <div className="text-xl sm:text-2xl font-black font-sans text-zinc-900">
                                 {pkg.pricing.recommendedBundleFormatted || pkg.pricing.typicalFormatted}
                                 {pkg.pricing.usdEquivalentTypical && (
-                                  <span className="text-xs font-normal text-zinc-400 ml-1.5 font-mono">
+                                  <span className="text-xs font-normal text-zinc-500 ml-1.5 font-sans">
                                     ({pkg.pricing.usdEquivalentTypical})
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] font-mono text-zinc-400">
+                              <div className="text-[11px] font-sans text-zinc-500">
                                 Standalone Benchmark: <span className="line-through text-zinc-500">{pkg.pricing.standaloneBenchmarkFormatted || pkg.pricing.typicalFormatted}</span>
                                 {pkg.discountPercentApplied > 0 ? (
-                                  <span className="text-emerald-400 font-semibold ml-1.5">(-{pkg.discountPercentApplied}% Efficiency)</span>
+                                  <span className="text-emerald-700 font-semibold ml-1.5">(-{pkg.discountPercentApplied}% Efficiency)</span>
                                 ) : (
-                                  <span className="text-zinc-400 font-medium ml-1.5">(Standard Benchmark)</span>
+                                  <span className="text-zinc-500 font-medium ml-1.5">(Standard Benchmark)</span>
                                 )}
                               </div>
-                              <div className="text-[10px] font-mono text-zinc-400 pt-0.5">
-                                Defended Range: {pkg.pricing.lowFormatted} – {pkg.pricing.highFormatted}
+                              <div className="text-[10px] font-sans text-zinc-500 pt-0.5">
+                                Estimated range: {pkg.pricing.lowFormatted} – {pkg.pricing.highFormatted}
                               </div>
                               {Boolean(pkg.pricing.commercialRightsFeeLocalized && pkg.pricing.commercialRightsFeeLocalized > 0) && (
-                                <div className="text-[10px] font-mono text-zinc-400 pt-1.5 border-t border-white/10 flex flex-wrap items-center justify-start lg:justify-end gap-x-1.5 gap-y-0.5">
-                                  <span>Content: <strong className="text-zinc-200">{pkg.pricing.rawContentSumFormatted}</strong></span>
+                                <div className="text-[10px] font-sans text-zinc-500 pt-1.5 border-t border-zinc-200 flex flex-wrap items-center justify-start lg:justify-end gap-x-1.5 gap-y-0.5">
+                                  <span>Content: <strong className="text-zinc-700">{pkg.pricing.rawContentSumFormatted}</strong></span>
                                   <span className="text-zinc-500">+</span>
-                                  <span>Rights: <strong className="text-cyan-400 font-bold">+{pkg.pricing.commercialRightsFeeFormatted}</strong></span>
+                                  <span>Rights: <strong className="text-sky-700 font-bold">+{pkg.pricing.commercialRightsFeeFormatted}</strong></span>
                                 </div>
                               )}
                             </div>
@@ -2442,9 +1928,9 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
 
                           {/* Itemized Deliverables with Line-Item Pricing */}
                           <div className="space-y-2.5">
-                            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold flex items-center justify-between">
-                              <span>Itemized Deliverables &amp; Defended Rates</span>
-                              <span className="text-[10px] text-zinc-500">16-Knot Formula Verified</span>
+                            <div className="text-[11px] font-sans uppercase tracking-wider text-zinc-500 font-semibold flex items-center justify-between">
+                              <span>Deliverables &amp; estimated rates</span>
+                              <span className="text-[10px] text-zinc-500">Calculated with our pricing engine</span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                               {(pkg.calibratedDeliverables && pkg.calibratedDeliverables.length > 0
@@ -2465,30 +1951,30 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                               ).map((item, dIdx) => (
                                 <div
                                   key={item.id || dIdx}
-                                  className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-2 flex flex-col justify-between"
+                                  className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200 space-y-2 flex flex-col justify-between"
                                 >
                                   <div className="space-y-1.5">
                                     <div className="flex items-center justify-between gap-1.5">
-                                      <span className="text-[9px] font-mono uppercase text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                                      <span className="text-[9px] font-sans uppercase text-emerald-700 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
                                         {item.phase}
                                       </span>
-                                      <span className="text-[9px] font-mono text-zinc-400 uppercase">
+                                      <span className="text-[9px] font-sans text-zinc-500 uppercase">
                                         {item.platform}
                                       </span>
                                     </div>
-                                    <div className="text-xs font-bold text-white">
+                                    <div className="text-xs font-bold text-zinc-900">
                                       {item.quantity}x {item.title.replace(/^\d+x\s*/i, "").trim()}
                                     </div>
-                                    <div className="text-[11px] text-zinc-400 leading-snug">
+                                    <div className="text-[11px] text-zinc-500 leading-snug">
                                       {item.description}
                                     </div>
                                   </div>
 
                                   {/* Line-Item Price Badge */}
                                   {item.totalStandaloneFormatted && (
-                                    <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-                                      <span className="text-[10px] font-mono uppercase text-zinc-400">Standalone Rate</span>
-                                      <span className="text-xs font-bold font-mono text-emerald-400">
+                                    <div className="pt-2 border-t border-zinc-200 flex items-center justify-between">
+                                      <span className="text-[10px] font-sans uppercase text-zinc-500">Standalone Rate</span>
+                                      <span className="text-xs font-bold font-sans text-emerald-700">
                                         {item.totalStandaloneFormatted}
                                       </span>
                                     </div>
@@ -2500,24 +1986,24 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
 
                           {/* Verbatim Spoken Ad Hooks (Package 2) */}
                           {pkg.adConcepts && pkg.adConcepts.length > 0 && (
-                            <div className="space-y-2.5 pt-2 border-t border-white/10">
-                              <div className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold flex items-center gap-1.5">
+                            <div className="space-y-2.5 pt-2 border-t border-zinc-200">
+                              <div className="text-[11px] font-sans uppercase tracking-wider text-pink-700 font-semibold flex items-center gap-1.5">
                                 <span>Verbatim Spoken Ad Hooks (Opening 3–5 Seconds)</span>
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {pkg.adConcepts.map((concept, cIdx) => (
                                   <div
                                     key={cIdx}
-                                    className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5"
+                                    className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1.5"
                                   >
                                     <div className="flex items-center justify-between">
-                                      <span className="text-xs font-bold text-white">{concept.conceptName}</span>
-                                      <span className="text-[9px] font-mono uppercase text-cyan-400">{concept.suggestedPlatform}</span>
+                                      <span className="text-xs font-bold text-zinc-900">{concept.conceptName}</span>
+                                      <span className="text-[9px] font-sans uppercase text-sky-700">{concept.suggestedPlatform}</span>
                                     </div>
-                                    <div className="text-xs text-amber-200/90 font-mono italic bg-black/40 p-2.5 rounded-lg border border-white/5 leading-relaxed">
+                                    <div className="text-xs text-zinc-600 font-sans italic bg-zinc-50 p-2.5 rounded-lg border border-zinc-200 leading-relaxed">
                                       {concept.hookVerbatim}
                                     </div>
-                                    <div className="text-[11px] text-zinc-400 leading-snug">
+                                    <div className="text-[11px] text-zinc-500 leading-snug">
                                       {concept.angleSummary}
                                     </div>
                                   </div>
@@ -2528,15 +2014,15 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
 
                           {/* Concrete Digital Assets (Package 4) */}
                           {pkg.concreteAssets && pkg.concreteAssets.length > 0 && (
-                            <div className="space-y-2 pt-2 border-t border-white/10">
-                              <div className="text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-semibold">
+                            <div className="space-y-2 pt-2 border-t border-zinc-200">
+                              <div className="text-[11px] font-sans uppercase tracking-wider text-sky-700 font-semibold">
                                 Concrete Digital Asset Buyout Specifications
                               </div>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {pkg.concreteAssets.map((asset, aIdx) => (
                                   <div
                                     key={aIdx}
-                                    className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-xs text-zinc-300 flex items-center gap-2"
+                                    className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-600 flex items-center gap-2"
                                   >
                                     <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
                                     <span>{asset.specification}</span>
@@ -2547,11 +2033,11 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                           )}
 
                           {/* Commercial Entitlements */}
-                          <div className="space-y-2 pt-2 border-t border-white/10">
-                            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold flex items-center justify-between">
+                          <div className="space-y-2 pt-2 border-t border-zinc-200">
+                            <div className="text-[11px] font-sans uppercase tracking-wider text-zinc-500 font-semibold flex items-center justify-between">
                               <span>Included Commercial Rights &amp; Contract Entitlements</span>
                               {Boolean(pkg.pricing.commercialRightsFeeLocalized && pkg.pricing.commercialRightsFeeLocalized > 0) && (
-                                <span className="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded">
+                                <span className="text-[10px] font-sans font-bold text-sky-700 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded">
                                   Included Rights Valuation: +{pkg.pricing.commercialRightsFeeFormatted}
                                 </span>
                               )}
@@ -2560,13 +2046,13 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                               {pkg.entitlements.map((ent, idx) => (
                                 <div
                                   key={idx}
-                                  className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-xs space-y-0.5"
+                                  className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200 text-xs space-y-0.5"
                                 >
-                                  <div className="font-semibold text-zinc-200 flex items-center gap-1.5">
+                                  <div className="font-semibold text-zinc-700 flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                                     <span>{ent.label}</span>
                                   </div>
-                                  <div className="text-[10px] text-zinc-400 leading-normal pl-3">
+                                  <div className="text-[10px] text-zinc-500 leading-normal pl-3">
                                     {ent.detail}
                                   </div>
                                 </div>
@@ -2576,24 +2062,24 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
 
                           {/* 3 Critical Collaboration Guidelines */}
                           {pkg.collaborationGuidelines && pkg.collaborationGuidelines.length > 0 && (
-                            <div className="space-y-2 pt-2 border-t border-white/10">
-                              <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+                            <div className="space-y-2 pt-2 border-t border-zinc-200">
+                              <div className="text-[11px] font-sans uppercase tracking-wider text-zinc-500 font-semibold">
                                 Critical Collaboration Guidelines (Brand Safety &amp; ROI)
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                                 {pkg.collaborationGuidelines.map((rule, rIdx) => (
                                   <div
                                     key={rIdx}
-                                    className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-1 text-xs"
+                                    className="p-3 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1 text-xs"
                                   >
-                                    <div className="font-bold text-white text-[11px] flex items-center gap-1.5">
-                                      <span className="text-zinc-500 font-mono">#{rule.ruleNumber}</span>
+                                    <div className="font-bold text-zinc-900 text-[11px] flex items-center gap-1.5">
+                                      <span className="text-zinc-500 font-sans">#{rule.ruleNumber}</span>
                                       <span>{rule.ruleTitle}</span>
                                     </div>
-                                    <div className="text-[11px] text-zinc-300 leading-snug">
+                                    <div className="text-[11px] text-zinc-600 leading-snug">
                                       {rule.directive}
                                     </div>
-                                    <div className="text-[10px] text-amber-300/80 pt-1 leading-snug">
+                                    <div className="text-[10px] text-pink-700/80 pt-1 leading-snug">
                                       Risk: {rule.commercialRisk}
                                     </div>
                                   </div>
@@ -2603,9 +2089,9 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                           )}
 
                           {/* Action Row */}
-                          <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10">
-                            <div className="text-[11px] text-zinc-400 font-mono">
-                              Institutional proposal defended via SignCollab 16-Knot Empirical Model.
+                          <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-zinc-200">
+                            <div className="text-[11px] text-zinc-500 font-sans">
+                              Estimated pricing from SignCollab’s calculation engine. Final terms are agreed with the creator.
                             </div>
                             <button
                               type="button"
@@ -2702,7 +2188,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                             <Video className="w-4 h-4 text-red-600 shrink-0" />
                             <div className="truncate">
                               <div className="text-xs font-semibold text-zinc-900 truncate">YouTube</div>
-                              <div className="text-[10px] font-mono text-zinc-500 truncate">@{platforms.youtube.username?.replace(/^@/, "")}</div>
+                              <div className="text-[10px] font-sans text-zinc-500 truncate">@{platforms.youtube.username?.replace(/^@/, "")}</div>
                             </div>
                           </div>
                           <span className="shrink-0 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-semibold flex items-center gap-1">
@@ -2718,7 +2204,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                             <Camera className="w-4 h-4 text-pink-600 shrink-0" />
                             <div className="truncate">
                               <div className="text-xs font-semibold text-zinc-900 truncate">Instagram</div>
-                              <div className="text-[10px] font-mono text-zinc-500 truncate">@{platforms.instagram.username?.replace(/^@/, "")}</div>
+                              <div className="text-[10px] font-sans text-zinc-500 truncate">@{platforms.instagram.username?.replace(/^@/, "")}</div>
                             </div>
                           </div>
                           <span className="shrink-0 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-semibold flex items-center gap-1">
@@ -2734,7 +2220,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
                             <Music2 className="w-4 h-4 text-zinc-950 shrink-0" />
                             <div className="truncate">
                               <div className="text-xs font-semibold text-zinc-900 truncate">TikTok</div>
-                              <div className="text-[10px] font-mono text-zinc-500 truncate">@{platforms.tiktok.username?.replace(/^@/, "")}</div>
+                              <div className="text-[10px] font-sans text-zinc-500 truncate">@{platforms.tiktok.username?.replace(/^@/, "")}</div>
                             </div>
                           </div>
                           <span className="shrink-0 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-semibold flex items-center gap-1">
@@ -2890,7 +2376,7 @@ function PlatformRateCardItem({
           <span className="text-xs font-bold text-gray-950">{platformName}</span>
         </div>
         <span
-          className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-semibold ${
+          className={`text-[10px] font-sans px-2 py-0.5 rounded-md font-semibold ${
             data.status === "ready"
               ? "bg-gray-100 text-gray-900"
               : data.status === "loading"
@@ -2898,7 +2384,7 @@ function PlatformRateCardItem({
               : "bg-gray-50 text-gray-400"
           }`}
         >
-          {data.status === "ready" ? "Verified" : data.status === "loading" ? "Syncing..." : "Idle"}
+          {data.status === "ready" ? "Data ready" : data.status === "loading" ? "Collecting…" : data.status === "error" ? "Unavailable" : "Not linked"}
         </span>
       </div>
 
@@ -2936,10 +2422,10 @@ function PlatformRateCardItem({
 
       {data.status === "error" && (
         <div className="py-4 text-center space-y-2">
-          <div className="text-[11px] text-gray-500">{data.error || `Unable to load ${platformName}`}</div>
+          <div className="text-[11px] text-gray-500">{`We couldn’t collect this ${platformName} profile. Try again or check the handle.`}</div>
           <button
             type="button"
-            onClick={() => data.username && onManualSearch?.(data.username)}
+            onClick={() => (data.retryInput || data.username) && onManualSearch?.((data.retryInput || data.username)!)}
             className="text-[11px] font-semibold text-gray-900 underline hover:text-black cursor-pointer"
           >
             Retry
@@ -2954,13 +2440,13 @@ function PlatformRateCardItem({
             <div className="grid grid-cols-3 gap-2 text-xs bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-center">
               <div className="text-left">
                 <div className="text-[10px] text-gray-400 uppercase font-medium">Subscribers</div>
-                <div className="font-bold font-mono text-gray-950 truncate">
+                <div className="font-bold font-sans text-gray-950 truncate">
                   {formatShortNumber(data.followerCount)}
                 </div>
               </div>
               <div>
                 <div className="text-[10px] text-gray-400 uppercase font-medium">LF ER</div>
-                <div className="font-bold font-mono text-gray-950">
+                <div className="font-bold font-sans text-gray-950">
                   {data.longEngagementRate !== undefined && data.longEngagementRate > 0
                     ? `${data.longEngagementRate}%`
                     : data.engagementRate !== undefined && data.engagementRate > 0
@@ -2970,7 +2456,7 @@ function PlatformRateCardItem({
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-gray-400 uppercase font-medium">SF ER</div>
-                <div className="font-bold font-mono text-gray-950">
+                <div className="font-bold font-sans text-gray-950">
                   {data.shortEngagementRate !== undefined && data.shortEngagementRate > 0
                     ? `${data.shortEngagementRate}%`
                     : "N/A"}
@@ -2981,13 +2467,13 @@ function PlatformRateCardItem({
             <div className="flex items-center justify-between text-xs bg-gray-50 p-2.5 rounded-xl border border-gray-100">
               <div>
                 <div className="text-[10px] text-gray-400 uppercase font-medium">{metricLabel}</div>
-                <div className="font-bold font-mono text-gray-950">
+                <div className="font-bold font-sans text-gray-950">
                   {formatShortNumber(data.followerCount)}
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-gray-400 uppercase font-medium">Observed ER</div>
-                <div className="font-bold font-mono text-gray-950">
+                <div className="font-bold font-sans text-gray-950">
                   {data.engagementRate !== undefined ? `${data.engagementRate}%` : "—"}
                 </div>
               </div>
@@ -2997,11 +2483,11 @@ function PlatformRateCardItem({
           {/* Itemized Deliverables Rate Card */}
           <div className="space-y-1.5 pt-1">
             <div className="flex items-center justify-between text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-              <span>Itemized Defended Pricing</span>
+              <span>Estimated rates by format</span>
               {!isValuationCalibrated && (
-                <span className="inline-flex items-center gap-1 text-[10px] text-cyan-600 font-mono font-medium">
+                <span className="inline-flex items-center gap-1 text-[10px] text-cyan-600 font-sans font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
-                  Calibrating AI Dossier
+                  Preparing rates
                 </span>
               )}
             </div>
@@ -3033,18 +2519,18 @@ function PlatformRateCardItem({
                     <div className="min-w-0 flex-1 pr-1.5">
                       <div className="font-semibold text-gray-900 truncate" title={label}>{label}</div>
                       <div
-                        className="text-[9.5px] text-gray-500 font-mono tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
+                        className="text-[9.5px] text-gray-500 font-sans tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
                         title={`${item.formattedLow} – ${item.formattedHigh}`}
                       >
                         {item.formattedLow} – {item.formattedHigh}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-bold font-mono text-gray-950">
+                      <div className="font-bold font-sans text-gray-950">
                         {item.formattedAmount}
                       </div>
                       {item.usdEquivalentFormatted && (
-                        <div className="text-[10px] text-gray-400 font-mono">
+                        <div className="text-[10px] text-gray-400 font-sans">
                           {item.usdEquivalentFormatted}
                         </div>
                       )}
@@ -3191,7 +2677,7 @@ function YouTubeAuditCard({
         <h4 className="text-xs font-semibold text-gray-950 line-clamp-2 leading-snug">
           {video.title}
         </h4>
-        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
+        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-sans">
           {formattedDate && <span>{formattedDate}</span>}
           {video.durationFormatted && (
             <>
@@ -3211,25 +2697,25 @@ function YouTubeAuditCard({
       <div className="bg-gray-50/80 rounded-lg p-2.5 border border-gray-200/70 grid grid-cols-4 gap-1.5 text-center">
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Views</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {formatShortNumber(video.viewCount)}
           </div>
         </div>
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Likes</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {formatShortNumber(video.likeCount)}
           </div>
         </div>
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Comments</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {formatShortNumber(video.commentCount)}
           </div>
         </div>
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">ER %</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {calcEngagementRate(video.likeCount, video.commentCount, video.viewCount)}
           </div>
         </div>
@@ -3237,7 +2723,7 @@ function YouTubeAuditCard({
 
       {/* Footer Row */}
       <div className="pt-1 border-t border-gray-100 flex items-center justify-between text-[11px]">
-        <span className="font-mono text-gray-400 text-[10px]">@{cleanUsername || "channel"}</span>
+        <span className="font-sans text-gray-400 text-[10px]">@{cleanUsername || "channel"}</span>
         <a
           href={video.url}
           target="_blank"
@@ -3310,7 +2796,7 @@ function InstagramAuditCard({
         <p className="text-xs font-semibold text-gray-950 line-clamp-2 leading-snug">
           {post.caption || "Instagram upload"}
         </p>
-        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
+        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-sans">
           {formattedDate && <span>{formattedDate}</span>}
           <span>•</span>
           <span title="Instagram hides public view counts on individual posts and reels">Views: — (Private on IG)</span>
@@ -3321,13 +2807,13 @@ function InstagramAuditCard({
       <div className="bg-gray-50/80 rounded-lg p-2.5 border border-gray-200/70 grid grid-cols-3 gap-2 text-center">
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Likes</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {formatShortNumber(post.likes)}
           </div>
         </div>
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Comments</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {formatShortNumber(post.commentsCount)}
           </div>
         </div>
@@ -3335,7 +2821,7 @@ function InstagramAuditCard({
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider" title="Follower Benchmarked ER">
             Follower ER
           </div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {calcFollowerEr(post.likes, post.commentsCount, followers)}
           </div>
         </div>
@@ -3343,7 +2829,7 @@ function InstagramAuditCard({
 
       {/* Footer Row */}
       <div className="pt-1 border-t border-gray-100 flex items-center justify-between text-[11px]">
-        <span className="font-mono text-gray-400 text-[10px]">@{cleanUsername || "creator"}</span>
+        <span className="font-sans text-gray-400 text-[10px]">@{cleanUsername || "creator"}</span>
         <a
           href={post.url}
           target="_blank"
@@ -3413,7 +2899,7 @@ function TikTokAuditCard({
         <p className="text-xs font-semibold text-gray-950 line-clamp-2 leading-snug">
           {video.description || "TikTok upload"}
         </p>
-        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
+        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-sans">
           {formattedDate && <span>{formattedDate}</span>}
         </div>
       </div>
@@ -3422,25 +2908,25 @@ function TikTokAuditCard({
       <div className="bg-gray-50/80 rounded-lg p-2.5 border border-gray-200/70 grid grid-cols-4 gap-1.5 text-center">
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Views</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {formatShortNumber(video.playCount)}
           </div>
         </div>
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Likes</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {formatShortNumber(video.diggCount)}
           </div>
         </div>
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Comments</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {formatShortNumber(video.commentCount)}
           </div>
         </div>
         <div>
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">ER %</div>
-          <div className="text-xs font-bold text-gray-900 font-mono mt-0.5">
+          <div className="text-xs font-bold text-gray-900 font-sans mt-0.5">
             {calcEngagementRate(video.diggCount, video.commentCount, video.playCount)}
           </div>
         </div>
@@ -3448,7 +2934,7 @@ function TikTokAuditCard({
 
       {/* Footer Row */}
       <div className="pt-1 border-t border-gray-100 flex items-center justify-between text-[11px]">
-        <span className="font-mono text-gray-400 text-[10px]">@{cleanUsername || "creator"}</span>
+        <span className="font-sans text-gray-400 text-[10px]">@{cleanUsername || "creator"}</span>
         <a
           href={video.url}
           target="_blank"
@@ -3753,370 +3239,6 @@ function RecentMediaAuditFeed({
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-// ----------------------------------------------------------------------
-// Sub-Component: Institutional Radar Progress Station (Light Theme)
-// Unifies Channel Analysis (0–80%) and SignCollab Profile LLM Engine (80–100%)
-// ----------------------------------------------------------------------
-function RadarProgressStation({
-  inputQuery,
-  overallProgress,
-  activeTickerText,
-  platforms,
-  verifiedChannelsCount,
-  onOpenMissingModal,
-  isSynthesizing,
-  isValuationCalibrated,
-}: {
-  inputQuery: string;
-  overallProgress: number;
-  activeTickerText: string;
-  platforms: {
-    instagram: DiscoveredPlatformData;
-    youtube: DiscoveredPlatformData;
-    tiktok: DiscoveredPlatformData;
-  };
-  verifiedChannelsCount: number;
-  onOpenMissingModal: () => void;
-  isSynthesizing?: boolean;
-  isValuationCalibrated?: boolean;
-}) {
-  const radius = 52;
-  const strokeWidth = 7;
-  const circumference = 2 * Math.PI * radius; // ~326.73
-  const strokeDashoffset = circumference - (circumference * Math.min(overallProgress, 100)) / 100;
-
-  const isAnalysisPhase = overallProgress < 80;
-  const isLlmPhase = overallProgress >= 80 && overallProgress < 100;
-
-  // Platform items configuration
-  const platformList = [
-    {
-      key: "youtube" as const,
-      name: "YouTube",
-      data: platforms.youtube,
-      icon: (
-        <svg className="w-3.5 h-3.5 text-red-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-        </svg>
-      ),
-    },
-    {
-      key: "instagram" as const,
-      name: "Instagram",
-      data: platforms.instagram,
-      icon: (
-        <svg className="w-3.5 h-3.5 text-pink-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-        </svg>
-      ),
-    },
-    {
-      key: "tiktok" as const,
-      name: "TikTok",
-      data: platforms.tiktok,
-      icon: (
-        <svg className="w-3.5 h-3.5 text-cyan-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
-        </svg>
-      ),
-    },
-  ];
-
-  return (
-    <div className="relative overflow-hidden rounded-2xl bg-white text-zinc-950 shadow-sm border border-zinc-200/90 p-5 sm:p-6 space-y-5">
-      {/* Background ambient subtle light */}
-      <div className="absolute top-0 right-1/4 w-80 h-80 bg-cyan-100/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Top Header Row */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0 shadow-2xs">
-            <Radio className="w-4 h-4 text-cyan-600 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold tracking-tight text-zinc-950">
-                Autonomous Telemetry &amp; Valuation Radar
-              </span>
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-mono border ${
-                  isValuationCalibrated
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/90 font-semibold"
-                    : isSynthesizing
-                    ? "bg-cyan-50 text-cyan-700 border-cyan-200/90 animate-pulse font-semibold"
-                    : "bg-zinc-100 text-zinc-700 border-zinc-200 font-medium"
-                }`}
-              >
-                {isValuationCalibrated ? "Calibrated & Verified" : isSynthesizing ? "Stage 2: LLM Synthesis" : "Stage 1: Channel Analysis"}
-              </span>
-            </div>
-            <p className="text-[11px] text-zinc-500 font-mono mt-0.5">
-              Target Creator: <span className="text-zinc-900 font-semibold">@{inputQuery.replace(/^@+/, "")}</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Time expectation callout */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-xs text-zinc-700 shadow-2xs self-start sm:self-auto">
-          <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          <span>Complete analysis takes <strong className="text-zinc-950 font-semibold">~2–3 minutes</strong></span>
-        </div>
-      </div>
-
-      {/* Reassurance Callout Box */}
-      <div className="relative z-10 text-xs text-zinc-600 leading-relaxed flex items-start gap-2.5 bg-zinc-50/90 p-3.5 rounded-xl border border-zinc-200/80">
-        <Clock className="w-4 h-4 text-cyan-600 shrink-0 mt-0.5" />
-        <p>
-          Analyzing real-time channel velocity, subscriber reach, and audience metrics to benchmark 16 commercial knots via SignCollab Profile LLM Engine. Deep profiling completes in ~2–3 minutes. Please keep this tab active.
-        </p>
-      </div>
-
-      {/* Centerpiece: Radial Spinner + 2-Stage Progress Architecture */}
-      <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-8 pt-1">
-        {/* Left: SVG Radial Progress Ring */}
-        <div className="relative flex items-center justify-center shrink-0">
-          <svg className="w-36 h-36 -rotate-90 transform" viewBox="0 0 128 128">
-            <defs>
-              <linearGradient id="stationRadialGradientLight" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#0891b2" />
-                <stop offset="100%" stopColor="#059669" />
-              </linearGradient>
-            </defs>
-            {/* Background Track Circle */}
-            <circle
-              cx="64"
-              cy="64"
-              r={radius}
-              stroke="#e4e4e7"
-              strokeWidth={strokeWidth}
-              fill="transparent"
-            />
-            {/* Active Progress Circle */}
-            <circle
-              cx="64"
-              cy="64"
-              r={radius}
-              stroke="url(#stationRadialGradientLight)"
-              strokeWidth={strokeWidth}
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              fill="transparent"
-              className="transition-all duration-700 ease-out"
-            />
-          </svg>
-
-          {/* Centered Percentage & Stage Label */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-            <span className="text-3xl font-extrabold font-mono text-zinc-950 tracking-tight">
-              {overallProgress}%
-            </span>
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-zinc-500 mt-0.5">
-              {overallProgress < 80 ? "Analyzing" : overallProgress < 100 ? "LLM Engine" : "Verified"}
-            </span>
-          </div>
-        </div>
-
-        {/* Right: 2-Stage Architecture Visual Breakdown */}
-        <div className="flex-1 w-full space-y-3">
-          {/* Stage 1: 0% - 80% */}
-          <div
-            className={`p-3 rounded-xl border transition-all ${
-              isAnalysisPhase
-                ? "bg-cyan-50/70 border-cyan-200 shadow-2xs"
-                : overallProgress >= 80
-                ? "bg-emerald-50/40 border-emerald-200/90"
-                : "bg-zinc-50/80 border-zinc-200/80"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-md bg-white border border-zinc-200 text-zinc-700 text-[10px] font-mono font-bold flex items-center justify-center shadow-2xs">
-                  1
-                </span>
-                <span className="text-xs font-semibold text-zinc-900">
-                  Cross-Platform Channel Analysis (0% – 80%)
-                </span>
-              </div>
-              <span
-                className={`text-[10px] font-mono ${
-                  overallProgress >= 80 ? "text-emerald-700 font-semibold" : "text-cyan-700 animate-pulse font-semibold"
-                }`}
-              >
-                {overallProgress >= 80 ? "Verified (80%)" : `${Math.min(overallProgress, 80)}% / 80%`}
-              </span>
-            </div>
-            <p className="text-[11px] text-zinc-600 mt-1 pl-7">
-              Analyzing live video play velocity, historical uploads, audience reach &amp; engagement rates across YouTube, Instagram &amp; TikTok.
-            </p>
-            {/* Stage 1 Mini Progress Bar */}
-            <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden mt-2 ml-7 max-w-[calc(100%-1.75rem)]">
-              <div
-                className="h-full bg-cyan-600 transition-all duration-500 rounded-full"
-                style={{ width: `${Math.min((overallProgress / 80) * 100, 100)}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Stage 2: 80% - 100% */}
-          <div
-            className={`p-3 rounded-xl border transition-all ${
-              isLlmPhase
-                ? "bg-cyan-50/70 border-cyan-200 shadow-2xs"
-                : isValuationCalibrated
-                ? "bg-emerald-50/40 border-emerald-200/90"
-                : "bg-zinc-50/80 border-zinc-200/80"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-md bg-white border border-zinc-200 text-zinc-700 text-[10px] font-mono font-bold flex items-center justify-center shadow-2xs">
-                  2
-                </span>
-                <span className="text-xs font-semibold text-zinc-900">
-                  SignCollab Profile LLM Engine (80% – 100%)
-                </span>
-              </div>
-              <span
-                className={`text-[10px] font-mono ${
-                  isValuationCalibrated
-                    ? "text-emerald-700 font-semibold"
-                    : isLlmPhase
-                    ? "text-cyan-700 animate-pulse font-semibold"
-                    : "text-zinc-400"
-                }`}
-              >
-                {isValuationCalibrated
-                  ? "Calibrated (100%)"
-                  : isLlmPhase
-                  ? `${overallProgress}% / 100%`
-                  : "Standby (Starts at 80%)"}
-              </span>
-            </div>
-            <p className="text-[11px] text-zinc-600 mt-1 pl-7">
-              Synthesizing 19-point creator intelligence dossier &amp; calibrating 16 defended knot valuations.
-            </p>
-            {/* Stage 2 Mini Progress Bar */}
-            <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden mt-2 ml-7 max-w-[calc(100%-1.75rem)]">
-              <div
-                className="h-full bg-emerald-600 transition-all duration-500 rounded-full"
-                style={{
-                  width: `${
-                    overallProgress <= 80
-                      ? 0
-                      : Math.min(((overallProgress - 80) / 20) * 100, 100)
-                  }%`,
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Linked Platforms Status Bar */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100">
-        <div className="flex flex-wrap items-center gap-2">
-          {platformList.map((p) => {
-            const isReady = p.data.status === "ready";
-            const isLoading = p.data.status === "loading";
-
-            return (
-              <div
-                key={p.key}
-                onClick={!isReady ? onOpenMissingModal : undefined}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition-all ${
-                  !isReady ? "cursor-pointer hover:bg-zinc-100" : ""
-                } ${
-                  isReady
-                    ? "bg-white border-emerald-300 text-zinc-900 shadow-2xs"
-                    : isLoading
-                    ? "bg-cyan-50/70 border-cyan-300 text-cyan-900 animate-pulse"
-                    : "bg-zinc-50 border-zinc-200 text-zinc-400"
-                }`}
-              >
-                {p.icon}
-                <span className="font-semibold text-zinc-900">{p.name}</span>
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    isReady
-                      ? "bg-emerald-500 shadow-[0_0_4px_#10b981]"
-                      : isLoading
-                      ? "bg-cyan-500 animate-ping"
-                      : "bg-zinc-300"
-                  }`}
-                />
-                <span className="font-mono text-[11px] text-zinc-500">
-                  {isReady
-                    ? `@${p.data.username?.replace(/^@/, "")} (${formatShortNumber(p.data.followerCount)})`
-                    : isLoading
-                    ? "Auditing..."
-                    : "Standby"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {verifiedChannelsCount < 3 && (
-            <button
-              type="button"
-              onClick={onOpenMissingModal}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-300 text-zinc-800 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
-            >
-              <span>+ Link Missing Platform</span>
-            </button>
-          )}
-
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 border border-zinc-200 text-xs font-mono text-zinc-700">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                verifiedChannelsCount === 3
-                  ? "bg-emerald-500"
-                  : verifiedChannelsCount > 0
-                  ? "bg-cyan-500"
-                  : "bg-zinc-400"
-              }`}
-            />
-            <span className="font-bold text-zinc-900">{verifiedChannelsCount}/3 Linked</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Animated Live Step Ticker Capsule (Light Theme) */}
-      <div className="relative z-10 w-full bg-zinc-50 text-zinc-900 rounded-xl border border-zinc-200/90 px-4 py-3 flex items-center justify-between gap-3 shadow-2xs">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                isValuationCalibrated ? "bg-emerald-400" : "bg-cyan-400"
-              }`}
-            />
-            <span
-              className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                isValuationCalibrated ? "bg-emerald-600" : "bg-cyan-600"
-              }`}
-            />
-          </span>
-          <div className="font-mono text-xs truncate flex items-center gap-2">
-            <span className="text-zinc-400 uppercase font-semibold text-[10px] tracking-wider shrink-0">
-              LIVE STEP:
-            </span>
-            <span className={isValuationCalibrated ? "text-emerald-700 font-semibold" : "text-cyan-800 font-semibold"}>
-              {activeTickerText}
-            </span>
-          </div>
-        </div>
-
-        <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-white text-[10px] font-mono text-zinc-600 border border-zinc-200/80 shadow-2xs shrink-0">
-          {overallProgress < 80 ? "0–80% Analysis" : overallProgress < 100 ? "80–100% SignCollab LLM" : "Verified 100%"}
-        </span>
-      </div>
     </div>
   );
 }
