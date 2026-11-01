@@ -1,4 +1,5 @@
 "use client";
+import { parseProfileInput } from '@/lib/calculator/profile-input';
 
 import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 
@@ -41,6 +42,7 @@ function formatShortNumber(num: number | undefined | null): string {
 
 export function InfluencerRadarDashboard() {
   const [inputQuery, setInputQuery] = useState("");
+  const [inputError, setInputError] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("instagram");
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -329,6 +331,12 @@ export function InfluencerRadarDashboard() {
       targetPlatform: Platform,
       sourceNote?: string
     ) => {
+      try { targetInput = parseProfileInput(targetInput, targetPlatform).canonical; }
+      catch (error) {
+        if (!sourceNote) setInputError(error instanceof Error ? error.message : 'Invalid profile.');
+        addActivity('Skipped an unsupported profile link.', 'info');
+        return;
+      }
       const scrapeKey = `${targetPlatform}:${targetInput.toLowerCase().trim()}`;
       if (inFlightScrapes.current.has(scrapeKey)) return;
       inFlightScrapes.current.add(scrapeKey);
@@ -674,8 +682,11 @@ export function InfluencerRadarDashboard() {
   // Main Form Submit
   const handleStart = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    const query = inputQuery.trim();
-    if (!query) return;
+    let target;
+    try { target = parseProfileInput(inputQuery, isUrl ? undefined : selectedPlatform); }
+    catch (error) { setInputError(error instanceof Error ? error.message : 'Enter a valid profile.'); return; }
+    setInputError('');
+    const query = target.canonical;
 
     setIsSearching(true);
     setIsResolvingIdentity(true);
@@ -700,13 +711,7 @@ export function InfluencerRadarDashboard() {
       telemetrySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 150);
 
-    let initialTargetPlatform: Platform = selectedPlatform;
-    if (isUrl) {
-      const lower = query.toLowerCase();
-      if (lower.includes("youtube.com") || lower.includes("youtu.be")) initialTargetPlatform = "youtube";
-      else if (lower.includes("tiktok.com")) initialTargetPlatform = "tiktok";
-      else initialTargetPlatform = "instagram";
-    }
+    const initialTargetPlatform: Platform = target.platform;
 
     // Step 1: Pre-search Identity Cluster Resolution
     // If the creator has already been bound across multiple platforms, trigger all of them simultaneously!
@@ -1167,7 +1172,7 @@ Defended via SignCollab 16-Knot Market Valuation Engine`;
       {/* ========================================================= */}
       {!hasSearched ? (
         <div ref={heroSectionRef}>
-          <CalculatorSearch query={inputQuery} onQuery={setInputQuery} platform={selectedPlatform} onPlatform={setSelectedPlatform} showPlatforms={hasHandleInput} onSubmit={handleStart} />
+          <CalculatorSearch error={inputError} query={inputQuery} onQuery={value => { setInputQuery(value); setInputError(""); }} platform={selectedPlatform} onPlatform={setSelectedPlatform} showPlatforms={hasHandleInput} onSubmit={handleStart} />
         </div>
       ) : (
         <>

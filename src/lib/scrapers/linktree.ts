@@ -28,8 +28,11 @@ const KNOWN_AGGREGATOR_DOMAINS = [
  */
 export function isLinkAggregatorUrl(rawUrl: string): boolean {
   if (!rawUrl || typeof rawUrl !== 'string') return false;
-  const lower = rawUrl.toLowerCase();
-  return KNOWN_AGGREGATOR_DOMAINS.some((domain) => lower.includes(domain));
+  try {
+    const url = new URL(/^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`);
+    return url.protocol === 'https:' && !url.username && !url.password && !url.port &&
+      KNOWN_AGGREGATOR_DOMAINS.includes(url.hostname.replace(/^www\./, ''));
+  } catch { return false; }
 }
 
 /**
@@ -59,16 +62,25 @@ export async function unrollAggregatorLinks(aggregatorUrl: string): Promise<Unro
         'Accept-Language': 'en-US,en;q=0.9',
       },
       signal: controller.signal,
-      redirect: 'follow',
+      redirect: 'error',
     });
-
-    clearTimeout(timeoutId);
 
     if (!res.ok) {
       return result;
     }
 
-    const html = await res.text();
+    const reader = res.body?.getReader();
+    if (!reader) return result;
+    const chunks: Uint8Array[] = []; let size = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read(); if (done) break;
+        size += value.byteLength;
+        if (size > 2 * 1024 * 1024) { await reader.cancel(); return result; }
+        chunks.push(value);
+      }
+    } finally { reader.releaseLock(); }
+    const html = Buffer.concat(chunks).toString('utf8');
 
     // 1. YouTube discovery
     const ytMatch = html.match(/https?:\/\/(?:www\.)?(?:youtube\.com\/(?:@|c\/|channel\/|user\/)?|youtu\.be\/)[a-zA-Z0-9_\-\.]{3,50}/i);
@@ -97,7 +109,6 @@ export async function unrollAggregatorLinks(aggregatorUrl: string): Promise<Unro
 
     return result;
   } catch {
-    clearTimeout(timeoutId);
     return result;
-  }
+  } finally { clearTimeout(timeoutId); }
 }

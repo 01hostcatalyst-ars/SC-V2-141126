@@ -167,11 +167,11 @@ export async function POST(req: NextRequest) {
 
   // Verify authorization: allow dev localhost auto-access, require passkey in production
   const host = req.headers.get('host') || '';
-  const isDevLocal = process.env.NODE_ENV !== 'production' && (host.includes('localhost') || host.includes('127.0.0.1'));
-  const configuredKey = (process.env.ADMIN_BATCH_INGEST_KEY || process.env.ADMIN_PASSWORD || 'signcollab-admin-ingest-2026').trim();
+  const isDevLocal = process.env.NODE_ENV !== 'production' && (/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host));
+  const configuredKey = (process.env.ADMIN_BATCH_INGEST_KEY || process.env.ADMIN_PASSWORD || '').trim();
   const providedKey = (req.headers.get('x-admin-key') || req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '').trim();
 
-  if (!isDevLocal && providedKey !== configuredKey) {
+  if (!isDevLocal && (!configuredKey || providedKey !== configuredKey)) {
     return NextResponse.json({
       success: false,
       status: 'failed',

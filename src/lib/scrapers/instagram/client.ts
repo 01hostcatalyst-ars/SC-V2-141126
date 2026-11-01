@@ -1,3 +1,5 @@
+import { parseProfileInput } from '@/lib/calculator/profile-input';
+import { withCalculatorWork } from '@/lib/calculator/request-guard';
 import {
   InstagramScraperData,
   InstagramProfile,
@@ -122,7 +124,7 @@ async function fetchBrightDataWithPolling(
 /**
  * Scrapes complete Instagram creator profile (Process 1) and enriched 12 posts (Process 2)
  */
-export async function scrapeInstagram(
+async function scrapeInstagramImpl(
   input: string,
   options?: { fastMode?: boolean }
 ): Promise<InstagramScraperData> {
@@ -408,4 +410,10 @@ export async function scrapeInstagram(
     isCached: false,
     cacheAgeHours: 0,
   };
+}
+
+export async function scrapeInstagram(...args: Parameters<typeof scrapeInstagramImpl>): Promise<Awaited<ReturnType<typeof scrapeInstagramImpl>>> {
+ const target = parseProfileInput(args[0], 'instagram');
+ args[0] = target.canonical;
+ return withCalculatorWork('scrape', target.key, () => scrapeInstagramImpl(...args));
 }

@@ -1,3 +1,5 @@
+import { parseProfileInput } from '@/lib/calculator/profile-input';
+import { withCalculatorWork } from '@/lib/calculator/request-guard';
 import {
   YouTubeScraperData,
   YouTubeChannelProfile,
@@ -187,7 +189,7 @@ interface RawCommentThread {
 /**
  * Core YouTube Scraper function
  */
-export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperData> {
+async function scrapeYouTubeImpl(inputUrl: string): Promise<YouTubeScraperData> {
   const parsedInput = extractYouTubeIdentifier(inputUrl);
 
   if (parsedInput.type === 'unknown' || !parsedInput.value) {
@@ -494,4 +496,10 @@ export async function scrapeYouTube(inputUrl: string): Promise<YouTubeScraperDat
     },
     scrapedAt: new Date().toISOString(),
   };
+}
+
+export async function scrapeYouTube(...args: Parameters<typeof scrapeYouTubeImpl>): Promise<Awaited<ReturnType<typeof scrapeYouTubeImpl>>> {
+ const target = parseProfileInput(args[0], 'youtube');
+ args[0] = target.canonical;
+ return withCalculatorWork('scrape', target.key, () => scrapeYouTubeImpl(...args));
 }

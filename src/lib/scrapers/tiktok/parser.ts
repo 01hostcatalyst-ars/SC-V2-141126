@@ -1,3 +1,4 @@
+import { parseProfileInput } from '@/lib/calculator/profile-input';
 import { TikTokVideoItem } from '../types';
 
 /**
@@ -9,24 +10,7 @@ import { TikTokVideoItem } from '../types';
  * - "https://tiktok.com/@mrbeast?lang=en" -> "mrbeast"
  */
 export function extractTikTokUsername(input: string): string {
-  if (!input) return '';
-
-  let clean = input.trim();
-
-  // Strip query params and hashes
-  clean = clean.split('?')[0].split('#')[0];
-
-  // Match URL patterns: tiktok.com/@username or tiktok.com/username
-  const urlMatch = clean.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?([a-zA-Z0-9_.-]+)/i);
-  if (urlMatch && urlMatch[1]) {
-    if (urlMatch[1] !== 'tag' && urlMatch[1] !== 'music' && urlMatch[1] !== 'discover') {
-      return urlMatch[1].toLowerCase().replace(/^@/, '');
-    }
-  }
-
-  // Handle direct handles or @handles
-  clean = clean.replace(/^@/, '').replace(/\/$/, '');
-  return clean.toLowerCase();
+ try { return parseProfileInput(input, 'tiktok').identifier; } catch { return ''; }
 }
 
 /**

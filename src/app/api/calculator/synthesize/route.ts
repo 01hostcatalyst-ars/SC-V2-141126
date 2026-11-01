@@ -1,3 +1,10 @@
+import { calculatorBody, guardCalculatorRequest, calculatorError } from '@/lib/calculator/request-guard';
+import { parseProfileInput, ProfileInputError } from '@/lib/calculator/profile-input';
+import { getRecentYouTubeSnapshot } from '@/lib/scrapers/youtube';
+import { getRecentInstagramSnapshot } from '@/lib/scrapers/instagram';
+import { getRecentTikTokSnapshot } from '@/lib/scrapers/tiktok';
+import { buildRefreshInput, RefreshPlatformData } from '@/lib/creators/refresh-input';
+import { REGIONAL_CONFIG } from '@/lib/calculator/constants';
 import { NextRequest, NextResponse } from 'next/server';
 import { generateCompleteCreatorIntelligence, MultiPlatformCreatorInput, CreatorAIClassification } from '@/lib/ai/gemini';
 import { prisma } from '@/lib/prisma';
@@ -6,8 +13,8 @@ import { upsertCreatorIdentityCluster } from '@/lib/creators/identity';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { multiInput, regionCode, bypassCache } = body as {
+    const body = await calculatorBody(req, 256 * 1024);
+    let { multiInput, regionCode } = body as {
       multiInput: MultiPlatformCreatorInput;
       regionCode?: string;
       bypassCache?: boolean;
@@ -17,13 +24,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'No platform data provided for synthesis.' }, { status: 400 });
     }
 
+    await guardCalculatorRequest(req, true);
+    const sources: RefreshPlatformData = {};
+    for (const platform of ['youtube', 'instagram', 'tiktok'] as const) {
+      const channel = multiInput[platform];
+      if (!channel) continue;
+      const handle = platform === 'youtube' ? multiInput.youtube?.handle : platform === 'instagram' ? multiInput.instagram?.username : multiInput.tiktok?.username;
+      const target = parseProfileInput(handle, platform);
+      if (platform === 'youtube') sources.youtube = await getRecentYouTubeSnapshot(target.canonical) || undefined;
+      if (platform === 'instagram') sources.instagram = await getRecentInstagramSnapshot(target.canonical) || undefined;
+      if (platform === 'tiktok') sources.tiktok = await getRecentTikTokSnapshot(target.canonical) || undefined;
+      if (!sources[platform]) throw new ProfileInputError('Collect this profile through the calculator before requesting insights.');
+    }
+    const region = regionCode && Object.hasOwn(REGIONAL_CONFIG, regionCode) ? regionCode as RegionCode : 'US';
+    regionCode = region;
+    const name = sources.youtube?.channel.title || sources.instagram?.profile.fullName || sources.tiktok?.profile.nickname || 'Creator';
+    multiInput = buildRefreshInput(name, sources, region);
+
     if (regionCode && !multiInput.reportedCountry) {
       multiInput.reportedCountry = regionCode;
     }
 
     console.log(`[Calculator Synthesize API] Synthesizing complete 19-point intelligence for "${multiInput.creatorName}"...`);
 
-    const completeIntel = await generateCompleteCreatorIntelligence(multiInput, Boolean(bypassCache));
+    const completeIntel = await generateCompleteCreatorIntelligence(multiInput, false);
 
     const aiEnrichment: CreatorAIClassification = {
       primaryNiche: {
@@ -110,6 +134,6 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Failed to synthesize multi-platform data.';
     console.error('[Calculator Synthesize API Error]:', err);
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return calculatorError(err);
   }
 }

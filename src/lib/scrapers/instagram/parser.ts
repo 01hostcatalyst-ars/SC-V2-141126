@@ -1,46 +1,11 @@
+import { parseProfileInput } from '@/lib/calculator/profile-input';
 import { InstagramPostItem, InstagramScraperData } from '../types';
 
 /**
  * Extracts clean Instagram username from URL or handle input
  */
 export function extractInstagramUsername(input: string): string {
-  if (!input || typeof input !== 'string') return '';
-  const trimmed = input.trim();
-
-  // If already pure username or @username
-  if (!trimmed.includes('/') && !trimmed.includes('.')) {
-    return trimmed.replace(/^@/, '').toLowerCase();
-  }
-
-  try {
-    // Check if it's a URL
-    let urlStr = trimmed;
-    if (!urlStr.startsWith('http://') && !urlStr.startsWith('https://')) {
-      urlStr = `https://${urlStr}`;
-    }
-
-    const url = new URL(urlStr);
-    const pathSegments = url.pathname.split('/').filter(Boolean);
-
-    if (pathSegments.length > 0) {
-      // Handle /p/postId or /reel/reelId or /stories/username/...
-      if (pathSegments[0] === 'stories' && pathSegments.length > 1) {
-        return pathSegments[1].replace(/^@/, '').toLowerCase();
-      }
-      if (pathSegments[0] !== 'p' && pathSegments[0] !== 'reel' && pathSegments[0] !== 'reels') {
-        return pathSegments[0].replace(/^@/, '').toLowerCase();
-      }
-    }
-  } catch {
-    // Fallback regex
-  }
-
-  const match = trimmed.match(/(?:instagram\.com\/)(?:@)?([a-zA-Z0-9._]+)/i);
-  if (match) {
-    return match[1].toLowerCase();
-  }
-
-  return trimmed.replace(/^@/, '').replace(/[^a-zA-Z0-9._]/g, '').toLowerCase();
+ try { return parseProfileInput(input, 'instagram').identifier; } catch { return ''; }
 }
 
 /**

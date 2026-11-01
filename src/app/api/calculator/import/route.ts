@@ -1,3 +1,5 @@
+import { parseProfileInput, isPlatform, ProfileInputError } from '@/lib/calculator/profile-input';
+import { calculatorBody, guardCalculatorRequest, calculatorError } from '@/lib/calculator/request-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { detectPlatform, YouTubeScraper, InstagramScraper, TikTokScraper } from '@/lib/scrapers';
 import { InstagramScraperData } from '@/lib/scrapers/types';
@@ -8,17 +10,18 @@ import { PricingInput, DeliverableFormat, Platform, RegionCode } from '@/lib/cal
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { input, requestedPlatform, regionCode, fastMode } = body;
+    const body = await calculatorBody(req);
+    const { input, requestedPlatform, regionCode } = body;
+    const fastMode = false;
 
     if (!input || typeof input !== 'string') {
       return NextResponse.json({ success: false, error: 'Missing creator URL or username.' }, { status: 400 });
     }
 
-    const platform: Platform = (requestedPlatform && requestedPlatform !== 'auto')
-      ? requestedPlatform
-      : (detectPlatform(input) !== 'unknown' ? detectPlatform(input) as Platform : 'instagram');
-
+    if (requestedPlatform && requestedPlatform !== 'auto' && !isPlatform(requestedPlatform)) throw new ProfileInputError('Choose a supported platform.');
+    const target = parseProfileInput(input, isPlatform(requestedPlatform) ? requestedPlatform : undefined);
+    const platform: Platform = target.platform;
+    await guardCalculatorRequest(req, true);
     console.log(`[Calculator Import API] Importing creator "${input}" on platform "${platform}" (fastMode: ${Boolean(fastMode)})...`);
 
     let followerCount = 0;
@@ -393,6 +396,6 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Failed to import creator and calculate rate.';
     console.error('[Calculator Import API] Error:', err);
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return calculatorError(err);
   }
 }

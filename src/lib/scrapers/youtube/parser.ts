@@ -1,3 +1,4 @@
+import { parseProfileInput } from '@/lib/calculator/profile-input';
 import { YouTubeExternalLink, YouTubeVideoItem } from '../types';
 
 export interface ParsedYouTubeInput {
@@ -9,74 +10,7 @@ export interface ParsedYouTubeInput {
  * Extracts channel handle, channel ID, or video ID from any YouTube URL or raw handle string.
  */
 export function extractYouTubeIdentifier(input: string): ParsedYouTubeInput {
-  const trimmed = input.trim();
-  if (!trimmed) {
-    return { type: 'unknown', value: '' };
-  }
-
-  // 1. Raw handle e.g. @VideoWaliSarkar1 or VideoWaliSarkar1
-  if (/^@?[\w.-]{3,30}$/.test(trimmed) && !trimmed.startsWith('UC') && !trimmed.includes('http')) {
-    return {
-      type: 'handle',
-      value: trimmed.startsWith('@') ? trimmed.slice(1) : trimmed,
-    };
-  }
-
-  // 2. Direct Channel ID e.g. UC...
-  if (/^UC[\w-]{21,23}$/.test(trimmed)) {
-    return { type: 'channelId', value: trimmed };
-  }
-
-  try {
-    const urlObj = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
-    const pathname = urlObj.pathname;
-
-    // Handle @handle in URL e.g. /@VideoWaliSarkar1 or /@VideoWaliSarkar1/videos
-    const handleMatch = pathname.match(/\/@([\w.-]+)/);
-    if (handleMatch) {
-      return { type: 'handle', value: handleMatch[1] };
-    }
-
-    // Channel ID in URL e.g. /channel/UC...
-    const channelMatch = pathname.match(/\/channel\/(UC[\w-]+)/);
-    if (channelMatch) {
-      return { type: 'channelId', value: channelMatch[1] };
-    }
-
-    // Video watch URL e.g. /watch?v=...
-    const videoParam = urlObj.searchParams.get('v');
-    if (videoParam) {
-      return { type: 'videoId', value: videoParam };
-    }
-
-    // Shorts URL e.g. /shorts/TS07fIl5EAs
-    const shortsMatch = pathname.match(/\/shorts\/([\w-]+)/);
-    if (shortsMatch) {
-      return { type: 'videoId', value: shortsMatch[1] };
-    }
-
-    // youtu.be short URL e.g. youtu.be/TS07fIl5EAs
-    if (urlObj.hostname.includes('youtu.be')) {
-      const vidId = pathname.replace(/^\//, '').split('/')[0];
-      if (vidId) return { type: 'videoId', value: vidId };
-    }
-
-    // Custom URL /c/username or /user/username
-    const customMatch = pathname.match(/\/(?:c|user)\/([\w.-]+)/);
-    if (customMatch) {
-      return { type: 'username', value: customMatch[1] };
-    }
-
-    // Path without prefix e.g. /username
-    const cleanPath = pathname.replace(/^\//, '').split('/')[0];
-    if (cleanPath && !['watch', 'feed', 'playlist', 'results'].includes(cleanPath)) {
-      return { type: 'handle', value: cleanPath };
-    }
-  } catch {
-    return { type: 'handle', value: trimmed.replace(/^@/, '') };
-  }
-
-  return { type: 'unknown', value: trimmed };
+ try { const parsed = parseProfileInput(input, 'youtube'); return { type: parsed.kind, value: parsed.identifier }; } catch { return { type: 'unknown', value: '' }; }
 }
 
 /**

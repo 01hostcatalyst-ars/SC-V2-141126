@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upsertCreatorIdentityCluster } from '@/lib/creators/identity';
+import { parseProfileInput, ProfileInputError } from '@/lib/calculator/profile-input';
+import { calculatorBody, guardCalculatorRequest, calculatorError } from '@/lib/calculator/request-guard';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = await calculatorBody(req);
     const {
       canonicalName,
       youtubeHandle,
@@ -20,11 +22,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (canonicalName !== undefined && (typeof canonicalName !== 'string' || canonicalName.length > 200)) throw new ProfileInputError('Invalid creator name.');
+    const youtube = youtubeHandle ? parseProfileInput(youtubeHandle, 'youtube') : undefined;
+    const instagram = instagramUsername ? parseProfileInput(instagramUsername, 'instagram') : undefined;
+    const tiktok = tiktokUsername ? parseProfileInput(tiktokUsername, 'tiktok') : undefined;
+    if (youtube?.kind === 'videoId') throw new ProfileInputError('Use a channel handle to link an account.');
+    await guardCalculatorRequest(req);
     const cluster = await upsertCreatorIdentityCluster({
       canonicalName,
-      youtubeHandle,
-      instagramUsername,
-      tiktokUsername,
+      youtubeHandle: youtube?.canonical,
+      instagramUsername: instagram?.identifier,
+      tiktokUsername: tiktok?.identifier,
       primaryNicheId: typeof primaryNicheId === 'number' ? primaryNicheId : undefined,
       countryCode: typeof countryCode === 'string' ? countryCode : undefined,
     });
@@ -35,6 +43,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Identity binding failed';
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return calculatorError(err);
   }
 }

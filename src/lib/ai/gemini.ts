@@ -1,3 +1,4 @@
+import { withCalculatorWork } from '@/lib/calculator/request-guard';
 import { PRIMARY_NICHES, SUB_NICHES, REGIONAL_CONFIG } from '../calculator/constants';
 import { RegionCode } from '../calculator/types';
 import { JWT } from 'google-auth-library';
@@ -302,6 +303,7 @@ export async function generateCompleteCreatorIntelligence(
     }
   }
 
+  return withCalculatorWork('ai', rootHandle.toLowerCase(), async () => {
   const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID?.trim();
   if (!projectId) {
     throw new Error('[Gemini Vertex AI] GOOGLE_CLOUD_PROJECT_ID is not configured in environment variables.');
@@ -795,6 +797,7 @@ Generate the Complete 19-Point Creator Intelligence Dossier & Omnichannel Strate
   }
 
   throw new Error(`[Gemini Vertex AI Failure] All models failed. Details:\n${modelErrors.join('\n')}`);
+  });
 }
 
 /**

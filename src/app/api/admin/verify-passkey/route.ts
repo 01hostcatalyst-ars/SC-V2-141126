@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
     const host = req.headers.get("host") || "";
     const isDevLocal =
       process.env.NODE_ENV !== "production" &&
-      (host.includes("localhost") || host.includes("127.0.0.1"));
+      (/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host));
 
     const body = await req.json().catch(() => ({}));
     const { passkey } = body;
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const configuredKey =
       process.env.ADMIN_BATCH_INGEST_KEY ||
       process.env.ADMIN_PASSWORD ||
-      "signcollab-admin-ingest-2026";
+      "";
 
     if (isDevLocal && (!passkey || passkey === "localhost")) {
       return NextResponse.json({
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (passkey && passkey.trim() === configuredKey.trim()) {
+    if (configuredKey && typeof passkey === "string" && passkey.trim() === configuredKey.trim()) {
       return NextResponse.json({
         success: true,
         isLocalhost: isDevLocal,

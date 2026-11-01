@@ -7,8 +7,8 @@ import styles from "./CalculatorJourney.module.css";
 type Channel = { status: "idle" | "loading" | "ready" | "error"; username?: string; error?: string };
 const platformNames = { youtube: "YouTube", instagram: "Instagram", tiktok: "TikTok" };
 
-export function CalculatorSearch({ query, onQuery, platform, onPlatform, showPlatforms, onSubmit }: {
-  query: string; onQuery: (value: string) => void; platform: Platform;
+export function CalculatorSearch({ error, query, onQuery, platform, onPlatform, showPlatforms, onSubmit }: {
+  error?: string; query: string; onQuery: (value: string) => void; platform: Platform;
   onPlatform: (value: Platform) => void; showPlatforms: boolean; onSubmit: (event: React.FormEvent) => void;
 }) {
   return <section className={`${styles.search} ${styles.enter}`}>
@@ -19,14 +19,14 @@ export function CalculatorSearch({ query, onQuery, platform, onPlatform, showPla
       <label htmlFor="calculator-profile" className={styles.inputLabel}>Creator profile link or handle</label>
       <div className={styles.searchField}>
         <Search size={19} aria-hidden="true" />
-        <input id="calculator-profile" value={query} onChange={event => onQuery(event.target.value)} placeholder="Paste a profile link or @handle" autoComplete="off" spellCheck={false} required />
+        <input id="calculator-profile" maxLength={512} aria-invalid={Boolean(error)} aria-describedby="calculator-input-hint" value={query} onChange={event => onQuery(event.target.value)} placeholder="Paste a profile link or @handle" autoComplete="off" spellCheck={false} required />
         <button type="submit" disabled={!query.trim()}>Calculate rates <ArrowRight size={17} /></button>
       </div>
       {showPlatforms && <fieldset className={styles.platformPicker}>
         <legend>Which platform is this handle on?</legend>
         <div>{(Object.keys(platformNames) as Platform[]).map(key => <button type="button" key={key} aria-pressed={platform === key} onClick={() => onPlatform(key)}>{platformNames[key]}</button>)}</div>
       </fieldset>}
-      <p className={styles.hint}>YouTube, Instagram & TikTok · Linked accounts are checked automatically.</p>
+      <p id="calculator-input-hint" role={error ? "alert" : undefined} className={styles.hint} style={error ? { color: "#be185d" } : undefined}>{error || <>YouTube, Instagram & TikTok · Linked accounts are checked automatically.</>}</p>
     </form>
     <div className={styles.trust}><span>Research-backed pricing engine</span><span>Rates by content format</span><span>Audience & content insights</span></div>
     <p className={styles.disclosure}>Prices come from our calculation engine. AI helps interpret creator and audience data.</p>
@@ -42,6 +42,7 @@ export function CalculatorAnalysis({ complete = false, query, platforms, searchi
   const ready = channels.filter(channel => channel.status === "ready").length;
   const failed = channels.filter(channel => channel.status === "error").length;
   const stopped = !searching && !resolving && !loading && !synthesizing && ready === 0 && failed > 0;
+  const failureMessage = channels.find(channel => channel.status === 'error' && channel.error)?.error;
   const found = loading || ready > 0;
   const collected = ready > 0 && !loading && !searching && !resolving;
   const steps = [
@@ -69,7 +70,7 @@ export function CalculatorAnalysis({ complete = false, query, platforms, searchi
       </li>)}</ol>
     </div>
     <div className={styles.channelRow}>{(Object.keys(platformNames) as Platform[]).map(key => <span key={key} data-status={platforms[key].status} className={styles.channel}><i />{platformNames[key]}<small>{({ idle: "Not linked yet", loading: "Collecting", ready: "Data ready", error: "Unavailable" })[platforms[key].status]}</small></span>)}</div>
-    <div className={styles.status} role="status" aria-live="polite">{stopped ? <><AlertCircle size={17} /><span>Check the profile link and try again. Public platform data may be temporarily unavailable.</span><button onClick={onRetry}><RotateCcw size={14} /> Try again</button></> : <><span className={styles.liveDot} /><span>{complete ? "Analysis complete. Opening your report…" : `${current}. This can take a few minutes. Keep this page open.`}</span></>}</div>
+    <div className={styles.status} role="status" aria-live="polite">{stopped ? <><AlertCircle size={17} /><span>{failureMessage || "Check the profile link and try again. Public platform data may be temporarily unavailable."}</span><button onClick={onRetry}><RotateCcw size={14} /> Try again</button></> : <><span className={styles.liveDot} /><span>{complete ? "Analysis complete. Opening your report…" : `${current}. This can take a few minutes. Keep this page open.`}</span></>}</div>
     {failed > 0 && ready > 0 && <p className={styles.partial}>Some platform data is unavailable. Your report will use the accounts collected successfully.</p>}
     {stopped && <button className={styles.textButton} onClick={onLink}>Add another platform handle <ArrowRight size={14} /></button>}
   </section>;

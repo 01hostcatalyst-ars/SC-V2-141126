@@ -1,3 +1,5 @@
+import { parseProfileInput } from '@/lib/calculator/profile-input';
+import { withCalculatorWork } from '@/lib/calculator/request-guard';
 import {
   TikTokScraperData,
   TikTokProfile,
@@ -118,7 +120,7 @@ async function fetchBrightDataWithPolling(
 /**
  * Scrapes complete TikTok creator profile and recent video analytics
  */
-export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
+async function scrapeTikTokImpl(input: string): Promise<TikTokScraperData> {
   const username = extractTikTokUsername(input);
   if (!username) {
     throw new Error('Invalid TikTok handle or URL. Please provide a valid username (e.g. @mrbeast).');
@@ -276,4 +278,10 @@ export async function scrapeTikTok(input: string): Promise<TikTokScraperData> {
     isCached: false,
     cacheAgeHours: 0,
   };
+}
+
+export async function scrapeTikTok(...args: Parameters<typeof scrapeTikTokImpl>): Promise<Awaited<ReturnType<typeof scrapeTikTokImpl>>> {
+ const target = parseProfileInput(args[0], 'tiktok');
+ args[0] = target.canonical;
+ return withCalculatorWork('scrape', target.key, () => scrapeTikTokImpl(...args));
 }

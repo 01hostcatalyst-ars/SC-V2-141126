@@ -1,63 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scrapeTikTok, getRecentTikTokSnapshot, insertNewTikTokSnapshot } from '@/lib/scrapers/tiktok';
-import { ScraperResponse, TikTokScraperData } from '@/lib/scrapers/types';
-
+import { parseProfileInput } from '@/lib/calculator/profile-input';
+import { calculatorBody, guardCalculatorRequest, calculatorError } from '@/lib/calculator/request-guard';
 
 export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const input = body?.input || body?.url;
-    const forceRefresh = Boolean(body?.forceRefresh);
+ try {
+  const body = await calculatorBody(req);
+  const target = parseProfileInput(body.url || body.input, 'tiktok');
+  await guardCalculatorRequest(req);
+  // Public requests always use the 24-hour cache and full scraping. Refresh is a separate controlled workflow.
+  const cached = await getRecentTikTokSnapshot(target.canonical);
+  if (cached) return NextResponse.json({ success: true, data: cached });
+  await guardCalculatorRequest(req, true);
+  const live = await scrapeTikTok(target.canonical);
+  const saved = await insertNewTikTokSnapshot(live);
+  return NextResponse.json({ success: true, data: saved });
+ } catch (error) { return calculatorError(error); }
+}
 
-    if (!input || typeof input !== 'string' || !input.trim()) {
-      return NextResponse.json<ScraperResponse>(
-        {
-          success: false,
-          error: 'Missing or invalid input. Please provide a TikTok username or URL (e.g. @mrbeast).',
-        },
-        { status: 400 }
-      );
-    }
-
-    console.log(`[API /api/scrapers/tiktok] Request for: "${input}" (ForceRefresh: ${Boolean(forceRefresh)})`);
-
-    // 1. Check 24-hour PostgreSQL Cache First (if forceRefresh is not requested)
-    if (!forceRefresh) {
-      const cachedData = await getRecentTikTokSnapshot(input);
-      if (cachedData) {
-        console.log(`[API /api/scrapers/tiktok] Returning 24h cached snapshot for "${input}"`);
-        return NextResponse.json<ScraperResponse<TikTokScraperData>>({
-          success: true,
-          data: cachedData,
-        });
-      }
-    }
-
-    // 2. Perform Fresh Scrape via Bright Data
-    const freshData = await scrapeTikTok(input);
-
-    // 3. Save to PostgreSQL as a new snapshot row
-    let savedData: TikTokScraperData = freshData;
-    try {
-      savedData = await insertNewTikTokSnapshot(freshData);
-    } catch (dbErr) {
-      console.error('[API /api/scrapers/tiktok] Database save error (returning raw data):', dbErr);
-    }
-
-    return NextResponse.json<ScraperResponse<TikTokScraperData>>({
-      success: true,
-      data: savedData,
-    });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'An unexpected error occurred while scraping TikTok data.';
-    console.error('[API /api/scrapers/tiktok] Error:', err);
-
-    return NextResponse.json<ScraperResponse>(
-      {
-        success: false,
-        error: message,
-      },
-      { status: 500 }
-    );
-  }
+// GET is read-only: links and crawlers cannot launch paid collections.
+export async function GET(req: NextRequest) {
+ try {
+  const params = req.nextUrl.searchParams;
+  const target = parseProfileInput(params.get('url') || params.get('handle') || params.get('username') || params.get('input'), 'tiktok');
+  await guardCalculatorRequest(req);
+  const data = await getRecentTikTokSnapshot(target.canonical);
+  return NextResponse.json(data ? { success: true, data } : { success: false, error: 'No recent cached profile. Use the calculator to collect it.' }, { status: data ? 200 : 404 });
+ } catch (error) { return calculatorError(error); }
 }

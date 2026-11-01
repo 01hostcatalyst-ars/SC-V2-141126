@@ -1,3 +1,5 @@
+import { parseProfileInput, isPlatform, ProfileInputError } from '@/lib/calculator/profile-input';
+import { calculatorBody, guardCalculatorRequest, calculatorError } from '@/lib/calculator/request-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveCreatorIdentity } from '@/lib/creators/identity';
 import { Platform } from '@/lib/calculator/types';
@@ -12,7 +14,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Query parameter is required' }, { status: 400 });
     }
 
-    const cluster = await resolveCreatorIdentity(query.trim(), platform);
+    if (platform && !isPlatform(platform)) throw new ProfileInputError('Choose a supported platform.');
+    const target = parseProfileInput(query, platform);
+    await guardCalculatorRequest(req);
+    const cluster = await resolveCreatorIdentity(target.canonical, target.platform);
 
     return NextResponse.json({
       success: true,
@@ -21,13 +26,13 @@ export async function GET(req: NextRequest) {
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Identity resolution failed';
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return calculatorError(err);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = await calculatorBody(req);
     const query = body?.query || body?.handle || body?.url;
     const platform = (body?.platform as Platform) || undefined;
 
@@ -35,7 +40,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Query parameter is required' }, { status: 400 });
     }
 
-    const cluster = await resolveCreatorIdentity(query.trim(), platform);
+    if (platform && !isPlatform(platform)) throw new ProfileInputError('Choose a supported platform.');
+    const target = parseProfileInput(query, platform);
+    await guardCalculatorRequest(req);
+    const cluster = await resolveCreatorIdentity(target.canonical, target.platform);
 
     return NextResponse.json({
       success: true,
@@ -44,6 +52,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Identity resolution failed';
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return calculatorError(err);
   }
 }
