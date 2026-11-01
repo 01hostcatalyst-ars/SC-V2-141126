@@ -1,0 +1,333 @@
+{
+  "success": true,
+  "creators": [
+    {
+      "slug": "jason-davenport",
+      "canonicalName": "Jason Davenport",
+      "brandName": "Jason Davenport",
+      "avatarUrl": "https://yt3.ggpht.com/PVj6_cHEebzNO68zXCOtu1XVeqcquB5VaFPqBNAzSynFVC-b6Z5-V2bz0crLmG1a4Pv-kEDY=s800-c-k-c0x00ffffff-no-rj",
+      "primaryNicheName": "Lifestyle & Entertainment",
+      "primaryAudienceCountry": {
+        "name": "United Kingdom",
+        "code": "GB"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "itsjasondavenport",
+          "followers": 1090000
+        },
+        "instagram": {
+          "handle": "itsjasondavenport",
+          "followers": 70335
+        },
+        "tiktok": {
+          "handle": "itsjasondavenport",
+          "followers": 3600000
+        }
+      },
+      "flagshipRates": [
+        {
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 5800,
+          "formattedRecommended": "£5,800",
+          "lowAmount": 4650,
+          "formattedLow": "£4,650",
+          "highAmount": 7250,
+          "formattedHigh": "£7,250",
+          "currency": "GBP",
+          "symbol": "£",
+          "platform": "youtube",
+          "erPercent": 2.5,
+          "erLabel": "Engagement rate"
+        }
+      ]
+    },
+    {
+      "slug": "whealth-by-slaiman",
+      "canonicalName": "Whealth by Slaiman",
+      "brandName": "Whealth by Slaiman",
+      "avatarUrl": "https://yt3.ggpht.com/ytc/AIdro_nDJYQxlfW5XiFPALnZTolcSDv6_tfiYVN3eklTatWpjJM=s800-c-k-c0x00ffffff-no-rj",
+      "primaryNicheName": "Lifestyle & Entertainment",
+      "primaryAudienceCountry": {
+        "name": "Australia",
+        "code": "AU"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "whealthbyslaiman",
+          "followers": 2380000
+        },
+        "instagram": {
+          "handle": "whealthslaiman",
+          "followers": 110006
+        }
+      },
+      "flagshipRates": [
+        {
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 25700,
+          "formattedRecommended": "AU$25,700",
+          "lowAmount": 20600,
+          "formattedLow": "AU$20,600",
+          "highAmount": 32200,
+          "formattedHigh": "AU$32,200",
+          "currency": "AUD",
+          "symbol": "AU$",
+          "platform": "youtube",
+          "erPercent": 3.85,
+          "erLabel": "Engagement rate"
+        }
+      ]
+    },
+    {
+      "slug": "dr-mayim-bialik",
+      "canonicalName": "Dr. Mayim Bialik",
+      "brandName": "Dr. Mayim Bialik",
+      "avatarUrl": "https://yt3.ggpht.com/pyqiUqPKLji9qHlhwBm3vJ6eaTxbIDmW5tL9-AoZg-7LlHsw1ZljS8-zoZdgIPKbL_P0VIrJrQ=s800-c-k-c0x00ffffff-no-rj",
+      "primaryNicheName": "Health & Fitness",
+      "primaryAudienceCountry": {
+        "name": "United States",
+        "code": "US"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "mayimbialik",
+          "followers": 2400000
+        },
+        "instagram": {
+          "handle": "missmayim",
+          "followers": 4948497
+        },
+        "tiktok": {
+          "handle": "bialikbreakdown",
+          "followers": 57000
+        }
+      },
+      "flagshipRates": [
+        {
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 34000,
+          "formattedRecommended": "$34,000",
+          "lowAmount": 27200,
+          "formattedLow": "$27,200",
+          "highAmount": 42500,
+          "formattedHigh": "$42,500",
+          "currency": "USD",
+          "symbol": "$",
+          "platform": "youtube",
+          "erPercent": 2.03,
+          "erLabel": "Engagement rate"
+        }
+      ]
+    },
+    {
+      "slug": "cybrgrl",
+      "canonicalName": "cybr.grl",
+      "brandName": "cybr.grl",
+      "avatarUrl": "https://yt3.ggpht.com/ytc/AIdro_kD8dxpntzV4ktn46WU7shJrpIXXPkOgPkUWD0tJMelixc=s800-c-k-c0x00ffffff-no-rj",
+      "primaryNicheName": "Fashion & Apparel",
+      "primaryAudienceCountry": {
+        "name": "United States",
+        "code": "US"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "cybrgrl",
+          "followers": 1650000
+        },
+        "instagram": {
+          "handle": "cybr.grl",
+          "followers": 590511
+        },
+        "tiktok": {
+          "handle": "cybr.grl",
+          "followers": 4100000
+        }
+      },
+      "flagshipRates": [
+        {
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 22700,
+          "formattedRecommended": "$22,700",
+          "lowAmount": 18200,
+          "formattedLow": "$18,200",
+          "highAmount": 28400,
+          "formattedHigh": "$28,400",
+          "currency": "USD",
+          "symbol": "$",
+          "platform": "youtube",
+          "erPercent": 5.07,
+          "erLabel": "Engagement rate"
+        }
+      ]
+    },
+    {
+      "slug": "tim-dessaint",
+      "canonicalName": "Tim Dessaint",
+      "brandName": "Tim Dessaint",
+      "avatarUrl": "https://yt3.ggpht.com/wc71ZIqr4Cm147StATAIm4zL0KPRF3QUEdLPLepQ0cYpBVgb0xG9UjNARUi9GJVVn0hNn5lfHj4=s800-c-k-c0x00ffffff-no-rj",
+      "primaryNicheName": "Fashion & Apparel",
+      "primaryAudienceCountry": {
+        "name": "United Kingdom",
+        "code": "GB"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "timdessaint",
+          "followers": 1580000
+        },
+        "instagram": {
+          "handle": "timdessaint",
+          "followers": 722275
+        },
+        "tiktok": {
+          "handle": "timdessaint",
+          "followers": 2200000
+        }
+      },
+      "flagshipRates": [
+        {
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 17800,
+          "formattedRecommended": "£17,800",
+          "lowAmount": 14300,
+          "formattedLow": "£14,300",
+          "highAmount": 22300,
+          "formattedHigh": "£22,300",
+          "currency": "GBP",
+          "symbol": "£",
+          "platform": "youtube",
+          "erPercent": 3.04,
+          "erLabel": "Engagement rate"
+        }
+      ]
+    },
+    {
+      "slug": "eva-meloche",
+      "canonicalName": "Eva Meloche",
+      "brandName": "Eva Meloche",
+      "avatarUrl": "https://yt3.ggpht.com/ytc/AIdro_n7JQwIFldqpZDeyWkbMp2BgObEWKmVZNwKmUa_dPaanKjh=s800-c-k-c0x00ffffff-no-rj",
+      "primaryNicheName": "Fashion & Apparel",
+      "primaryAudienceCountry": {
+        "name": "Canada",
+        "code": "CA"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "evameloche",
+          "followers": 566000
+        },
+        "instagram": {
+          "handle": "evameloche",
+          "followers": 389872
+        }
+      },
+      "flagshipRates": [
+        {
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 11700,
+          "formattedRecommended": "CA$11,700",
+          "lowAmount": 9350,
+          "formattedLow": "CA$9,350",
+          "highAmount": 14600,
+          "formattedHigh": "CA$14,600",
+          "currency": "CAD",
+          "symbol": "CA$",
+          "platform": "youtube",
+          "erPercent": 2.87,
+          "erLabel": "Engagement rate"
+        }
+      ]
+    },
+    {
+      "slug": "hayls-world",
+      "canonicalName": "Hayls World",
+      "brandName": "Hayls World",
+      "avatarUrl": "https://yt3.ggpht.com/704S41So1nsXofY3i5_AQ4hE4nM50TvDhuXmS_Ny1EZ9QZ2b-t_kaM3mfVnFu7IAaiJMe9KErw=s800-c-k-c0x00ffffff-no-rj",
+      "primaryNicheName": "Technology & Hardware",
+      "primaryAudienceCountry": {
+        "name": "United Kingdom",
+        "code": "GB"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "haylsworld",
+          "followers": 2750000
+        },
+        "instagram": {
+          "handle": "haylsworld",
+          "followers": 380090
+        },
+        "tiktok": {
+          "handle": "hayls_world",
+          "followers": 450200
+        }
+      },
+      "flagshipRates": [
+        {
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 17200,
+          "formattedRecommended": "£17,200",
+          "lowAmount": 13700,
+          "formattedLow": "£13,700",
+          "highAmount": 21500,
+          "formattedHigh": "£21,500",
+          "currency": "GBP",
+          "symbol": "£",
+          "platform": "youtube",
+          "erPercent": 1.5,
+          "erLabel": "Engagement rate"
+        }
+      ]
+    },
+    {
+      "slug": "becky-excell",
+      "canonicalName": "Becky Excell",
+      "brandName": "Becky Excell",
+      "avatarUrl": "https://yt3.ggpht.com/y96cehFMWXfw5NoCvdcaxYYssgB6oAR70OU4IWBubVk13-D-XGt2d80qSN103bjvXZqHod3F=s800-c-k-c0x00ffffff-no-rj",
+      "primaryNicheName": "Food & Culinary",
+      "primaryAudienceCountry": {
+        "name": "United Kingdom",
+        "code": "GB"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "beckyexcell",
+          "followers": 60700
+        },
+        "instagram": {
+          "handle": "beckyexcell",
+          "followers": 409416
+        },
+        "tiktok": {
+          "handle": "beckyexcell",
+          "followers": 237400
+        }
+      },
+      "flagshipRates": [
+        {
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 550,
+          "formattedRecommended": "£550",
+          "lowAmount": 440,
+          "formattedLow": "£440",
+          "highAmount": 680,
+          "formattedHigh": "£680",
+          "currency": "GBP",
+          "symbol": "£",
+          "platform": "youtube",
+          "erPercent": 5.4,
+          "erLabel": "Engagement rate"
+        }
+      ]
+    }
+  ]
+}

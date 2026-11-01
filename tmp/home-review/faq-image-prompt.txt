@@ -1,0 +1,6 @@
+Tool: built-in image_gen (imagegen skill)
+Saved asset: D:/SignCollab/public/images/creator-collaboration-faq.webp
+Generated PNG converted to WebP at quality 85, original dimensions preserved: 1774 x 887 (2:1).
+
+Final prompt:
+Use case: photorealistic-natural. Create a finished website editorial photograph for SignCollab's FAQ section about creator partnerships. Exact wide 2:1 landscape composition, ideally 1536x768. Two adult content professionals, a woman creator and a woman brand partner, seated together at a contemporary white studio desk reviewing a laptop and a simple paper campaign brief, engaged natural expressions, candid interaction rather than facing camera. A small mirrorless camera on desk subtly signals content creation. Bright airy minimal creative studio, soft daylight, off-white walls, understated blush pink and electric blue small desk accents echoing the website palette. Premium realistic editorial photography, natural skin texture, soft shadows, calm and approachable, restrained uncluttered composition, medium-wide shot with subjects comfortably framed for 2:1 crop. No outdoor setting, no landscape, no neon glow, no floating UI, no logos, no readable text, no watermark.

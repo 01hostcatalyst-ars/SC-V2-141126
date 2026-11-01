@@ -1,0 +1,530 @@
+{
+  "success": true,
+  "creators": [
+    {
+      "id": "bf18451b-2f4f-4488-b554-795ddf14aab1",
+      "slug": "jannat-kapoor",
+      "canonicalName": "Jannat Kapoor",
+      "brandName": "Jannat Kapoor",
+      "primaryNicheId": 12,
+      "primaryNicheName": "Fashion & Apparel",
+      "countryCode": "GB",
+      "youtubeHandle": null,
+      "instagramUsername": "jannatkapoor_",
+      "tiktokUsername": null,
+      "combinedFollowers": 0,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://scontent-lax3-2.cdninstagram.com/v/t51.82787-19/849771743_18494827237097536_7980158418491684349_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=111&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=xguL-GfbXnYQ7kNvwEKpitX&_nc_oc=AdretOGzVSOcdpG7qC0xEuCYReIY8M3Z-WqanTRw7cu0K4tyXFRActG6SKvnwe0s6do&_nc_zt=24&_nc_ht=scontent-lax3-2.cdninstagram.com&_nc_gid=0jEpUWe2AsA0Pydgz5m4Ow&_nc_ss=7a689&oh=00_AQSZbJHt1V1IFROhDKHoWySSbrBzvIgRWbfBxK8sUza0Qw&oe=6AEB9C9F",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": null,
+      "typicalRateMaxUsd": null,
+      "avgEngagementRate": null,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-31T12:37:58.836Z",
+      "subNicheName": "Luxury Fashion / Tailoring / Editorial",
+      "countryName": "United Kingdom",
+      "handles": {
+        "youtube": null,
+        "instagram": "jannatkapoor_",
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": null,
+        "instagram": {
+          "handle": "jannatkapoor_",
+          "followers": 7809,
+          "er": 36.09,
+          "avgViews": 937,
+          "avgLikes": 2674,
+          "avgComments": 144
+        },
+        "tiktok": null
+      },
+      "flagshipRates": [
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 410,
+          "formattedRecommended": "£410",
+          "lowAmount": 330,
+          "formattedLow": "£330",
+          "highAmount": 510,
+          "formattedHigh": "£510",
+          "currency": "GBP",
+          "symbol": "£",
+          "erPercent": 36.09,
+          "erLabel": "36.09% Observed Engagement Rate"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Female-skewed · 18-28",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Contemporary & Independent Fashion",
+          "Travel & City Guides",
+          "Personal Vlogs & Storytimes",
+          "Luxury & Designer Accessories"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "United Kingdom",
+        "code": "GB"
+      }
+    },
+    {
+      "id": "15f320f0-a39b-44fd-8bba-a46b168babf4",
+      "slug": "reesham-naqvi",
+      "canonicalName": "Reesham Naqvi - ریشم",
+      "brandName": "Reesham Naqvi - ریشم",
+      "primaryNicheId": 10,
+      "primaryNicheName": "Family & Parenting",
+      "countryCode": "PK",
+      "youtubeHandle": null,
+      "instagramUsername": "ireesham",
+      "tiktokUsername": null,
+      "combinedFollowers": 0,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://scontent-iad3-1.cdninstagram.com/v/t51.82787-19/712724135_18585251158030776_8099594106064608318_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=101&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=udPpwhXsXI8Q7kNvwF3wxha&_nc_oc=AdqZEAVXcl2UZdUrFy7sQfzt31Ef_2SxbQKv14NH1Vsopeg8I3ylQQATMsFL_u0BOXA&_nc_zt=24&_nc_ht=scontent-iad3-1.cdninstagram.com&_nc_gid=Wm-bxIuFgGi8346i2NlVCg&_nc_ss=7a689&oh=00_AQS-SnCzOdT4vTsZWea3VEqzWRrTUGd4s_pM8DpH9f5oSQ&oe=6AEBC076",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": null,
+      "typicalRateMaxUsd": null,
+      "avgEngagementRate": null,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-31T12:23:44.167Z",
+      "subNicheName": "Family Travel / Large Household",
+      "countryName": "Pakistan",
+      "handles": {
+        "youtube": null,
+        "instagram": "ireesham",
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": null,
+        "instagram": {
+          "handle": "ireesham",
+          "followers": 58563,
+          "er": 2.29,
+          "avgViews": 7028,
+          "avgLikes": 1327,
+          "avgComments": 15
+        },
+        "tiktok": null
+      },
+      "flagshipRates": [
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 92800,
+          "formattedRecommended": "Rs. 92,800",
+          "lowAmount": 74200,
+          "formattedLow": "Rs. 74,200",
+          "highAmount": 116000,
+          "formattedHigh": "Rs. 116,000",
+          "currency": "PKR",
+          "symbol": "Rs. ",
+          "erPercent": 2.29,
+          "erLabel": "2.29% Observed Engagement Rate"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Female-skewed · 25-34",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Parenting & Baby Care",
+          "Household Organization & FMCG",
+          "Family Pilgrimage & Travel",
+          "Modest Lifestyle"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "Pakistan",
+        "code": "PK"
+      }
+    },
+    {
+      "id": "e67db23f-6cb7-43c2-af78-af4cd39c6e93",
+      "slug": "dino",
+      "canonicalName": "Dino",
+      "brandName": "Dino",
+      "primaryNicheId": 8,
+      "primaryNicheName": "Lifestyle & Entertainment",
+      "countryCode": "PK",
+      "youtubeHandle": null,
+      "instagramUsername": "dinoaliofficial",
+      "tiktokUsername": null,
+      "combinedFollowers": 0,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://scontent-sea5-1.cdninstagram.com/v/t51.82787-19/532543978_18528796282025915_1066996344974241529_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=104&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy43NTMuQzMifQ%3D%3D&_nc_ohc=yoM_mAIH-j0Q7kNvwE0U8OP&_nc_oc=AdqzaXBg1k-Gfmgot26ny0TB4oc79VCk2XHSXJQk-IDmMwiOB4oJ7-Oh_74pS8I8UUE&_nc_zt=24&_nc_ht=scontent-sea5-1.cdninstagram.com&_nc_gid=0wq3MbUMBsfJpnLdanLo7Q&_nc_ss=7a689&oh=00_AQSQtX7nQ9Ht_o_wMbKIKM0i1NNiWBpcg7zc6XKqNpSCtA&oe=6AEBC55D",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": null,
+      "typicalRateMaxUsd": null,
+      "avgEngagementRate": null,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-31T12:16:51.738Z",
+      "subNicheName": "Cultural Commentary / Video Essays",
+      "countryName": "Pakistan",
+      "handles": {
+        "youtube": null,
+        "instagram": "dinoaliofficial",
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": null,
+        "instagram": {
+          "handle": "dinoaliofficial",
+          "followers": 235662,
+          "er": 17.19,
+          "avgViews": 28279,
+          "avgLikes": 38642,
+          "avgComments": 1872
+        },
+        "tiktok": null
+      },
+      "flagshipRates": [
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 223000,
+          "formattedRecommended": "Rs. 223,000",
+          "lowAmount": 178000,
+          "formattedLow": "Rs. 178,000",
+          "highAmount": 279000,
+          "formattedHigh": "Rs. 279,000",
+          "currency": "PKR",
+          "symbol": "Rs. ",
+          "erPercent": 17.19,
+          "erLabel": "17.19% Observed Engagement Rate"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Balanced · 18-34",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "South Asian Cinema & Music",
+          "Urdu Hip-Hop & Concert Culture",
+          "Corporate Tech & Digital Innovation",
+          "Observational Desi Comedy",
+          "Celebrity Lifestyle"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "Pakistan",
+        "code": "PK"
+      }
+    },
+    {
+      "id": "ad351cdc-e018-40fa-a422-fb6b47c1a812",
+      "slug": "laila-explorer",
+      "canonicalName": "Laila Explorer",
+      "brandName": "Laila Explorer",
+      "primaryNicheId": 9,
+      "primaryNicheName": "Food & Culinary",
+      "countryCode": "SA",
+      "youtubeHandle": null,
+      "instagramUsername": "laila_explorer",
+      "tiktokUsername": "laila_explorer",
+      "combinedFollowers": 0,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/f16830d6389b6bdfbeb03c3ec3eb758e~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=14579&refresh_token=232a0565&x-expires=1793347200&x-signature=RmPIi%2FEC%2BI2gd45LEAfEFML8fv4%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=my2",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": null,
+      "typicalRateMaxUsd": null,
+      "avgEngagementRate": null,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-28T08:47:30.958Z",
+      "subNicheName": "Restaurant Reviews / Street Food",
+      "countryName": "Saudi Arabia",
+      "handles": {
+        "youtube": null,
+        "instagram": null,
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": null,
+        "instagram": null,
+        "tiktok": null
+      },
+      "flagshipRates": [],
+      "audienceFit": {
+        "demographicProfile": "Female-skewed · 18-28",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Specialty Coffee",
+          "Casual Dining",
+          "Co-working Spaces",
+          "Local Weekend Activities"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "Saudi Arabia",
+        "code": "SA"
+      }
+    },
+    {
+      "id": "689e1f3f-1bfb-4a7e-954e-244720467073",
+      "slug": "layla",
+      "canonicalName": "LAYLA",
+      "brandName": "LAYLA",
+      "primaryNicheId": 8,
+      "primaryNicheName": "Lifestyle & Entertainment",
+      "countryCode": "US",
+      "youtubeHandle": "laylaexplores",
+      "instagramUsername": null,
+      "tiktokUsername": null,
+      "combinedFollowers": 0,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://yt3.ggpht.com/ccn2DLUDvbVgHbUFLDv3hxS3zR3i87bPP0JrInDQwUtpIddugwpEWuAyvqXHqEEpd2Y2iLmIlg=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": null,
+      "typicalRateMaxUsd": null,
+      "avgEngagementRate": null,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-28T08:38:08.936Z",
+      "subNicheName": "Daily Routine / Day-in-Life",
+      "countryName": "United States",
+      "handles": {
+        "youtube": null,
+        "instagram": null,
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": null,
+        "instagram": null,
+        "tiktok": null
+      },
+      "flagshipRates": [],
+      "audienceFit": {
+        "demographicProfile": "Female-skewed · 13-24",
+        "commercialBuyerIntent": "Low Intent",
+        "interests": [
+          "Summer Travel",
+          "Casual Lifestyle Vlogs",
+          "Family Vlogging",
+          "Pets & Nature"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "United States",
+        "code": "US"
+      }
+    },
+    {
+      "id": "efa37f8e-30f4-479d-8d35-80a4a641673e",
+      "slug": "zidd-e-safar",
+      "canonicalName": "Zidd e Safar",
+      "brandName": "Zidd e Safar",
+      "primaryNicheId": 7,
+      "primaryNicheName": "Travel & Hospitality",
+      "countryCode": "IN",
+      "youtubeHandle": "ziddesafar",
+      "instagramUsername": "zidd__e__safar",
+      "tiktokUsername": null,
+      "combinedFollowers": 0,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://yt3.ggpht.com/xPKblnrpYa4E0MNFGnzlC3JvIHPm0iIhOz4UrDJpSOvKnIPrIUpZEBcxl9JY_7Kyy_JgJ1HPXw=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": null,
+      "typicalRateMaxUsd": null,
+      "avgEngagementRate": null,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-28T08:25:47.254Z",
+      "subNicheName": "Overlanding / Camping / Wilderness",
+      "countryName": "India",
+      "handles": {
+        "youtube": null,
+        "instagram": null,
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": null,
+        "instagram": null,
+        "tiktok": null
+      },
+      "flagshipRates": [],
+      "audienceFit": {
+        "demographicProfile": "Male-skewed · 18-34",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Domestic Road Trips & Overlanding",
+          "Spiritual & Heritage Pilgrimages",
+          "Automotive Travel & Highway Routes",
+          "Budget & Mid-Tier Hospitality",
+          "Outdoor Photography & Vlogging"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "India",
+        "code": "IN"
+      }
+    },
+    {
+      "id": "c14e8f73-fc3c-4c3d-88c0-1ef09c05c3d2",
+      "slug": "blogs-by-noorulain",
+      "canonicalName": "blogs by Noorulain",
+      "brandName": "blogs by Noorulain",
+      "primaryNicheId": 9,
+      "primaryNicheName": "Food & Culinary",
+      "countryCode": "PK",
+      "youtubeHandle": null,
+      "instagramUsername": "noor_ul_ain193",
+      "tiktokUsername": null,
+      "combinedFollowers": 0,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://scontent-iad3-2.cdninstagram.com/v/t51.82787-19/858213128_18386937511237095_438439707611695713_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=103&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=ECjNP4tEMHkQ7kNvwEKZnrJ&_nc_oc=Adr4Lfr6UpREqxabuf7ejvZt96Dr39VuNLCj__k8bhgejeMqWpwl62qpExWbFftqyDw&_nc_zt=24&_nc_ht=scontent-iad3-2.cdninstagram.com&_nc_gid=_PHvbqC2CXLYaaBsXW5qrA&_nc_ss=7a689&oh=00_AQM7lXsaXUe-1BYPwt808j3aQUr7LOeOQLbJQ_Miyouv5A&oe=6AE689AA",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": null,
+      "typicalRateMaxUsd": null,
+      "avgEngagementRate": null,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-27T13:12:04.559Z",
+      "subNicheName": "Restaurant Reviews / Street Food",
+      "countryName": "Pakistan",
+      "handles": {
+        "youtube": null,
+        "instagram": "noor_ul_ain193",
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": null,
+        "instagram": {
+          "handle": "noor_ul_ain193",
+          "followers": 39648,
+          "er": 0.45,
+          "avgViews": 4758,
+          "avgLikes": 132,
+          "avgComments": 46
+        },
+        "tiktok": null
+      },
+      "flagshipRates": [
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 36500,
+          "formattedRecommended": "Rs. 36,500",
+          "lowAmount": 29200,
+          "formattedLow": "Rs. 29,200",
+          "highAmount": 45600,
+          "formattedHigh": "Rs. 45,600",
+          "currency": "PKR",
+          "symbol": "Rs. ",
+          "erPercent": 0.45,
+          "erLabel": "0.45% Observed Engagement Rate"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Balanced · 18-34",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Local Dining & Fast Food",
+          "Budget Kitchen Organization",
+          "Regional Event Planning",
+          "Affordable Retail Shopping"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "Pakistan",
+        "code": "PK"
+      }
+    },
+    {
+      "id": "2d5d3f37-3a93-402b-b5e6-34c26d916500",
+      "slug": "blogsbyhumi",
+      "canonicalName": "BlogsByHumi",
+      "brandName": "BlogsByHumi",
+      "primaryNicheId": 12,
+      "primaryNicheName": "Fashion & Apparel",
+      "countryCode": "PK",
+      "youtubeHandle": "dr.humaira7788",
+      "instagramUsername": "blogsbyhumi",
+      "tiktokUsername": null,
+      "combinedFollowers": 0,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://yt3.ggpht.com/W6rd_W2_ViNsgAhnfTqLFGLuC4DBOqDcjexUTYkYqUp2RtXhTKw9t-gIHsiVVQNYfWIGUgOW2Q=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": null,
+      "typicalRateMaxUsd": null,
+      "avgEngagementRate": null,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-24T10:48:48.722Z",
+      "subNicheName": "Fast Fashion / Everyday Outfits",
+      "countryName": "Pakistan",
+      "handles": {
+        "youtube": null,
+        "instagram": "blogsbyhumi",
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": null,
+        "instagram": {
+          "handle": "blogsbyhumi",
+          "followers": 174005,
+          "er": 0.01,
+          "avgViews": 20881,
+          "avgLikes": 17,
+          "avgComments": 16
+        },
+        "tiktok": null
+      },
+      "flagshipRates": [
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 34200,
+          "formattedRecommended": "Rs. 34,200",
+          "lowAmount": 27300,
+          "formattedLow": "Rs. 27,300",
+          "highAmount": 42700,
+          "formattedHigh": "Rs. 42,700",
+          "currency": "PKR",
+          "symbol": "Rs. ",
+          "erPercent": 0.01,
+          "erLabel": "0.01% Observed Engagement Rate"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Female-skewed · 18-34",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Budget-friendly Eastern fashion",
+          "Online clothing sales & seasonal discounts",
+          "Everyday festive wear & lawn suits",
+          "Affordable household accessories & kidswear"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "Pakistan",
+        "code": "PK"
+      }
+    }
+  ],
+  "pagination": {
+    "totalCount": 2941,
+    "totalPages": 368,
+    "currentPage": 1,
+    "limit": 8,
+    "hasNextPage": true,
+    "hasPrevPage": false
+  },
+  "filters": {
+    "search": "",
+    "platform": "all",
+    "country": "",
+    "nicheId": null,
+    "tier": null,
+    "sort": "recent"
+  }
+}

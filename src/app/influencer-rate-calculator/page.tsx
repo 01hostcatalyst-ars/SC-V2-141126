@@ -194,7 +194,7 @@ export default function InfluencerRateCalculatorPage() {
         <InfluencerRadarDashboard />
 
         {/* Option A: Below-the-Fold Crawlable Methodology & FAQs Section */}
-        <section className="calculator-methodology mt-20 sm:mt-24 pt-12 border-t border-zinc-200/90 space-y-12">
+        <section id="calculator-methodology" className="calculator-methodology mt-20 sm:mt-24 pt-12 border-t border-zinc-200/90 space-y-12">
           <div className="max-w-3xl text-left space-y-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />

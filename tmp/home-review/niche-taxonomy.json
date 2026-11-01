@@ -1,0 +1,85 @@
+[
+  {
+    "id": 1,
+    "name": "Home Design & Decor",
+    "sub_niches": [
+      "Interior Architecture & Renovations",
+      "Furniture Styling & Room Makeovers",
+      "DIY Decor & Woodworking"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Pet Care & Animals",
+    "sub_niches": [
+      "Dog & Cat Training / Lifestyle",
+      "Veterinary Advice & Nutrition"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Business, Finance & B2B SaaS",
+    "sub_niches": [
+      "Personal Investing, Stocks & Crypto",
+      "B2B SaaS, Startups & Tech Founders",
+      "Real Estate & Property Investing"
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Skilled Trades & DIY",
+    "sub_niches": []
+  },
+  {
+    "id": 5,
+    "name": "Education & Career Coaching",
+    "sub_niches": []
+  },
+  {
+    "id": 6,
+    "name": "Technology, Hardware & AI",
+    "sub_niches": [
+      "PC Hardware & Custom Builds",
+      "Consumer Tech, Smartphones & Audio",
+      "AI Tools & Productivity Automations"
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Travel, Tourism & Outdoors",
+    "sub_niches": [
+      "Luxury Resorts & First Class Travel",
+      "Hiking, Camping & Wilderness Adventure"
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Lifestyle & Daily Vlogs",
+    "sub_niches": []
+  },
+  {
+    "id": 9,
+    "name": "Food, Culinary & Beverage",
+    "sub_niches": []
+  },
+  {
+    "id": 10,
+    "name": "Family & Parenting",
+    "sub_niches": []
+  },
+  {
+    "id": 11,
+    "name": "Health, Wellness & Fitness",
+    "sub_niches": []
+  },
+  {
+    "id": 12,
+    "name": "Fashion & Apparel",
+    "sub_niches": []
+  },
+  {
+    "id": 13,
+    "name": "Beauty & Cosmetics",
+    "sub_niches": []
+  }
+]

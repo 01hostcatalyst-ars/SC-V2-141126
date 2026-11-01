@@ -1,0 +1,1037 @@
+{
+  "success": true,
+  "creators": [
+    {
+      "id": "ad64488d-c0a7-4623-bc1d-9abab3dbddf9",
+      "slug": "twice",
+      "canonicalName": "TWICE",
+      "brandName": "TWICE",
+      "primaryNicheId": 19,
+      "primaryNicheName": "Music, Audio & Performance",
+      "countryCode": "US",
+      "youtubeHandle": "twice",
+      "instagramUsername": "twicetagram",
+      "tiktokUsername": "twice_tiktok_official",
+      "combinedFollowers": 80419574,
+      "primaryPlatform": "tiktok",
+      "avatarUrl": "https://yt3.ggpht.com/rj-m7CQIV8hIHx_lB8cjs0NxrDFJaUkVwZ5tCnZTNSVEr2IqXGF-2e7nr7og1IGeRXtHikce=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": 14800,
+      "typicalRateMaxUsd": 160000,
+      "avgEngagementRate": 4.43,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-10T02:08:58.671Z",
+      "subNicheName": "Dance, Choreography & Viral Performance",
+      "countryName": "South Korea",
+      "handles": {
+        "youtube": "twice",
+        "instagram": "twicetagram",
+        "tiktok": "twice_tiktok_official"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "twice",
+          "followers": 19500000,
+          "er": 4.32,
+          "lfEr": 4.32,
+          "sfEr": 7.59,
+          "avgViews": 498704,
+          "avgLikes": 20762,
+          "avgComments": 778
+        },
+        "instagram": {
+          "handle": "twicetagram",
+          "followers": 29920023,
+          "er": 1.48,
+          "avgViews": 3590403,
+          "avgLikes": 441792,
+          "avgComments": 1629
+        },
+        "tiktok": {
+          "handle": "twice_tiktok_official",
+          "followers": 31100000,
+          "er": 28.94,
+          "avgViews": 1550000,
+          "avgLikes": 433250,
+          "avgComments": 3121
+        }
+      },
+      "flagshipRates": [
+        {
+          "platform": "youtube",
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 94900,
+          "formattedRecommended": "$94,900",
+          "lowAmount": 75900,
+          "formattedLow": "$75,900",
+          "highAmount": 119000,
+          "formattedHigh": "$119,000",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 4.32,
+          "erLabel": "4.32% Long-Form Video Engagement"
+        },
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 124000,
+          "formattedRecommended": "$124,000",
+          "lowAmount": 99000,
+          "formattedLow": "$99,000",
+          "highAmount": 155000,
+          "formattedHigh": "$155,000",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 1.48,
+          "erLabel": "1.48% Observed Engagement Rate"
+        },
+        {
+          "platform": "tiktok",
+          "format": "tiktok_video",
+          "label": "TikTok Video (Dedicated)",
+          "recommendedAmount": 129000,
+          "formattedRecommended": "$129,000",
+          "lowAmount": 103000,
+          "formattedLow": "$103,000",
+          "highAmount": 161000,
+          "formattedHigh": "$161,000",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 28.94,
+          "erLabel": "28.94% Observed Engagement Rate"
+        },
+        {
+          "platform": "youtube",
+          "format": "yt_short",
+          "label": "YouTube Short",
+          "recommendedAmount": 23900,
+          "formattedRecommended": "$23,900",
+          "lowAmount": 19200,
+          "formattedLow": "$19,200",
+          "highAmount": 29900,
+          "formattedHigh": "$29,900",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 7.59,
+          "erLabel": "7.59% Shorts Engagement"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Balanced · 18-34",
+        "commercialBuyerIntent": "High Intent",
+        "interests": [
+          "K-Pop & Asian Music",
+          "Pop Dance Choreography",
+          "Luxury & Streetwear Fashion",
+          "Skincare & Beauty Aesthetics"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "South Korea",
+        "code": "KR"
+      }
+    },
+    {
+      "id": "3cd12262-00f0-4ccb-9cc3-4bf1f700470f",
+      "slug": "speedy-boykins",
+      "canonicalName": "Speedy Boykins",
+      "brandName": "Speedy Boykins",
+      "primaryNicheId": 14,
+      "primaryNicheName": "Gaming & Esports",
+      "countryCode": "US",
+      "youtubeHandle": "speedyboykins7869",
+      "instagramUsername": "ishowspeed",
+      "tiktokUsername": null,
+      "combinedFollowers": 58005382,
+      "primaryPlatform": "instagram",
+      "avatarUrl": "https://yt3.ggpht.com/VZ9KYUW0gzxa2zB5Gk5_JNltpXGuuaQZuvM_iqNPNY01YmkdC9mqoZ_pFI1d4skCp7Kwwj4XMA=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": 2275,
+      "typicalRateMaxUsd": 153000,
+      "avgEngagementRate": 1.69,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-09T23:38:51.614Z",
+      "subNicheName": "Live Variety Gaming",
+      "countryName": "United States",
+      "handles": {
+        "youtube": "speedyboykins7869",
+        "instagram": "ishowspeed",
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "speedyboykins7869",
+          "followers": 2780000,
+          "er": 1.69,
+          "lfEr": 1.69,
+          "sfEr": 2.2,
+          "avgViews": 66100,
+          "avgLikes": 1018,
+          "avgComments": 100
+        },
+        "instagram": {
+          "handle": "ishowspeed",
+          "followers": 55225382,
+          "er": 29.1,
+          "avgViews": 6627046,
+          "avgLikes": 15931628,
+          "avgComments": 137530
+        },
+        "tiktok": null
+      },
+      "flagshipRates": [
+        {
+          "platform": "youtube",
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 14800,
+          "formattedRecommended": "$14,800",
+          "lowAmount": 11800,
+          "formattedLow": "$11,800",
+          "highAmount": 18500,
+          "formattedHigh": "$18,500",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 1.69,
+          "erLabel": "1.69% Long-Form Video Engagement"
+        },
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 123000,
+          "formattedRecommended": "$123,000",
+          "lowAmount": 98200,
+          "formattedLow": "$98,200",
+          "highAmount": 153000,
+          "formattedHigh": "$153,000",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 29.1,
+          "erLabel": "29.10% Observed Engagement Rate"
+        },
+        {
+          "platform": "youtube",
+          "format": "yt_short",
+          "label": "YouTube Short",
+          "recommendedAmount": 2825,
+          "formattedRecommended": "$2,825",
+          "lowAmount": 2275,
+          "formattedLow": "$2,275",
+          "highAmount": 3525,
+          "formattedHigh": "$3,525",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 2.2,
+          "erLabel": "2.2% Shorts Engagement"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Male-skewed · 13-24",
+        "commercialBuyerIntent": "Low Intent",
+        "interests": [
+          "Live Streaming Culture",
+          "Global Football (Soccer)",
+          "Competitive Video Games",
+          "Energy Drinks & Snack Brands",
+          "Streetwear & Footwear"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "United States",
+        "code": "US"
+      }
+    },
+    {
+      "id": "9ccfa00a-aa61-43f7-9781-b8bb8b0f0bd8",
+      "slug": "dhar-mann-bonus",
+      "canonicalName": "Dhar Mann",
+      "brandName": "Dhar Mann Studios",
+      "primaryNicheId": 8,
+      "primaryNicheName": "Lifestyle & Entertainment",
+      "countryCode": "US",
+      "youtubeHandle": "dharmann",
+      "instagramUsername": "dhar.mann",
+      "tiktokUsername": "dhar.mann",
+      "combinedFollowers": 49660526,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://yt3.ggpht.com/osxs7UlkTYpb0Ug57x02xu87r5jRTLh8q7LIsBEPJaqoplqfHSdSN3xi86AEetbJBvXFO1qonQ=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": 5325,
+      "typicalRateMaxUsd": 119000,
+      "avgEngagementRate": 1.26,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-04T19:56:38.853Z",
+      "subNicheName": "Cultural Commentary / Video Essays",
+      "countryName": "United States",
+      "handles": {
+        "youtube": "dharmann",
+        "instagram": "dhar.mann",
+        "tiktok": "dhar.mann"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "dharmann",
+          "followers": 27700000,
+          "er": 1.26,
+          "lfEr": 1.26,
+          "sfEr": 1.64,
+          "avgViews": 1552666,
+          "avgLikes": 18658,
+          "avgComments": 926
+        },
+        "instagram": {
+          "handle": "dhar.mann",
+          "followers": 5060526,
+          "er": 3.5,
+          "avgViews": 607263,
+          "avgLikes": 175657,
+          "avgComments": 1343
+        },
+        "tiktok": {
+          "handle": "dhar.mann",
+          "followers": 16900000,
+          "er": 10.34,
+          "avgViews": 600875,
+          "avgLikes": 59150,
+          "avgComments": 576
+        }
+      },
+      "flagshipRates": [
+        {
+          "platform": "youtube",
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 95500,
+          "formattedRecommended": "$95,500",
+          "lowAmount": 76400,
+          "formattedLow": "$76,400",
+          "highAmount": 119000,
+          "formattedHigh": "$119,000",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 1.26,
+          "erLabel": "1.26% Long-Form Video Engagement"
+        },
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 27700,
+          "formattedRecommended": "$27,700",
+          "lowAmount": 22100,
+          "formattedLow": "$22,100",
+          "highAmount": 34600,
+          "formattedHigh": "$34,600",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 3.5,
+          "erLabel": "3.50% Observed Engagement Rate"
+        },
+        {
+          "platform": "tiktok",
+          "format": "tiktok_video",
+          "label": "TikTok Video (Dedicated)",
+          "recommendedAmount": 63800,
+          "formattedRecommended": "$63,800",
+          "lowAmount": 51100,
+          "formattedLow": "$51,100",
+          "highAmount": 79800,
+          "formattedHigh": "$79,800",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 10.34,
+          "erLabel": "10.34% Observed Engagement Rate"
+        },
+        {
+          "platform": "youtube",
+          "format": "yt_short",
+          "label": "YouTube Short",
+          "recommendedAmount": 19900,
+          "formattedRecommended": "$19,900",
+          "lowAmount": 15900,
+          "formattedLow": "$15,900",
+          "highAmount": 24800,
+          "formattedHigh": "$24,800",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 1.64,
+          "erLabel": "1.64% Shorts Engagement"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Balanced · 13-24",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Scripted Digital Drama",
+          "Inspirational & Motivational Content",
+          "Family & Teen Social Issues",
+          "Charity & Social Impact"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "United States",
+        "code": "US"
+      }
+    },
+    {
+      "id": "74f0c273-8402-4264-b659-5d2a0c8c2b72",
+      "slug": "druski",
+      "canonicalName": "Druski",
+      "brandName": "Druski",
+      "primaryNicheId": 8,
+      "primaryNicheName": "Lifestyle & Entertainment",
+      "countryCode": "US",
+      "youtubeHandle": "druski",
+      "instagramUsername": "druski",
+      "tiktokUsername": "druski",
+      "combinedFollowers": 35155708,
+      "primaryPlatform": "tiktok",
+      "avatarUrl": "https://yt3.ggpht.com/Km-4gx6puXghzLUMJVZsQQzR2OLXMLmusretn5ucWr2gb47homE-BT7Os-3hBedab4Rj6LV0oSY=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": 4750,
+      "typicalRateMaxUsd": 71700,
+      "avgEngagementRate": 2.91,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-09T03:53:11.622Z",
+      "subNicheName": "Comedy / Parody / Relatable Memes",
+      "countryName": "United States",
+      "handles": {
+        "youtube": "druski",
+        "instagram": "druski",
+        "tiktok": "druski"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "druski",
+          "followers": 6040000,
+          "er": 2.91,
+          "lfEr": 2.91,
+          "sfEr": 4.07,
+          "avgViews": 5715559,
+          "avgLikes": 156408,
+          "avgComments": 9993
+        },
+        "instagram": {
+          "handle": "druski",
+          "followers": 13615708,
+          "er": 12.26,
+          "avgViews": 1633885,
+          "avgLikes": 1582082,
+          "avgComments": 86590
+        },
+        "tiktok": {
+          "handle": "druski",
+          "followers": 15500000,
+          "er": 11.09,
+          "avgViews": 18875000,
+          "avgLikes": 1850000,
+          "avgComments": 9494
+        }
+      },
+      "flagshipRates": [
+        {
+          "platform": "youtube",
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 39500,
+          "formattedRecommended": "$39,500",
+          "lowAmount": 31600,
+          "formattedLow": "$31,600",
+          "highAmount": 49300,
+          "formattedHigh": "$49,300",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 2.91,
+          "erLabel": "2.91% Long-Form Video Engagement"
+        },
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 52000,
+          "formattedRecommended": "$52,000",
+          "lowAmount": 41600,
+          "formattedLow": "$41,600",
+          "highAmount": 65100,
+          "formattedHigh": "$65,100",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 12.26,
+          "erLabel": "12.26% Observed Engagement Rate"
+        },
+        {
+          "platform": "tiktok",
+          "format": "tiktok_video",
+          "label": "TikTok Video (Dedicated)",
+          "recommendedAmount": 57300,
+          "formattedRecommended": "$57,300",
+          "lowAmount": 45900,
+          "formattedLow": "$45,900",
+          "highAmount": 71700,
+          "formattedHigh": "$71,700",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 11.09,
+          "erLabel": "11.09% Observed Engagement Rate"
+        },
+        {
+          "platform": "youtube",
+          "format": "yt_short",
+          "label": "YouTube Short",
+          "recommendedAmount": 8450,
+          "formattedRecommended": "$8,450",
+          "lowAmount": 6750,
+          "formattedLow": "$6,750",
+          "highAmount": 10600,
+          "formattedHigh": "$10,600",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 4.07,
+          "erLabel": "4.07% Shorts Engagement"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Male-skewed · 18-34",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Hip-Hop & Urban Culture",
+          "Pro Sports (NBA, NFL)",
+          "Comedy & Sketch Entertainment",
+          "Streetwear & Footwear",
+          "Consumer Tech & Gaming"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "United States",
+        "code": "US"
+      }
+    },
+    {
+      "id": "85ca9fdf-8c35-4340-82a9-dbd6fb3b2d50",
+      "slug": "glitch",
+      "canonicalName": "GLITCH",
+      "brandName": "GLITCH",
+      "primaryNicheId": 18,
+      "primaryNicheName": "Creative Arts & Media",
+      "countryCode": "AU",
+      "youtubeHandle": "glitch",
+      "instagramUsername": "glitch_prod",
+      "tiktokUsername": "glitch_productions",
+      "combinedFollowers": 32037440,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://yt3.ggpht.com/JgzaWBB7n02Ru2TTmcVLCJJNBW1mLnh_f6eJYPOuEShb3PaXmwkqas5zfpA_sVXjYkg_UNmx=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": 5300,
+      "typicalRateMaxUsd": 194000,
+      "avgEngagementRate": 5.5,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-04T19:30:30.847Z",
+      "subNicheName": "Video Editing, VFX & Motion Design",
+      "countryName": "Australia",
+      "handles": {
+        "youtube": "glitch",
+        "instagram": "glitch_prod",
+        "tiktok": "glitch_productions"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "glitch",
+          "followers": 23500000,
+          "er": 5.56,
+          "lfEr": 5.56,
+          "sfEr": 7.45
+        },
+        "instagram": {
+          "handle": "glitch_prod",
+          "followers": 2737440,
+          "er": 2.6
+        },
+        "tiktok": {
+          "handle": "glitch_productions",
+          "followers": 5800000,
+          "er": 17.34
+        }
+      },
+      "flagshipRates": [
+        {
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 156000,
+          "formattedRecommended": "AU$156,000",
+          "lowAmount": 125000,
+          "formattedLow": "AU$125,000",
+          "highAmount": 195000,
+          "formattedHigh": "AU$195,000",
+          "currency": "AUD",
+          "symbol": "AU$",
+          "platform": "youtube",
+          "erPercent": 5.56,
+          "erLabel": "LF ER"
+        },
+        {
+          "format": "yt_short",
+          "label": "YouTube Short",
+          "recommendedAmount": 47500,
+          "formattedRecommended": "AU$47,500",
+          "lowAmount": 38000,
+          "formattedLow": "AU$38,000",
+          "highAmount": 59300,
+          "formattedHigh": "AU$59,300",
+          "currency": "AUD",
+          "symbol": "AU$",
+          "platform": "youtube",
+          "erPercent": 7.45,
+          "erLabel": "SF ER"
+        },
+        {
+          "format": "ig_reel",
+          "label": "Instagram Reel (60-90s)",
+          "recommendedAmount": 27500,
+          "formattedRecommended": "AU$27,500",
+          "lowAmount": 22000,
+          "formattedLow": "AU$22,000",
+          "highAmount": 34400,
+          "formattedHigh": "AU$34,400",
+          "currency": "AUD",
+          "symbol": "AU$",
+          "platform": "instagram",
+          "erPercent": 2.6,
+          "erLabel": "ER"
+        },
+        {
+          "format": "tiktok_video",
+          "label": "TikTok Video (Dedicated)",
+          "recommendedAmount": 42600,
+          "formattedRecommended": "AU$42,600",
+          "lowAmount": 34100,
+          "formattedLow": "AU$34,100",
+          "highAmount": 53200,
+          "formattedHigh": "AU$53,200",
+          "currency": "AUD",
+          "symbol": "AU$",
+          "platform": "tiktok",
+          "erPercent": 17.34,
+          "erLabel": "ER"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Balanced, 16-34",
+        "commercialBuyerIntent": "High Intent",
+        "interests": [
+          "Independent Animation & Storytelling",
+          "Digital Art & 3D Modeling",
+          "Gaming Culture & Character Lore",
+          "Collectibles & IP Merchandise",
+          "Voice Acting & Production Pipeline"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "Australia",
+        "code": "AU"
+      }
+    },
+    {
+      "id": "4a78ef76-70fc-4d79-b39b-f4a6b529b4cb",
+      "slug": "vsauce",
+      "canonicalName": "Vsauce",
+      "brandName": "Vsauce",
+      "primaryNicheId": 5,
+      "primaryNicheName": "Education & Careers",
+      "countryCode": "US",
+      "youtubeHandle": "vsauce",
+      "instagramUsername": "electricpants",
+      "tiktokUsername": null,
+      "combinedFollowers": 27920398,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://yt3.ggpht.com/ytc/AIdro_mpYedipdXUXCKkwjQEeFrepFlDHZ0LiczqWeKyG0YmJvA=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": 3900,
+      "typicalRateMaxUsd": 157000,
+      "avgEngagementRate": 6.71,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-10T02:36:42.119Z",
+      "subNicheName": "Language Learning / Global Education",
+      "countryName": "United States",
+      "handles": {
+        "youtube": "vsauce",
+        "instagram": "electricpants",
+        "tiktok": null
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "vsauce",
+          "followers": 25300000,
+          "er": 6.71,
+          "lfEr": 6.71,
+          "sfEr": 6.57,
+          "avgViews": 4070340,
+          "avgLikes": 268163,
+          "avgComments": 5131
+        },
+        "instagram": {
+          "handle": "electricpants",
+          "followers": 2620398,
+          "er": 4.97,
+          "avgViews": 314448,
+          "avgLikes": 129686,
+          "avgComments": 463
+        },
+        "tiktok": null
+      },
+      "flagshipRates": [
+        {
+          "platform": "youtube",
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 126000,
+          "formattedRecommended": "$126,000",
+          "lowAmount": 100000,
+          "formattedLow": "$100,000",
+          "highAmount": 157000,
+          "formattedHigh": "$157,000",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 6.71,
+          "erLabel": "6.71% Long-Form Video Engagement"
+        },
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 20100,
+          "formattedRecommended": "$20,100",
+          "lowAmount": 16100,
+          "formattedLow": "$16,100",
+          "highAmount": 25100,
+          "formattedHigh": "$25,100",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 4.97,
+          "erLabel": "4.97% Observed Engagement Rate"
+        },
+        {
+          "platform": "youtube",
+          "format": "yt_short",
+          "label": "YouTube Short",
+          "recommendedAmount": 38400,
+          "formattedRecommended": "$38,400",
+          "lowAmount": 30700,
+          "formattedLow": "$30,700",
+          "highAmount": 48000,
+          "formattedHigh": "$48,000",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 6.57,
+          "erLabel": "6.57% Shorts Engagement"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Male-skewed · 18-34",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Theoretical Physics",
+          "Mathematics & Logic",
+          "Cognitive Science",
+          "Prosumer Tools & Mechanical Puzzles",
+          "Software & Digital EdTech"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "United States",
+        "code": "US"
+      }
+    },
+    {
+      "id": "f33d29e2-1aa8-47d1-88fe-b7d0d87450ef",
+      "slug": "veritasium",
+      "canonicalName": "Veritasium",
+      "brandName": "Veritasium",
+      "primaryNicheId": 5,
+      "primaryNicheName": "Education & Careers",
+      "countryCode": "US",
+      "youtubeHandle": "veritasium",
+      "instagramUsername": "veritasium_daily",
+      "tiktokUsername": "veritasium",
+      "combinedFollowers": 24420784,
+      "primaryPlatform": "youtube",
+      "avatarUrl": "https://yt3.ggpht.com/7vCbvtCqtjQ3YLgsJt7Y952MQV1sBvhllSCSxHP8_sVZdcPCBrITfhkN2RdyCuwPnsByq-1GoA=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": 1175,
+      "typicalRateMaxUsd": 128000,
+      "avgEngagementRate": 2.36,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-10T02:28:25.021Z",
+      "subNicheName": "Tech Careers / Coding / Data Science",
+      "countryName": "United States",
+      "handles": {
+        "youtube": "veritasium",
+        "instagram": "veritasium_daily",
+        "tiktok": "veritasium"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "veritasium",
+          "followers": 21300000,
+          "er": 2.36,
+          "lfEr": 2.36,
+          "sfEr": 3.19,
+          "avgViews": 4758881,
+          "avgLikes": 106893,
+          "avgComments": 5510
+        },
+        "instagram": {
+          "handle": "veritasium_daily",
+          "followers": 1320784,
+          "er": 0.41,
+          "avgViews": 158494,
+          "avgLikes": 5401,
+          "avgComments": 74
+        },
+        "tiktok": {
+          "handle": "veritasium",
+          "followers": 1800000,
+          "er": 11.88,
+          "avgViews": 133425,
+          "avgLikes": 15377,
+          "avgComments": 82
+        }
+      },
+      "flagshipRates": [
+        {
+          "platform": "youtube",
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 103000,
+          "formattedRecommended": "$103,000",
+          "lowAmount": 82100,
+          "formattedLow": "$82,100",
+          "highAmount": 128000,
+          "formattedHigh": "$128,000",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 2.36,
+          "erLabel": "2.36% Long-Form Video Engagement"
+        },
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 5875,
+          "formattedRecommended": "$5,875",
+          "lowAmount": 4700,
+          "formattedLow": "$4,700",
+          "highAmount": 7350,
+          "formattedHigh": "$7,350",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 0.41,
+          "erLabel": "0.41% Observed Engagement Rate"
+        },
+        {
+          "platform": "tiktok",
+          "format": "tiktok_video",
+          "label": "TikTok Video (Dedicated)",
+          "recommendedAmount": 18300,
+          "formattedRecommended": "$18,300",
+          "lowAmount": 14600,
+          "formattedLow": "$14,600",
+          "highAmount": 22800,
+          "formattedHigh": "$22,800",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 11.88,
+          "erLabel": "11.88% Observed Engagement Rate"
+        },
+        {
+          "platform": "youtube",
+          "format": "yt_short",
+          "label": "YouTube Short",
+          "recommendedAmount": 30100,
+          "formattedRecommended": "$30,100",
+          "lowAmount": 24100,
+          "formattedLow": "$24,100",
+          "highAmount": 37600,
+          "formattedHigh": "$37,600",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 3.19,
+          "erLabel": "3.19% Shorts Engagement"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Male-skewed · 18-44",
+        "commercialBuyerIntent": "High Intent",
+        "interests": [
+          "STEM & Computer Science",
+          "EdTech Subscriptions & Interactive Learning",
+          "Engineering Hardware & Innovation",
+          "Scientific Philosophy & Data Literacy"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "United States",
+        "code": "US"
+      }
+    },
+    {
+      "id": "fdbd5fef-60f8-43ee-9c3d-ed651828a189",
+      "slug": "laufey",
+      "canonicalName": "Laufey",
+      "brandName": "Laufey",
+      "primaryNicheId": 19,
+      "primaryNicheName": "Music, Audio & Performance",
+      "countryCode": "US",
+      "youtubeHandle": "laufey",
+      "instagramUsername": "laufey",
+      "tiktokUsername": "laufey",
+      "combinedFollowers": 24408610,
+      "primaryPlatform": "tiktok",
+      "avatarUrl": "https://yt3.ggpht.com/56ksimVF2WT27bkACdJtRLQ_v-GtMQcxWhBfKRENtx54qrio5GNEc2hE_zSBfm5RYd6NtQ8H1RI=s800-c-k-c0x00ffffff-no-rj",
+      "verifiedEmail": null,
+      "typicalRateMinUsd": 4500,
+      "typicalRateMaxUsd": 73100,
+      "avgEngagementRate": 4.7,
+      "isClaimed": false,
+      "verificationLevel": "NONE",
+      "createdAt": "2026-10-09T11:39:42.692Z",
+      "subNicheName": "Music Production & Audio Engineering",
+      "countryName": "United States",
+      "handles": {
+        "youtube": "laufey",
+        "instagram": "laufey",
+        "tiktok": "laufey"
+      },
+      "platforms": {
+        "youtube": {
+          "handle": "laufey",
+          "followers": 3710000,
+          "er": 4.7,
+          "lfEr": 4.7,
+          "sfEr": 6.75,
+          "avgViews": 916019,
+          "avgLikes": 41672,
+          "avgComments": 1350
+        },
+        "instagram": {
+          "handle": "laufey",
+          "followers": 9598610,
+          "er": 4.27,
+          "avgViews": 1151833,
+          "avgLikes": 409086,
+          "avgComments": 535
+        },
+        "tiktok": {
+          "handle": "laufey",
+          "followers": 11100000,
+          "er": 21.77,
+          "avgViews": 1400000,
+          "avgLikes": 290775,
+          "avgComments": 2962
+        }
+      },
+      "flagshipRates": [
+        {
+          "platform": "youtube",
+          "format": "yt_dedicated",
+          "label": "YouTube Dedicated Video",
+          "recommendedAmount": 42900,
+          "formattedRecommended": "$42,900",
+          "lowAmount": 34300,
+          "formattedLow": "$34,300",
+          "highAmount": 53600,
+          "formattedHigh": "$53,600",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 4.7,
+          "erLabel": "4.70% Long-Form Video Engagement"
+        },
+        {
+          "platform": "instagram",
+          "format": "ig_reel",
+          "label": "Instagram Reel (60–90s)",
+          "recommendedAmount": 52800,
+          "formattedRecommended": "$52,800",
+          "lowAmount": 42200,
+          "formattedLow": "$42,200",
+          "highAmount": 66000,
+          "formattedHigh": "$66,000",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 4.27,
+          "erLabel": "4.27% Observed Engagement Rate"
+        },
+        {
+          "platform": "tiktok",
+          "format": "tiktok_video",
+          "label": "TikTok Video (Dedicated)",
+          "recommendedAmount": 58500,
+          "formattedRecommended": "$58,500",
+          "lowAmount": 46800,
+          "formattedLow": "$46,800",
+          "highAmount": 73100,
+          "formattedHigh": "$73,100",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 21.77,
+          "erLabel": "21.77% Observed Engagement Rate"
+        },
+        {
+          "platform": "youtube",
+          "format": "yt_short",
+          "label": "YouTube Short",
+          "recommendedAmount": 8500,
+          "formattedRecommended": "$8,500",
+          "lowAmount": 6800,
+          "formattedLow": "$6,800",
+          "highAmount": 10600,
+          "formattedHigh": "$10,600",
+          "currency": "USD",
+          "symbol": "$",
+          "erPercent": 6.75,
+          "erLabel": "6.75% Shorts Engagement"
+        }
+      ],
+      "audienceFit": {
+        "demographicProfile": "Female-skewed · 18-34",
+        "commercialBuyerIntent": "Moderate Intent",
+        "interests": [
+          "Jazz & Classical Music",
+          "Acoustic & Studio Production",
+          "Vintage Luxury Fashion",
+          "Literary & Cafe Culture",
+          "Live Arena Tours"
+        ]
+      },
+      "primaryAudienceCountry": {
+        "name": "United States",
+        "code": "US"
+      }
+    }
+  ],
+  "pagination": {
+    "totalCount": 2941,
+    "totalPages": 368,
+    "currentPage": 1,
+    "limit": 8,
+    "hasNextPage": true,
+    "hasPrevPage": false
+  },
+  "filters": {
+    "search": "",
+    "platform": "all",
+    "country": "",
+    "nicheId": null,
+    "tier": null,
+    "sort": "followers_desc"
+  }
+}

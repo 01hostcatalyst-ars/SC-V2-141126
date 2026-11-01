@@ -1,0 +1,4 @@
+Tool: built-in image_gen, edit of creator-collaboration-faq.webp.
+Saved asset: D:/SignCollab/public/images/creator-collaboration-faq-v2.webp
+Final prompt:
+Edit this image with only two object changes. Replace the black mirrorless camera on the front-left of the desk with a modern smartphone standing upright on a small tasteful tabletop phone stand. Add a realistic slim circular LED ring light on a stand in the left background near the window, clearly recognizable and softly illuminated, naturally belonging to a content creator's studio. Preserve both women's identities, faces, poses, clothes, laptop, papers, decor, natural lighting, photographic style and framing. Keep the same exact wide 2:1 aspect ratio and composition. No camera remaining on desk, no text or logos, no other changes.
