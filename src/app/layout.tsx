@@ -1,25 +1,31 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
 import { getCompanyConfig } from "@/lib/config";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "900"],
+const inter = localFont({
+  src: "../../public/fonts/Inter.woff2",
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
   variable: "--font-inter",
 });
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const plusJakarta = localFont({
+  src: "../../public/fonts/PlusJakartaSans-Variable.ttf",
+  weight: "200 800",
+  style: "normal",
+  display: "swap",
   variable: "--font-jakarta",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const jetbrainsMono = localFont({
+  src: "../../public/fonts/JetBrainsMono-Variable.ttf",
+  weight: "100 800",
+  style: "normal",
+  display: "swap",
   variable: "--font-mono",
 });
 
@@ -292,7 +298,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.className} ${plusJakarta.variable} ${jetbrainsMono.variable} font-sans antialiased min-h-screen bg-canvas text-primary selection:bg-zinc-950 selection:text-white`}>
+      <body className={`${inter.className} ${inter.variable} ${plusJakarta.variable} ${jetbrainsMono.variable} font-sans antialiased min-h-screen bg-canvas text-primary selection:bg-zinc-950 selection:text-white`}>
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
