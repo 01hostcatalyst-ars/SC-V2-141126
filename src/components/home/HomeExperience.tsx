@@ -43,6 +43,10 @@ function ArrowLink({ href, children, secondary = false }: { href: string; childr
   return <Link href={href} className={secondary ? styles.secondaryAction : styles.primaryAction}>{children}<ArrowRight size={16} aria-hidden="true" /></Link>;
 }
 
+function SectionBand({ tone, children }: { tone: "gray" | "white"; children: React.ReactNode }) {
+  return <div className={styles.sectionBand} data-tone={tone}>{children}</div>;
+}
+
 function ReportPreview({ creator }: { creator: HomeHeroCreator | null }) {
   const [imageFailed, setImageFailed] = useState(false);
   const name = creator?.name || "Sydnee Zora";
@@ -120,27 +124,39 @@ function ContractPreview() {
 
 export function HomeExperience({ heroCreator }: { heroCreator: HomeHeroCreator | null }) {
   return <main className={styles.home}>
+    <SectionBand tone="gray">
     <section className={styles.hero} aria-labelledby="home-title"><div className={styles.heroCopy}><p className={styles.eyebrow}><span className={styles.eyebrowDot} />A clearer way to collaborate</p><h1 id="home-title">Find creators.<br />Understand rates.<br /><span>Make the deal.</span></h1><p className={styles.heroDescription}>Explore creator profiles, compare estimated sponsorship rates, and turn your partnership into a clear agreement.</p><div className={styles.heroActions}><ArrowLink href={calculator}>Calculate creator rates</ArrowLink><ArrowLink href="/creators" secondary>Browse creators</ArrowLink></div><div className={styles.heroPlatforms}><span>Across</span><PlatformBadge platform="youtube" size="sm" /><span>YouTube</span><PlatformBadge platform="instagram" size="sm" /><span>Instagram</span><PlatformBadge platform="tiktok" size="sm" /><span>TikTok</span></div><a href="#how-it-works" className={styles.exploreLink}>See how it comes together<ArrowDown size={14} aria-hidden="true" /></a></div><ReportPreview creator={heroCreator} /></section>
 
+    </SectionBand>
+    <SectionBand tone="white">
     <section id="how-it-works" className={styles.journey} aria-labelledby="journey-title"><div className={styles.journeyHeading}><p className={styles.eyebrow}>Less back and forth. More clarity.</p><h2 id="journey-title">From the first look<br />to the next step.</h2></div><div className={styles.journeyCards}>{[
       { number: "01", Icon: Search, title: "Find the right fit", text: "Explore creators by platform, niche, and audience. Open a profile for a closer look.", href: "/creators", action: "Discover creators" },
       { number: "02", Icon: SlidersHorizontal, title: "Understand the numbers", text: "Compare platform performance, pricing ranges, and the content behind the metrics.", href: calculator, action: "Explore the calculator" },
       { number: "03", Icon: FileText, title: "Put the terms in place", text: "Turn the agreed scope, content rights, and payment terms into a creator agreement.", href: "/instant", action: "Build an agreement" },
     ].map(item => <article key={item.number}><div className={styles.journeyCardTop}><item.Icon size={20} aria-hidden="true" /><span>{item.number}</span></div><h3>{item.title}</h3><p>{item.text}</p><Link href={item.href}>{item.action}<ArrowRight size={14} aria-hidden="true" /></Link></article>)}</div></section>
 
+    </SectionBand>
+    <SectionBand tone="gray">
     <CreatorDiscovery />
     <figure className={styles.communityBanner}>
       <div className={styles.communityBannerImage}><img src="/images/creator-community-banner-v3.webp" alt="Technology, food, fashion, and fitness creators recording with smartphones, ring lights, cameras, and studio lights." width={2172} height={362} loading="lazy" decoding="async" /></div>
       <figcaption>Different passions. The right partnership.</figcaption>
     </figure>
-    <HomeNicheExplorer />
+    </SectionBand>
+    <SectionBand tone="white"><HomeNicheExplorer /></SectionBand>
 
+    <SectionBand tone="gray">
     <section className={styles.methodSection} aria-labelledby="method-title"><div className={styles.methodIntro}><p className={styles.eyebrow}>Understand what is behind the numbers</p><h2 id="method-title">An estimate should<br />come with an explanation.</h2><p className={styles.sectionDescription}>See the pricing range, explore the performance samples, and keep the commercial context in view.</p><Link href={`${calculator}#calculator-methodology`} className={styles.inlineLink}>How our estimates work<ArrowRight size={15} aria-hidden="true" /></Link></div><div className={styles.methodCards}><article><div className={styles.methodIcon}><SlidersHorizontal size={20} aria-hidden="true" /></div><h3>A calculation engine for pricing</h3><p>Our benchmarks are calibrated using creator surveys, direct pricing research, case studies, agency deal history, and contract data.</p><div className={styles.evidenceTags}><span>Creator research</span><span>Agency deal history</span><span>Contract data</span></div><p className={styles.methodFoot}><Check size={14} aria-hidden="true" />AI does not calculate these prices.</p></article><article><div className={styles.methodIcon}><Sparkles size={20} aria-hidden="true" /></div><h3>AI for creator insights</h3><p>AI interprets supplied profile and supporting data to surface audience interests, content themes, and commercial signals.</p><div className={styles.evidenceTags}><span>Audience</span><span>Content</span><span>Brand fit</span></div><p className={styles.methodFoot}>Inferred insights, not measured conversions.</p></article></div><p className={styles.methodDisclaimer}>Estimated rates are negotiation benchmarks. Final prices and terms are agreed with the creator.</p></section>
 
-    <ContractPreview />
+    </SectionBand>
+    <SectionBand tone="white"><ContractPreview /></SectionBand>
 
+    <SectionBand tone="gray">
     <section className={styles.faqSection} aria-labelledby="faq-title"><div><p className={styles.eyebrow}>A few useful answers</p><h2 id="faq-title">Before you begin.</h2><p className={styles.sectionDescription}>A little context for your next collaboration.</p><div className={styles.faqImage} role="img" aria-label="A creator and brand partner reviewing a campaign brief together in a studio" /></div><div className={styles.faqList}>{faqs.map(item => <details key={item.question}><summary>{item.question}<ChevronDown size={17} aria-hidden="true" /></summary><p>{item.answer}</p></details>)}</div></section>
 
+    </SectionBand>
+    <SectionBand tone="white">
     <section className={styles.closing} aria-labelledby="closing-title"><div><p className={styles.eyebrow}>Start with a creator. See the bigger picture.</p><h2 id="closing-title">Your next collaboration,<br />with a little more clarity.</h2></div><div><ArrowLink href={calculator}>Calculate creator rates</ArrowLink><Link href="/creators" className={styles.closingSecondary}>Or explore the creator directory<ArrowRight size={14} aria-hidden="true" /></Link></div></section>
+    </SectionBand>
   </main>;
 }
