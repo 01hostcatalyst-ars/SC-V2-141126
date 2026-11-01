@@ -103,8 +103,10 @@
 .sectionDescription { color:var(--muted); font-size:13px; line-height:1.9; margin-top:17px!important; max-width:480px; }
 .discovery { padding:65px 0 38px; }
 .discovery > [aria-roledescription="carousel"] { margin-bottom:0; }
-.communityBanner { display:block; width:100%; aspect-ratio:4/1; margin:0; overflow:hidden; border-radius:20px; background:#f7f0f3; border:1px solid #eee6eb; }
-.communityBanner img { display:block; width:100%; height:100%; object-fit:cover; object-position:center 48%; transform:scale(1.04); }
+.communityBanner { display:block; width:100%; margin:0; }
+.communityBannerImage { aspect-ratio:6/1; overflow:hidden; border-radius:20px; background:#f7f0f3; border:1px solid #eee6eb; }
+.communityBanner img { display:block; width:100%; height:100%; object-fit:cover; }
+.communityBanner figcaption { margin-top:14px; color:#77777f; font-size:12px; line-height:1.7; text-align:center; }
 .communityBanner + section { border-top:0; }
 .creatorGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:15px; }
 .creatorCard { display:flex; flex-direction:column; align-items:center; text-align:center; background:#fff; border:1px solid var(--border); border-radius:17px; padding:25px 16px 16px; transition:border-color .2s,transform .2s; }
@@ -204,7 +206,8 @@
  .journey { padding:35px 0 20px; } .journeyHeading { text-align:center; } .journeyCards { gap:20px; }
  .journeyCards h3 { font-size:13px; } .sectionTop { gap:20px; }
  .creatorGrid { grid-template-columns:repeat(2,minmax(0,1fr)); } .discovery { padding:55px 0 28px; }
- .communityBanner { border-radius:14px; }
+ .communityBannerImage { border-radius:14px; }
+ .communityBanner figcaption { font-size:11px; margin-top:11px; }
  .methodSection { grid-template-columns:1fr; padding:45px 0; } .methodIntro { text-align:center; } .methodIntro .sectionDescription { margin-inline:auto; }
  .methodDisclaimer { margin-top:-8px!important; text-align:center; } .contractSection { grid-template-columns:1fr; padding:60px 0; gap:35px; }
  .contractCopy { max-width:520px; } .paperCanvas { max-width:470px; width:100%; margin-inline:auto; padding:25px; } .paper { padding:30px 28px 22px; }

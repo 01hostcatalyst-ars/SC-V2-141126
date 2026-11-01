@@ -130,7 +130,8 @@ export function HomeExperience({ heroCreator }: { heroCreator: HomeHeroCreator |
 
     <CreatorDiscovery />
     <figure className={styles.communityBanner}>
-      <img src="/images/creator-community-banner.webp" alt="Creators making technology, food, fashion, and fitness content in bright studios." width={2172} height={724} loading="lazy" decoding="async" />
+      <div className={styles.communityBannerImage}><img src="/images/creator-community-banner-v3.webp" alt="Technology, food, fashion, and fitness creators recording with smartphones, ring lights, cameras, and studio lights." width={2172} height={362} loading="lazy" decoding="async" /></div>
+      <figcaption>Different passions. The right partnership.</figcaption>
     </figure>
     <HomeNicheExplorer />
 
