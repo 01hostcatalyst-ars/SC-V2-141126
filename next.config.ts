@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
+import { randomUUID } from "node:crypto";
 
 const nextConfig: NextConfig = {
+  // Scope public homepage snapshots to a deployment, including non-Vercel builds.
+  env: { HOME_CACHE_VERSION: process.env.VERCEL_DEPLOYMENT_ID || process.env.VERCEL_URL || randomUUID() },
+  // Allows production verification without overwriting the active dev server's .next.
+  distDir: process.env.SIGNCOLLAB_BUILD_DIR || ".next",
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   outputFileTracingIncludes: {
     "/api/calculator/export-pdf": ["node_modules/@sparticuz/chromium/bin/**/*", "public/fonts/**/*"],

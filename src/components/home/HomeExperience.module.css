@@ -160,7 +160,7 @@
 .contractSteps button[aria-pressed=true] { background:#fff; border-color:#eed6e3; }
 .contractSteps button[aria-pressed=true]>span { background:#fce7f3; border-color:#f9a8d4; color:#a14b76; }
 .paperCanvas { padding:22px 28px; border-radius:30px; background:linear-gradient(145deg,#f4ecee,#f5f2f5 65%,#efeaf1); }
-.paper { padding:28px 27px 20px; background:#fff; border:1px solid #e9e3e8; border-radius:5px 5px 16px 5px; box-shadow:0 12px 30px #3d163509; transform:rotate(1deg); }
+.paper { padding:28px 27px 20px; background:#fff; border:1px solid #e9e3e8; border-radius:5px; box-shadow:0 12px 30px #3d163509; transform:rotate(1deg); }
 .paperHeader { display:flex; justify-content:space-between; gap:10px; align-items:center; padding-bottom:15px; margin-bottom:20px; border-bottom:1px solid #ece8ec; }
 .paperHeader>span:first-child { font-size:11px; font-weight:750; letter-spacing:-.5px; }
 .paperHeader>span:last-child { font-size:8px; color:#a29ba5; }

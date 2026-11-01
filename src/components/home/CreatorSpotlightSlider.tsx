@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { HomeSpotlightCreator } from "@/lib/home/spotlight-creators";
 import { PlatformBadge } from "@/components/icons/PlatformIcons";
 import { CreatorPriceRange } from "@/components/creators/CreatorPriceRange";
@@ -30,52 +30,34 @@ function SpotlightCard({ creator }: { creator: HomeSpotlightCreator }) {
   </article>;
 }
 
-function SliderRow({ creators, visible, reverse = false, paused, step }: { creators: HomeSpotlightCreator[]; visible: number; reverse?: boolean; paused: boolean; step: { id: number; delta: number } }) {
-  const count = creators.length;
-  const canSlide = count > visible;
-  const [index, setIndex] = useState(reverse && canSlide ? count : 0);
-  const [animate, setAnimate] = useState(true);
-  useEffect(() => {
-    if (!step.id || !canSlide) return;
-    setAnimate(false);
-    setIndex(value => (value + step.delta * (reverse ? -1 : 1) + count) % count);
-  }, [step, canSlide, count, reverse]);
-  useEffect(() => {
-    if (paused || !canSlide) return;
-    const timer = setInterval(() => { setAnimate(true); setIndex(value => value + (reverse ? -1 : 1)); }, 4500);
-    return () => clearInterval(timer);
-  }, [paused, reverse, canSlide]);
-  const cards = canSlide ? [...creators, ...creators] : creators;
-  return <div className={styles.viewport}>
-    <div className={styles.track} style={{ "--visible": visible, transform: `translateX(calc(${index} * -1 * (100% + 16px) / ${visible}))`, transition: animate ? undefined : "none" } as React.CSSProperties} onTransitionEnd={event => {
-      if (event.target !== event.currentTarget || event.propertyName !== "transform") return;
-      if ((!reverse && index === count) || (reverse && index === 0)) { setAnimate(false); setIndex(reverse ? count : 0); }
-    }}>
-      {cards.map((creator, position) => <div className={styles.slide} key={`${creator.slug}-${position}`} inert={position < index || position >= index + visible} aria-hidden={position < index || position >= index + visible}><SpotlightCard creator={creator} /></div>)}
-    </div>
-  </div>;
-}
-
 export function CreatorSpotlightSlider({ creators }: { creators: HomeSpotlightCreator[] }) {
-  const [mobile, setMobile] = useState(false);
-  const [manualPause, setManualPause] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [step, setStep] = useState({ id: 0, delta: 1 });
-  useEffect(() => {
-    const screen = matchMedia("(max-width: 800px)");
-    const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => { setMobile(screen.matches); setReducedMotion(motion.matches); };
-    update(); screen.addEventListener("change", update); motion.addEventListener("change", update);
-    return () => { screen.removeEventListener("change", update); motion.removeEventListener("change", update); };
+  const rail = useRef<HTMLDivElement>(null);
+  const railId = useId();
+  const [controls, setControls] = useState({ previous: false, next: creators.length > 4 });
+  const measure = useCallback(() => {
+    const container = rail.current;
+    if (!container) return;
+    const previous = container.scrollLeft > 1;
+    const next = container.scrollLeft < container.scrollWidth - container.clientWidth - 1;
+    setControls(value => value.previous === previous && value.next === next ? value : { previous, next });
   }, []);
-  const paused = manualPause || hovered || focused || reducedMotion;
-  const move = (delta: number) => { setManualPause(true); setStep(value => ({ id: value.id + 1, delta })); };
+  useEffect(() => {
+    const container = rail.current;
+    if (!container) return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(container); measure();
+    return () => observer.disconnect();
+  }, [measure, creators.length]);
+  const move = (direction: number) => {
+    const container = rail.current;
+    if (!container?.firstElementChild) return;
+    const step = container.firstElementChild.getBoundingClientRect().width + (parseFloat(getComputedStyle(container).columnGap) || 0);
+    container.scrollBy({ left: direction * step, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  };
   return <div className={styles.slider} role="region" aria-label="Creator spotlights" aria-roledescription="carousel">
-    <div className={styles.toolbar}><span>Meet creators from the directory</span><div className={styles.controls}><button type="button" aria-label="Previous creators" onClick={() => move(-1)}><ArrowLeft size={12} /></button><button type="button" aria-pressed={manualPause} disabled={reducedMotion} onClick={() => setManualPause(value => !value)}>{manualPause || reducedMotion ? <Play size={12} aria-hidden="true" /> : <Pause size={12} aria-hidden="true" />}{manualPause || reducedMotion ? "Resume" : "Pause"}</button><button type="button" aria-label="Next creators" onClick={() => move(1)}><ArrowRight size={12} /></button></div></div>
-    <div className={styles.rows} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocusCapture={() => setFocused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }} onPointerDown={event => { if (event.pointerType === "touch") setManualPause(true); }}>
-      {mobile ? <><SliderRow key="mobile-first" creators={creators.slice(0, 4)} visible={2} paused={paused} step={step} />{creators.length > 4 && <SliderRow key="mobile-second" creators={creators.slice(4, 8)} visible={2} reverse paused={paused} step={step} />}</> : <SliderRow key="desktop" creators={creators} visible={4} paused={paused} step={step} />}
+    <div className={styles.toolbar}><span>Meet creators from the directory</span><div className={styles.controls}><button type="button" aria-label="Previous creators" aria-controls={railId} disabled={!controls.previous} onClick={() => move(-1)}><ArrowLeft size={16} aria-hidden="true" /></button><button type="button" aria-label="Next creators" aria-controls={railId} disabled={!controls.next} onClick={() => move(1)}><ArrowRight size={16} aria-hidden="true" /></button></div></div>
+    <div className={styles.viewport} ref={rail} id={railId} onScroll={measure} tabIndex={0} role="group" aria-label="Browse creator profiles" onKeyDown={event => { if (event.target !== event.currentTarget || !["ArrowLeft", "ArrowRight"].includes(event.key)) return; event.preventDefault(); move(event.key === "ArrowRight" ? 1 : -1); }}>
+      {creators.map(creator => <div className={styles.slide} key={creator.slug}><SpotlightCard creator={creator} /></div>)}
     </div>
     <p className={styles.note}>Stored creator profiles · separate platform audiences · estimates, not confirmed quotes</p>
   </div>;

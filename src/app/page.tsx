@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 import { getHomeHeroCreator } from "@/lib/home/featured-creator";
+import { getHomeSpotlightCreators } from "@/lib/home/spotlight-creators";
 import { HomeExperience } from "@/components/home/HomeExperience";
 
 export const metadata: Metadata = {
@@ -21,13 +22,14 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 300;
+// Keep this literal so Next.js can statically analyze the three-day ISR interval.
+export const revalidate = 259200;
 
 export default async function Home() {
-  const heroCreator = await getHomeHeroCreator();
+  const [heroCreator, spotlightCreators] = await Promise.all([getHomeHeroCreator(), getHomeSpotlightCreators()]);
   return <div className="min-h-screen bg-zinc-50 flex flex-col selection:bg-pink-200 selection:text-zinc-900">
     <PublicHeader activeRoute="/" />
-    <HomeExperience heroCreator={heroCreator} />
+    <HomeExperience heroCreator={heroCreator} spotlightCreators={spotlightCreators} />
     <PublicFooter />
   </div>;
 }

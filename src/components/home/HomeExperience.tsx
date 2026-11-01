@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowRight, Check, ChevronDown, FileText, Layers, Search, SlidersHorizontal, Sparkles } from "lucide-react";
 import { PlatformBadge } from "@/components/icons/PlatformIcons";
@@ -19,25 +19,6 @@ const faqs = [
   { question: "Can I check a creator who is on just one platform?", answer: "Yes. Start with a YouTube, Instagram, or TikTok profile link or handle. SignCollab checks for linked accounts and builds a report from the available platform data. You can add another account if you know it belongs to the creator." },
   { question: "What can I do after exploring a creator?", answer: "Review their platform performance, estimated rates, audience insights, and suggested campaign packages. Download a rate card or move into the contract builder to specify the scope, usage rights, and payment terms." },
 ];
-
-// Share a short-lived read across mounts, including React's development remount.
-// This endpoint reads stored directory data; it does not run scraping or AI.
-let directoryPreview: { expiresAt: number; request: Promise<HomeSpotlightCreator[]> } | undefined;
-function getDirectoryPreview(): Promise<HomeSpotlightCreator[]> {
-  if (directoryPreview && directoryPreview.expiresAt > Date.now()) return directoryPreview.request;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
-  const request = fetch("/api/home/creators", { signal: controller.signal })
-    .then(async response => {
-      if (!response.ok) throw new Error("Directory unavailable");
-      const data = await response.json();
-      return data.success && Array.isArray(data.creators) ? data.creators.slice(0, 8) as HomeSpotlightCreator[] : [];
-    })
-    .catch(() => [] as HomeSpotlightCreator[])
-    .finally(() => clearTimeout(timeout));
-  directoryPreview = { expiresAt: Date.now() + 60_000, request };
-  return request;
-}
 
 function ArrowLink({ href, children, secondary = false }: { href: string; children: React.ReactNode; secondary?: boolean }) {
   return <Link href={href} className={secondary ? styles.secondaryAction : styles.primaryAction}>{children}<ArrowRight size={16} aria-hidden="true" /></Link>;
@@ -91,21 +72,10 @@ function ReportPreview({ creator }: { creator: HomeHeroCreator | null }) {
   </div>;
 }
 
-function CreatorDiscovery() {
-  const [spotlights, setSpotlights] = useState<HomeSpotlightCreator[]>([]);
-  const section = useRef<HTMLElement>(null);
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const data = await getDirectoryPreview();
-      if (active) setSpotlights(data);
-    };
-    void load();
-    return () => { active = false; };
-  }, []);
-  return <section className={styles.discovery} ref={section} id="discover" aria-labelledby="discovery-title">
+function CreatorDiscovery({ creators }: { creators: HomeSpotlightCreator[] }) {
+  return <section className={styles.discovery} id="discover" aria-labelledby="discovery-title">
     <div className={styles.sectionTop}><div><p className={styles.eyebrow}>Find your next collaboration</p><h2 id="discovery-title">Good partnerships start<br className={styles.desktopBreak} /> with the right creator.</h2><p className={styles.sectionDescription}>Explore their content, understand their audience, and see how a partnership could fit.</p></div><ArrowLink href="/creators" secondary>Browse creators</ArrowLink></div>
-    {spotlights.length > 0 && <CreatorSpotlightSlider creators={spotlights} />}
+    {creators.length > 0 && <CreatorSpotlightSlider creators={creators} />}
   </section>;
 }
 
@@ -122,7 +92,7 @@ function ContractPreview() {
   </section>;
 }
 
-export function HomeExperience({ heroCreator }: { heroCreator: HomeHeroCreator | null }) {
+export function HomeExperience({ heroCreator, spotlightCreators }: { heroCreator: HomeHeroCreator | null; spotlightCreators: HomeSpotlightCreator[] }) {
   return <main className={styles.home}>
     <SectionBand tone="gray">
     <section className={styles.hero} aria-labelledby="home-title"><div className={styles.heroCopy}><p className={styles.eyebrow}><span className={styles.eyebrowDot} />A clearer way to collaborate</p><h1 id="home-title">Find creators.<br />Understand rates.<br /><span>Make the deal.</span></h1><p className={styles.heroDescription}>Explore creator profiles, compare estimated sponsorship rates, and turn your partnership into a clear agreement.</p><div className={styles.heroActions}><ArrowLink href={calculator}>Calculate creator rates</ArrowLink><ArrowLink href="/creators" secondary>Browse creators</ArrowLink></div><div className={styles.heroPlatforms}><span>Across</span><PlatformBadge platform="youtube" size="sm" /><span>YouTube</span><PlatformBadge platform="instagram" size="sm" /><span>Instagram</span><PlatformBadge platform="tiktok" size="sm" /><span>TikTok</span></div><a href="#how-it-works" className={styles.exploreLink}>See how it comes together<ArrowDown size={14} aria-hidden="true" /></a></div><ReportPreview creator={heroCreator} /></section>
@@ -137,7 +107,7 @@ export function HomeExperience({ heroCreator }: { heroCreator: HomeHeroCreator |
 
     </SectionBand>
     <SectionBand tone="gray">
-    <CreatorDiscovery />
+    <CreatorDiscovery creators={spotlightCreators} />
     <figure className={styles.communityBanner}>
       <div className={styles.communityBannerImage}><img src="/images/creator-community-banner-v3.webp" alt="Technology, food, fashion, and fitness creators recording with smartphones, ring lights, cameras, and studio lights." width={2172} height={362} loading="lazy" decoding="async" /></div>
       <figcaption>Different passions. The right partnership.</figcaption>

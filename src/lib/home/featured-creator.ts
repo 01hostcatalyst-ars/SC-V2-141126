@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { resolveFullCreatorProfile } from "@/lib/creators/profile-resolver";
 import type { Platform } from "@/lib/calculator/types";
 import type { PriceRangeRate } from "@/components/creators/CreatorPriceRange";
+import { HOME_CACHE_SECONDS, HOME_CACHE_VERSION } from "./cache-policy";
 
 export interface HomeHeroCreator {
   name: string;
@@ -20,7 +21,7 @@ const labels: Record<string, string> = { yt_dedicated: "Long Form", yt_integrate
 // Reuse stored profile results. No scraper or insight-generation jobs are started.
 const readHeroCreator = unstable_cache(async (): Promise<HomeHeroCreator | null> => {
   const profile = await resolveFullCreatorProfile("sydnee-zora");
-  if (!profile) return null;
+  if (!profile) throw new Error("Homepage hero profile is unavailable");
   const channels = [profile.platforms.youtube, profile.platforms.instagram, profile.platforms.tiktok].filter(channel => channel !== null);
   const allRates = channels.flatMap(channel => channel.rates);
   // Prefer one format per platform; fill from remaining formats for a single-platform creator.
@@ -39,9 +40,9 @@ const readHeroCreator = unstable_cache(async (): Promise<HomeHeroCreator | null>
     content: { format: profile.intelligence.content?.dominantFormat,
       themes: profile.intelligence.content?.themes.slice(0, 3) || [] },
   };
-}, ["home-hero-sydnee-zora"], { revalidate: 300 });
+}, ["home-hero-sydnee-zora", HOME_CACHE_VERSION], { revalidate: HOME_CACHE_SECONDS });
 
 export async function getHomeHeroCreator() {
-  try { return await readHeroCreator(); }
-  catch { return null; }
+  // Let failed regeneration retain the last completed page rather than cache an empty preview.
+  return readHeroCreator();
 }

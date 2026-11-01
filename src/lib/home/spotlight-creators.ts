@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { resolveFullCreatorProfile } from "@/lib/creators/profile-resolver";
 import { resolveAudienceCountry } from "@/lib/creators/audience-country";
 import type { CreatorItem } from "@/components/creators/CreatorCard";
+import { HOME_CACHE_SECONDS, HOME_CACHE_VERSION } from "./cache-policy";
 
 export type HomeSpotlightCreator = Pick<CreatorItem, "slug" | "canonicalName" | "brandName" | "avatarUrl" | "primaryNicheName" | "platforms" | "flagshipRates" | "primaryAudienceCountry">;
 
@@ -14,6 +15,7 @@ const SPOTLIGHT_SLUGS = [
 // This starts no scraping/AI jobs and keeps raw media and private fields off the wire.
 export const getHomeSpotlightCreators = unstable_cache(async (): Promise<HomeSpotlightCreator[]> => {
   const profiles = await Promise.all(SPOTLIGHT_SLUGS.map(slug => resolveFullCreatorProfile(slug)));
+  if (profiles.some(profile => !profile)) throw new Error("A homepage spotlight profile is unavailable");
   return profiles.flatMap(profile => {
     if (!profile) return [];
     const channels = [profile.platforms.youtube, profile.platforms.instagram, profile.platforms.tiktok].filter(channel => channel !== null);
@@ -29,4 +31,4 @@ export const getHomeSpotlightCreators = unstable_cache(async (): Promise<HomeSpo
       }))).slice(0, 1),
     }];
   });
-}, ["home-selected-spotlight-creators-v1"], { revalidate: 3600, tags: ["home-spotlight-creators"] });
+}, ["home-selected-spotlight-creators-v1", HOME_CACHE_VERSION], { revalidate: HOME_CACHE_SECONDS, tags: ["home-spotlight-creators"] });
