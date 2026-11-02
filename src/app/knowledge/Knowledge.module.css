@@ -89,6 +89,12 @@
 .articleBody :global(.gdoc-prose) table { display: block; font-size: 12px; }
 .articleBody :global(.gdoc-prose) :is(p,li,a) { overflow-wrap: anywhere; }
 .articleBody :global(.gdoc-prose) img { height: auto; }
+.articleHero { margin: 0 0 30px; }
+.articleHero img { display: block; width: 100%; height: auto; border-radius: 16px; }
+.articleBody :global(.knowledge-image) { margin: 30px 0; }
+.articleBody :global(.knowledge-image) img { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 14px; }
+.articleBody :global(.knowledge-image-square) { max-width: 440px; margin: 30px auto; }
+.articleBody :global(.knowledge-image-unavailable) { padding: 16px; background: #fafafa; border: 1px dashed #e4e4e7; border-radius: 12px; color: #71717a; font-size: 12px; }
 .articleBody :global(.academy-block) { background: #fff9fc; border: 1px solid #efdde6; border-radius: 16px; box-shadow: none; margin: 24px 0; }
 .articleBody :global(.academy-block-header) { background: #fceef5; color: #9c3d69; padding: 13px 18px; font-size: 12px; font-weight: 550; letter-spacing: normal; text-transform: none; }
 .articleBody :global(.academy-block-body) { padding: 18px; color: #52525b; background: transparent; font-size: inherit; line-height: 1.9; }

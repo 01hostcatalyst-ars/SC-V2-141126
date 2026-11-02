@@ -2,6 +2,8 @@ import styles from '../Knowledge.module.css';
 import ArticleContents, { MobileArticleContents } from '../ArticleContents';
 import { ArrowLeft, ArrowRight, Clock3 } from 'lucide-react';
 import { knowledgeBodyHtml, knowledgeHeadingText } from '@/lib/knowledge-presentation';
+import { knowledgeArticleMetadata } from '@/lib/knowledge-seo';
+import { knowledgeImageUrl } from '@/lib/knowledge-images';
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -19,7 +21,7 @@ import {
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
 
-export const revalidate = 60; // ISR revalidation
+export const revalidate = 2592000; // Revalidate article pages after 30 days.
 
 interface PageProps {
   params: Promise<{
@@ -50,27 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  return {
-    title: `${article.title} — SignCollab Academy`,
-    description: article.excerpt,
-    alternates: {
-      canonical: `/knowledge/${article.slug}`,
-    },
-    openGraph: {
-      title: `${article.title} — SignCollab Academy`,
-      description: article.excerpt,
-      url: `${baseUrl}/knowledge/${article.slug}`,
-      type: "article",
-      publishedTime: article.createdTime,
-      modifiedTime: article.modifiedTime,
-      authors: ["Muhammad Arsalan"],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: article.title,
-      description: article.excerpt,
-    },
-  };
+  return knowledgeArticleMetadata(article, baseUrl);
 }
 
 export default async function KnowledgeArticlePage({ params }: PageProps) {
@@ -88,7 +70,7 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
 
 
   const articleUrl = `${baseUrl}/knowledge/${article.slug}`;
-  const defaultImage = `${baseUrl}/favicon.ico`;
+  const defaultImage = article.heroImage ? `${baseUrl}${knowledgeImageUrl(article.slug, article.heroImage.id, article.modifiedTime)}` : `${baseUrl}/favicon.ico`;
 
   // Check if article is legal/compliance/e-sign focused for citation enrichment
   const isLegalArticle =
@@ -237,8 +219,8 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
       "image": {
         "@type": "ImageObject",
         "url": defaultImage,
-        "width": 512,
-        "height": 512,
+        "width": article.heroImage?.width || 512,
+        "height": article.heroImage?.height || 512,
       },
       "inLanguage": "en-US",
     },
@@ -281,7 +263,12 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
       </header>
       <div className={styles.readingGrid} style={!entries.length ? { gridTemplateColumns: 'minmax(0, 880px)' } : undefined}>
         <MobileArticleContents entries={entries} />
-        <article className={styles.articleBody} aria-label={article.title}><div className="gdoc-prose" dangerouslySetInnerHTML={{ __html: knowledgeBodyHtml(article.contentHtml, article.title) }} /></article>
+        <article className={styles.articleBody} aria-label={article.title}>
+          {article.heroImage && <figure className={styles.articleHero} data-image-id={article.heroImage.id}>
+            <img src={knowledgeImageUrl(article.slug, article.heroImage.id, article.modifiedTime)} alt={article.heroImage.alt} width={article.heroImage.width} height={article.heroImage.height} loading="eager" fetchPriority="high" decoding="async" />
+          </figure>}
+          <div className="gdoc-prose" dangerouslySetInnerHTML={{ __html: knowledgeBodyHtml(article.contentHtml, article.title) }} />
+        </article>
         <ArticleContents entries={entries} />
       </div>
       <div className={styles.articleAfter}><section className={styles.cta}><div><span className={styles.eyebrow}>Your next step</span><h2>Turn a good conversation into a clear agreement.</h2><p>Set out deliverables, usage rights, and payment terms with {company.name}.</p></div><div className={styles.ctaActions}><Link href="/instant" className={styles.pinkButton}>Create a contract <ArrowRight size={16} /></Link><Link href="/knowledge" className={styles.textButton}>Explore more guides <ArrowRight size={16} /></Link></div></section></div>

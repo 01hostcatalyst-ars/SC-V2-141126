@@ -1,5 +1,9 @@
 import { google } from "googleapis";
 import { relatedReadingHtml } from './knowledge-related';
+import { extractKnowledgeSeo, KnowledgeSeoFields } from './knowledge-seo';
+import { parseKnowledgeImages, KnowledgeImage } from './knowledge-images';
+import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 
 import { BlueprintType, estimateReadingTime } from "./academy-data";
 
@@ -22,8 +26,10 @@ export interface FaqItem {
   answer: string;
 }
 
-export interface ArticleDetail extends ArticleSummary {
+export interface ArticleDetail extends ArticleSummary, KnowledgeSeoFields {
   contentHtml: string;
+  images?: KnowledgeImage[];
+  heroImage?: KnowledgeImage;
   faqs?: FaqItem[];
   toc?: { id: string; text: string; level: number }[];
 }
@@ -214,7 +220,7 @@ export const SEED_ARTICLES: ArticleSummary[] = [
 /**
  * Fetch all published Google Docs from the configured Drive folder
  */
-export async function getKnowledgeArticles(): Promise<ArticleSummary[]> {
+async function fetchKnowledgeArticles(): Promise<ArticleSummary[]> {
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
   if (!folderId) {
     console.warn("GOOGLE_DRIVE_FOLDER_ID is not configured. Using SignCollab Academy seed blueprint articles.");
@@ -471,7 +477,7 @@ function cleanGoogleDocHtml(html: string, articles: ArticleSummary[], currentSlu
 /**
  * Fetch a single Google Doc by slug or ID and return clean HTML content + FAQs
  */
-export async function getArticleBySlug(slug: string): Promise<ArticleDetail | null> {
+async function fetchArticleBySlug(slug: string): Promise<ArticleDetail | null> {
   const articles = await getKnowledgeArticles();
   const article = articles.find((a) => a.slug === slug || a.id === slug);
 
@@ -531,7 +537,8 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
       [/related-reading]
     `;
 
-    let contentHtml = cleanGoogleDocHtml(rawContent, articles, article.slug);
+    const imageBlocks = parseKnowledgeImages(cleanGoogleDocHtml(rawContent, articles, article.slug), article.slug, article.modifiedTime);
+    let contentHtml = imageBlocks.contentHtml;
 
     const toc: { id: string; text: string; level: number }[] = [];
     let headingIndex = 0;
@@ -547,6 +554,9 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
 
     return {
       ...article,
+      ...extractKnowledgeSeo(rawContent),
+      images: imageBlocks.images,
+      heroImage: imageBlocks.heroImage,
       contentHtml,
       faqs: [
         { question: "What if the brand ignores all follow-up emails?", answer: "Escalate by sending a formal demand letter via registered mail referencing the cryptographic hash of your signed SignCollab agreement." },
@@ -568,7 +578,8 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
     });
 
     const rawHtml = typeof exportRes.data === "string" ? exportRes.data : String(exportRes.data);
-    let contentHtml = cleanGoogleDocHtml(rawHtml, articles, article.slug);
+    const imageBlocks = parseKnowledgeImages(cleanGoogleDocHtml(rawHtml, articles, article.slug), article.slug, article.modifiedTime);
+    let contentHtml = imageBlocks.contentHtml;
     const faqs = extractFaqs(rawHtml);
 
     // Extract TOC and inject IDs into headings
@@ -588,6 +599,9 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
 
     return {
       ...article,
+      ...extractKnowledgeSeo(rawHtml),
+      images: imageBlocks.images,
+      heroImage: imageBlocks.heroImage,
       contentHtml,
       faqs: faqs.length > 0 ? faqs : undefined,
       toc: toc.length > 0 ? toc : undefined,
@@ -598,3 +612,19 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
     return null;
   }
 }
+
+// Share one document snapshot across page metadata, rendering and image requests.
+// A deployment key prevents older parser output surviving a new release.
+export const getKnowledgeArticles = cache(unstable_cache(fetchKnowledgeArticles,
+  ['knowledge-catalogue-images-v1', process.env.HOME_CACHE_VERSION || 'local'], { revalidate: 60 }));
+const getCachedArticleBySlug = unstable_cache(async (slug: string) => {
+  const article = await fetchArticleBySlug(slug);
+  // A failed export or unpublished slug must not become a month-long null entry.
+  if (!article) throw new Error('Knowledge article unavailable.');
+  return article;
+}, ['knowledge-article-30days-v1', process.env.HOME_CACHE_VERSION || 'local'], { revalidate: 2592000 });
+
+export const getArticleBySlug = cache(async (slug: string): Promise<ArticleDetail | null> => {
+  try { return await getCachedArticleBySlug(slug); }
+  catch { return null; }
+});
