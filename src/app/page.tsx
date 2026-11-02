@@ -1,3 +1,5 @@
+import { graph, pageNode, faqNode, serializeJsonLd, schemaUrl } from '@/lib/structured-data';
+import { HOME_FAQS } from '@/lib/home/faqs';
 import type { Metadata } from "next";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
@@ -27,7 +29,9 @@ export const revalidate = 259200;
 
 export default async function Home() {
   const [heroCreator, spotlightCreators] = await Promise.all([getHomeHeroCreator(), getHomeSpotlightCreators()]);
+  const schema = graph([{...pageNode('/', 'SignCollab — Creator discovery, rates & contracts', 'Find creators, explore estimated sponsorship rates, understand platform performance and audience insights, and build a clear partnership agreement.'), hasPart: [{ '@id': schemaUrl('/creators') }, { '@id': schemaUrl('/influencer-rate-calculator#webapp') }, { '@id': schemaUrl('/instant#application') }]}, faqNode('/', HOME_FAQS), {'@type': 'ItemList', '@id': schemaUrl('/#featured-creators'), name: 'Featured creators', numberOfItems: spotlightCreators.length, itemListElement: spotlightCreators.map((creator,index)=>({'@type':'ListItem',position:index+1,name:creator.brandName||creator.canonicalName,url:schemaUrl(`/creators/${creator.slug}`)}))}]);
   return <div className="min-h-screen bg-zinc-50 flex flex-col selection:bg-pink-200 selection:text-zinc-900">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd(schema)}} />
     <PublicHeader activeRoute="/" />
     <HomeExperience heroCreator={heroCreator} spotlightCreators={spotlightCreators} />
     <PublicFooter />

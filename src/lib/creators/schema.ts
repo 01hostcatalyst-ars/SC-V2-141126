@@ -1,10 +1,12 @@
+import { buildPerformanceSamples } from './performance-samples';
+import { serializeJsonLd } from '@/lib/structured-data';
 import { FullResolvedCreatorProfile, formatCompactFollowers } from "@/lib/creators/profile-resolver";
 import { prisma } from "@/lib/prisma";
 import { REGIONAL_CONFIG, PRIMARY_NICHES } from "@/lib/calculator/constants";
 import type { RegionCode } from "@/lib/calculator/types";
 
 /**
- * Builds a penalty-proof, multi-country connected JSON-LD Knowledge Graph
+ * Builds a connected JSON-LD graph
  * for any creator profile, scaling dynamically across 3,000+ creators.
  */
 export function buildCreatorProfileJsonLd(
@@ -21,7 +23,7 @@ export function buildCreatorProfileJsonLd(
   const displayName = profile.brandName || profile.canonicalName;
   const isStudioOrAgency =
     /\b(studios?|media|productions?|agency|team|network|collective)\b/i.test(displayName) ||
-    /\b(studio|production|agency|network)\b/i.test(profile.intelligence.creatorType || "");
+    /\b(studio|production|agency|network|music group|band|collective)\b/i.test(profile.intelligence.creatorType || "");
 
   const entityType = isStudioOrAgency ? "Organization" : "Person";
 
@@ -41,14 +43,7 @@ export function buildCreatorProfileJsonLd(
   }
 
   // 2. Build multi-platform InteractionCounter metrics
-  const interactionStatistic: any[] = [
-    {
-      "@type": "InteractionCounter",
-      "interactionType": "https://schema.org/FollowAction",
-      "name": "Total Cross-Platform Follower Footprint",
-      "userInteractionCount": profile.combinedFollowers,
-    },
-  ];
+  const interactionStatistic: any[] = [];
 
   if (profile.platforms.youtube && profile.platforms.youtube.followerCount > 0) {
     interactionStatistic.push({
@@ -99,7 +94,7 @@ export function buildCreatorProfileJsonLd(
       : {}),
     "url": pageUrl,
     ...(profile.avatarUrl ? { "image": profile.avatarUrl } : {}),
-    "jobTitle": profile.intelligence.creatorType || "Digital Content Creator",
+    ...(entityType === "Person" ? {jobTitle: profile.intelligence.creatorType || "Digital Content Creator"} : {}),
     "description":
       profile.intelligence.oneLineSummary ||
       `${displayName} is an authoritative digital creator in ${profile.intelligence.primaryNicheName}.`,
@@ -110,6 +105,14 @@ export function buildCreatorProfileJsonLd(
 
   // 5. Build Commercial Intelligence hasPart sections
   const analysisParts: any[] = [];
+
+  for (const [platform, channel] of Object.entries(profile.platforms)) {
+    if (!channel) continue;
+    const engagement = platform === 'youtube'
+      ? [channel.lfEr !== undefined ? `Long-form engagement rate: ${channel.lfEr}%` : '', channel.sfEr !== undefined ? `Shorts engagement rate: ${channel.sfEr}%` : '']
+      : [Number.isFinite(channel.observedEr) ? `Engagement rate: ${channel.observedEr}%` : ''];
+    analysisParts.push({'@type': 'CreativeWork', '@id': `${pageUrl}#performance-${platform}`, name: `${platform}: platform performance`, description: [`${channel.followerCount} ${platform === 'youtube' ? 'subscribers' : 'followers'}`, ...engagement].filter(Boolean).join('. '), about: {'@id': creatorId}, author: {'@id': `${normalizedBaseUrl}/#organization`}});
+  }
 
   // Part A: Creator Strategic Brief (Superpower, Buying Mindset, Landmine)
   if (profile.intelligence.executiveBrief) {
@@ -138,7 +141,7 @@ export function buildCreatorProfileJsonLd(
     Array.isArray(profile.intelligence.considerations) &&
     profile.intelligence.considerations.length > 0
   ) {
-    const safetyLevel = profile.intelligence.brandSafety?.overallRisk || "Low Risk";
+    const safetyLevel = profile.intelligence.brandSafety?.overallRisk || "Not assessed";
     const guidanceText = profile.intelligence.considerations
       .map((c) => `${c.area}: ${c.description}`)
       .join(" | ");
@@ -164,13 +167,13 @@ export function buildCreatorProfileJsonLd(
       "@type": "ItemList",
       "@id": `${pageUrl}#rate-benchmarks`,
       "name": `SignCollab 16-Knot Empirical Rate Card Benchmarks (${profile.countryName})`,
-      "description": `Data-informed sponsorship rate targets and defended ranges calibrated for ${profile.countryName}.`,
+      "description": `Data-informed sponsorship rate targets and estimated ranges calibrated for ${profile.countryName}.`,
       "numberOfItems": allRates.length,
       "itemListElement": allRates.map((r, idx) => ({
         "@type": "ListItem",
         "position": idx + 1,
         "name": `${r.platformName}: ${r.label}`,
-        "description": `Estimated Baseline: ${r.formattedRecommended} (Defended Range: ${r.formattedLow} – ${r.formattedHigh})`,
+        "description": `Estimated Baseline: ${r.formattedRecommended} (Estimated Range: ${r.formattedLow} – ${r.formattedHigh})`,
       })),
     });
   }
@@ -183,7 +186,7 @@ export function buildCreatorProfileJsonLd(
     analysisParts.push({
       "@type": "ItemList",
       "@id": `${pageUrl}#campaign-packages`,
-      "name": `${displayName}: Omnichannel Campaign Strategy Suite (5 Full-Funnel Packages)`,
+      "name": `${displayName}: Suggested Campaign Packages`,
       "numberOfItems": profile.omnichannelPackages.length,
       "itemListElement": profile.omnichannelPackages.map((pkg, idx) => {
         const targetStr =
@@ -196,43 +199,26 @@ export function buildCreatorProfileJsonLd(
           "@type": "ListItem",
           "position": idx + 1,
           "name": `Package ${idx + 1} (${pkg.tag}): ${pkg.name}`,
-          "description": `${pkg.objective || pkg.name}. Target Budget: ${targetStr}${rangeStr ? ` (Defended Range: ${rangeStr})` : ""}`,
+          "description": `${pkg.objective || pkg.name}. Target Budget: ${targetStr}${rangeStr ? ` (Estimated Range: ${rangeStr})` : ""}`,
         };
       }),
     });
   }
 
-  // Part E: Recent Audited Content Performance
-  const recentYt = profile.recentMedia?.youtubeVideos || [];
-  if (Array.isArray(recentYt) && recentYt.length > 0) {
-    analysisParts.push({
-      "@type": "ItemList",
-      "@id": `${pageUrl}#recent-content-audit`,
-      "name": `${displayName}: Recent Audited Content Performance`,
-      "numberOfItems": recentYt.slice(0, 5).length,
-      "itemListElement": recentYt.slice(0, 5).map((vid: any, idx: number) => {
-        const vidUrl = vid.url || (vid.id ? `https://www.youtube.com/watch?v=${vid.id}` : undefined);
-        return {
-          "@type": "ListItem",
-          "position": idx + 1,
-          "name": vid.title || `Recent Release #${idx + 1}`,
-          ...(vidUrl ? { "url": vidUrl } : {}),
-          "description": vid.viewCount
-            ? `Audited release with ${Number(vid.viewCount).toLocaleString()} views.`
-            : `Audited release from ${displayName}.`,
-        };
-      }),
-    });
+  // Same selected and ordered calculation samples as the profile UI.
+  for (const group of buildPerformanceSamples(profile.recentMedia, profile.platforms)) {
+    analysisParts.push({'@type': 'ItemList', '@id': `${pageUrl}#samples-${group.id}`, name: `${group.label}: calculation samples`, numberOfItems: group.items.length,
+      itemListElement: group.items.map((item,index)=>({'@type':'ListItem',position:index+1,name:item.title,...(item.url ? {url:item.url}:{}),description:[item.views !== undefined ? `${item.views} views` : '',item.likes !== undefined ? `${item.likes} likes` : '',item.comments !== undefined ? `${item.comments} comments` : '',item.shares !== undefined ? `${item.shares} shares` : ''].filter(Boolean).join('; ')}))});
   }
 
   // 6. Geographic & Demographic Audience Layer
   const primaryMarket =
-    profile.intelligence.audience?.primaryMarket || profile.countryName || "United States";
+    profile.intelligence.audience?.primaryMarket || "";
   const secondaryMarkets =
     profile.intelligence.audience?.secondaryMarkets || [];
 
   const geographicArea: any[] = [
-    { "@type": "Country", "name": primaryMarket },
+    ...(primaryMarket ? [{ "@type": "Country", "name": primaryMarket }] : []),
   ];
   for (const market of secondaryMarkets) {
     if (market && market !== primaryMarket) {
@@ -240,17 +226,11 @@ export function buildCreatorProfileJsonLd(
     }
   }
 
-  // Parse age range if formatted like "18-34" or "13-24"
-  const demoStr = profile.intelligence.audience?.demographicProfile || "";
-  const ageMatch = demoStr.match(/(\d+)\s*[-–]\s*(\d+)/);
-  const minAge = ageMatch ? parseInt(ageMatch[1], 10) : undefined;
-  const maxAge = ageMatch ? parseInt(ageMatch[2], 10) : undefined;
-
   // Clean positioning statement to ensure measured risk claims
   const rawPositioning =
     profile.intelligence.profilePositioning ||
     profile.intelligence.brandSummary ||
-    profile.intelligence.oneLineSummary;
+    profile.intelligence.oneLineSummary || "";
   const sanitizedPositioning = rawPositioning.replace(
     /\bzero brand safety risk\b/gi,
     "assessed as low brand safety risk"
@@ -260,12 +240,12 @@ export function buildCreatorProfileJsonLd(
   const safetyRisk = profile.intelligence.brandSafety?.overallRisk;
   const safetyKeyword = safetyRisk
     ? `${safetyRisk.replace(/\s*risk/i, "").trim()} Safety Risk`
-    : "Low Brand Safety Risk";
+    : "";
 
   const buyerIntent = profile.intelligence.audience?.commercialBuyerIntent;
   const buyerIntentKeyword = buyerIntent
     ? (buyerIntent.toLowerCase().includes("intent") ? buyerIntent : `${buyerIntent} Intent`)
-    : "Commercial Sponsorship Ready";
+    : "";
 
   const analysisKeywords = Array.from(
     new Set([
@@ -273,31 +253,39 @@ export function buildCreatorProfileJsonLd(
       ...bestFitCategories,
       safetyKeyword,
       buyerIntentKeyword,
-    ])
+    ].filter(Boolean))
   );
+
+  // Describe inferred creator audiences as analysis, not the intended readers of this work.
+  if (profile.intelligence.audience) {
+    const audience = profile.intelligence.audience;
+    const details = [audience.demographicProfile, audience.commercialBuyerIntent ? `Inferred buyer intent: ${audience.commercialBuyerIntent}` : '', geographicArea.length ? `Audience markets: ${geographicArea.map(area => area.name).join(', ')}` : '', audience.interests?.length ? `Audience interests: ${audience.interests.join(', ')}` : ''].filter(Boolean).join('. ');
+    if (details) analysisParts.push({'@type':'CreativeWork','@id':`${pageUrl}#audience-insights`,name:'Inferred audience insights',description:details,about:{'@id':creatorId},author:{'@id':`${normalizedBaseUrl}/#organization`}});
+  }
+  if (profile.intelligence.content) {
+    const content = profile.intelligence.content;
+    const details = [content.dominantFormat ? `Dominant format: ${content.dominantFormat}` : '', content.productionStandard ? `Production standard: ${content.productionStandard}` : '', content.publishingConsistency ? `Publishing consistency: ${content.publishingConsistency}` : '', ...content.themes.map(theme => `${theme.name}: inferred strength ${theme.percentage}/100`)].filter(Boolean).join('. ');
+    if (details) analysisParts.push({'@type':'CreativeWork','@id':`${pageUrl}#content-insights`,name:'Content and theme insights',description:details,about:{'@id':creatorId},author:{'@id':`${normalizedBaseUrl}/#organization`}});
+  }
 
   // 7. Commercial Intelligence CreativeWork (Authored & Published by SignCollab)
   const commercialAnalysis: any = {
     "@type": "CreativeWork",
     "@id": analysisId,
     "name": `${displayName}: Commercial Intelligence & Brand Fit Dossier`,
-    "description": sanitizedPositioning,
+    "description": `${sanitizedPositioning} Audience, content, and brand-fit assessments are inferred insights. Prices are calculated benchmarks, not confirmed creator offers.`,
     "about": { "@id": creatorId },
     "creator": { "@id": `${normalizedBaseUrl}/#organization` },
+    "author": { "@id": `${normalizedBaseUrl}/#organization` },
+    "isPartOf": { "@id": pageId },
     "publisher": { "@id": `${normalizedBaseUrl}/#organization` },
     "inLanguage": "en-US",
     "keywords": analysisKeywords,
-    "audience": {
-      "@type": "PeopleAudience",
-      "audienceType": `SignCollab Inferred Audience Distribution (${profile.intelligence.audience?.commercialBuyerIntent || "Commercial Consideration"})`,
-      ...(minAge ? { "suggestedMinAge": minAge } : {}),
-      ...(maxAge ? { "suggestedMaxAge": maxAge } : {}),
-      ...(profile.intelligence.audience?.demographicProfile?.includes("Balanced")
-        ? { "suggestedGender": "Balanced" }
-        : {}),
-      geographicArea,
-    },
-    ...(analysisParts.length > 0 ? { "hasPart": analysisParts } : {}),
+    ...(analysisParts.length > 0 ? { "hasPart": analysisParts.map(part => part['@type'] === 'ItemList' ? {
+      '@type': 'CreativeWork', '@id': `${part['@id']}-report`, name: part.name,
+      ...(part.description ? {description: part.description} : {}),
+      author: {'@id': `${normalizedBaseUrl}/#organization`}, about: {'@id': creatorId}, mainEntity: part,
+    } : part) } : {}),
   };
 
   // 8. BreadcrumbList
@@ -327,26 +315,20 @@ export function buildCreatorProfileJsonLd(
   };
 
   // 9. WebPage Node
+  const sourceDates = Object.values(profile.recentMedia.collectedAt || {}).filter((date): date is string => Boolean(date && Number.isFinite(Date.parse(date)))).sort((a,b)=>Date.parse(b)-Date.parse(a));
   const webPage = {
     "@type": "WebPage",
     "@id": pageId,
     "url": pageUrl,
     "name": `${displayName} — Analytics, Commercial Rates & Media Kit | SignCollab`,
-    "description": `Audited reach of ${profile.formattedCombinedFollowers} followers across ${profile.activePlatformCount} platforms. 16-Knot empirical valuation and omnichannel campaign suite for ${displayName}.`,
+    "description": `Platform-specific performance, estimated sponsorship rates, and audience and content insights for ${displayName}. Platform audiences may overlap; estimates are not confirmed creator quotes.`,
     "isPartOf": { "@id": `${normalizedBaseUrl}/#website` },
     "publisher": { "@id": `${normalizedBaseUrl}/#organization` },
     "mainEntity": { "@id": creatorId },
+    "hasPart": {"@id": analysisId},
     "breadcrumb": { "@id": breadcrumbId },
     "inLanguage": "en-US",
-    "dateModified": new Date().toISOString(),
-    "potentialAction": {
-      "@type": "CreateAction",
-      "name": `Create Bilateral Sponsorship Agreement with ${displayName}`,
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": `${normalizedBaseUrl}/instant?creatorName=${encodeURIComponent(displayName)}&platform=${profile.primaryPlatform}&followers=${profile.combinedFollowers}`,
-      },
-    },
+    ...(sourceDates.length ? {dateModified: sourceDates[0]} : {}),
   };
 
   return {
@@ -577,6 +559,6 @@ export async function fetchDirectoryFeaturedCreators(limit: number = 30): Promis
  * escaping HTML-sensitive angle brackets.
  */
 export function safeJsonLdStringify(jsonLd: Record<string, any>): string {
-  return JSON.stringify(jsonLd).replace(/</g, "\\u003c");
+  return serializeJsonLd(jsonLd);
 }
 

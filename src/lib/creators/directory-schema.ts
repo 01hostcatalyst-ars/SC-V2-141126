@@ -15,6 +15,7 @@ export interface DirectoryCreatorItem {
   microNiches?: string[];
   countryCode?: string | null;
   countryName?: string | null;
+  primaryAudienceMarket?: string | null;
   combinedFollowers: number;
   formattedFollowers?: string;
   platforms: {
@@ -49,7 +50,7 @@ export function buildCreatorsDirectoryJsonLd(
     "@id": pageId,
     "url": pageUrl,
     "name": "Creator Directory & Sponsorship Rate Intelligence — SignCollab",
-    "description": "Discover verified content creators across YouTube, Instagram, and TikTok with data-backed sponsorship rate cards, audience metrics, and instant contract execution.",
+    "description": "Discover content creators across YouTube, Instagram, and TikTok with data-backed sponsorship rate cards, audience metrics, and instant contract execution.",
     "isPartOf": { "@id": `${normalizedBaseUrl}/#website` },
     "about": { "@id": `${normalizedBaseUrl}/#organization` },
     "breadcrumb": { "@id": breadcrumbId },
@@ -79,15 +80,15 @@ export function buildCreatorsDirectoryJsonLd(
   const itemList = {
     "@type": "ItemList",
     "@id": itemListId,
-    "name": "Verified Content Creators & Commercial Rate Cards",
-    "description": `Institutional directory of ${totalCount > 0 ? totalCount.toLocaleString() + "+" : "verified"} multi-platform digital creators audited by SignCollab.`,
+    "name": "Creators & Estimated Sponsorship Rates",
+    "description": "Creator profiles matching the displayed directory results. Platform follower counts are separate audiences and may overlap.",
     "numberOfItems": featuredCreators.length,
     "itemListElement": featuredCreators.map((creator, index) => {
       const creatorUrl = `${normalizedBaseUrl}/creators/${creator.slug}`;
       const displayName = creator.alternateName || creator.name;
       const isStudioOrAgency =
         /\b(studios?|media|productions?|agency|team|network|collective)\b/i.test(displayName) ||
-        /\b(studio|production|agency|network)\b/i.test(creator.creatorType || "");
+        /\b(studio|production|agency|network|music group|band|collective)\b/i.test(creator.creatorType || "");
       const entityType = isStudioOrAgency ? "Organization" : "Person";
 
       // Build verified social sameAs links
@@ -148,7 +149,7 @@ export function buildCreatorsDirectoryJsonLd(
       // Construct item summary
       const descNiches = [creator.primaryNiche, creator.secondaryNiche].filter(Boolean).join(" · ");
       const platformText = platformBreakdownParts.length > 0 ? ` · ${platformBreakdownParts.join(", ")}` : "";
-      const countryText = creator.countryName ? ` · ${creator.countryName}` : "";
+      const countryText = creator.primaryAudienceMarket ? ` · Primary audience: ${creator.primaryAudienceMarket}` : "";
       const itemDescription = `${descNiches}${platformText}${countryText}`;
 
       return {
@@ -164,16 +165,8 @@ export function buildCreatorsDirectoryJsonLd(
             : {}),
           "url": creatorUrl,
           ...(creator.avatarUrl ? { "image": creator.avatarUrl } : {}),
-          "jobTitle": creator.creatorType || `${creator.primaryNiche} Creator`,
+          ...(entityType === "Person" ? {jobTitle: creator.creatorType || `${creator.primaryNiche} Creator`} : {}),
           "description": itemDescription,
-          ...(creator.countryName
-            ? {
-                "nationality": {
-                  "@type": "Country",
-                  "name": creator.countryName,
-                },
-              }
-            : {}),
           ...(knowsAbout.length > 0 ? { knowsAbout } : {}),
           ...(sameAs.length > 0 ? { sameAs } : {}),
           interactionStatistic,

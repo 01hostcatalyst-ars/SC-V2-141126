@@ -10,6 +10,7 @@ import {
   TikTokIcon,
 } from "@/components/icons/PlatformIcons";
 import { CreatorCard, CreatorItem } from "./CreatorCard";
+import { serializeJsonLd } from '@/lib/structured-data';
 import { buildCreatorsDirectoryJsonLd, type DirectoryCreatorItem } from "@/lib/creators/directory-schema";
 
 interface ApiResponse {
@@ -194,23 +195,25 @@ export function CreatorDirectoryView() {
         slug: creator.slug,
         name: creator.canonicalName,
         alternateName: creator.brandName,
+        creatorType: creator.creatorType,
         avatarUrl: creator.avatarUrl,
         primaryNiche: creator.primaryNicheName || "",
         secondaryNiche: creator.subNicheName,
         countryCode: creator.countryCode,
         countryName: creator.countryName,
+        primaryAudienceMarket: creator.primaryAudienceCountry?.name,
         combinedFollowers: creator.combinedFollowers,
         platforms: {
           youtube: creator.platforms?.youtube ? { handle: creator.platforms.youtube.handle, url: `https://www.youtube.com/@${creator.platforms.youtube.handle}`, followerCount: creator.platforms.youtube.followers } : null,
           instagram: creator.platforms?.instagram ? { handle: creator.platforms.instagram.handle, url: `https://www.instagram.com/${creator.platforms.instagram.handle}`, followerCount: creator.platforms.instagram.followers } : null,
           tiktok: creator.platforms?.tiktok ? { handle: creator.platforms.tiktok.handle, url: `https://www.tiktok.com/@${creator.platforms.tiktok.handle}`, followerCount: creator.platforms.tiktok.followers } : null,
         },
-      })), data.pagination.totalCount, process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com", resultQuery)
+      })), data.pagination.totalCount, 'https://www.signcollab.com', resultQuery)
     : null;
 
   return (
     <div className="discovery-shell" data-range-style="soft">
-      {visibleSchema && <script id="creator-directory-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(visibleSchema).replace(/</g, "\\u003c") }} />}
+      {visibleSchema && <script id="creator-directory-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(visibleSchema) }} />}
 
       <div className="discovery-workspace space-y-7">
       {/* Hero Header */}

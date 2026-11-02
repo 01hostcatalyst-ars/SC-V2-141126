@@ -22,6 +22,7 @@ export function refreshedDirectoryCard(creator: CreatorItem, profile: FullResolv
   primaryNicheName: profile.intelligence.primaryNicheName, subNicheName: profile.intelligence.subNicheName,
   countryCode: profile.countryCode, countryName: profile.countryName, combinedFollowers: profile.combinedFollowers,
   primaryAudienceCountry: resolveAudienceCountry(profile.intelligence.audience?.primaryMarket),
+  creatorType: profile.intelligence.creatorType,
   handles: { youtube: profile.platforms.youtube?.handle, instagram: profile.platforms.instagram?.handle, tiktok: profile.platforms.tiktok?.handle },
   platforms: { youtube: platform("youtube"), instagram: platform("instagram"), tiktok: platform("tiktok") },
   audienceFit: { demographicProfile: profile.intelligence.audience?.demographicProfile, commercialBuyerIntent: profile.intelligence.audience?.commercialBuyerIntent, interests: profile.intelligence.audience?.interests || [] },

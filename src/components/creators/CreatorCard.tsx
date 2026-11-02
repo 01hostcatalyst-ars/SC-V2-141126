@@ -34,6 +34,7 @@ export interface CreatorItem {
   slug: string;
   canonicalName: string;
   brandName?: string | null;
+  creatorType?: string | null;
   primaryNicheId?: number | null;
   primaryNicheName?: string | null;
   subNicheName?: string | null;

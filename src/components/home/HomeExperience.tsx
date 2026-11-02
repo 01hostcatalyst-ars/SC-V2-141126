@@ -1,4 +1,5 @@
 "use client";
+import { HOME_FAQS as faqs } from '@/lib/home/faqs';
 
 import { useId, useRef, useState } from "react";
 import Link from "next/link";
@@ -13,12 +14,7 @@ import { HomeNicheExplorer } from "./HomeNicheExplorer";
 
 const calculator = "/influencer-rate-calculator";
 const previewTabs = ["Rates", "Audience", "Content"] as const;
-const faqs = [
-  { question: "Does AI calculate the sponsorship prices?", answer: "No. SignCollab’s calculation engine produces the pricing estimates. Its benchmarks are calibrated using creator surveys, direct pricing research, case studies, agency deal history, and contract data. AI interprets supplied data to produce creator, audience, and content insights." },
-  { question: "Are the estimated rates a creator’s confirmed quote?", answer: "No. They are negotiation benchmarks. The final price depends on the agreed deliverables, usage rights, exclusivity, and other commercial terms, and is confirmed with the creator." },
-  { question: "Can I check a creator who is on just one platform?", answer: "Yes. Start with a YouTube, Instagram, or TikTok profile link or handle. SignCollab checks for linked accounts and builds a report from the available platform data. You can add another account if you know it belongs to the creator." },
-  { question: "What can I do after exploring a creator?", answer: "Review their platform performance, estimated rates, audience insights, and suggested campaign packages. Download a rate card or move into the contract builder to specify the scope, usage rights, and payment terms." },
-];
+
 
 function ArrowLink({ href, children, secondary = false }: { href: string; children: React.ReactNode; secondary?: boolean }) {
   return <Link href={href} className={secondary ? styles.secondaryAction : styles.primaryAction}>{children}<ArrowRight size={16} aria-hidden="true" /></Link>;

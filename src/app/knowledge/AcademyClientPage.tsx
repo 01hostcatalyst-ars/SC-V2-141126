@@ -1,5 +1,7 @@
 "use client";
 
+import { serializeJsonLd } from '@/lib/structured-data';
+import { knowledgeListSchema } from '@/lib/knowledge-schema';
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Search, X, TrendingUp, FileText, Sparkles, ShieldCheck, Columns3, Clock3 } from "lucide-react";
@@ -29,6 +31,7 @@ export default function AcademyClientPage({ initialArticles, companyName }: { in
   const active = topic !== "all" || Boolean(query.trim()) || Boolean(journey);
 
   return <div className={styles.page}>
+    <script id="knowledge-index-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd(knowledgeListSchema(filtered))}} />
     <PublicHeader activeRoute="/knowledge" />
     <main className={styles.library}>
       <section className={styles.hero} aria-labelledby="academy-title">

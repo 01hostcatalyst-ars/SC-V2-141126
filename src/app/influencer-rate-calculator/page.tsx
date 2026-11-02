@@ -1,3 +1,4 @@
+import { serializeJsonLd } from '@/lib/structured-data';
 import React from "react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -72,7 +73,9 @@ const jsonLd = {
       "name": "SignCollab Influencer Rate Radar",
       "url": "https://www.signcollab.com/influencer-rate-calculator",
       "applicationCategory": "BusinessApplication",
-      "operatingSystem": "All",
+      "operatingSystem": "Web browser",
+      "provider": {"@id": "https://www.signcollab.com/#organization"},
+      "description": "Estimate sponsorship rates by platform and content format with SignCollab’s pricing engine. AI interprets supplied data for audience and content insights; AI does not calculate prices.",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -84,7 +87,7 @@ const jsonLd = {
         "19-point AI creator intelligence dossier",
         "17-region purchasing power parity (PPP) calibration",
         "Omnichannel multi-platform bundle discounting",
-        "1-click legal contract export",
+        "Downloadable creator rate cards",
       ],
     },
     {
@@ -159,13 +162,7 @@ const jsonLd = {
         },
       ],
     },
-    {
-      "@type": "Organization",
-      "@id": "https://www.signcollab.com/#organization",
-      "name": "SignCollab",
-      "url": "https://www.signcollab.com",
-      "logo": "https://www.signcollab.com/icon.png",
-    },
+
   ],
 };
 
@@ -175,7 +172,7 @@ export default function InfluencerRateCalculatorPage() {
       {/* Structured JSON-LD for Search Engines & AI Crawlers */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       <PublicHeader activeRoute="/influencer-rate-calculator" />

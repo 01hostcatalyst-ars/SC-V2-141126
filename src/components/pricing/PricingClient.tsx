@@ -1,5 +1,7 @@
 "use client";
 
+import { pricingSchema } from '@/lib/pricing-schema';
+import { serializeJsonLd } from '@/lib/structured-data';
 import React, { useState } from "react";
 import Link from "next/link";
 
@@ -97,6 +99,7 @@ export function PricingClient({ companyName, supportEmail }: PricingClientProps)
 
   return (
     <div className="space-y-12">
+      <script id="pricing-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd(pricingSchema(isAnnual, faqs))}} />
       {/* HERO SECTION */}
       <section className="text-center max-w-4xl mx-auto space-y-4 pt-8">
         <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-950 border border-amber-300 shadow-sm">

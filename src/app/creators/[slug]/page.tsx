@@ -170,7 +170,7 @@ export default async function CreatorProfilePage({ params }: PageProps) {
   };
 
   // Penalty-proof, multi-country Schema.org JSON-LD structured data graph
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
+  const baseUrl = 'https://www.signcollab.com';
   const jsonLd = buildCreatorProfileJsonLd(profile, baseUrl);
 
   return (

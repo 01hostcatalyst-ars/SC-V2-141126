@@ -1,3 +1,5 @@
+import { knowledgeArticleSchema } from '@/lib/knowledge-schema';
+import { serializeJsonLd } from '@/lib/structured-data';
 import styles from '../Knowledge.module.css';
 import ArticleContents, { MobileArticleContents } from '../ArticleContents';
 import { ArrowLeft, ArrowRight, Clock3 } from 'lucide-react';
@@ -8,7 +10,6 @@ import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Script from "next/script";
 import { getCompanyConfig } from "@/lib/config";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
@@ -19,7 +20,7 @@ import {
   AUDIENCE_TAGS,
 } from "@/lib/academy-data";
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";
+const baseUrl = 'https://www.signcollab.com';
 
 export const revalidate = 2592000; // Revalidate article pages after 30 days.
 
@@ -69,189 +70,13 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
 
 
 
-  const articleUrl = `${baseUrl}/knowledge/${article.slug}`;
-  const defaultImage = article.heroImage ? `${baseUrl}${knowledgeImageUrl(article.slug, article.heroImage.id, article.modifiedTime)}` : `${baseUrl}/favicon.ico`;
-
-  // Check if article is legal/compliance/e-sign focused for citation enrichment
-  const isLegalArticle =
-    ["C15", "C16", "C17"].includes(article.clusterId) ||
-    /legal|esign|eidas|eto|law|binding|statute/i.test(article.title);
-
-  // Determine dynamic @type subtyping based on Blueprint Type
-  const articleType = article.blueprintType === "A" ? ["Article", "TechArticle"] : "Article";
-
-  // Construct complete @graph multi-schema
-  // Note: Organization and WebSite schemas are already provided by the root layout.tsx
-  // We only add page-specific entities here to avoid duplication.
-  const graphEntities: any[] = [
-    // 1. Person (Author E-E-A-T Schema — factual title + sameAs authority + domain knowledge)
-    {
-      "@type": "Person",
-      "@id": `${baseUrl}/#author-arsalan`,
-      "name": "Muhammad Arsalan",
-      "jobTitle": "Founder & Product Lead",
-      "worksFor": { "@id": `${baseUrl}/#organization` },
-      "knowsAbout": [
-        "Digital E-Signatures",
-        "Creator & Influencer Commercial Contracts",
-        "US ESIGN Act & UETA Compliance",
-        "EU & UK eIDAS Regulations",
-        "Commercial Usage Rights & IP Licensing",
-        "Cryptographic SHA-256 Audit Trails"
-      ],
-      "sameAs": [
-        "https://www.linkedin.com/in/muhammadarsalanofficial/",
-        "https://x.com/ArsalanSignCol"
-      ],
-      "url": baseUrl,
-    },
-    // 2. WebPage Schema
-    {
-      "@type": "WebPage",
-      "@id": articleUrl,
-      "url": articleUrl,
-      "name": article.title,
-      "description": article.excerpt,
-      "isPartOf": { "@id": `${baseUrl}/#website` },
-      "breadcrumb": { "@id": `${articleUrl}/#breadcrumb` },
-      "inLanguage": "en-US",
-    },
-    // 3. BreadcrumbList Schema
-    {
-      "@type": "BreadcrumbList",
-      "@id": `${articleUrl}/#breadcrumb`,
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": baseUrl,
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Academy",
-          "item": `${baseUrl}/knowledge`,
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": article.title,
-          "item": articleUrl,
-        },
-      ],
-    },
-    // 4. Article Schema with Topical Entity Graph (about + mentions + speakable + citations)
-    {
-      "@type": articleType,
-      "@id": `${articleUrl}/#article`,
-      "headline": article.title,
-      "description": article.excerpt,
-      "mainEntityOfPage": { "@id": articleUrl },
-      "datePublished": article.createdTime,
-      "dateModified": article.modifiedTime,
-      "author": { "@id": `${baseUrl}/#author-arsalan` },
-      "publisher": { "@id": `${baseUrl}/#organization` },
-      "about": [
-        { "@id": `${baseUrl}/#webapp` },
-        {
-          "@type": "DefinedTerm",
-          "name": cluster?.name || "Creator Contracts",
-          "inDefinedTermSet": `${baseUrl}/knowledge`
-        },
-        {
-          "@type": "Thing",
-          "name": pillar?.name || "Content Creator Legal Protection"
-        }
-      ],
-      "mentions": [
-        { "@type": "Thing", "name": "Creator Commercial Contracts" },
-        { "@type": "Thing", "name": "Usage Rights & IP Licensing" },
-        { "@type": "Thing", "name": "Bilateral E-Signature Compliance" },
-        { "@type": "Thing", "name": "Deemed Approval Protocol" },
-        { "@type": "Thing", "name": "SHA-256 Audit Trail Verification" }
-      ],
-      ...(isLegalArticle
-        ? {
-            "citation": [
-              {
-                "@type": "Legislation",
-                "name": "US Electronic Signatures in Global and National Commerce Act (15 U.S.C. § 7001)",
-                "url": "https://www.ftc.gov/legal-library/browse/statutes/electronic-signatures-global-national-commerce-act"
-              },
-              {
-                "@type": "Legislation",
-                "name": "EU eIDAS Regulation (EU) No 910/2014 & eIDAS 2.0 (EU 2024/1183)",
-                "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32014R0910"
-              },
-              {
-                "@type": "Legislation",
-                "name": "UK Electronic Communications Act 2000 & UK eIDAS",
-                "url": "https://www.legislation.gov.uk/ukpga/2000/7/contents"
-              },
-              {
-                "@type": "Legislation",
-                "name": "UAE Federal Decree-Law No. 46 of 2021 on Electronic Transactions & Trust Services",
-                "url": "https://elaws.gov.ae/"
-              },
-              {
-                "@type": "Legislation",
-                "name": "Saudi Arabia Electronic Transactions Law (Royal Decree No. M/18)",
-                "url": "https://mcit.gov.sa/"
-              },
-              {
-                "@type": "Legislation",
-                "name": "India Information Technology Act 2000 & Bharatiya Sakshya Adhiniyam 2023 Section 63",
-                "url": "https://www.meity.gov.in/content/information-technology-act-2000"
-              },
-              {
-                "@type": "Legislation",
-                "name": "Pakistan Electronic Transactions Ordinance (ETO) 2002",
-                "url": "https://pakistanlawsite.com/"
-              }
-            ]
-          }
-        : {}),
-      "speakable": {
-        "@type": "SpeakableSpecification",
-        "cssSelector": ["h1", ".academy-article-header", "article p"]
-      },
-      "image": {
-        "@type": "ImageObject",
-        "url": defaultImage,
-        "width": article.heroImage?.width || 512,
-        "height": article.heroImage?.height || 512,
-      },
-      "inLanguage": "en-US",
-    },
-  ];
-
-  // 7. FAQPage Schema (Only added IF genuine FAQs exist)
-  if (article.faqs && article.faqs.length > 0) {
-    graphEntities.push({
-      "@type": "FAQPage",
-      "@id": `${articleUrl}/#faqpage`,
-      "mainEntity": article.faqs.map((faq) => ({
-        "@type": "Question",
-        "name": faq.question,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": faq.answer,
-        },
-      })),
-    });
-  }
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": graphEntities,
-  };
+  const jsonLd = knowledgeArticleSchema(article, cluster?.name);
 
   const updated = new Date(article.modifiedTime);
   const updatedLabel = Number.isNaN(updated.getTime()) ? null : updated.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
   const entries = (article.toc || []).map(entry => ({ ...entry, text: knowledgeHeadingText(entry.text) }));
   return <div className={styles.page}>
-    <Script id="article-graph-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+    <script id="article-graph-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
     <PublicHeader activeRoute="/knowledge" />
     <main className={styles.articleShell}>
       <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href="/knowledge"><span className="inline-flex items-center gap-2"><ArrowLeft size={14} /> Academy</span></Link><span aria-hidden="true">/</span><span>{pillar?.shortName || 'Guides'}</span></nav>

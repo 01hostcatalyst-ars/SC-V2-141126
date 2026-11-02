@@ -600,6 +600,7 @@ export async function GET(request: NextRequest) {
         },
         flagshipRates,
         audienceFit,
+        creatorType: typeof rawLlm?.profile?.creatorType === 'string' ? rawLlm.profile.creatorType : foundIntel?.creatorType || null,
         primaryAudienceCountry: resolveAudienceCountry(rawAudience.primaryMarket),
       };
     });
