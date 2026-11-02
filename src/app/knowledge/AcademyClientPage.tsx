@@ -1,376 +1,82 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { ArrowRight, BookOpen, Search, X, TrendingUp, FileText, Sparkles, ShieldCheck, Columns3, Clock3 } from "lucide-react";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
-import {
-  PILLARS,
-  LEARNING_JOURNEYS,
-  BLUEPRINT_TYPES,
-  AUDIENCE_TAGS,
-  getClusterById,
-  getPillarForCluster,
-  Pillar,
-} from "@/lib/academy-data";
-import { ArticleSummary } from "@/lib/gdocs";
+import { PILLARS, LEARNING_JOURNEYS, getClusterById, getPillarForCluster, AUDIENCE_TAGS } from "@/lib/academy-data";
+import type { ArticleSummary } from "@/lib/gdocs";
+import styles from "./Knowledge.module.css";
 
-interface AcademyClientPageProps {
-  initialArticles: ArticleSummary[];
-  companyName: string;
-}
+const icons = [TrendingUp, FileText, Sparkles, ShieldCheck, Columns3];
+const matchesJourney = (article: ArticleSummary, steps: string[]) => steps.some(step => `${article.title} ${article.excerpt}`.toLowerCase().includes(step.toLowerCase()));
 
-export default function AcademyClientPage({
-  initialArticles,
-  companyName,
-}: AcademyClientPageProps) {
-  const [selectedPillar, setSelectedPillar] = useState<string>("all");
-  const [selectedJourney, setSelectedJourney] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+export default function AcademyClientPage({ initialArticles, companyName }: { initialArticles: ArticleSummary[]; companyName: string }) {
+  const [topic, setTopic] = useState("all");
+  const [query, setQuery] = useState("");
+  const [journey, setJourney] = useState("");
+  const topics = useMemo(() => PILLARS.map((pillar, index) => ({ ...pillar, Icon: icons[index], count: initialArticles.filter(article => getPillarForCluster(article.clusterId)?.id === pillar.id).length })).filter(pillar => pillar.count > 0), [initialArticles]);
+  const journeys = useMemo(() => LEARNING_JOURNEYS.filter(path => initialArticles.some(article => matchesJourney(article, path.steps))), [initialArticles]);
+  const selectedPath = journeys.find(path => path.id === journey);
+  const filtered = useMemo(() => initialArticles.filter(article => {
+    const needle = query.trim().toLowerCase();
+    const text = `${article.title} ${article.excerpt} ${getClusterById(article.clusterId)?.name || ""} ${getPillarForCluster(article.clusterId)?.shortName || ""} ${article.audience}`.toLowerCase();
+    return (!needle || text.includes(needle)) && (topic === "all" || getPillarForCluster(article.clusterId)?.id === topic) && (!selectedPath || matchesJourney(article, selectedPath.steps));
+  }), [initialArticles, topic, query, selectedPath]);
+  const reset = () => { setTopic("all"); setQuery(""); setJourney(""); };
+  const featured = initialArticles[0];
+  const active = topic !== "all" || Boolean(query.trim()) || Boolean(journey);
 
-  // Filter Pillars to ONLY those that have at least 1 published article currently available
-  const availablePillars = useMemo(() => {
-    const pillarIdsWithArticles = new Set<string>();
-    initialArticles.forEach((article) => {
-      const pillar = getPillarForCluster(article.clusterId);
-      if (pillar) {
-        pillarIdsWithArticles.add(pillar.id);
-      }
-    });
-    return PILLARS.filter((p) => pillarIdsWithArticles.has(p.id));
-  }, [initialArticles]);
-
-  // Filter Learning Journeys to ONLY those that have matching articles currently available
-  const availableJourneys = useMemo(() => {
-    return LEARNING_JOURNEYS.filter((journey) => {
-      return journey.steps.some((step) =>
-        initialArticles.some(
-          (article) =>
-            article.title.toLowerCase().includes(step.toLowerCase()) ||
-            article.excerpt.toLowerCase().includes(step.toLowerCase())
-        )
-      );
-    });
-  }, [initialArticles]);
-
-  // Filter articles based on pillar, journey, search query
-  const filteredArticles = useMemo(() => {
-    return initialArticles.filter((article) => {
-      // Search Query filter
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const cluster = getClusterById(article.clusterId);
-        const matchesTitle = article.title.toLowerCase().includes(q);
-        const matchesExcerpt = article.excerpt.toLowerCase().includes(q);
-        const matchesCluster = cluster?.name.toLowerCase().includes(q) || false;
-        const matchesAudience = article.audience.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesExcerpt && !matchesCluster && !matchesAudience) {
-          return false;
-        }
-      }
-
-      // Pillar Filter
-      if (selectedPillar !== "all") {
-        const pillar = getPillarForCluster(article.clusterId);
-        if (pillar?.id !== selectedPillar) {
-          return false;
-        }
-      }
-
-      // Journey Filter
-      if (selectedJourney) {
-        const journey = LEARNING_JOURNEYS.find((j) => j.id === selectedJourney);
-        if (journey) {
-          const matchJourneyStep = journey.steps.some(
-            (step) =>
-              article.title.toLowerCase().includes(step.toLowerCase()) ||
-              article.excerpt.toLowerCase().includes(step.toLowerCase())
-          );
-          if (!matchJourneyStep && initialArticles.length > 5) {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    });
-  }, [initialArticles, selectedPillar, selectedJourney, searchQuery]);
-
-  return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
-      {/* Background ambient glow shapes */}
-      <div className="absolute top-[5%] left-[-5%] w-[70%] h-[45%] rounded-full ambient-glow-purple pointer-events-none z-0" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[70%] h-[45%] rounded-full ambient-glow-blue pointer-events-none z-0" />
-
-      {/* Header */}
-      <PublicHeader activeRoute="/knowledge" />
-
-      {/* Academy Hero */}
-      <section className="academy-hero z-10">
-        <div className="max-w-4xl mx-auto space-y-4">
-          <div className="academy-hero-badge">
-            <span>Domain Authority &amp; Legal Resource Engine</span>
-          </div>
-          <h1>SignCollab Academy</h1>
-          <p>
-            The definitive operational, business, and legal authority for brand-creator partnerships.
-            Explore active guides, legal frameworks, and agreement compliance resources.
-          </p>
-
-          {/* Metrics Bar without emojis */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4 text-xs font-bold text-indigo-200">
-            <div className="flex items-center bg-white/10 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/10">
-              <span>{initialArticles.length} Active Articles</span>
-            </div>
-            {availableJourneys.length > 0 && (
-              <div className="flex items-center bg-white/10 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/10">
-                <span>{availableJourneys.length} Active Pathways</span>
-              </div>
-            )}
-            <div className="flex items-center bg-white/10 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/10">
-              <span>20,000+ Contract Dataset</span>
-            </div>
-          </div>
+  return <div className={styles.page}>
+    <PublicHeader activeRoute="/knowledge" />
+    <main className={styles.library}>
+      <section className={styles.hero} aria-labelledby="academy-title">
+        <div>
+          <span className={styles.eyebrow}>{companyName} Academy</span>
+          <h1 id="academy-title">Know more.<br />Collaborate better.</h1>
+          <p>Practical guides to creator pricing, contracts, and the business of working together.</p>
+          <form className={styles.search} onSubmit={event => { event.preventDefault(); document.getElementById('guides')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }}>
+            <Search size={19} aria-hidden="true" />
+            <label htmlFor="knowledge-search" className="sr-only">Search guides</label>
+            <input id="knowledge-search" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search a topic, question, or keyword" />
+            {query && <button type="button" onClick={() => setQuery("")} aria-label="Clear search"><X size={17} /></button>}
+          </form>
+          <span className={styles.heroHint}>{query.trim() ? <>{filtered.length} matching {filtered.length === 1 ? 'guide' : 'guides'} · <a href="#guides">View results →</a></> : <>{initialArticles.length} {initialArticles.length === 1 ? "guide" : "guides"} to explore · For creators, brands & agencies</>}</span>
         </div>
+        {featured && <Link href={`/knowledge/${featured.slug}`} className={styles.featured}>
+          <span className={styles.featuredTop}><span className={styles.icon}><BookOpen size={23} /></span><span>A useful place to start</span></span>
+          <span className={styles.category}>{getClusterById(featured.clusterId)?.name || "Creator partnerships"}</span>
+          <h2>{featured.title}</h2>
+          <span className={styles.featuredBottom}><span><Clock3 size={14} /> {featured.readingTime || 5} min read</span><span className={styles.circleArrow}><ArrowRight size={19} /></span></span>
+        </Link>}
       </section>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 py-8 sm:py-12 z-10 space-y-12">
-        {/* ============================================================ */}
-        {/* SECTION: USER LEARNING JOURNEYS (Only Active Pathways)      */}
-        {/* ============================================================ */}
-        {availableJourneys.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="academy-section-title">Guided Learning Pathways</div>
-                <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
-                  Select Your Learning Journey
-                </h2>
-              </div>
-              {selectedJourney && (
-                <button
-                  onClick={() => setSelectedJourney(null)}
-                  className="text-xs font-bold text-blue-600 hover:text-blue-800 underline"
-                >
-                  Clear Pathway Filter
-                </button>
-              )}
-            </div>
+      {topics.length > 0 && <section className={styles.topicSection} aria-labelledby="topics-title">
+        <div className={styles.sectionTop}><div><span className={styles.eyebrow}>Find your starting point</span><h2 id="topics-title">Explore by topic</h2></div><button className={styles.textButton} onClick={reset}>View all guides <ArrowRight size={16} /></button></div>
+        <div className={styles.topics}>
+          {topics.map(({ id, shortName, count, Icon }) => <button key={id} className={styles.topic} aria-pressed={topic === id} onClick={() => setTopic(topic === id ? "all" : id)}>
+            <span className={styles.icon}><Icon size={21} /></span><strong>{shortName}</strong><span>{count} {count === 1 ? "guide" : "guides"}<ArrowRight size={15} /></span>
+          </button>)}
+        </div>
+      </section>}
 
-            <div className="academy-journeys">
-              {availableJourneys.map((journey) => {
-                const isSelected = selectedJourney === journey.id;
-                return (
-                  <div
-                    key={journey.id}
-                    onClick={() =>
-                      setSelectedJourney(isSelected ? null : journey.id)
-                    }
-                    className={`academy-journey-card ${
-                      isSelected ? "ring-2 ring-blue-600 border-transparent bg-blue-50/50" : ""
-                    }`}
-                  >
-                    <div className="academy-journey-card-header">
-                      <div>
-                        <h3>{journey.name}</h3>
-                        <span className="text-[10px] font-bold text-gray-400">
-                          {journey.steps.length} Step Sequence
-                        </span>
-                      </div>
-                    </div>
-                    <div className="academy-journey-steps">
-                      {journey.steps.slice(0, 4).map((step, idx) => (
-                        <span key={idx} className="academy-journey-step">
-                          {idx + 1}. {step}
-                        </span>
-                      ))}
-                      {journey.steps.length > 4 && (
-                        <span className="academy-journey-step font-bold text-blue-600">
-                          +{journey.steps.length - 4} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ============================================================ */}
-        {/* SECTION: SEARCH & TAXONOMY PILLAR FILTER TABS                */}
-        {/* ============================================================ */}
-        <section className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="academy-section-title">Master Content Architecture</div>
-              <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
-                Knowledge Directory
-              </h2>
-            </div>
-
-            {/* Real-Time Search Bar */}
-            <div className="academy-search">
-              <input
-                type="text"
-                placeholder="Search by topic, keyword, or legal clause..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="academy-search-input !pl-4"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-black"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Active Strategic Pillars Tab Bar (Only show pillars with articles) */}
-          {availablePillars.length > 1 && (
-            <div className="academy-pillar-tabs">
-              <button
-                onClick={() => setSelectedPillar("all")}
-                className={`academy-pillar-tab ${selectedPillar === "all" ? "active" : ""}`}
-              >
-                All Available Categories ({initialArticles.length})
-              </button>
-              {availablePillars.map((pillar) => (
-                <button
-                  key={pillar.id}
-                  onClick={() => setSelectedPillar(pillar.id)}
-                  className={`academy-pillar-tab ${selectedPillar === pillar.id ? "active" : ""}`}
-                >
-                  {pillar.shortName}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Active Filter Indicators */}
-          {(selectedPillar !== "all" || selectedJourney || searchQuery) && (
-            <div className="flex flex-wrap items-center gap-2 pt-2 text-xs text-gray-600 font-semibold">
-              <span>Active Filters:</span>
-              {selectedPillar !== "all" && (
-                <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-200 flex items-center gap-1 font-bold">
-                  Category: {PILLARS.find((p) => p.id === selectedPillar)?.shortName}
-                  <button onClick={() => setSelectedPillar("all")} className="ml-1 text-blue-700 hover:text-black">✕</button>
-                </span>
-              )}
-              {selectedJourney && (
-                <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1 font-bold">
-                  Pathway: {LEARNING_JOURNEYS.find((j) => j.id === selectedJourney)?.name}
-                  <button onClick={() => setSelectedJourney(null)} className="ml-1 text-purple-700 hover:text-black">✕</button>
-                </span>
-              )}
-              {searchQuery && (
-                <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1 font-bold">
-                  Search: &quot;{searchQuery}&quot;
-                  <button onClick={() => setSearchQuery("")} className="ml-1 text-amber-700 hover:text-black">✕</button>
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Articles Grid */}
-          {filteredArticles.length === 0 ? (
-            <div className="bg-white border border-gray-200 rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-sm">
-              <h3 className="text-lg font-bold text-black">No articles found matching filters</h3>
-              <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto">
-                Try clearing your search query or selecting a different category.
-              </p>
-              <button
-                onClick={() => {
-                  setSelectedPillar("all");
-                  setSelectedJourney(null);
-                  setSearchQuery("");
-                }}
-                className="px-4 py-2 rounded-full bg-black text-white font-bold text-xs hover:bg-gray-800 transition-colors"
-              >
-                Reset All Filters
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredArticles.map((article) => {
-                const cluster = getClusterById(article.clusterId);
-                const pillar = getPillarForCluster(article.clusterId);
-                const blueprint = BLUEPRINT_TYPES[article.blueprintType] || BLUEPRINT_TYPES.A;
-                const audience = AUDIENCE_TAGS[article.audience] || AUDIENCE_TAGS.All;
-
-                return (
-                  <Link
-                    key={article.id}
-                    href={`/knowledge/${article.slug}`}
-                    className="academy-article-card group"
-                  >
-                    <div className="space-y-3">
-                      {/* Taxonomy Badges without emojis */}
-                      <div className="academy-article-badges">
-                        {cluster && (
-                          <span
-                            className="academy-badge"
-                            style={{
-                              backgroundColor: pillar?.bgColor || "#eff6ff",
-                              color: pillar?.color || "#2563eb",
-                              borderColor: pillar?.borderColor || "#bfdbfe",
-                            }}
-                          >
-                            <span>{cluster.id}: {cluster.name}</span>
-                          </span>
-                        )}
-                        <span
-                          className="academy-badge"
-                          style={{
-                            backgroundColor: blueprint.bgColor,
-                            color: blueprint.color,
-                            borderColor: `${blueprint.color}33`,
-                          }}
-                        >
-                          <span>Blueprint {blueprint.type}</span>
-                        </span>
-                        <span
-                          className="academy-badge"
-                          style={{
-                            backgroundColor: audience.bgColor,
-                            color: audience.color,
-                            borderColor: `${audience.color}33`,
-                          }}
-                        >
-                          <span>{audience.label}</span>
-                        </span>
-                      </div>
-
-                      <h2 className="text-lg font-extrabold text-black group-hover:text-blue-600 transition-colors leading-snug">
-                        {article.title}
-                      </h2>
-                      <p className="academy-excerpt">{article.excerpt}</p>
-                    </div>
-
-                    <div className="academy-article-footer">
-                      <span className="academy-reading-time">
-                        {article.readingTime || 5} min read
-                      </span>
-                      <span className="academy-read-more">
-                        Read Guide &rarr;
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-
-      </main>
-
-      {/* Footer */}
-      <PublicFooter />
-    </div>
-  );
+      <section id="guides" className={styles.guides} aria-labelledby="guides-title">
+        <div className={styles.sectionTop}>
+          <div><span className={styles.eyebrow}>The guide library</span><h2 id="guides-title">{topic === "all" ? "A little clarity goes a long way." : topics.find(item => item.id === topic)?.shortName}</h2></div>
+          {journeys.length > 0 && <div className={styles.pathSelect}><label htmlFor="learning-path">Learning path</label><select id="learning-path" value={journey} onChange={event => setJourney(event.target.value)}><option value="">All learning paths</option>{journeys.map(path => <option key={path.id} value={path.id}>{path.name}</option>)}</select></div>}
+        </div>
+        <div className={styles.resultsBar}><p role="status" aria-live="polite">{filtered.length} {filtered.length === 1 ? "guide" : "guides"}{query.trim() ? ` matching “${query.trim()}”` : " to explore"}</p>{active && <button className={styles.textButton} onClick={reset}>Clear filters <X size={14} /></button>}</div>
+        {selectedPath && <div className={styles.pathSummary}><BookOpen size={18} /><p><strong>{selectedPath.name}</strong><span>{selectedPath.steps.join(" · ")}</span></p></div>}
+        {filtered.length ? <div className={styles.cards}>{filtered.map(article => <Link key={article.id} href={`/knowledge/${article.slug}`} className={styles.card}>
+          <span className={styles.category}>{getClusterById(article.clusterId)?.name || "Creator partnerships"}</span>
+          <h3>{article.title}</h3><p>{article.excerpt}</p>
+          <div className={styles.cardAudience}>{AUDIENCE_TAGS[article.audience]?.label || article.audience || "Everyone"}</div>
+          <div className={styles.cardBottom}><span><Clock3 size={14} />{article.readingTime || 5} min read</span><span>Read guide <ArrowRight size={16} /></span></div>
+        </Link>)}</div> : <div className={styles.empty}><Search size={27} /><h3>{initialArticles.length ? "No guides found just yet." : "New guides are on their way."}</h3><p>Try another keyword or explore all available topics.</p>{active && <button className={styles.pinkButton} onClick={reset}>Clear filters <ArrowRight size={16} /></button>}</div>}
+      </section>
+      <section className={styles.cta}><div><span className={styles.eyebrow}>From reading to doing</span><h2>Put your next partnership in motion.</h2><p>Explore creator rates or turn your agreed terms into a contract.</p></div><div className={styles.ctaActions}><Link href="/influencer-rate-calculator" className={styles.pinkButton}>Explore rates <ArrowRight size={16} /></Link><Link href="/instant" className={styles.textButton}>Create a contract <ArrowRight size={16} /></Link></div></section>
+    </main>
+    <PublicFooter />
+  </div>;
 }

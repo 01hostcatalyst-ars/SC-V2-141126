@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import { relatedReadingHtml } from './knowledge-related';
 
 import { BlueprintType, estimateReadingTime } from "./academy-data";
 
@@ -295,7 +296,7 @@ function extractFaqs(html: string): FaqItem[] {
  *
  * NOTE: Uses class= (not className=) because this is injected via dangerouslySetInnerHTML.
  */
-function parseShortcodes(html: string): string {
+function parseShortcodes(html: string, articles: ArticleSummary[], currentSlug?: string): string {
   if (!html) return "";
 
   let parsed = html;
@@ -412,7 +413,7 @@ function parseShortcodes(html: string): string {
         <div class="academy-block-header">
           <span>Related Reading</span>
         </div>
-        <div class="academy-block-body">${p1}</div>
+        <div class="academy-block-body">${relatedReadingHtml(p1, articles, currentSlug)}</div>
       </div>
     `
   );
@@ -442,7 +443,7 @@ function parseShortcodes(html: string): string {
 /**
  * Clean exported Google Doc HTML to match website typography & remove inline clutter
  */
-function cleanGoogleDocHtml(html: string): string {
+function cleanGoogleDocHtml(html: string, articles: ArticleSummary[], currentSlug?: string): string {
   if (!html) return "";
 
   // Extract body content if <body> tag exists
@@ -462,7 +463,7 @@ function cleanGoogleDocHtml(html: string): string {
     .replace(/<p>\s*<\/p>/gi, ""); // strip empty paragraphs
 
   // Apply shortcodes replacement
-  cleaned = parseShortcodes(cleaned);
+  cleaned = parseShortcodes(cleaned, articles, currentSlug);
 
   return cleaned.trim();
 }
@@ -530,7 +531,7 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
       [/related-reading]
     `;
 
-    let contentHtml = cleanGoogleDocHtml(rawContent);
+    let contentHtml = cleanGoogleDocHtml(rawContent, articles, article.slug);
 
     const toc: { id: string; text: string; level: number }[] = [];
     let headingIndex = 0;
@@ -567,7 +568,7 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
     });
 
     const rawHtml = typeof exportRes.data === "string" ? exportRes.data : String(exportRes.data);
-    let contentHtml = cleanGoogleDocHtml(rawHtml);
+    let contentHtml = cleanGoogleDocHtml(rawHtml, articles, article.slug);
     const faqs = extractFaqs(rawHtml);
 
     // Extract TOC and inject IDs into headings

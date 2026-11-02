@@ -1,3 +1,7 @@
+import styles from '../Knowledge.module.css';
+import ArticleContents, { MobileArticleContents } from '../ArticleContents';
+import { ArrowLeft, ArrowRight, Clock3 } from 'lucide-react';
+import { knowledgeBodyHtml, knowledgeHeadingText } from '@/lib/knowledge-presentation';
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,7 +14,6 @@ import { getKnowledgeArticles, getArticleBySlug } from "@/lib/gdocs";
 import {
   getClusterById,
   getPillarForCluster,
-  BLUEPRINT_TYPES,
   AUDIENCE_TAGS,
 } from "@/lib/academy-data";
 
@@ -81,8 +84,8 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
 
   const cluster = getClusterById(article.clusterId);
   const pillar = getPillarForCluster(article.clusterId);
-  const blueprint = BLUEPRINT_TYPES[article.blueprintType] || BLUEPRINT_TYPES.A;
-  const audience = AUDIENCE_TAGS[article.audience] || AUDIENCE_TAGS.All;
+
+
 
   const articleUrl = `${baseUrl}/knowledge/${article.slug}`;
   const defaultImage = `${baseUrl}/favicon.ico`;
@@ -262,158 +265,27 @@ export default async function KnowledgeArticlePage({ params }: PageProps) {
     "@graph": graphEntities,
   };
 
-  return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden text-left">
-      <Script
-        id="article-graph-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
-      {/* Background ambient glow shapes */}
-      <div className="absolute top-[10%] left-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-purple pointer-events-none z-0" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[80%] h-[50%] rounded-full ambient-glow-blue pointer-events-none z-0" />
-
-      {/* Header */}
-      <PublicHeader activeRoute="/knowledge" />
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-8 py-8 sm:py-12 z-10 space-y-8">
-        {/* Breadcrumb UI */}
-        <nav className="flex flex-wrap items-center gap-2 text-xs text-gray-500 font-semibold">
-          <Link href="/" className="hover:text-black transition-colors">Home</Link>
-          <span>/</span>
-          <Link href="/knowledge" className="hover:text-black transition-colors">Academy</Link>
-          {pillar && (
-            <>
-              <span>/</span>
-              <span className="text-gray-700 font-bold">{pillar.shortName}</span>
-            </>
-          )}
-          {cluster && (
-            <>
-              <span>/</span>
-              <span className="text-blue-600 font-bold">{cluster.id}</span>
-            </>
-          )}
-          <span>/</span>
-          <span className="text-black font-bold truncate max-w-[200px] sm:max-w-xs">{article.title}</span>
-        </nav>
-
-        {/* Enhanced Article Header without emojis */}
-        <div className="academy-article-header space-y-4">
-          <div className="academy-article-meta">
-            {cluster && (
-              <span
-                className="academy-badge"
-                style={{
-                  backgroundColor: pillar?.bgColor || "#eff6ff",
-                  color: pillar?.color || "#2563eb",
-                  borderColor: pillar?.borderColor || "#bfdbfe",
-                }}
-              >
-                <span>{cluster.id}: {cluster.name}</span>
-              </span>
-            )}
-            <span
-              className="academy-badge"
-              style={{
-                backgroundColor: blueprint.bgColor,
-                color: blueprint.color,
-                borderColor: `${blueprint.color}33`,
-              }}
-            >
-              <span>Blueprint {blueprint.type}: {blueprint.label}</span>
-            </span>
-            <span
-              className="academy-badge"
-              style={{
-                backgroundColor: audience.bgColor,
-                color: audience.color,
-                borderColor: `${audience.color}33`,
-              }}
-            >
-              <span>{audience.label}</span>
-            </span>
-            <span className="academy-reading-time">
-              {article.readingTime || 5} min read
-            </span>
-          </div>
-
-          <h1>{article.title}</h1>
-
-          {/* Author & Editorial Metadata */}
-          <div className="academy-article-author">
-            <div className="academy-author-avatar">MA</div>
-            <div className="academy-author-info">
-              <span className="academy-author-name">
-                Muhammad Arsalan <span className="text-gray-400 font-normal">• Founder &amp; Creator Agreement Architect</span>
-              </span>
-              <span className="academy-author-date">
-                Published in SignCollab Academy • Last Verified {new Date(article.modifiedTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Article Layout with Sidebar Table of Contents */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Table of Contents Sidebar */}
-          {article.toc && article.toc.length > 0 && (
-            <aside className="lg:col-span-1 order-2 lg:order-1">
-              <div className="sticky top-24 p-5 bg-white border border-gray-200 rounded-2xl shadow-sm space-y-3 text-xs">
-                <div className="font-extrabold uppercase tracking-wider text-black text-[11px] pb-2 border-b border-gray-100">
-                  Table of Contents
-                </div>
-                <ul className="space-y-2 font-medium text-gray-600">
-                  {article.toc.map((item) => (
-                    <li
-                      key={item.id}
-                      style={{ paddingLeft: item.level === 3 ? "0.75rem" : "0" }}
-                    >
-                      <a
-                        href={`#${item.id}`}
-                        className="hover:text-blue-600 hover:underline block leading-snug line-clamp-2 transition-colors"
-                      >
-                        {item.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </aside>
-          )}
-
-          {/* Article Main Prose Body */}
-          <article className={`${article.toc && article.toc.length > 0 ? "lg:col-span-3" : "lg:col-span-4"} order-1 lg:order-2`}>
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-10 shadow-sm">
-              <div
-                className="gdoc-prose"
-                dangerouslySetInnerHTML={{ __html: article.contentHtml }}
-              />
-            </div>
-          </article>
-        </div>
-
-        {/* Product Integration CTA Box (90/10 Rule) */}
-        <div className="academy-article-cta mt-10">
-          <div>
-            <h3>Formalize Your Partnerships with SignCollab</h3>
-            <p>
-              Automate bilateral agreement execution with OTP verification, custom usage rights parameters, and tamper-evident audit logs.
-            </p>
-          </div>
-          <Link
-            href="/instant"
-            className="academy-article-cta-btn"
-          >
-            <span>Create Instant Agreement &rarr;</span>
-          </Link>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <PublicFooter />
-    </div>
-  );
+  const updated = new Date(article.modifiedTime);
+  const updatedLabel = Number.isNaN(updated.getTime()) ? null : updated.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const entries = (article.toc || []).map(entry => ({ ...entry, text: knowledgeHeadingText(entry.text) }));
+  return <div className={styles.page}>
+    <Script id="article-graph-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+    <PublicHeader activeRoute="/knowledge" />
+    <main className={styles.articleShell}>
+      <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href="/knowledge"><span className="inline-flex items-center gap-2"><ArrowLeft size={14} /> Academy</span></Link><span aria-hidden="true">/</span><span>{pillar?.shortName || 'Guides'}</span></nav>
+      <header className={styles.articleHeader}>
+        <div className={styles.articleMeta}><span>{cluster?.name || 'Creator partnerships'}</span><span className="inline-flex items-center gap-1.5"><Clock3 size={13} />{article.readingTime || 5} min read</span><span>For {AUDIENCE_TAGS[article.audience]?.label.toLowerCase() || article.audience.toLowerCase()}</span></div>
+        <h1>{article.title}</h1>
+        <p className={styles.articleIntro}>{article.excerpt}</p>
+        <div className={styles.author}><span className={styles.authorAvatar} aria-hidden="true">MA</span><div><strong>Muhammad Arsalan</strong><p>Founder & Product Lead{updatedLabel ? ' · Updated ' + updatedLabel : ''}</p></div></div>
+      </header>
+      <div className={styles.readingGrid} style={!entries.length ? { gridTemplateColumns: 'minmax(0, 880px)' } : undefined}>
+        <MobileArticleContents entries={entries} />
+        <article className={styles.articleBody} aria-label={article.title}><div className="gdoc-prose" dangerouslySetInnerHTML={{ __html: knowledgeBodyHtml(article.contentHtml, article.title) }} /></article>
+        <ArticleContents entries={entries} />
+      </div>
+      <div className={styles.articleAfter}><section className={styles.cta}><div><span className={styles.eyebrow}>Your next step</span><h2>Turn a good conversation into a clear agreement.</h2><p>Set out deliverables, usage rights, and payment terms with {company.name}.</p></div><div className={styles.ctaActions}><Link href="/instant" className={styles.pinkButton}>Create a contract <ArrowRight size={16} /></Link><Link href="/knowledge" className={styles.textButton}>Explore more guides <ArrowRight size={16} /></Link></div></section></div>
+    </main>
+    <PublicFooter />
+  </div>;
 }
