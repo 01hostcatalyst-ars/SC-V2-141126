@@ -712,7 +712,7 @@ function InstantContractForm() {
         <form onSubmit={(e) => e.preventDefault()} className={styles.agreementDocument}>
           <header className={styles.documentHeading}>
             <div><span>Agreement draft</span><h2>Creator partnership agreement</h2></div>
-            <p>Complete the fields below with the terms agreed by both parties. Fields marked * are required. Review preset values before signing.</p>
+            <p>* Required fields · Review preset values before signing.</p>
           </header>
 
           {/* WORKFLOW & JURISDICTION SELECTION CARD */}
@@ -724,7 +724,7 @@ function InstantContractForm() {
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight">
                 Your partnership
               </h2>
-              <SectionIntroduction description="Choose the relationship and governing country. These selections determine the party roles, currency, and available payment methods." />
+
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -767,7 +767,7 @@ function InstantContractForm() {
                 <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
                   <span>What will be delivered?</span>
                 </h2>
-              <SectionIntroduction description="List each piece of content, how many are needed, and how long it must stay published. Add clear instructions for the creator." />
+
               </div>
               <span className="text-xs font-mono font-medium text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-full">
                 {deliverables.length} deliverable{deliverables.length === 1 ? "" : "s"}
@@ -916,7 +916,7 @@ function InstantContractForm() {
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
                 <span>How can the content be used?</span>
               </h2>
-              <SectionIntroduction description="Choose the permitted platforms, types of use, and the length of the permission. Keep these consistent with the ownership terms above." />
+
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -995,7 +995,7 @@ function InstantContractForm() {
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
                 <span>How and when will payment happen?</span>
               </h2>
-              <SectionIntroduction description="Record the total fee, any advance payment, and the due dates. Add the payment details requested for your role." />
+
             </div>
 
             <p className={styles.paymentNote}>Currency: {currency} ({CURRENCY_MAP[currency]?.symbol || "$"}) · Amounts include taxes.</p>
@@ -1107,7 +1107,7 @@ function InstantContractForm() {
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
                 <span>Delivery, revisions & products</span>
               </h2>
-              <SectionIntroduction description="Set delivery and revision timelines. If a product is involved, record its shipping details and any return requirements." />
+
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1258,7 +1258,7 @@ function InstantContractForm() {
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
                 <span>Additional terms & responsibilities</span>
               </h2>
-              <SectionIntroduction description="Review the percentages and optional clauses carefully. Agree these responsibilities with the other party before signing." />
+
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1402,7 +1402,7 @@ function InstantContractForm() {
                 <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
                   <span>Your details & signature</span>
                 </h2>
-              <SectionIntroduction description="Enter the details of the person signing and any business or creator details requested. Then add your signature and verify your email." />
+
               </div>
               {initiatorOtpVerified && (
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
@@ -1951,9 +1951,6 @@ function InstantContractForm() {
   );
 }
 
-function SectionIntroduction({description}:{description:string}) {
-  return <div className={styles.intro}><p>{description}</p></div>;
-}
 
 const INSTANT_FAQS = [
   {q:"Do I need an account?",a:"You can create an instant agreement without signing up. Guest use allows two contracts per email address in a 24-hour period."},
