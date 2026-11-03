@@ -39,6 +39,7 @@ import { ModernSelect } from "@/components/ui/ModernSelect";
 import { AutocompleteInput } from "@/components/ui/AutocompleteInput";
 import { SuiteHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
+import styles from "./InstantContract.module.css";
 
 interface DeliverableItem {
   type: string;
@@ -132,7 +133,25 @@ const USAGE_TYPE_OPTIONS = [
   { id: "ALL_MEDIA", label: "Full Commercial Broadcast" },
 ];
 
+const CONTRACT_SECTIONS = [
+  { id: 'sec-setup', label: 'Partnership setup' },
+  { id: 'sec-deliverables', label: 'Deliverables' },
+  { id: 'sec-licensing', label: 'Usage rights' },
+  { id: 'sec-financials', label: 'Payment' },
+  { id: 'sec-provisions', label: 'Delivery & products' },
+  { id: 'sec-safeguards', label: 'Additional terms' },
+  { id: 'sec-execution', label: 'Your details & signing' },
+];
+
 function InstantContractForm() {
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  useEffect(() => {
+    const viewport = window.matchMedia('(min-width: 1200px)');
+    const updateSummary = () => setSummaryOpen(viewport.matches);
+    updateSummary();
+    viewport.addEventListener('change', updateSummary);
+    return () => viewport.removeEventListener('change', updateSummary);
+  }, []);
   const company = getCompanyConfig();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -653,9 +672,9 @@ function InstantContractForm() {
   };
 
   return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col relative overflow-hidden">
+    <div className={`${styles.page} flex flex-col`}>
       {/* Directional Ambient Spotlight matching Home Page */}
-      <div className="absolute top-0 inset-x-0 h-[480px] ambient-spotlight-emerald pointer-events-none z-0" />
+
 
       {/* Universal Suite Header with pure typography SIGNCOLLAB & mobile hamburger */}
       <SuiteHeader
@@ -669,89 +688,17 @@ function InstantContractForm() {
       />
 
       {/* Main 1-Page Form Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-12 z-10 space-y-8">
+      <main className={styles.main}>
         
-        {/* Studio Top Hero & Value Proposition (Calm, not overly bold) */}
-        <div className="text-center space-y-3">
-          {/* Eyebrow Trust Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 text-white text-xs font-medium shadow-xs border border-zinc-800">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <span className="font-mono text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">
-              SignCollab Protocol
-            </span>
-            <span className="text-zinc-500 font-light">•</span>
-            <span className="text-zinc-200 text-xs font-normal">Statutory 1-Page Creator Contract Standard</span>
-          </div>
+        <header className={styles.builderHero}>
+          <span className={styles.eyebrow}><FileText size={16} aria-hidden="true" /> Instant contract</span>
+          <h1>Your creator partnership agreement.</h1>
+          <p>Fill in your agreement as you read. Review the scope, permissions, and payment terms, then sign below.</p>
+          <span className={styles.builderMeta}>No signup required · 2 free contracts per 24 hours</span>
+        </header>
+        <div className={styles.workspace}>
+          <div className={styles.formArea}>
 
-          {/* Heading: Refined weight (not too bold) */}
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-zinc-900 tracking-tight font-display">
-            Instant Commercial Agreement Studio
-          </h1>
-
-          <p className="text-xs sm:text-sm text-zinc-600 max-w-2xl mx-auto leading-relaxed font-normal">
-            Generate enforceable bilateral agreements with automated 48-hour deemed approval, advance escrow protection, and digital audit trails.
-          </p>
-
-          <div className="pt-1 flex items-center justify-center gap-2 text-[11px] font-medium text-zinc-500">
-            <span className="inline-flex items-center gap-1 bg-zinc-100/80 border border-zinc-200/80 px-2.5 py-0.5 rounded-full">
-              <Zap className="w-3 h-3 text-amber-500" />
-              <span>No signup required</span>
-            </span>
-            <span>•</span>
-            <span>2 free contracts / 24h</span>
-          </div>
-        </div>
-
-        {/* Sticky Section Quick-Jump Pill Bar (Desktop & Mobile) */}
-        <div className="sticky top-20 z-30 flex items-center justify-center">
-          <nav
-            aria-label="Contract Sections"
-            className="p-1 rounded-2xl bg-white/95 backdrop-blur-md border border-zinc-200 shadow-sm flex items-center gap-1 overflow-x-auto max-w-full text-xs font-medium"
-          >
-            <button
-              type="button"
-              onClick={() => scrollToSection("sec-deliverables")}
-              className="px-3 py-1.5 rounded-xl hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 transition-colors cursor-pointer whitespace-nowrap min-h-[38px]"
-            >
-              1. Deliverables
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("sec-licensing")}
-              className="px-3 py-1.5 rounded-xl hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 transition-colors cursor-pointer whitespace-nowrap min-h-[38px]"
-            >
-              2. Licensing
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("sec-financials")}
-              className="px-3 py-1.5 rounded-xl hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 transition-colors cursor-pointer whitespace-nowrap min-h-[38px]"
-            >
-              3. Financials
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("sec-provisions")}
-              className="px-3 py-1.5 rounded-xl hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 transition-colors cursor-pointer whitespace-nowrap min-h-[38px]"
-            >
-              4. Product Loans
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("sec-safeguards")}
-              className="px-3 py-1.5 rounded-xl hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 transition-colors cursor-pointer whitespace-nowrap min-h-[38px]"
-            >
-              5. Safeguards
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("sec-execution")}
-              className="px-3 py-1.5 rounded-xl bg-zinc-900 text-white font-semibold transition-colors cursor-pointer whitespace-nowrap min-h-[38px]"
-            >
-              6. Sign &amp; OTP
-            </button>
-          </nav>
-        </div>
 
         {/* Global Error Banner */}
         {errorMsg && (
@@ -762,22 +709,27 @@ function InstantContractForm() {
         )}
 
         {/* Main 1-Page Form Sheet */}
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+        <form onSubmit={(e) => e.preventDefault()} className={styles.agreementDocument}>
+          <header className={styles.documentHeading}>
+            <div><span>Agreement draft</span><h2>Creator partnership agreement</h2></div>
+            <p>Complete the fields below with the terms agreed by both parties. Fields marked * are required. Review preset values before signing.</p>
+          </header>
 
           {/* WORKFLOW & JURISDICTION SELECTION CARD */}
-          <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+          <div id="sec-setup" className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
             <div className="border-b border-zinc-100 pb-3">
               <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                Framework Setup
+                01 / Start here
               </span>
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight">
-                Commercial Relationship &amp; Governing Jurisdiction
+                Your partnership
               </h2>
+              <SectionIntroduction description="Choose the relationship and governing country. These selections determine the party roles, currency, and available payment methods." />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <ModernSelect
-                label="Commercial Deal Flow *"
+                label="Who is this agreement between? *"
                 value={contractType}
                 disabled={initiatorOtpVerified}
                 onChange={(val) => setContractType(val)}
@@ -785,7 +737,7 @@ function InstantContractForm() {
               />
 
               <ModernSelect
-                label="Governing Jurisdiction *"
+                label="Governing country *"
                 value={jurisdictionCountryCode}
                 disabled={initiatorOtpVerified}
                 onChange={(val) => {
@@ -796,7 +748,7 @@ function InstantContractForm() {
                 options={Object.values(JURISDICTIONS).map((j) => ({
                   value: j.countryCode,
                   label: `${j.countryName} (${j.lawAbbreviation})`,
-                  sublabel: `Auto-bound Currency: ${j.defaultCurrency}`,
+                  sublabel: `Currency: ${j.defaultCurrency}`,
                 }))}
               />
             </div>
@@ -810,24 +762,24 @@ function InstantContractForm() {
             <div className="border-b border-zinc-100 pb-3 flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                  Section 1
+                  02 / Campaign scope
                 </span>
                 <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-zinc-600" />
-                  <span>Campaign Deliverables &amp; Asset Scope</span>
+                  <span>What will be delivered?</span>
                 </h2>
+              <SectionIntroduction description="List each piece of content, how many are needed, and how long it must stay published. Add clear instructions for the creator." />
               </div>
               <span className="text-xs font-mono font-medium text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-full">
-                {deliverables.length} Asset Item(s)
+                {deliverables.length} deliverable{deliverables.length === 1 ? "" : "s"}
               </span>
             </div>
 
-            <div className="space-y-4">
+            <div className={styles.deliverablesBody}>
               {deliverables.map((item, idx) => (
-                <div key={idx} className="p-4 sm:p-5 bg-zinc-50/70 border border-zinc-200/90 rounded-2xl space-y-3">
+                <div key={idx} className={styles.deliverableItem}>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-zinc-600 uppercase tracking-wide">
-                      Deliverable Item #{idx + 1}
+                      Deliverable {idx + 1}
                     </span>
                     {deliverables.length > 1 && (
                       <button
@@ -843,7 +795,7 @@ function InstantContractForm() {
 
                   <div className="space-y-3">
                     {/* Row 1: Format, Quantity, Stay Published */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className={styles.deliverableFields}>
                       <ModernSelect
                         label="Format"
                         value={item.type}
@@ -860,8 +812,9 @@ function InstantContractForm() {
                       />
 
                       <div className="flex flex-col text-left gap-1">
-                        <label className="text-xs font-semibold text-zinc-700">Quantity</label>
+                        <label htmlFor={`deliverable-quantity-${idx}`} className="text-xs font-semibold text-zinc-700">Quantity</label>
                         <input
+                          id={`deliverable-quantity-${idx}`}
                           type="number"
                           min="1"
                           value={item.quantity}
@@ -889,25 +842,28 @@ function InstantContractForm() {
                     {/* Row 2: Notes / Instructions with Suggestion Chips */}
                     <div className="w-full pt-1 space-y-2">
                       <AutocompleteInput
-                        label="Technical Notes / Production Specifications"
-                        placeholder="e.g. 4K 60fps video with product unboxing in first 5s"
+                        label="Content instructions"
+                        id={`deliverable-notes-${idx}`}
+                        multiline
+                        rows={2}
+                        placeholder="Describe the content, key messages, and production requirements."
                         value={item.notes}
                         onChange={(val) => handleDeliverableChange(idx, "notes", val)}
                         suggestions={getDeliverableNoteSuggestions(item.type)}
                       />
 
-                      <div className="flex flex-wrap gap-1.5 pt-1">
+                      <div className={styles.suggestions}><span className={styles.suggestionsLabel}>Suggested instructions</span><div className={styles.suggestionButtons}>
                         {getDeliverableNoteSuggestions(item.type).slice(0, 3).map((sugg, sIdx) => (
                           <button
                             key={sIdx}
                             type="button"
                             onClick={() => handleDeliverableChange(idx, "notes", sugg)}
-                            className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors cursor-pointer"
+                            className={styles.suggestionButton}
                           >
                             + {sugg}
                           </button>
                         ))}
-                      </div>
+                      </div></div>
                     </div>
                   </div>
                 </div>
@@ -916,29 +872,35 @@ function InstantContractForm() {
               <button
                 type="button"
                 onClick={handleAddDeliverable}
-                className="w-full py-3 rounded-2xl border border-dashed border-zinc-300 hover:border-zinc-800 bg-white hover:bg-zinc-50 text-zinc-900 font-semibold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
+                className={styles.addDeliverable}
               >
                 <Plus className="w-4 h-4 text-zinc-600" />
-                <span>Add Deliverable Asset</span>
+                <span>Add another deliverable</span>
               </button>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <details className={styles.sharedRequirements}><summary className={styles.requirementsToggle}>Tags &amp; ownership details <ChevronDown size={16} /></summary><div className={styles.sharedRequirementsHeading}><p>These apply across all deliverables. Review the ownership terms before continuing.</p></div><div className={styles.sharedRequirementFields}>
                 <AutocompleteInput
-                  label="Tagging &amp; Collaboration Guidelines"
-                  placeholder="e.g. Must tag @brand, use #ad #collab, add collab author tag"
+                  label="Tags & collaboration requirements"
+                  id="campaign-tagging"
+                  multiline
+                  rows={2}
+                  placeholder="Add account tags, disclosure hashtags, or collaboration requirements."
                   value={taggingRequirements}
                   onChange={(val) => setTaggingRequirements(val)}
                   suggestions={TAGGING_REQUIREMENTS_SUGGESTIONS}
                 />
 
                 <AutocompleteInput
-                  label="Content IP Copyright Clause"
+                  label="Copyright & ownership terms"
+                  id="campaign-ownership"
+                  multiline
+                  rows={2}
                   placeholder="e.g. Creator retains copyright; brand receives 1-year commercial digital license"
                   value={contentOwnership}
                   onChange={(val) => setContentOwnership(val)}
                   suggestions={IP_OWNERSHIP_SUGGESTIONS}
                 />
-              </div>
+              </div></details>
             </div>
           </div>
 
@@ -949,17 +911,17 @@ function InstantContractForm() {
           >
             <div className="border-b border-zinc-100 pb-3">
               <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                Section 2
+                03 / Content permissions
               </span>
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
-                <Share2 className="w-4 h-4 text-zinc-600" />
-                <span>Distribution Channels &amp; Commercial Licensing</span>
+                <span>How can the content be used?</span>
               </h2>
+              <SectionIntroduction description="Choose the permitted platforms, types of use, and the length of the permission. Keep these consistent with the ownership terms above." />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-2">Permitted Platforms</label>
+                <label className="text-xs font-semibold text-zinc-700 block mb-2">Where can the content appear?</label>
                 <div className="flex flex-wrap gap-2">
                   {PLATFORM_OPTIONS.map((p) => {
                     const isSelected = platformsAllowed.includes(p.id);
@@ -983,7 +945,7 @@ function InstantContractForm() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-2">Commercial Scope</label>
+                <label className="text-xs font-semibold text-zinc-700 block mb-2">Permitted uses</label>
                 <div className="flex flex-wrap gap-2">
                   {USAGE_TYPE_OPTIONS.map((u) => {
                     const isSelected = usageType.includes(u.id);
@@ -1008,7 +970,7 @@ function InstantContractForm() {
             </div>
 
             <ModernSelect
-              label="License Duration"
+              label="Usage duration"
               value={usageRightsDuration}
               onChange={(val) => setUsageRightsDuration(val)}
               options={[
@@ -1028,83 +990,39 @@ function InstantContractForm() {
           >
             <div className="border-b border-zinc-100 pb-3">
               <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                Section 3
+                04 / Fees & dates
               </span>
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-zinc-600" />
-                <span>Financial Consideration &amp; Payment Schedule</span>
+                <span>How and when will payment happen?</span>
               </h2>
+              <SectionIntroduction description="Record the total fee, any advance payment, and the due dates. Add the payment details requested for your role." />
             </div>
 
-            {/* Currency & Tax Notice Box */}
-            <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl flex items-start gap-2.5 text-xs text-blue-900">
-              <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-              <div className="leading-relaxed">
-                <strong>Tax &amp; Currency Note:</strong> Valuation currency is auto-bound to{" "}
-                <span className="font-mono font-semibold text-blue-950">
-                  {currency} ({CURRENCY_MAP[currency]?.symbol || "$"})
-                </span>{" "}
-                pursuant to {jur.countryName} jurisdiction. All figures are inclusive of statutory taxes.
+            <p className={styles.paymentNote}>Currency: {currency} ({CURRENCY_MAP[currency]?.symbol || "$"}) · Amounts include taxes.</p>
+            <div className={styles.paymentGrid}>
+              <div className={styles.paymentField}>
+                <label htmlFor="agreement-fee">Total agreed fee ({currency}) *</label>
+                <input id="agreement-fee" type="number" required placeholder="e.g. 100000" value={totalAmount} onChange={(e) => setTotalAmount(e.target.value)} className="input-field font-mono font-medium text-zinc-900" />
+              </div>
+              <div className={styles.paymentField}>
+                <label htmlFor="agreement-advance">Advance payment ({currency}, optional)</label>
+                <input id="agreement-advance" type="number" placeholder="e.g. 50000" value={advancePayment} onChange={(e) => setAdvancePayment(e.target.value)} className="input-field font-mono" />
+              </div>
+              <div className={styles.paymentField}>
+                <label htmlFor="agreement-balance-date">Balance due date *</label>
+                <input id="agreement-balance-date" type="date" required value={remainingPaymentDate} onChange={(e) => setRemainingPaymentDate(e.target.value)} className="input-field text-xs font-mono" />
+              </div>
+              <div className={styles.paymentField}>
+                <label htmlFor="agreement-advance-date">Advance due date {advancePayment && Number(advancePayment) > 0 ? "*" : ""}</label>
+                <input id="agreement-advance-date" type="date" required={Boolean(advancePayment && Number(advancePayment) > 0)} value={advancePaymentDate} onChange={(e) => setAdvancePaymentDate(e.target.value)} className="input-field text-xs font-mono" />
               </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-semibold text-zinc-700">
-                  Total Valuation Amount ({currency}) *
-                </label>
-                <input
-                  type="number"
-                  required
-                  placeholder="e.g. 100000"
-                  value={totalAmount}
-                  onChange={(e) => setTotalAmount(e.target.value)}
-                  className="input-field font-mono font-medium text-zinc-900"
-                />
-              </div>
-
-              <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-semibold text-zinc-700">Advance Deposit (Optional)</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 50000"
-                  value={advancePayment}
-                  onChange={(e) => setAdvancePayment(e.target.value)}
-                  className="input-field font-mono"
-                />
-              </div>
-
-              <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-semibold text-zinc-700">
-                  Advance Payment Date {advancePayment && Number(advancePayment) > 0 ? "*" : ""}
-                </label>
-                <input
-                  type="date"
-                  required={Boolean(advancePayment && Number(advancePayment) > 0)}
-                  value={advancePaymentDate}
-                  onChange={(e) => setAdvancePaymentDate(e.target.value)}
-                  className="input-field text-xs font-mono"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-              <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-semibold text-zinc-700">Remaining Settlement Date *</label>
-                <input
-                  type="date"
-                  required
-                  value={remainingPaymentDate}
-                  onChange={(e) => setRemainingPaymentDate(e.target.value)}
-                  className="input-field text-xs font-mono"
-                />
-              </div>
-
+            <div className={styles.paymentGrid}>
               {/* JURISDICTION & PAYEE SENSITIVE PAYMENT ROUTING */}
               {isInitiatorPayee ? (
                 <>
                   <ModernSelect
-                    label="Receiving Payment Channel *"
+                    label="How will you receive payment? *"
                     value={paymentMethod}
                     onChange={(val) => setPaymentMethod(val)}
                     options={(jur.allowedPaymentMethods || ["BANK_IBAN", "WIRE_TRANSFER", "PAYPAL"]).map((m) => {
@@ -1170,14 +1088,9 @@ function InstantContractForm() {
                   )}
                 </>
               ) : (
-                <div className="sm:col-span-2 p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl text-left flex items-center">
-                  <p className="text-xs text-blue-900 font-medium flex items-center gap-2">
-                    <Info className="w-4 h-4 text-blue-600 shrink-0" />
-                    <span>
-                      Receiving Payout Account will be collected directly from the receiving counterparty ({contractType.endsWith("_CREATOR") ? "Creator" : "Agency"}) on their signing link.
-                    </span>
-                  </p>
-                </div>
+                <p className={styles.payoutNote}>
+                  The receiving {contractType.endsWith("_CREATOR") ? "creator" : "agency"} will provide their payout account through their signing link.
+                </p>
               )}
             </div>
           </div>
@@ -1189,17 +1102,17 @@ function InstantContractForm() {
           >
             <div className="border-b border-zinc-100 pb-3">
               <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                Section 4
+                05 / Timing & logistics
               </span>
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
-                <Clock className="w-4 h-4 text-zinc-600" />
-                <span>Delivery Timelines &amp; Product Loan Conditions</span>
+                <span>Delivery, revisions & products</span>
               </h2>
+              <SectionIntroduction description="Set delivery and revision timelines. If a product is involved, record its shipping details and any return requirements." />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-semibold text-zinc-700">Delivery Timeframe (Days) *</label>
+                <label className="text-xs font-semibold text-zinc-700">Delivery timeframe (days) *</label>
                 <input
                   type="number"
                   required
@@ -1222,7 +1135,7 @@ function InstantContractForm() {
               />
 
               <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-semibold text-zinc-700">Revision Turnaround (Days)</label>
+                <label className="text-xs font-semibold text-zinc-700">Days per revision round</label>
                 <input
                   type="number"
                   min="1"
@@ -1236,7 +1149,7 @@ function InstantContractForm() {
             {/* Product Provisioning & Logistics Card */}
             <div className="p-4 sm:p-5 bg-zinc-50/70 border border-zinc-200/90 rounded-2xl space-y-3 mt-2">
               <span className="text-xs font-semibold text-zinc-800 uppercase tracking-wide block">
-                Product Logistics &amp; Provisioning
+                Product details & shipping
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1252,7 +1165,7 @@ function InstantContractForm() {
                 </div>
 
                 <ModernSelect
-                  label="Provision Standard"
+                  label="Is the product a gift or a loan?"
                   value={collabProductProvisionType}
                   onChange={(val) => setCollabProductProvisionType(val)}
                   options={[
@@ -1340,17 +1253,17 @@ function InstantContractForm() {
           >
             <div className="border-b border-zinc-100 pb-3">
               <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                Section 5
+                06 / Additional terms
               </span>
               <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
-                <Scale className="w-4 h-4 text-zinc-600" />
-                <span>Safeguards, Exclusivity &amp; Confidentiality</span>
+                <span>Additional terms & responsibilities</span>
               </h2>
+              <SectionIntroduction description="Review the percentages and optional clauses carefully. Agree these responsibilities with the other party before signing." />
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <ModernSelect
-                label="Late Pay (%/day)"
+                label="Late payment (% per day)"
                 value={latePaymentPenaltyPct}
                 onChange={(val) => setLatePaymentPenaltyPct(val)}
                 options={[
@@ -1361,7 +1274,7 @@ function InstantContractForm() {
                 ]}
               />
               <ModernSelect
-                label="Late Content (%/day)"
+                label="Late delivery (% per day)"
                 value={lateContentPenaltyPct}
                 onChange={(val) => setLateContentPenaltyPct(val)}
                 options={[
@@ -1372,7 +1285,7 @@ function InstantContractForm() {
                 ]}
               />
               <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-semibold text-zinc-700">Max Penalty Cap (%)</label>
+                <label className="text-xs font-semibold text-zinc-700">Maximum penalty cap (%)</label>
                 <input
                   type="number"
                   value={penaltyCapPct}
@@ -1381,7 +1294,7 @@ function InstantContractForm() {
                 />
               </div>
               <div className="flex flex-col text-left gap-1">
-                <label className="text-xs font-semibold text-zinc-700">Unauth Ad Usage (%)</label>
+                <label className="text-xs font-semibold text-zinc-700">Unauthorized ad use (%)</label>
                 <input
                   type="number"
                   value={unauthorizedUsagePenaltyPct}
@@ -1484,17 +1397,17 @@ function InstantContractForm() {
             <div className="border-b border-zinc-100 pb-3 flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                  Section 6
+                  07 / Details & signing
                 </span>
                 <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
-                  <PenLine className="w-4 h-4 text-zinc-600" />
-                  <span>Initiator Authentication &amp; Digital Signature</span>
+                  <span>Your details & signature</span>
                 </h2>
+              <SectionIntroduction description="Enter the details of the person signing and any business or creator details requested. Then add your signature and verify your email." />
               </div>
               {initiatorOtpVerified && (
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Verified &amp; Certified
+                  Email verified
                 </span>
               )}
             </div>
@@ -1570,13 +1483,13 @@ function InstantContractForm() {
                     <span className="w-2 h-2 rounded-full bg-emerald-500" />
                     {initiatorRole === "CREATOR" ? "Creator / Influencer" : initiatorRole === "BRAND" ? "Brand Representative" : "Agency Representative"}
                   </span>
-                  <span className="text-[10px] text-zinc-400 font-mono">Auto-bound</span>
+                  <span className="text-[10px] text-zinc-400 font-mono">Set by your selection</span>
                 </div>
               </div>
 
               <div className="sm:col-span-2">
                 <AutocompleteInput
-                  label="Your Job Title / Capacity *"
+                  label="Your job title or signing role *"
                   required
                   disabled={initiatorOtpVerified}
                   placeholder="e.g. Lead Content Creator"
@@ -1806,7 +1719,7 @@ function InstantContractForm() {
 
               {/* INITIATOR DIGITAL SIGNATURE STEP (BEFORE OTP) */}
               <div className="flex flex-col text-left gap-1.5 sm:col-span-2 pt-2">
-                <label className="text-xs font-semibold text-zinc-800">Your Digital Signature *</label>
+                <label className="text-xs font-semibold text-zinc-800">Your signature *</label>
                 {initiatorSignatureB64 ? (
                   <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex items-center justify-between gap-3 shadow-2xs">
                     <div className="flex items-center gap-3">
@@ -1816,7 +1729,7 @@ function InstantContractForm() {
                       <div className="flex flex-col">
                         <span className="text-xs font-semibold text-emerald-900 flex items-center gap-1.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>Digital Signature Captured &amp; Ready</span>
+                          <span>Signature added</span>
                         </span>
                         <span className="text-[10px] text-emerald-700 font-medium">
                           Embedded in E-Sign Vault &amp; dispatched in OTP Email
@@ -1841,7 +1754,7 @@ function InstantContractForm() {
                     className="w-full py-4 bg-blue-50/80 hover:bg-blue-100/90 border-2 border-dashed border-blue-300 hover:border-blue-400 text-blue-900 font-semibold text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer min-h-[44px]"
                   >
                     <PenLine className="w-4 h-4 text-blue-700" />
-                    <span>Click Here to Draw Your Digital Signature *</span>
+                    <span>Add your signature</span>
                   </button>
                 )}
               </div>
@@ -1853,7 +1766,7 @@ function InstantContractForm() {
                     <div className="flex flex-col text-left space-y-1">
                       <span className="text-xs font-semibold text-zinc-800 uppercase tracking-wider flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Verify Email Identity via OTP to Save Contract &amp; Generate Link
+                        Verify your email &amp; create a sharing link
                       </span>
                       <span className="text-xs text-zinc-600 font-normal">
                         {initiatorOtpDispatched
@@ -1992,6 +1905,32 @@ function InstantContractForm() {
           </div>
 
         </form>
+          </div>
+          <aside className={styles.summaryPanel}>
+            <details className={styles.agreementSummary} open={summaryOpen} onToggle={event => setSummaryOpen(event.currentTarget.open)}>
+              <summary><FileText size={18} /> Your agreement so far <ChevronDown size={16} /></summary>
+              <div className={styles.summaryBody}>
+                <span className={styles.draftBadge}>Draft summary</span>
+                <dl>
+                  <div><dt>Partnership</dt><dd>{WORKFLOW_OPTIONS.find(option => option.value === contractType)?.label}</dd></div>
+                  <div><dt>Governing country</dt><dd>{jur.countryName}</dd></div>
+                  <div><dt>Deliverables</dt><dd>{deliverables.map((item, index) => <span key={index}>{item.quantity} × {item.type.replaceAll('_', ' ')} · {item.duration}</span>)}</dd></div>
+                  <div><dt>Platforms</dt><dd>{platformsAllowed.map(id => PLATFORM_OPTIONS.find(option => option.id === id)?.label).join(', ') || 'None selected'}</dd></div>
+                  <div><dt>Permitted uses</dt><dd>{usageType.map(id => USAGE_TYPE_OPTIONS.find(option => option.id === id)?.label).join(', ') || 'None selected'}</dd></div>
+                  <div><dt>Usage duration</dt><dd>{usageRightsDuration}</dd></div>
+                  <div><dt>Agreed fee</dt><dd>{totalAmount ? `${currency} ${totalAmount}` : 'Not set yet'}</dd></div>
+                  <div><dt>Delivery</dt><dd>{deliveryTimeframeDays} days · {revisionRounds} revision round(s)</dd></div>
+                </dl>
+                <p>Includes preset values. Review the full terms before signing.</p>
+                <button type="button" onClick={() => scrollToSection('sec-execution')}>Go to signing <ArrowRight size={15} /></button>
+              </div>
+            </details>
+            <nav className={styles.documentNav} aria-label="Agreement sections">
+              <p>In this agreement</p>
+              {CONTRACT_SECTIONS.map(section => <button key={section.id} type="button" onClick={() => scrollToSection(section.id)}>{section.label}</button>)}
+            </nav>
+          </aside>
+        </div>
       </main>
 
       {/* Signature Pad Modal for Initiator */}
@@ -2012,27 +1951,16 @@ function InstantContractForm() {
   );
 }
 
+function SectionIntroduction({description}:{description:string}) {
+  return <div className={styles.intro}><p>{description}</p></div>;
+}
+
 const INSTANT_FAQS = [
-  {
-    q: "Which platform offers automated influencer contract generation and e-signatures?",
-    a: "SignCollab offers an automated influencer contract generation and bilateral e-signature platform that requires no account registration. Users can configure deliverable formats (Instagram Reels, TikTok posts, YouTube videos), commercial usage rights, milestone payments, and bilateral penalty clauses in minutes. Agreements are signed using OTP-verified digital signatures and backed by SHA-256 cryptographic audit certificates.",
-  },
-  {
-    q: "Which platform supports influencer contract templates and e-signatures?",
-    a: "SignCollab provides pre-built commercial influencer contract templates tailored for creator-brand collaborations with integrated bilateral e-signatures. Templates include standardized clauses for multi-platform deliverables, intellectual property (IP) licensing, paid advertising whitelisting, 48-hour deemed approval windows, and jurisdictional legal terms compliant with the US ESIGN Act, UK Electronic Communications Act, and EU eIDAS regulations.",
-  },
-  {
-    q: "Which platform offers transparent pricing and contract terms?",
-    a: "SignCollab provides transparent pricing with a free guest tier offering 2 instant bilateral contracts per day with zero platform commissions or hidden transaction fees. Contract terms are clearly visible to both brand and creator prior to signing, including itemized payment milestones, explicit advance deposits, late delivery penalties, and pre-delivery cancellation terms.",
-  },
-  {
-    q: "Can brands and creators generate legally binding contracts without creating an account?",
-    a: "Yes. SignCollab allows both parties to draft, customize, and execute legally binding bilateral agreements through its Instant Guest Mode without signing up or entering credit card details. Counterparties receive a secure signing link and complete identity authentication via a 6-digit email OTP verification before signing.",
-  },
-  {
-    q: "Are instant contracts generated on SignCollab legally binding?",
-    a: "Yes. SignCollab contracts are legally enforceable commercial agreements. Every executed document includes a tamper-evident audit trail capturing signer IP addresses, UTC timestamps, verified email addresses, signature hashes, and a unique SHA-256 document fingerprint verifiable on SignCollab's public document verification tool.",
-  },
+  {q:"Do I need an account?",a:"You can create an instant agreement without signing up. Guest use allows two contracts per email address in a 24-hour period."},
+  {q:"Who can use this agreement builder?",a:"Creators, brands, and agencies can choose the relationship that matches their deal. The form then shows the identity and payment details needed for that relationship."},
+  {q:"Does this form collect or hold payment?",a:"No. It records the agreed fee, payment schedule, and payment details in the agreement. Entering these details does not transfer funds or create an escrow deposit."},
+  {q:"What happens after I sign and verify my email?",a:"Once the agreement is created, you receive a sharing link for the other party. They use that link to review the agreement and complete their signing steps."},
+  {q:"How can I check a document later?",a:"Use SignCollab’s document verification tool to look up the document reference or compare the PDF’s SHA-256 fingerprint with the stored record."},
 ];
 
 function InstantContractFaqSection() {
@@ -2043,18 +1971,18 @@ function InstantContractFaqSection() {
   };
 
   return (
-    <section className="w-full border-t border-zinc-200/80 bg-[#f9fafb] py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <section className={styles.faq}>
+      <div className={`${styles.faqInner} space-y-8`}>
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-900 text-white rounded-full text-xs font-bold shadow-2xs">
             <HelpCircle className="w-3.5 h-3.5 text-zinc-300" />
             <span>Frequently Asked Questions</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 font-display">
-            Automated Creator Contracts, E-Signatures &amp; Commercial Terms
+            Before you sign.
           </h2>
           <p className="text-sm text-zinc-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            Everything brands, creators, and agencies need to know about generating legally binding bilateral agreements without account registration.
+            A few useful answers about creating and sharing your agreement.
           </p>
         </div>
 
