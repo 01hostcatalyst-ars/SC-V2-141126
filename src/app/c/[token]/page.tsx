@@ -4,7 +4,8 @@ import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { getCompanyConfig } from "@/lib/config";
 import { useToast } from "@/components/ui/Toast";
-import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
+import { InlineSignature } from "@/app/instant/InlineSignature";
+import styles from "./SigningPage.module.css";
 import { formatLegalDate, formatUsageLicenseText, formatDeliverableTypeName } from "@/lib/utils";
 import { getJurisdiction } from "@/lib/config/jurisdictions";
 import { formatCurrencyAmount } from "@/lib/currency";
@@ -21,7 +22,6 @@ import {
   Check,
   RotateCcw,
   Lock,
-  PenLine,
   ArrowRight,
   Clock,
   Layers,
@@ -61,7 +61,6 @@ export default function PublicSigningPage({ params }: PageProps) {
   const [contract, setContract] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
-  const [isSignModalOpen, setIsSignModalOpen] = useState(false);
 
   const jur = getJurisdiction(contract?.jurisdictionCountryCode || "US");
   const currCode = contract?.currency || jur.defaultCurrency || "USD";
@@ -184,12 +183,11 @@ export default function PublicSigningPage({ params }: PageProps) {
     (!isRespondentPayee || (isBankOrService ? bankAccountIban.trim() : mobileWalletNumber.trim()))
   );
 
-  // Save drawn signature from modal FIRST
+  // Stage the confirmed signature before email verification.
   const handleSaveSignature = (signatureB64: string, fingerprint: string) => {
     setStagedSignatureB64(signatureB64);
     setStagedFingerprint(fingerprint);
-    setIsSignModalOpen(false);
-    showToast("Digital signature recorded! Now request OTP below to authorize & execute.", "success");
+    showToast("Signature confirmed.", "success");
   };
 
   const handleSendOTP = async () => {
@@ -353,10 +351,7 @@ export default function PublicSigningPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-theme-gradient flex flex-col justify-between font-sans antialiased text-left relative overflow-hidden selection:bg-zinc-950 selection:text-white">
-      {/* Directional Ambient Spotlight matching Home Page & Instant Studio */}
-      <div className="absolute top-0 inset-x-0 h-[480px] ambient-spotlight-emerald pointer-events-none z-0" />
-
+    <div className="min-h-screen bg-zinc-50 flex flex-col font-sans text-left">
       {/* Universal Suite Header */}
       <SuiteHeader
         activeRoute="/c"
@@ -368,7 +363,7 @@ export default function PublicSigningPage({ params }: PageProps) {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 md:p-8 space-y-6 z-10">
+      <main className={styles.page}>
         
         {/* Banner Welcome */}
         {isExecuted ? (
@@ -377,11 +372,11 @@ export default function PublicSigningPage({ params }: PageProps) {
               <div className="space-y-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white uppercase tracking-wider w-fit shadow-xs">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Bilaterally Executed &amp; Activated</span>
+                  <span>Agreement signed</span>
                 </span>
 
                 <h1 className="text-2xl sm:text-3xl font-semibold text-emerald-950 tracking-tight font-display">
-                  Campaign Agreement Executed &amp; Locked
+                  Your signed agreement
                 </h1>
 
                 <p className="text-xs sm:text-sm text-emerald-900/90 leading-relaxed max-w-xl font-normal">
@@ -415,43 +410,30 @@ export default function PublicSigningPage({ params }: PageProps) {
           <div className="space-y-2 text-left">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-900 uppercase tracking-wider w-fit">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-              <span>Mutual Legal Agreement Execution ({jur.lawAbbreviation})</span>
+              <span>Awaiting your signature · {jur.lawAbbreviation}</span>
             </span>
 
             <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tight font-display">
-              Review &amp; Sign Collaboration Agreement
+              Review and sign your agreement
             </h1>
 
             <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-2xl font-normal">
-              Agreement requested by <strong className="text-zinc-950 font-semibold">{(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.companyName || (contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.name || (contract as any).initiatorCompanyName || contract.initiator?.name}</strong> ({(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.email || contract.initiator?.email}). Complete the verification below, review all campaign terms, and execute your digital signature.
+              Agreement requested by <strong className="text-zinc-950 font-semibold">{(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.companyName || (contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.name || (contract as any).initiatorCompanyName || contract.initiator?.name}</strong> ({(contract as any).parties?.find((p: any) => p.partyType === "INITIATOR")?.email || contract.initiator?.email}). Review the terms, complete your details, and verify your email to sign.
             </p>
           </div>
         )}
 
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+        <div className={styles.layout}>
+        <form onSubmit={(e) => e.preventDefault()} className={styles.document}>
           
           {/* SECTION 1: REVIEW CAMPAIGN TERMS */}
-          <div className="space-y-5">
+          <div className={styles.terms}>
             
-            {/* Header Section Title */}
-            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card text-left">
-              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                Verification Review
-              </span>
-              <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
-                <FileText className="w-4 h-4 text-zinc-600" />
-                <span>1. Campaign &amp; Legal Terms</span>
-              </h2>
-              <p className="text-xs text-zinc-500 font-normal mt-1 leading-relaxed">
-                Please review all campaign parameters below. If terms match your negotiated values, complete your profile details and execute your digital signature in Section 2 below.
-              </p>
-            </div>
-
             {/* CARD A: Campaign & Parties Overview */}
-            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
-              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                Campaign &amp; Parties Overview
-              </span>
+            <div id="parties" className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+              <h2>
+                Campaign &amp; parties
+              </h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="space-y-1">
@@ -477,10 +459,10 @@ export default function PublicSigningPage({ params }: PageProps) {
             </div>
 
             {/* CARD B: Financial Compensation & Payout Terms */}
-            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
-              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                Financial Compensation &amp; Payout Terms
-              </span>
+            <div id="fees" className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+              <h2>
+                Fees &amp; payment
+              </h2>
               
               <div className="space-y-2.5">
                 {/* Row 1: Total Valuation */}
@@ -536,10 +518,10 @@ export default function PublicSigningPage({ params }: PageProps) {
             </div>
 
             {/* CARD C: Campaign Deliverables, Platforms & Usage Scope */}
-            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-5 text-left">
-              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                Deliverables &amp; Licensing Scope
-              </span>
+            <div id="deliverables" className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-5 text-left">
+              <h2>
+                Deliverables &amp; usage
+              </h2>
               
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
@@ -554,10 +536,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                   <tbody className="divide-y divide-zinc-100">
                     {contract.deliverables?.map((d: any) => (
                       <tr key={d.id} className="text-zinc-900">
-                        <td className="py-3 px-3 font-semibold text-xs sm:text-sm">{formatDeliverableTypeName(d.type)}</td>
-                        <td className="py-3 px-3 font-mono font-semibold text-center text-xs sm:text-sm">{d.quantity}</td>
-                        <td className="py-3 px-3 text-zinc-600 font-medium text-center">{d.duration || "Permanent"}</td>
-                        <td className="py-3 px-3 text-zinc-600 max-w-xs">{d.notes || "Standard specifications"}</td>
+                        <td data-label="Format" className="py-3 px-3 font-semibold text-xs sm:text-sm">{formatDeliverableTypeName(d.type)}</td>
+                        <td data-label="Quantity" className="py-3 px-3 font-mono font-semibold text-center text-xs sm:text-sm">{d.quantity}</td>
+                        <td data-label="Stay published" className="py-3 px-3 text-zinc-600 font-medium text-center">{d.duration || "Permanent"}</td>
+                        <td data-label="Content instructions" className="py-3 px-3 text-zinc-600 max-w-xs">{d.notes || "Standard specifications"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -587,10 +569,10 @@ export default function PublicSigningPage({ params }: PageProps) {
             </div>
 
             {/* CARD D: Delivery Timeline & Pre-Approval Protocol */}
-            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
-              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+            <div id="timing" className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+              <h2>
                 Production Timelines &amp; Review Conditions
-              </span>
+              </h2>
               
               <div className="space-y-2.5 text-xs">
                 <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -687,10 +669,10 @@ export default function PublicSigningPage({ params }: PageProps) {
             )}
 
             {/* CARD G: Bilateral Safeguard Penalties */}
-            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
-              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+            <div id="safeguards" className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
+              <h2>
                 Bilateral Safeguard Penalties &amp; Caps
-              </span>
+              </h2>
               
               <div className="space-y-2.5 text-xs">
                 <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -775,18 +757,17 @@ export default function PublicSigningPage({ params }: PageProps) {
               </div>
             </div>
           ) : (
-            <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-6 text-left">
+            <div id="your-details" className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-6 text-left">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-100 pb-3 gap-2">
                 <div>
                   <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
-                    Party 2 Execution
+                    Your details
                   </span>
                   <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
-                    <PenLine className="w-4 h-4 text-zinc-600" />
-                    <span>2. Counterparty Identity Intake &amp; Digital Signature</span>
+                    <span>Confirm who is signing</span>
                   </h2>
                   <p className="text-xs text-zinc-500 font-normal mt-1">
-                    Complete your profile details, verify your email identity via OTP, and execute your digital signature.
+                    Fields marked * are required.
                   </p>
                 </div>
                 {otpVerified && (
@@ -1131,49 +1112,12 @@ export default function PublicSigningPage({ params }: PageProps) {
                   </div>
                 )}
 
-                {/* STEP 1: DRAW DIGITAL SIGNATURE FIRST */}
-                <div className="sm:col-span-2 p-5 rounded-2xl border border-zinc-200 bg-zinc-50/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex flex-col text-left space-y-1">
-                    <span className="text-xs font-semibold text-zinc-800 uppercase tracking-wide">
-                      Step 1: Digital Signature
-                    </span>
-                    <span className="text-xs text-zinc-500 font-normal">
-                      {stagedSignatureB64
-                        ? "Digital signature recorded! Now request OTP below to authorize & execute."
-                        : isFormValid
-                        ? "Complete all required fields above to enable Signature Pad."
-                        : "Fill all required profile fields above to enable Signature Pad."}
-                    </span>
-                  </div>
-
-                  {stagedSignatureB64 ? (
-                    <div className="flex items-center gap-3">
-                      <div className="bg-white border border-zinc-200 rounded-xl p-2 flex items-center gap-2 shadow-2xs">
-                        <img src={stagedSignatureB64} alt="Signature Preview" className="h-9 max-w-[140px] object-contain" />
-                        <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md uppercase">Drawn</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsSignModalOpen(true)}
-                        className="text-xs text-blue-700 hover:text-blue-900 font-semibold underline cursor-pointer"
-                      >
-                        Redraw
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setIsSignModalOpen(true)}
-                      disabled={!isFormValid}
-                      className={`font-semibold px-6 py-2.5 rounded-xl text-xs uppercase transition-all whitespace-nowrap min-h-[40px] ${
-                        isFormValid
-                          ? "bg-zinc-950 text-white hover:bg-zinc-900 shadow-sm cursor-pointer"
-                          : "bg-zinc-200 text-zinc-400 border border-zinc-300 cursor-not-allowed"
-                      }`}
-                    >
-                      Draw Signature
-                    </button>
-                  )}
+                <div id="signing" className="sm:col-span-2">
+                  <h2 className={styles.signatureHeading}>Your signature</h2>
+                  {!isFormValid && <p className={styles.hint}>Complete the required details above before confirming your signature.</p>}
+                  <InlineSignature key={jur.countryCode} countryCode={contract?.jurisdictionCountryCode || "US"}
+                    value={stagedSignatureB64} locked={!isFormValid || otpVerified} loading={signing || otpLoading}
+                    onConfirm={handleSaveSignature} onEdit={() => { setStagedSignatureB64(""); setStagedFingerprint(""); }} />
                 </div>
 
                 {/* STEP 2: EMAIL OTP IDENTITY AUTHORIZATION & FINAL EXECUTION */}
@@ -1181,14 +1125,14 @@ export default function PublicSigningPage({ params }: PageProps) {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex flex-col text-left space-y-1">
                       <span className="text-xs font-semibold text-zinc-800 uppercase tracking-wide">
-                        Step 2: Email OTP Identity Authorization
+                        Verify your email & sign
                       </span>
                       <span className="text-xs text-zinc-500 font-normal">
                         {!isFormValid || !stagedSignatureB64
-                          ? "OTP inactive until complete information and digital signature are done above."
+                          ? "Complete your details and confirm your signature to request a verification code."
                           : otpDispatched
-                          ? `Code dispatched to ${respondentEmail}. Enter code to verify & execute contract.`
-                          : `Click Send OTP to dispatch verification passcode to ${respondentEmail}.`}
+                          ? `Code sent to ${respondentEmail}. Enter it below to sign this agreement.`
+                          : `We will send a verification code to ${respondentEmail}.`}
                       </span>
                     </div>
 
@@ -1203,7 +1147,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                             : "bg-zinc-200 text-zinc-400 border border-zinc-300 cursor-not-allowed"
                         }`}
                       >
-                        {otpLoading ? "Sending..." : "Send OTP"}
+                        {otpLoading ? "Sending..." : "Send verification code"}
                       </button>
                     )}
                   </div>
@@ -1213,7 +1157,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                       <input
                         type="text"
                         maxLength={6}
-                        placeholder="123456"
+                        placeholder="6-digit code"
+                        aria-label="Email verification code"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
                         value={otpCode}
                         onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                         className="w-full sm:w-36 px-3 py-2 bg-white border-2 border-emerald-500 rounded-xl text-center font-mono font-semibold tracking-[0.2em] text-base text-zinc-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-600 placeholder:text-zinc-300 min-h-[44px]"
@@ -1221,10 +1168,10 @@ export default function PublicSigningPage({ params }: PageProps) {
                       <button
                         type="button"
                         onClick={handleVerifyAndExecuteOTP}
-                        disabled={otpLoading || otpCode.length !== 6 || signing}
+                        disabled={!stagedSignatureB64 || otpLoading || otpCode.length !== 6 || signing}
                         className="w-full sm:w-auto bg-zinc-950 hover:bg-zinc-900 text-white font-semibold px-7 py-2.5 rounded-xl text-xs uppercase shadow-sm transition-all whitespace-nowrap cursor-pointer disabled:opacity-50 min-h-[44px]"
                       >
-                        {signing ? "Processing Signature..." : otpLoading ? "Verifying..." : "Verify OTP & Execute Contract"}
+                        {signing ? "Processing Signature..." : otpLoading ? "Verifying..." : "Verify & sign agreement"}
                       </button>
                     </div>
                   )}
@@ -1235,19 +1182,24 @@ export default function PublicSigningPage({ params }: PageProps) {
           )}
 
         </form>
+        <aside className={styles.sidebar} aria-label="Agreement navigation">
+          <span className={styles.eyebrow}>Your agreement</span>
+          <strong>{contract.campaignName || "Creator partnership"}</strong>
+          <span className={styles.hint}>Reference {contract.contractNumber}</span>
+          <nav>
+            <a href="#parties">Parties</a><a href="#fees">Fees & payment</a>
+            <a href="#deliverables">Deliverables & usage</a><a href="#timing">Timeline & approvals</a>
+            <a href="#safeguards">Safeguards</a>
+            {!isExecuted && <a href="#your-details">Your details</a>}
+          </nav>
+          {!isExecuted ? <a className={styles.signLink} href="#signing">Go to signing →</a> : <span className={styles.complete}>Agreement signed</span>}
+        </aside>
+        </div>
       </main>
 
       {/* Modern Public Footer */}
       <PublicFooter />
 
-      {/* Signature Modal */}
-      <SignaturePadModal
-        isOpen={isSignModalOpen}
-        onClose={() => setIsSignModalOpen(false)}
-        onConfirm={handleSaveSignature}
-        loading={signing}
-        countryCode={contract?.jurisdictionCountryCode || "US"}
-      />
 
     </div>
   );
