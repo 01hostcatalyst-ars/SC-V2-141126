@@ -32,7 +32,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { getCompanyConfig } from "@/lib/config";
-import { SignaturePadModal } from "@/components/ui/SignaturePadModal";
+import { InlineSignature } from "./InlineSignature";
 import { JURISDICTIONS, getJurisdiction } from "@/lib/config/jurisdictions";
 import { CURRENCY_MAP } from "@/lib/currency";
 import { ModernSelect } from "@/components/ui/ModernSelect";
@@ -362,7 +362,7 @@ function InstantContractForm() {
 
   // Submission state
   const [loading, setLoading] = useState(false);
-  const [isSignModalOpen, setIsSignModalOpen] = useState(false);
+  const [resendSeconds, setResendSeconds] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [createdResult, setCreatedResult] = useState<{
     shareUrl: string;
@@ -416,6 +416,25 @@ function InstantContractForm() {
     advancePayment, advancePaymentDate,
   ]);
 
+  useEffect(() => {
+    if (resendSeconds <= 0) return;
+    const timer = window.setTimeout(() => setResendSeconds(seconds => seconds - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendSeconds]);
+
+  // Consent applies to the selected governing country. Request it again if that changes.
+  useEffect(() => {
+    setInitiatorSignatureB64("");
+    setInitiatorFingerprint("");
+    setInitiatorOtpDispatched(false);
+    setInitiatorOtpCode("");
+  }, [jurisdictionCountryCode]);
+
+  useEffect(() => {
+    setInitiatorOtpDispatched(false);
+    setInitiatorOtpCode("");
+  }, [initiatorEmail]);
+
   // Helpers for deliverables & platforms
   const handleAddDeliverable = () => {
     setDeliverables([
@@ -453,11 +472,12 @@ function InstantContractForm() {
     }
   };
 
-  // Called when initiator completes signature canvas drawing in modal
+  // Apply the confirmed inline signature to the existing signing flow.
   const handleSaveSignature = (sigB64: string, fPrint: string) => {
     setInitiatorSignatureB64(sigB64);
     setInitiatorFingerprint(fPrint);
-    setIsSignModalOpen(false);
+    setInitiatorOtpDispatched(false);
+    setInitiatorOtpCode("");
   };
 
   // OTP Sending logic for Initiator (Party 1) - sends ALL initiator data + signature in email
@@ -506,6 +526,8 @@ function InstantContractForm() {
       const data = await res.json();
       if (res.ok && data.success) {
         setInitiatorOtpDispatched(true);
+        setResendSeconds(60);
+        setInitiatorOtpCode("");
       } else {
         setErrorMsg(data.error || "Failed to send verification code.");
         if (data.limitReached) {
@@ -1717,118 +1739,25 @@ function InstantContractForm() {
                 </p>
               </div>
 
-              {/* INITIATOR DIGITAL SIGNATURE STEP (BEFORE OTP) */}
-              <div className="flex flex-col text-left gap-1.5 sm:col-span-2 pt-2">
-                <label className="text-xs font-semibold text-zinc-800">Your signature *</label>
-                {initiatorSignatureB64 ? (
-                  <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex items-center justify-between gap-3 shadow-2xs">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-white p-2 rounded-xl border border-emerald-200 shadow-2xs shrink-0">
-                        <img src={initiatorSignatureB64} alt="Signature Preview" className="h-10 object-contain max-w-[150px]" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-emerald-900 flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>Signature added</span>
-                        </span>
-                        <span className="text-[10px] text-emerald-700 font-medium">
-                          Embedded in E-Sign Vault &amp; dispatched in OTP Email
-                        </span>
-                      </div>
-                    </div>
-                    {!initiatorOtpVerified && (
-                      <button
-                        type="button"
-                        onClick={() => setIsSignModalOpen(true)}
-                        className="text-xs font-semibold text-blue-700 hover:text-blue-900 px-3 py-1.5 bg-white border border-blue-200 rounded-xl shadow-2xs flex items-center gap-1 cursor-pointer min-h-[38px]"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Redraw</span>
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setIsSignModalOpen(true)}
-                    className="w-full py-4 bg-blue-50/80 hover:bg-blue-100/90 border-2 border-dashed border-blue-300 hover:border-blue-400 text-blue-900 font-semibold text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer min-h-[44px]"
-                  >
-                    <PenLine className="w-4 h-4 text-blue-700" />
-                    <span>Add your signature</span>
-                  </button>
-                )}
+              <div className="sm:col-span-2 pt-2">
+                <h3 className={styles.signingTitle}>Your signature *</h3>
+                <InlineSignature key={jurisdictionCountryCode} countryCode={jurisdictionCountryCode} value={initiatorSignatureB64} locked={initiatorOtpVerified} loading={initiatorOtpLoading || loading} onConfirm={handleSaveSignature} onEdit={() => { setInitiatorSignatureB64(""); setInitiatorFingerprint(""); setInitiatorOtpDispatched(false); setInitiatorOtpCode(""); }} />
               </div>
-
-              {/* OTP VERIFICATION ACTION BOX FOR PARTY 1 */}
-              <div className="sm:col-span-2 pt-2 text-left">
-                {!initiatorOtpVerified ? (
-                  <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50/60 to-zinc-50 border-2 border-emerald-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
-                    <div className="flex flex-col text-left space-y-1">
-                      <span className="text-xs font-semibold text-zinc-800 uppercase tracking-wider flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Verify your email &amp; create a sharing link
-                      </span>
-                      <span className="text-xs text-zinc-600 font-normal">
-                        {initiatorOtpDispatched
-                          ? `Code sent to ${initiatorEmail}. Enter 6-digit verification code below.`
-                          : "Draw your signature above and enter all required details, then click Send OTP."}
-                      </span>
+              <div className={`sm:col-span-2 ${styles.verificationPanel}`}>
+                {initiatorOtpVerified ? <p className={styles.verificationSuccess}><CheckCircle2 size={18} /> Email verified and contract saved. Your sharing link is below.</p> : <>
+                  <h3 className={styles.signingTitle}>Verify your email</h3>
+                  <p aria-live="polite">{initiatorOtpDispatched ? `Code sent to ${initiatorEmail}. Enter the 6-digit code below.` : initiatorEmail ? `We’ll send a verification code to ${initiatorEmail}.` : 'Enter your email address in your details above.'}</p>
+                  {!initiatorOtpDispatched ? <>
+                    <button type="button" onClick={handleSendInitiatorOtp} disabled={!initiatorEmail || !initiatorName || !initiatorPhone || !initiatorDesignation || !initiatorSignatureB64 || initiatorOtpLoading || emailLimitReached} className={styles.applySignature}>{initiatorOtpLoading ? 'Sending code…' : 'Send verification code'} <ArrowRight size={15} /></button>
+                    <p className={styles.verificationHint}>{emailLimitReached ? emailLimitMessage : !initiatorSignatureB64 ? 'Draw your signature and confirm your consent above to continue.' : !initiatorEmail || !initiatorName || !initiatorPhone || !initiatorDesignation ? 'Complete your name, email, phone, and job title above to continue.' : 'Review the agreement before verifying. Verification creates the contract and sharing link.'}</p>
+                  </> : <>
+                    <div className={styles.verificationActions}>
+                      <div><label htmlFor="signing-verification-code">6-digit verification code</label><input id="signing-verification-code" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000" value={initiatorOtpCode} onChange={(e) => setInitiatorOtpCode(e.target.value.replace(/\D/g, ""))} className="input-field" /></div>
+                      <button type="button" onClick={handleVerifyInitiatorOtp} disabled={initiatorOtpLoading || initiatorOtpCode.length !== 6} className={styles.applySignature}>{initiatorOtpLoading ? 'Verifying…' : 'Verify & create contract'}</button>
                     </div>
-
-                    {!initiatorOtpDispatched ? (
-                      <button
-                        type="button"
-                        onClick={handleSendInitiatorOtp}
-                        disabled={!initiatorEmail || !initiatorName || !initiatorPhone || !initiatorDesignation || !initiatorSignatureB64 || initiatorOtpLoading || emailLimitReached}
-                        className={`font-semibold px-6 py-3 rounded-xl text-xs uppercase transition-all whitespace-nowrap shrink-0 flex items-center gap-2 min-h-[44px] ${
-                          initiatorEmail && initiatorName && initiatorPhone && initiatorDesignation && initiatorSignatureB64 && !initiatorOtpLoading && !emailLimitReached
-                            ? "bg-zinc-950 text-white hover:bg-zinc-900 shadow-sm cursor-pointer"
-                            : "bg-zinc-200 text-zinc-400 border border-zinc-300 cursor-not-allowed"
-                        }`}
-                      >
-                        {emailLimitReached ? (
-                          "24h Limit Reached (Change Email)"
-                        ) : initiatorOtpLoading ? (
-                          "Sending OTP..."
-                        ) : (
-                          <>
-                            <span>Send OTP</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <div className="flex flex-wrap items-center gap-3 shrink-0 w-full sm:w-auto">
-                        <div className="flex flex-col text-left">
-                          <label className="text-[10px] font-semibold text-emerald-800 uppercase tracking-wider mb-1">
-                            6-Digit OTP
-                          </label>
-                          <input
-                            type="text"
-                            maxLength={6}
-                            placeholder="123456"
-                            value={initiatorOtpCode}
-                            onChange={(e) => setInitiatorOtpCode(e.target.value.replace(/\D/g, ""))}
-                            className="w-36 px-3 py-2 bg-white border-2 border-emerald-500 rounded-xl text-center font-mono font-semibold tracking-[0.2em] text-base text-zinc-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-600 placeholder:text-zinc-300 min-h-[44px]"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleVerifyInitiatorOtp}
-                          disabled={initiatorOtpLoading || !initiatorOtpCode}
-                          className="self-end bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-300 text-white font-semibold px-5 py-2.5 rounded-xl text-xs uppercase shadow-sm transition-all whitespace-nowrap min-h-[44px] cursor-pointer"
-                        >
-                          {initiatorOtpLoading ? "Verifying..." : "Verify OTP & Save Contract"}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Initiator identity verified &amp; contract saved! You may copy the sharing link below.</span>
-                  </div>
-                )}
+                    <button type="button" onClick={handleSendInitiatorOtp} disabled={resendSeconds > 0 || initiatorOtpLoading || emailLimitReached} className={styles.resendCode}>{resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : 'Resend code'}</button>
+                  </>}
+                </>}
               </div>
 
               {/* SHAREABLE CONTRACT LINK BOX DIRECTLY BELOW SIGNATURE & OTP */}
@@ -1932,15 +1861,6 @@ function InstantContractForm() {
           </aside>
         </div>
       </main>
-
-      {/* Signature Pad Modal for Initiator */}
-      <SignaturePadModal
-        isOpen={isSignModalOpen}
-        onClose={() => setIsSignModalOpen(false)}
-        onConfirm={handleSaveSignature}
-        loading={loading}
-        countryCode={jurisdictionCountryCode}
-      />
 
       {/* Frequently Asked Questions Section */}
       <InstantContractFaqSection />
