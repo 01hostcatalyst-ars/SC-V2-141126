@@ -356,7 +356,7 @@ export default function PublicSigningPage({ params }: PageProps) {
       <SuiteHeader
         activeRoute="/c"
         rightBadge={
-          <span className="font-mono text-xs font-semibold text-zinc-700 bg-zinc-100 border border-zinc-200 px-3 py-1 rounded-full uppercase">
+          <span className="text-xs font-semibold text-zinc-700 bg-zinc-100 border border-zinc-200 px-3 py-1 rounded-full uppercase">
             Ref: {contract.contractNumber}
           </span>
         }
@@ -375,7 +375,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   <span>Agreement signed</span>
                 </span>
 
-                <h1 className="text-2xl sm:text-3xl font-semibold text-emerald-950 tracking-tight font-display">
+                <h1 className="text-2xl sm:text-3xl font-semibold text-emerald-950 tracking-tight">
                   Your signed agreement
                 </h1>
 
@@ -413,7 +413,7 @@ export default function PublicSigningPage({ params }: PageProps) {
               <span>Awaiting your signature · {jur.lawAbbreviation}</span>
             </span>
 
-            <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tight font-display">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tight">
               Review and sign your agreement
             </h1>
 
@@ -468,7 +468,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                 {/* Row 1: Total Valuation */}
                 <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="text-xs font-medium text-zinc-600">Total Valuation</span>
-                  <span className="text-base font-semibold font-mono text-zinc-900">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
+                  <span className="text-base font-semibold text-zinc-900">{formatCurrencyAmount(contract.totalAmount, currCode)}</span>
                 </div>
 
                 {/* Row 2: Advance Payment */}
@@ -480,7 +480,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold font-mono text-zinc-900">
+                    <span className="text-sm font-semibold text-zinc-900">
                       {contract.advancePayment ? formatCurrencyAmount(contract.advancePayment, currCode) : "No Advance"}
                     </span>
                     {contract.advancePayment && (
@@ -503,7 +503,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                       <span className="text-xs text-zinc-500 block">Due: {formatLegalDate(contract.remainingPaymentDate, contract?.jurisdictionCountryCode)}</span>
                     )}
                   </div>
-                  <span className="text-sm font-semibold font-mono text-zinc-900">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
+                  <span className="text-sm font-semibold text-zinc-900">{formatCurrencyAmount(contract.remainingAmount || 0, currCode)}</span>
                 </div>
 
                 {/* Row 4: Route Method & Account */}
@@ -511,7 +511,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   <span className="text-xs font-medium text-zinc-600">Payment Channel</span>
                   <div className="text-left sm:text-right">
                     <span className="text-sm font-semibold text-zinc-900 uppercase block">{contract.paymentMethod ? contract.paymentMethod.replace(/_/g, " ") : "Not Specified"}</span>
-                    <span className="text-xs font-mono text-zinc-600 block">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
+                    <span className="text-xs text-zinc-600 block">{contract.paymentMethod === "BANK_IBAN" ? contract.bankAccountIban : contract.mobileWalletNumber}</span>
                   </div>
                 </div>
               </div>
@@ -537,7 +537,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     {contract.deliverables?.map((d: any) => (
                       <tr key={d.id} className="text-zinc-900">
                         <td data-label="Format" className="py-3 px-3 font-semibold text-xs sm:text-sm">{formatDeliverableTypeName(d.type)}</td>
-                        <td data-label="Quantity" className="py-3 px-3 font-mono font-semibold text-center text-xs sm:text-sm">{d.quantity}</td>
+                        <td data-label="Quantity" className="py-3 px-3 font-semibold text-center text-xs sm:text-sm">{d.quantity}</td>
                         <td data-label="Stay published" className="py-3 px-3 text-zinc-600 font-medium text-center">{d.duration || "Permanent"}</td>
                         <td data-label="Content instructions" className="py-3 px-3 text-zinc-600 max-w-xs">{d.notes || "Standard specifications"}</td>
                       </tr>
@@ -607,7 +607,7 @@ export default function PublicSigningPage({ params }: PageProps) {
             {/* CARD E: Confidentiality / Pre-Launch NDA (if required) */}
             {contract.confidentialityRequired && (
               <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block">
                   Confidentiality &amp; NDA
                 </span>
                 
@@ -625,7 +625,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                   {contract.earlyDisclosurePenalty && (
                     <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <span className="font-medium text-zinc-600">Early Leak Penalty</span>
-                      <span className="font-semibold font-mono text-rose-600 text-xs sm:text-sm">{formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}</span>
+                      <span className="font-semibold text-rose-600 text-xs sm:text-sm">{formatCurrencyAmount(contract.earlyDisclosurePenalty, currCode)}</span>
                     </div>
                   )}
                 </div>
@@ -635,7 +635,7 @@ export default function PublicSigningPage({ params }: PageProps) {
             {/* CARD F: Collaboration Product Shipment & Return Terms (if present) */}
             {contract.collabProduct && (
               <div className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-4 text-left">
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block">
                   Product Logistics &amp; Provisioning
                 </span>
                 
@@ -661,7 +661,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 space-y-1.5 leading-relaxed">
                       <div>Product Loan Return Window: Within <strong className="font-semibold">{contract.collabProductReturnDays || 7} days</strong> post-deliverable.</div>
                       <div>Return Shipping Paid By: <strong className="font-semibold">{contract.collabProductReturnShippingBy || "Brand"}</strong></div>
-                      {contract.collabProductNonReturnFee && <div>Loss / Non-Return Fee: <strong className="font-semibold font-mono">{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
+                      {contract.collabProductNonReturnFee && <div>Loss / Non-Return Fee: <strong className="font-semibold">{formatCurrencyAmount(contract.collabProductNonReturnFee, currCode)}</strong></div>}
                     </div>
                   )}
                 </div>
@@ -677,12 +677,12 @@ export default function PublicSigningPage({ params }: PageProps) {
               <div className="space-y-2.5 text-xs">
                 <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="font-medium text-zinc-600">Late Payment / Delivery</span>
-                  <span className="font-semibold font-mono text-zinc-900 text-xs sm:text-sm">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
+                  <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{Number(contract.latePaymentPenaltyPct)}% / {Number(contract.lateContentPenaltyPct)}% per day (Capped at {Number(contract.penaltyCapPct || 20)}%)</span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="font-medium text-zinc-600">Unauthorized Brand Ad Usage</span>
-                  <span className="font-semibold font-mono text-zinc-900 text-xs sm:text-sm">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of fee</span>
+                  <span className="font-semibold text-zinc-900 text-xs sm:text-sm">{Number(contract.unauthorizedUsagePenaltyPct || 50)}% of fee</span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -760,7 +760,7 @@ export default function PublicSigningPage({ params }: PageProps) {
             <div id="your-details" className="bg-white border border-zinc-200/90 rounded-3xl p-5 sm:p-7 shadow-xs surface-card space-y-6 text-left">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-100 pb-3 gap-2">
                 <div>
-                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 block">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block">
                     Your details
                   </span>
                   <h2 className="text-base sm:text-lg font-semibold text-zinc-800 tracking-tight flex items-center gap-2">
@@ -807,7 +807,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                     value={respondentPhone}
                     onChange={(e) => setRespondentPhone(e.target.value)}
                     disabled={otpDispatched || otpVerified}
-                    className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
+                    className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -892,7 +892,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                       className="mt-0.5 h-4 w-4 rounded accent-zinc-950 cursor-pointer"
                     />
                     <label htmlFor="confirmHandle" className="text-xs text-zinc-700 font-medium cursor-pointer leading-relaxed">
-                      <strong className="text-zinc-950 font-semibold">Confirm Creator Handle:</strong> I confirm that I am the creator or authorized representative for Instagram account <span className="font-semibold font-mono text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{contract?.creatorHandle || "N/A"}</span>. <span className="text-rose-500">*</span>
+                      <strong className="text-zinc-950 font-semibold">Confirm Creator Handle:</strong> I confirm that I am the creator or authorized representative for Instagram account <span className="font-semibold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{contract?.creatorHandle || "N/A"}</span>. <span className="text-rose-500">*</span>
                     </label>
                   </div>
                 )}
@@ -957,7 +957,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                         value={respondentNtn}
                         onChange={(e) => setRespondentNtn(e.target.value)}
                         disabled={otpDispatched || otpVerified}
-                        className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
+                        className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                       />
                     </>
                   ) : (
@@ -972,7 +972,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                         value={respondentCnic}
                         onChange={(e) => setRespondentCnic(e.target.value)}
                         disabled={otpDispatched || otpVerified}
-                        className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
+                        className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                       />
                     </>
                   )}
@@ -1045,7 +1045,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                               ? "GB29 NWBK 6016 1331 9268 19"
                               : "Enter your IBAN or Account details"
                           }
-                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
+                          className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
@@ -1058,7 +1058,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder="e.g. paypal@example.com"
-                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
+                          className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
@@ -1071,7 +1071,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder="e.g. name@domain.com or @handle"
-                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
+                          className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
@@ -1084,7 +1084,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder="e.g. Card ending in 4321"
-                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
+                          className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={bankAccountIban}
                           onChange={(e) => setBankAccountIban(e.target.value)}
                         />
@@ -1103,7 +1103,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                           required
                           disabled={otpDispatched || otpVerified}
                           placeholder={jur.phonePlaceholder}
-                          className="input-field font-mono disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
+                          className="input-field disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
                           value={mobileWalletNumber}
                           onChange={(e) => setMobileWalletNumber(e.target.value)}
                         />
@@ -1163,7 +1163,7 @@ export default function PublicSigningPage({ params }: PageProps) {
                         autoComplete="one-time-code"
                         value={otpCode}
                         onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                        className="w-full sm:w-36 px-3 py-2 bg-white border-2 border-emerald-500 rounded-xl text-center font-mono font-semibold tracking-[0.2em] text-base text-zinc-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-600 placeholder:text-zinc-300 min-h-[44px]"
+                        className="w-full sm:w-36 px-3 py-2 bg-white border-2 border-emerald-500 rounded-xl text-center font-semibold tracking-[0.2em] text-base text-zinc-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-600 placeholder:text-zinc-300 min-h-[44px]"
                       />
                       <button
                         type="button"

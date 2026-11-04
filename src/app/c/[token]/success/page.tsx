@@ -100,7 +100,7 @@ export default function SigningSuccessPage() {
 
           {/* Heading & Badge */}
           <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 font-display tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tight">
               Contract Successfully Executed
             </h1>
             <div className="flex items-center justify-center gap-2">
