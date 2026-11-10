@@ -61,7 +61,7 @@ export async function guardCalculatorRequest(req: Request, work = false) {
   ]);
 }
 export async function withCalculatorWork<T>(kind: 'scrape' | 'ai', key: string, work: () => Promise<T>): Promise<T> {
-  const release = await reserve([{ key: `global:${kind}`, max: limit(kind === 'ai' ? 'CALCULATOR_AI_JOBS_PER_DAY' : 'CALCULATOR_PLATFORM_SCANS_PER_DAY', kind === 'ai' ? 30 : 60), seconds: 86400 }], `${kind}:${key}`);
+  const release = await reserve([{ key: `global:${kind}`, max: limit(kind === 'ai' ? 'CALCULATOR_AI_JOBS_PER_DAY' : 'CALCULATOR_PLATFORM_SCANS_PER_DAY', kind === 'ai' ? 300 : 600), seconds: 86400 }], `${kind}:${key}`);
   try { return await work(); } finally { await release(); }
 }
 export async function calculatorBody(req: Request, maxBytes = 4096): Promise<Record<string, any>> {
