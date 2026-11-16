@@ -9,7 +9,8 @@ import {
   ExclusivityDuration,
 } from './types';
 import { calculateInfluencerRate, roundCommercial } from './engine';
-import { FORMAT_LABELS, REGIONAL_CONFIG } from './constants';
+import type { DatabaseCalculatorConstants } from './db-service';
+import { FORMAT_LABELS, REGIONAL_CONFIG, USAGE_RATES, EXCLUSIVITY_RATES } from './constants';
 import {
   CompleteCreatorIntelligence,
   BespokeStrategyPackage,
@@ -250,15 +251,19 @@ interface RawPackagePricing {
   commercialRightsFeeFormatted?: string;
 }
 
+interface PackagePricingOptions {
+  constants?: Pick<DatabaseCalculatorConstants, 'usageRates' | 'exclusivityRates' | 'regionalConfigs'>;
+  contentRates?: Partial<Record<Platform, Partial<Record<DeliverableFormat, number>>>>;
+}
+
 function calculatePackagePricing(
   deliverables: Array<{ platform: Platform; format: DeliverableFormat; quantity: number }>,
-  platforms: Record<Platform, PlatformMetricsInput>,
+  getUnitRate: (platform: Platform, format: DeliverableFormat) => number,
   regionCode: RegionCode,
-  primaryNicheId: number,
-  subNicheId: number | undefined,
   commercialTerms: {
     usageScope: PlacementScope;
     duration: RightsDuration;
+    organicRepostDuration?: RightsDuration;
     whitelisting?: boolean;
     exclusivityScope?: ExclusivityScope;
     exclusivityDuration?: ExclusivityDuration;
@@ -268,83 +273,34 @@ function calculatePackagePricing(
     linkInBioDays?: number;
     pinnedHighlightMonths?: number;
   },
-  secondaryNicheIds?: number[],
-  productionLevel?: string,
-  isLuxuryOrHighEnd?: boolean
+  constants?: PackagePricingOptions['constants']
 ): RawPackagePricing {
-  const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG['US'];
-  let grossTotalUSD = 0;
-
-  // Step 1: Calculate each deliverable using its native platform metrics
-  for (const item of deliverables) {
-    const platData = platforms[item.platform];
-    const isYtShort = item.platform === 'youtube' && item.format === 'yt_short';
-    const itemLikes = isYtShort && platData.avgShortLikes !== undefined ? platData.avgShortLikes : platData.avgLikes;
-    const itemComments = isYtShort && platData.avgShortComments !== undefined ? platData.avgShortComments : platData.avgComments;
-    const itemViews = isYtShort && platData.avgShortViews !== undefined ? platData.avgShortViews : platData.avgViews;
-
-    const singleInput: PricingInput = {
-      creator: {
-        followerCount: platData.followerCount || 25000,
-        last3PostsAvgLikes: itemLikes || 500,
-        last3PostsAvgComments: itemComments || 25,
-        last3PostsAvgViews: itemViews,
-        primaryPlatform: item.platform,
-        primaryNicheId,
-        subNicheId,
-        secondaryNicheIds,
-        productionLevel,
-        isLuxuryOrHighEnd,
-        regionCode,
-      },
-      deliverables: [{ id: 'item_1', platform: item.platform, format: item.format, quantity: item.quantity }],
-      commercialTerms: { usageRights: { scope: 'organic_repost', duration: '30_days' } },
-    };
-
-    const res = calculateInfluencerRate(singleInput);
-    grossTotalUSD += res.lineItems.grossTotalUSD;
-  }
-
-  // Step 2: Multi-Asset Production Efficiency Discount
-  const totalAssetCount = deliverables.reduce((sum, d) => sum + d.quantity, 0);
-  const bundleDiscountPercent = totalAssetCount >= 4 ? 0.15 : totalAssetCount >= 2 ? 0.10 : 0.00;
-  const bundleDiscountAmountUSD = grossTotalUSD * bundleDiscountPercent;
-  const netContentFeeUSD = grossTotalUSD - bundleDiscountAmountUSD;
-
-  // Step 3: Commercial Rights Surcharges
-  let usagePercent = 0.0;
-  if (commercialTerms.usageScope === 'paid_partnership_ads') usagePercent = 0.25;
-  else if (commercialTerms.usageScope === 'website_pdp') usagePercent = 0.20;
-
-  let whitelistingPercent = commercialTerms.whitelisting ? 0.30 : 0.0;
-  let exclusivityPercent = commercialTerms.exclusivityScope === 'direct_competitors' ? 0.35 : 0.0;
-
-  const commercialRightsFeeUSD = netContentFeeUSD * (usagePercent + whitelistingPercent + exclusivityPercent);
-
-  // Step 4: Production Addons (Raw footage buyout, Bio link, Pinned slot)
-  let addonsUSD = 0;
-  if (productionAddons?.rawFootageBuyout) {
-    addonsUSD += netContentFeeUSD * 0.30;
-  }
-  if (productionAddons?.linkInBioDays) {
-    addonsUSD += (productionAddons.linkInBioDays / 30) * 200;
-  }
-  if (productionAddons?.pinnedHighlightMonths) {
-    addonsUSD += productionAddons.pinnedHighlightMonths * 100;
-  }
-
-  const totalUSD = netContentFeeUSD + commercialRightsFeeUSD + addonsUSD;
-  const standaloneUSD = grossTotalUSD + commercialRightsFeeUSD + addonsUSD;
-
-  // Step 5: PPP & FX Localization
-  const localizedMedian = totalUSD * regConfig.pppIndex * regConfig.fxRateToUSD;
-  const standaloneBenchmarkSum = roundCommercial(standaloneUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
-  const rawContentSumLocalized = roundCommercial(grossTotalUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
-  const commercialRightsFeeLocalized = roundCommercial((commercialRightsFeeUSD + addonsUSD) * regConfig.pppIndex * regConfig.fxRateToUSD);
+  const regConfig = constants?.regionalConfigs[regionCode] ?? REGIONAL_CONFIG[regionCode] ?? REGIONAL_CONFIG.US;
+  const usageRates = constants?.usageRates ?? USAGE_RATES;
+  const exclusivityRates = constants?.exclusivityRates ?? EXCLUSIVITY_RATES;
+  const contentTotal = deliverables.reduce((sum, item) => sum + getUnitRate(item.platform, item.format) * item.quantity, 0);
+  const totalAssetCount = deliverables.reduce((sum, item) => sum + item.quantity, 0);
+  const bundleDiscountPercent = totalAssetCount >= 4 ? 0.15 : totalAssetCount >= 2 ? 0.10 : 0;
+  const discount = contentTotal * bundleDiscountPercent;
+  const netContentFee = contentTotal - discount;
+  const { usageScope, duration, organicRepostDuration, whitelisting, exclusivityScope, exclusivityDuration } = commercialTerms;
+  const usagePercent = usageRates[usageScope]?.[duration] ?? 0;
+  const organicRepostPercent = organicRepostDuration && usageScope !== 'organic_repost' ? usageRates.organic_repost[organicRepostDuration] ?? 0 : 0;
+  const whitelistingPercent = whitelisting && usageScope !== 'whitelisting' ? usageRates.whitelisting[duration] ?? 0 : 0;
+  const exclusivityPercent = exclusivityScope && exclusivityDuration ? exclusivityRates[exclusivityScope]?.[exclusivityDuration] ?? 0 : 0;
+  const rightsFee = netContentFee * (usagePercent + organicRepostPercent + whitelistingPercent + exclusivityPercent);
+  const flatAddons = ((productionAddons?.linkInBioDays ?? 0) / 30) * 200
+    + (productionAddons?.pinnedHighlightMonths ?? 0) * 100;
+  const addons = (productionAddons?.rawFootageBuyout ? netContentFee * 0.30 : 0)
+    + flatAddons * regConfig.pppIndex * regConfig.fxRateToUSD;
+  const localizedMedian = netContentFee + rightsFee + addons;
+  const standaloneBenchmarkSum = roundCommercial(contentTotal + rightsFee + addons);
+  const rawContentSumLocalized = roundCommercial(contentTotal);
+  const commercialRightsFeeLocalized = roundCommercial(rightsFee + addons);
   const lowP25 = roundCommercial(localizedMedian * 0.80);
-  const typicalMedian = roundCommercial(localizedMedian * 1.00);
+  const typicalMedian = roundCommercial(localizedMedian);
   const highP75 = roundCommercial(localizedMedian * 1.25);
-  const savingsLocalized = roundCommercial(bundleDiscountAmountUSD * regConfig.pppIndex * regConfig.fxRateToUSD);
+  const savingsLocalized = roundCommercial(discount);
 
   // Foreign USD Equivalent calculation (real FX rate)
   const isForeign = regionCode !== 'US';
@@ -386,6 +342,9 @@ export function resolveDeliverablePlatformAndFormat(
   const normPlat = String(rawPlatform || '').toLowerCase().trim();
 
   // Commercial Rights
+  if (/pinned.*comment|comment.*pinned/.test(normKey)) {
+    return { platform: 'instagram', format: 'ig_reel', isCommercialRight: true };
+  }
   if (normKey.includes('whitelisting') || normKey.includes('meta_white')) {
     return { platform: 'instagram', format: 'ig_reel', isCommercialRight: true, rightType: normKey.includes('60') ? 'whitelisting_60d' : 'whitelisting_30d' };
   }
@@ -467,6 +426,45 @@ export function resolveDeliverablePlatformAndFormat(
   return { platform: resolvedPlatform, format: resolvedFormat, isCommercialRight: false };
 }
 
+function createPackageUnitRate(
+  platforms: Record<Platform, PlatformMetricsInput>,
+  primaryNicheId: number,
+  subNicheId: number | undefined,
+  regionCode: RegionCode,
+  secondaryNicheIds: number[] | undefined,
+  productionLevel: string | undefined,
+  isLuxuryOrHighEnd: boolean | undefined,
+  contentRates?: PackagePricingOptions['contentRates']
+) {
+  const cache = new Map<string, number>();
+  return (platform: Platform, format: DeliverableFormat) => {
+    const key = platform + ':' + format;
+    const existing = contentRates?.[platform]?.[format] ?? cache.get(key);
+    if (existing !== undefined) return existing;
+    const data = platforms[platform];
+    const short = platform === 'youtube' && format === 'yt_short';
+    const input: PricingInput = {
+      creator: {
+        followerCount: data.followerCount ?? 0,
+        last3PostsAvgLikes: (short ? data.avgShortLikes ?? data.avgLikes : data.avgLikes) ?? 0,
+        last3PostsAvgComments: (short ? data.avgShortComments ?? data.avgComments : data.avgComments) ?? 0,
+        last3PostsAvgViews: short ? data.avgShortViews ?? data.avgViews : data.avgViews,
+        primaryPlatform: platform,
+        primaryNicheId,
+        subNicheId,
+        secondaryNicheIds,
+        productionLevel,
+        isLuxuryOrHighEnd,
+        regionCode,
+      },
+      deliverables: [{ id: 'package-unit', platform, format, quantity: 1 }],
+    };
+    const rate = calculateInfluencerRate(input).valuationRange.typicalMedian;
+    cache.set(key, rate);
+    return rate;
+  };
+}
+
 export function generateCalibratedBespokePackages(
   bespokePackages: BespokeStrategyPackage[],
   platforms: Record<Platform, PlatformMetricsInput>,
@@ -475,53 +473,19 @@ export function generateCalibratedBespokePackages(
   regionCode: RegionCode,
   secondaryNicheIds?: number[],
   productionLevel?: string,
-  isLuxuryOrHighEnd?: boolean
+  isLuxuryOrHighEnd?: boolean,
+  options: PackagePricingOptions = {}
 ): GeneratedPackage[] {
-  const regConfig = REGIONAL_CONFIG[regionCode] || REGIONAL_CONFIG['US'];
+  const regConfig = options.constants?.regionalConfigs[regionCode] ?? REGIONAL_CONFIG[regionCode] ?? REGIONAL_CONFIG.US;
+  const getUnitRate = createPackageUnitRate(platforms, primaryNicheId, subNicheId, regionCode, secondaryNicheIds, productionLevel, isLuxuryOrHighEnd, options.contentRates);
+  const usageRates = options.constants?.usageRates ?? USAGE_RATES;
+  const exclusivityRates = options.constants?.exclusivityRates ?? EXCLUSIVITY_RATES;
   const isForeign = regionCode !== 'US';
 
   const readyPlatforms: Record<Platform, boolean> = {
     instagram: platforms.instagram?.status === 'ready' && (platforms.instagram?.followerCount || 0) > 0,
     youtube: platforms.youtube?.status === 'ready' && (platforms.youtube?.followerCount || 0) > 0,
     tiktok: platforms.tiktok?.status === 'ready' && (platforms.tiktok?.followerCount || 0) > 0,
-  };
-
-  const unitRateCache: Record<string, { medianLocalized: number; usdGross: number }> = {};
-
-  const getUnitRate = (p: Platform, fmt: DeliverableFormat) => {
-    const cacheKey = `${p}_${fmt}`;
-    if (unitRateCache[cacheKey]) return unitRateCache[cacheKey];
-
-    const platData = platforms[p] || {};
-    const isYtShort = p === 'youtube' && fmt === 'yt_short';
-    const itemLikes = isYtShort && platData.avgShortLikes !== undefined ? platData.avgShortLikes : platData.avgLikes;
-    const itemComments = isYtShort && platData.avgShortComments !== undefined ? platData.avgShortComments : platData.avgComments;
-    const itemViews = isYtShort && platData.avgShortViews !== undefined ? platData.avgShortViews : platData.avgViews;
-
-    const singleInput: PricingInput = {
-      creator: {
-        followerCount: Math.max(platData.followerCount || 10000, 1000),
-        last3PostsAvgLikes: itemLikes || 500,
-        last3PostsAvgComments: itemComments || 25,
-        last3PostsAvgViews: itemViews,
-        primaryPlatform: p,
-        primaryNicheId,
-        subNicheId,
-        secondaryNicheIds,
-        productionLevel,
-        isLuxuryOrHighEnd,
-        regionCode,
-      },
-      deliverables: [{ id: 'item_1', platform: p, format: fmt, quantity: 1 }],
-      commercialTerms: { usageRights: { scope: 'organic_repost', duration: '30_days' } },
-    };
-
-    const res = calculateInfluencerRate(singleInput);
-    const medianLocalized = res.valuationRange.typicalMedian;
-    const usdGross = res.lineItems.grossTotalUSD;
-
-    unitRateCache[cacheKey] = { medianLocalized, usdGross };
-    return unitRateCache[cacheKey];
   };
 
   return bespokePackages.map((bp) => {
@@ -570,7 +534,7 @@ export function generateCalibratedBespokePackages(
 
       const unitRate = getUnitRate(resolved.platform, resolved.format);
       const qty = Math.max(d.quantity || 1, 1);
-      const totalLoc = unitRate.medianLocalized * qty;
+      const totalLoc = unitRate * qty;
 
       rawContentSumLocalized += totalLoc;
 
@@ -584,9 +548,9 @@ export function generateCalibratedBespokePackages(
         quantity: qty,
         title: sanitizedTitle,
         description: d.strategicDetail,
-        standaloneUnitLocalized: unitRate.medianLocalized,
+        standaloneUnitLocalized: unitRate,
         totalStandaloneLocalized: totalLoc,
-        standaloneUnitFormatted: `${regConfig.symbol}${roundCommercial(unitRate.medianLocalized).toLocaleString()}`,
+        standaloneUnitFormatted: `${regConfig.symbol}${roundCommercial(unitRate).toLocaleString()}`,
         totalStandaloneFormatted: `${regConfig.symbol}${roundCommercial(totalLoc).toLocaleString()}`,
       });
 
@@ -606,7 +570,7 @@ export function generateCalibratedBespokePackages(
       const fallbackPlat: Platform = readyPlatforms.youtube ? 'youtube' : readyPlatforms.instagram ? 'instagram' : 'tiktok';
       const fallbackFmt: DeliverableFormat = fallbackPlat === 'youtube' ? 'yt_dedicated' : 'ig_reel';
       const unitRate = getUnitRate(fallbackPlat, fallbackFmt);
-      rawContentSumLocalized += unitRate.medianLocalized;
+      rawContentSumLocalized += unitRate;
       const fallbackTitle = FORMAT_LABELS[fallbackFmt]?.label || fallbackFmt;
 
       calibratedDeliverables.push({
@@ -617,10 +581,10 @@ export function generateCalibratedBespokePackages(
         quantity: 1,
         title: fallbackTitle,
         description: 'Core campaign anchor deliverable',
-        standaloneUnitLocalized: unitRate.medianLocalized,
-        totalStandaloneLocalized: unitRate.medianLocalized,
-        standaloneUnitFormatted: `${regConfig.symbol}${roundCommercial(unitRate.medianLocalized).toLocaleString()}`,
-        totalStandaloneFormatted: `${regConfig.symbol}${roundCommercial(unitRate.medianLocalized).toLocaleString()}`,
+        standaloneUnitLocalized: unitRate,
+        totalStandaloneLocalized: unitRate,
+        standaloneUnitFormatted: `${regConfig.symbol}${roundCommercial(unitRate).toLocaleString()}`,
+        totalStandaloneFormatted: `${regConfig.symbol}${roundCommercial(unitRate).toLocaleString()}`,
       });
 
       phasedDeliverables.push({
@@ -639,24 +603,42 @@ export function generateCalibratedBespokePackages(
     const bundleDiscountPercent = totalAssetCount >= 4 ? 0.15 : totalAssetCount >= 2 ? 0.10 : 0.00;
 
     // 3. Commercial Rights and Entitlements Surcharges
-    let rightsSurchargePercent = 0.0;
+    // A right can appear as both a deliverable and an entitlement. Keep one rate per scope.
+    const rights = new Map<string, number>();
+    const addRight = (scope: string, rate: number) => rights.set(scope, Math.max(rights.get(scope) ?? 0, rate));
     for (const d of effectiveDeliverables) {
-      const resolved = resolveDeliverablePlatformAndFormat(d.platform, d.formatKey, readyPlatforms);
-      if (resolved.isCommercialRight) {
-        if (resolved.rightType === 'whitelisting_60d') rightsSurchargePercent += 0.30;
-        else if (resolved.rightType === 'whitelisting_30d') rightsSurchargePercent += 0.20;
-        else if (resolved.rightType === 'pdp_website_rights_90d') rightsSurchargePercent += 0.20;
-        else if (resolved.rightType === 'category_exclusivity_30d') rightsSurchargePercent += 0.25;
-        else if (resolved.rightType === 'raw_b_roll_buyout') rightsSurchargePercent += 0.15;
-        else if (resolved.rightType === 'pinned_placement_14d') rightsSurchargePercent += 0.10;
-      }
+      const { rightType } = resolveDeliverablePlatformAndFormat(d.platform, d.formatKey, readyPlatforms);
+      if (rightType === 'whitelisting_60d') addRight('whitelisting', usageRates.whitelisting['60_days']);
+      else if (rightType === 'whitelisting_30d') addRight('whitelisting', usageRates.whitelisting['30_days']);
+      else if (rightType === 'pdp_website_rights_90d') addRight('website_pdp', usageRates.website_pdp['90_days']);
+      else if (rightType === 'category_exclusivity_30d') addRight('full_category', exclusivityRates.full_category['30_days']);
+      else if (rightType === 'raw_b_roll_buyout') addRight('raw_footage', 0.15);
+      else if (rightType === 'pinned_placement_14d') addRight('pinned_placement', 0.10);
     }
     for (const ent of bp.entitlements) {
-      if (ent.type === 'whitelisting') rightsSurchargePercent += 0.20;
-      else if (ent.type === 'exclusivity') rightsSurchargePercent += 0.25;
-      else if (ent.type === 'raw_footage') rightsSurchargePercent += 0.15;
+      const text = `${ent.title} ${ent.detail}`.toLowerCase();
+      const days = text.match(/\b(14|30|60|90)[ -]+days?\b/)?.[1];
+      const months = text.match(/\b(6|12)[ -]+months?\b/)?.[1];
+      const usageDuration: RightsDuration = /\bperpetual\b/.test(text) ? 'perpetual'
+        : months === '12' ? '12_months' : months === '6' ? '6_months'
+        : days === '60' ? '60_days' : days === '90' ? '90_days' : '30_days';
+      if (ent.type === 'whitelisting') addRight('whitelisting', usageRates.whitelisting[usageDuration]);
+      else if (ent.type === 'exclusivity') {
+        const duration: ExclusivityDuration = days === '14' ? '14_days' : usageDuration === 'perpetual' ? '30_days' : usageDuration;
+        const scope = /\b(full category|category-wide)\b/.test(text)
+          || (!/competitor/.test(text) && rights.has('full_category')) ? 'full_category' : 'direct_competitors';
+        if (scope === 'direct_competitors' && rights.has('full_category')) rights.delete('full_category');
+        addRight(scope, exclusivityRates[scope][duration]);
+      } else if (ent.type === 'raw_footage') addRight('raw_footage', 0.15);
+      else if (/\b(?:paid (?:ads?|advertising|media)|digital ad repurposing)\b/.test(text)) {
+        addRight('paid_partnership_ads', usageRates.paid_partnership_ads[usageDuration]);
+      } else if (/\b(website|pdp|product page)\b/.test(text)) {
+        addRight('website_pdp', usageRates.website_pdp[usageDuration]);
+      } else if (/\b(organic|repost|social feeds|social profiles)\b/.test(text)) {
+        addRight('organic_repost', usageRates.organic_repost[usageDuration]);
+      }
     }
-    rightsSurchargePercent = Math.min(rightsSurchargePercent, 0.60);
+    const rightsSurchargePercent = Math.min([...rights.values()].reduce((sum, rate) => sum + rate, 0), 0.60);
 
     const rightsFeeLocalized = roundCommercial(rawContentSumLocalized * rightsSurchargePercent);
     const standaloneBenchmarkSum = roundCommercial(rawContentSumLocalized + rightsFeeLocalized);
@@ -735,7 +717,8 @@ export function generateOmnichannelPackages(
   primaryNicheId: number,
   subNicheId: number | undefined,
   regionCode: RegionCode,
-  intelligence?: CompleteCreatorIntelligence
+  intelligence?: CompleteCreatorIntelligence,
+  options: PackagePricingOptions = {}
 ): GeneratedPackage[] {
   const secondaryNicheIds = intelligence?.profile?.secondaryNiches?.map((s) => s.id);
   const productionLevel = intelligence?.content?.productionLevel;
@@ -755,10 +738,12 @@ export function generateOmnichannelPackages(
       regionCode,
       secondaryNicheIds,
       productionLevel,
-      isLuxuryOrHighEnd
+      isLuxuryOrHighEnd,
+      options
     );
   }
 
+  const getUnitRate = createPackageUnitRate(platforms, primaryNicheId, subNicheId, regionCode, secondaryNicheIds, productionLevel, isLuxuryOrHighEnd, options.contentRates);
   const ranked = rankCreatorPlatforms(platforms);
   if (ranked.length === 0) return [];
 
@@ -877,15 +862,11 @@ export function generateOmnichannelPackages(
 
     const pricing = calculatePackagePricing(
       rawDeliverables,
-      platforms,
+      getUnitRate,
       regionCode,
-      primaryNicheId,
-      subNicheId,
       { usageScope: 'organic_repost', duration: '30_days' },
       undefined,
-      secondaryNicheIds,
-      productionLevel,
-      isLuxuryOrHighEnd
+      options.constants
     );
 
     packages.push({
@@ -942,15 +923,11 @@ export function generateOmnichannelPackages(
 
     const pricing = calculatePackagePricing(
       rawDeliverables,
-      platforms,
+      getUnitRate,
       regionCode,
-      primaryNicheId,
-      subNicheId,
       { usageScope: 'paid_partnership_ads', duration: '30_days', whitelisting: true },
       { rawFootageBuyout: true },
-      secondaryNicheIds,
-      productionLevel,
-      isLuxuryOrHighEnd
+      options.constants
     );
 
     packages.push({
@@ -1053,15 +1030,11 @@ export function generateOmnichannelPackages(
 
     const pricing = calculatePackagePricing(
       rawDeliverables,
-      platforms,
+      getUnitRate,
       regionCode,
-      primaryNicheId,
-      subNicheId,
       { usageScope: 'organic_repost', duration: '30_days' },
       { linkInBioDays: 14, pinnedHighlightMonths: 1 },
-      secondaryNicheIds,
-      productionLevel,
-      isLuxuryOrHighEnd
+      options.constants
     );
 
     packages.push({
@@ -1241,15 +1214,11 @@ export function generateOmnichannelPackages(
 
     const pricing = calculatePackagePricing(
       rawDeliverables,
-      platforms,
+      getUnitRate,
       regionCode,
-      primaryNicheId,
-      subNicheId,
-      { usageScope: 'website_pdp', duration: '90_days' },
+      { usageScope: 'website_pdp', duration: '90_days', organicRepostDuration: '90_days' },
       { rawFootageBuyout: true },
-      secondaryNicheIds,
-      productionLevel,
-      isLuxuryOrHighEnd
+      options.constants
     );
 
     packages.push({
@@ -1405,10 +1374,8 @@ export function generateOmnichannelPackages(
 
     const pricing = calculatePackagePricing(
       rawDeliverables,
-      platforms,
+      getUnitRate,
       regionCode,
-      primaryNicheId,
-      subNicheId,
       {
         usageScope: 'paid_partnership_ads',
         duration: '60_days',
@@ -1417,9 +1384,7 @@ export function generateOmnichannelPackages(
         exclusivityDuration: '30_days',
       },
       { pinnedHighlightMonths: 1, rawFootageBuyout: true },
-      secondaryNicheIds,
-      productionLevel,
-      isLuxuryOrHighEnd
+      options.constants
     );
 
     packages.push({

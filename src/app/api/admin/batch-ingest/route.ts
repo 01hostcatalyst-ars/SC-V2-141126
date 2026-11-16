@@ -1,3 +1,4 @@
+import { getCalculatorDatabaseConstants } from '@/lib/calculator/db-service';
 import { NextRequest, NextResponse } from 'next/server';
 import { YouTubeScraper, InstagramScraper, TikTokScraper } from '@/lib/scrapers';
 import { generateCompleteCreatorIntelligence, MultiPlatformCreatorInput } from '@/lib/ai/gemini';
@@ -965,7 +966,13 @@ export async function POST(req: NextRequest) {
       primaryNicheId,
       subNicheId,
       finalCountry,
-      completeIntel
+      completeIntel,
+      {
+        constants: await getCalculatorDatabaseConstants(),
+        contentRates: Object.fromEntries(Object.entries(allCalculatedRates).map(([platform, rates]) => [
+          platform, Object.fromEntries(rates.map(rate => [rate.format, rate.typicalMedian])),
+        ])),
+      }
     );
 
     const minTypicalUsd = allRatesList.length > 0 ? Math.min(...allRatesList) : 500;

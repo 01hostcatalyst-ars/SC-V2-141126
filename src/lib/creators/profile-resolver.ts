@@ -1,3 +1,4 @@
+import { getCalculatorDatabaseConstants } from '@/lib/calculator/db-service';
 import { latestProfileRefresh } from "./refresh-records";
 import { oldestSourceDate, sourcesFromSteps, ProfileFreshness, ProfileSources, RefreshAccounts, RefreshSteps } from "./refresh-policy";
 import { prisma } from "@/lib/prisma";
@@ -819,7 +820,15 @@ export async function resolveFullCreatorProfile(
     primaryNicheId,
     subNicheId,
     regionCode,
-    completeIntel
+    completeIntel,
+    {
+      constants: await getCalculatorDatabaseConstants(),
+      contentRates: {
+        instagram: Object.fromEntries((resolvedInstagram?.rates ?? []).map(rate => [rate.format, rate.recommendedAmount])),
+        youtube: Object.fromEntries((resolvedYoutube?.rates ?? []).map(rate => [rate.format, rate.recommendedAmount])),
+        tiktok: Object.fromEntries((resolvedTiktok?.rates ?? []).map(rate => [rate.format, rate.recommendedAmount])),
+      },
+    }
   );
 
   const rawExecutiveBrief = rawLlm?.omnichannelStrategySuite?.creatorExecutiveBrief;

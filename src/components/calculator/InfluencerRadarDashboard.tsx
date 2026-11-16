@@ -16,6 +16,8 @@ import { extractEmailFromBio } from "@/lib/scrapers/instagram/parser";
 import { CompleteCreatorIntelligence } from "@/lib/ai/types";
 import { MultiPlatformCreatorInput } from "@/lib/ai/gemini";
 
+import type { DatabaseCalculatorConstants } from "@/lib/calculator/db-service";
+
 type DiscoveredPlatformData = CalculatorPlatformData;
 
 interface ActivityEvent {
@@ -1028,6 +1030,19 @@ export function InfluencerRadarDashboard() {
     return `/instant?${queryParams.toString()}`;
   }, [platforms, creatorMeta, selectedRegion, activeNicheId]);
 
+  const [packageConstants, setPackageConstants] = useState<DatabaseCalculatorConstants>();
+  useEffect(() => {
+    if (!isValuationCalibrated || packageConstants) return;
+    const controller = new AbortController();
+    fetch("/api/calculator/constants", { signal: controller.signal })
+      .then(response => response.ok ? response.json() : null)
+      .then(result => {
+        if (result?.success && !controller.signal.aborted) setPackageConstants(result.constants);
+      })
+      .catch(() => { /* The package engine uses its bundled rates if the request fails. */ });
+    return () => controller.abort();
+  }, [isValuationCalibrated, packageConstants]);
+
   // 5-Objective Adaptive Omnichannel Package Recommendation Engine
   const recommendedPackages = useMemo(() => {
     if (!isValuationCalibrated) return [];
@@ -1037,9 +1052,15 @@ export function InfluencerRadarDashboard() {
       activeNicheId,
       activeSubNicheId,
       selectedRegion,
-      completeIntelligence || undefined
+      completeIntelligence || undefined,
+      {
+        constants: packageConstants,
+        contentRates: Object.fromEntries(Object.entries(platforms).map(([platform, data]) => [
+          platform, Object.fromEntries((data.rateCardItems ?? []).map(rate => [rate.format, rate.amount])),
+        ])),
+      }
     );
-  }, [platforms, creatorMeta, activeNicheId, activeSubNicheId, selectedRegion, completeIntelligence, isValuationCalibrated]);
+  }, [platforms, creatorMeta, activeNicheId, activeSubNicheId, selectedRegion, completeIntelligence, isValuationCalibrated, packageConstants]);
 
   // 1-Click Copy Package Proposal Handler
   const handleCopyPackageProposal = useCallback((pkg: GeneratedPackage) => {
