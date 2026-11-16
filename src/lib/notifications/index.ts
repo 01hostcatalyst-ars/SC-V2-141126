@@ -41,8 +41,10 @@ export async function sendEmailNotification(payload: EmailPayload) {
     : undefined;
 
   const emailDomain = company.domain
-    .replace(/^(https?:\/\/)?/, "")
-    .replace(/\/$/, "");
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .split("/")[0]
+    .replace(/^www\./i, "");
 
   try {
     const { data, error } = await resend.emails.send({
