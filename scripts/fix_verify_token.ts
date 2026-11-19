@@ -1,8 +1,9 @@
 import "dotenv/config";
-import { supabaseAdmin } from "../src/lib/supabase/admin";
+import { getSupabaseAdmin } from "../src/lib/supabase/admin";
 import crypto from "crypto";
 
 async function main() {
+  const supabaseAdmin = getSupabaseAdmin();
   console.log("Connecting via Supabase HTTPS Admin Client...");
 
   const { data: contracts, error } = await supabaseAdmin

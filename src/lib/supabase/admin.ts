@@ -1,8 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-let supabaseAdmin: ReturnType<typeof createClient> | undefined;
+let supabaseAdmin: SupabaseClient | undefined;
 
-export function getSupabaseAdmin() {
+export function getSupabaseAdmin(): SupabaseClient {
   supabaseAdmin ??= createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     process.env.SUPABASE_SERVICE_ROLE_KEY || "",
