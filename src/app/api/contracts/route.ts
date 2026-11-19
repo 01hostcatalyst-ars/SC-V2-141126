@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/supabase/server";
+import { getAuthUser, contractAccessFilter } from "@/lib/auth-user";
 import { prisma } from "@/lib/prisma";
 import { ContractType, CurrencyCode, TaxTreatmentType, TaxIdType } from "@prisma/client";
 import { calculateContractTax } from "@/lib/tax";
 
 export async function POST(req: Request) {
   try {
-    const authUser = await getAuthUser();
+    const authUser = await getAuthUser(req);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { supabaseAuthId: authUser.id },
+      where: { id: authUser.id },
     });
 
     if (!dbUser) {
@@ -96,6 +96,11 @@ export async function POST(req: Request) {
       taxTreatment: (taxTreatment as any) || "INCLUSIVE",
       taxRatePct: Number(taxRatePct || 0),
     }, currency || "USD");
+
+    if (linkedContractId && typeof linkedContractId === "string") {
+      const linked = await prisma.contract.findFirst({ where: { id: linkedContractId, ...contractAccessFilter(dbUser.id) }, select: { id: true } });
+      if (!linked) return NextResponse.json({ error: "Linked contract not found" }, { status: 404 });
+    }
 
     const contract = await prisma.contract.create({
       data: {
@@ -218,15 +223,15 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const authUser = await getAuthUser();
+    const authUser = await getAuthUser(req);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { supabaseAuthId: authUser.id },
+      where: { id: authUser.id },
     });
 
     if (!dbUser) {

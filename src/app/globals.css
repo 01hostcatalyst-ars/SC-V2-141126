@@ -1536,6 +1536,17 @@
 .island-status { display: flex; align-items: center; }
 .island-signin { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 7px 8px; font-size: 12px; font-weight: 500; color: #52525b; white-space: nowrap; border-radius: 99px; }
 .island-signin:hover { background: #f4f4f5; color: #18181b; }
+.google-auth-action { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%; }
+.google-auth-signout { padding: 7px 8px; border: 0; background: transparent; color: #71717a; font-size: 12px; }
+.google-auth-action button { cursor: pointer; }
+.google-auth-action button:disabled { cursor: wait; opacity: .65; }
+.google-auth-action button:focus-visible { outline: 2px solid #71717a; outline-offset: 3px; }
+.google-auth-mark { font-weight: 700; font-size: 16px; line-height: 1; }
+.google-auth-error { max-width: 250px; font-size: 12px; line-height: 1.4; color: #b91c1c; }
+.google-auth-footer { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; }
+.google-auth-footer:hover { text-decoration: underline; }
+.island-mobile-actions > .google-auth-action { flex: 1; }
+.island-mobile-actions .google-auth-action > button,.island-mobile-actions .google-auth-action > a { min-height: 44px; }
 .island-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 8px 13px; border-radius: 99px; background: #fbc6e0; color: #4a1531; font-size: 12px; font-weight: 600; white-space: nowrap; transition: background-color .15s; }
 .island-primary:hover { background: #f9a8d4; }
 .island-menu-button { display: none; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 50%; color: #27272a; cursor: pointer; }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCompanyConfig } from "@/lib/config";
 import styles from "./PublicFooter.module.css";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 const linkGroups = [
   {
@@ -27,7 +28,6 @@ const linkGroups = [
       { label: "About us", href: "/about" },
       { label: "Vision & mission", href: "/vision" },
       { label: "Contact & support", href: "/contact" },
-      { label: "Sign in", href: "/login" },
     ],
   },
 ];
@@ -43,7 +43,10 @@ export function PublicFooter() {
         </div>
         {linkGroups.map(group => <nav key={group.title} aria-label={`Footer ${group.title.toLowerCase()}`} className={group.title === "Company" ? styles.company : undefined}>
           <h2>{group.title}</h2>
-          <ul>{group.links.map(link => <li key={link.href}><Link href={link.href}>{link.label}</Link></li>)}</ul>
+          <ul>
+            {group.links.map(link => <li key={link.href}><Link href={link.href}>{link.label}</Link></li>)}
+            {group.title === "Company" && <li><GoogleSignInButton className="google-auth-footer" /></li>}
+          </ul>
         </nav>)}
       </div>
       <div className={styles.bottom}>

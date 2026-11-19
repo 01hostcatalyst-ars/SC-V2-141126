@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getAuthUser, contractAccessFilter } from "@/lib/auth-user";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { generateContractPDF } from "@/lib/pdf/generate";
 
@@ -9,15 +9,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authUser = await getAuthUser();
+    const authUser = await getAuthUser(req);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
 
-    let contract = await prisma.contract.findUnique({
-      where: { id },
+    let contract = await prisma.contract.findFirst({
+      where: { id, ...contractAccessFilter(authUser.id) },
     });
 
     if (!contract) {
@@ -27,8 +27,8 @@ export async function GET(
     // Always regenerate PDF on-demand to guarantee the latest 11-section legal design is served
     try {
       await generateContractPDF(contract.id);
-      contract = await prisma.contract.findUnique({
-        where: { id },
+      contract = await prisma.contract.findFirst({
+        where: { id, ...contractAccessFilter(authUser.id) },
       });
     } catch (pdfErr: any) {
       console.error("Failed to generate PDF on-demand:", pdfErr);
@@ -40,7 +40,7 @@ export async function GET(
     }
 
     // Retrieve temporary signed download URL from Supabase Storage
-    const { data, error } = await supabaseAdmin.storage
+    const { data, error } = await getSupabaseAdmin().storage
       .from("profiles")
       .createSignedUrl(contract.pdfUrl, 60); // valid for 60 seconds
 

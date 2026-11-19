@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/supabase/server";
-import { supabase } from "@/lib/supabase/client";
+import { getAuthUser } from "@/lib/auth-user";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
-    const authUser = await getAuthUser();
+    const authUser = await getAuthUser(req);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const filePath = `cnic/${authUser.id}-${Date.now()}.${fileExtension}`;
 
     // Upload to private CNIC storage bucket
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await getSupabaseAdmin().storage
       .from("profiles")
       .upload(filePath, buffer, {
         contentType: file.type,
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     // Update CNIC image path url in database
     const dbUser = await prisma.user.update({
-      where: { supabaseAuthId: authUser.id },
+      where: { id: authUser.id },
       data: { cnicPhotoUrl: uploadData.path },
     });
 

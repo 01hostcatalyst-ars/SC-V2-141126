@@ -4,7 +4,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, ArrowRight, ChevronDown, FileText, Menu, ShieldCheck, X } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 export interface PublicHeaderProps {
   activeRoute?: string;
@@ -23,7 +23,6 @@ export function PublicHeader({ activeRoute, authButton, rightBadge }: PublicHead
   const [toolsOpen, setToolsOpen] = useState(false);
   const [headerHidden, setHeaderHidden] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
   const toolsRef = useRef<HTMLDivElement>(null);
   const toolsButton = useRef<HTMLButtonElement>(null);
   const mobileDialog = useRef<HTMLDialogElement>(null);
@@ -32,20 +31,6 @@ export function PublicHeader({ activeRoute, authButton, rightBadge }: PublicHead
   const creatorsActive = /^\/creators(\/|$)/.test(pathname);
   const academyActive = /^\/knowledge(\/|$)/.test(pathname);
   const toolsActive = TOOLS.some((tool) => tool.active.test(pathname));
-  const primaryHref = signedIn ? "/dashboard" : "/login?tab=signup";
-  const primaryText = signedIn ? "Dashboard" : "Get started";
-
-  useEffect(() => {
-    let mounted = true;
-    // Read session state only; authentication and authorization remain unchanged.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) setSignedIn(Boolean(session));
-    });
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) setSignedIn(Boolean(session));
-    }).catch(() => { /* Keep public navigation available when session lookup fails. */ });
-    return () => { mounted = false; subscription.unsubscribe(); };
-  }, []);
 
   useEffect(() => {
     const outside = (event: PointerEvent) => {
@@ -135,8 +120,7 @@ export function PublicHeader({ activeRoute, authButton, rightBadge }: PublicHead
         </nav>
         <div className="island-desktop-actions">
           {rightBadge && <div className="island-status">{rightBadge}</div>}
-          {authButton ?? (!signedIn && <Link href="/login" className="island-signin">Sign in</Link>)}
-          <Link href={primaryHref} className="island-primary">{primaryText}<ArrowRight aria-hidden="true" className="h-3.5 w-3.5" /></Link>
+          {authButton ?? <GoogleSignInButton className="island-primary" />}
         </div>
         <button type="button" className="island-menu-button" aria-label="Open navigation" aria-haspopup="dialog" aria-controls={mobileId} onClick={() => { setHeaderHidden(false); mobileDialog.current?.showModal(); setMobileOpen(true); }}><Menu aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} /></button>
       </div>
@@ -155,8 +139,7 @@ export function PublicHeader({ activeRoute, authButton, rightBadge }: PublicHead
           </nav>
           {rightBadge && <div className="island-mobile-status">{rightBadge}</div>}
           <div className="island-mobile-actions">
-            {authButton ?? (!signedIn && <Link href="/login" className="island-signin" onClick={closeMobile}>Sign in</Link>)}
-            <Link href={primaryHref} className="island-primary" onClick={closeMobile}>{primaryText}<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
+            {authButton ?? <GoogleSignInButton className="island-primary" onNavigate={closeMobile} />}
           </div>
         </div>
       </dialog>

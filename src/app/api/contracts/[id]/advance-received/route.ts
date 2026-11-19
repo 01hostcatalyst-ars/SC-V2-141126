@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const authUser = await getAuthUser();
+    const authUser = await getAuthUser(req);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -12,7 +12,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params;
 
     const contract = await prisma.contract.findUnique({
-      where: { id },
+      where: { id, initiatorId: authUser.id },
     });
 
     if (!contract) {
@@ -21,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     // Update the advanceReceived boolean flag
     const updatedContract = await prisma.contract.update({
-      where: { id },
+      where: { id, initiatorId: authUser.id },
       data: {
         advanceReceived: true,
       },

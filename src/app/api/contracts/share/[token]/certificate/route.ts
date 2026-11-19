@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { generateAuditCertificatePDF } from "@/lib/pdf/generateCertificate";
 import { ContractStatus } from "@prisma/client";
 
@@ -28,7 +28,7 @@ export async function GET(
     // Ensure rendered certificate PDF exists or generate on-demand
     let fileExists = false;
     try {
-      const { data } = await supabaseAdmin.storage.from("profiles").list("certificates", {
+      const { data } = await getSupabaseAdmin().storage.from("profiles").list("certificates", {
         search: `${contract.id}_certificate.pdf`,
       });
       fileExists = Array.isArray(data) && data.length > 0;
@@ -44,7 +44,7 @@ export async function GET(
     }
 
     // Generate signed URL from Supabase Storage valid for 300 seconds (5 mins)
-    const { data, error } = await supabaseAdmin.storage
+    const { data, error } = await getSupabaseAdmin().storage
       .from("profiles")
       .createSignedUrl(certPath, 300);
 

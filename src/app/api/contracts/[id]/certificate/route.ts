@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getAuthUser, contractAccessFilter } from "@/lib/auth-user";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { generateAuditCertificatePDF } from "@/lib/pdf/generateCertificate";
 
@@ -9,15 +9,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authUser = await getAuthUser();
+    const authUser = await getAuthUser(req);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
 
-    const contract = await prisma.contract.findUnique({
-      where: { id },
+    const contract = await prisma.contract.findFirst({
+      where: { id, ...contractAccessFilter(authUser.id) },
     });
 
     if (!contract) {
@@ -35,7 +35,7 @@ export async function GET(
       );
     }
 
-    const { data, error } = await supabaseAdmin.storage
+    const { data, error } = await getSupabaseAdmin().storage
       .from("profiles")
       .createSignedUrl(certResult.path, 60);
 

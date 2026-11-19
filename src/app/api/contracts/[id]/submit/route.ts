@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { getAuthUser } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/prisma";
 import { ContractStatus, SignerRole } from "@prisma/client";
 import { computeContentHash } from "@/lib/utils";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const authUser = await getAuthUser();
+    const authUser = await getAuthUser(req);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { supabaseAuthId: authUser.id },
+      where: { id: authUser.id },
     });
 
     if (!dbUser) {
@@ -42,7 +42,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     } = body;
 
     const contract = await prisma.contract.findUnique({
-      where: { id },
+      where: { id, initiatorId: authUser.id },
       include: {
         deliverables: true,
         initiator: true,
@@ -63,7 +63,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     // Update contract metadata first
     const updatedContractData = await prisma.contract.update({
-      where: { id },
+      where: { id, initiatorId: authUser.id },
       data: {
         status: ContractStatus.PENDING_RESPONDENT,
         shareToken,
@@ -87,7 +87,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const contentHash = computeContentHash(updatedContractData);
 
     const finalContract = await prisma.contract.update({
-      where: { id },
+      where: { id, initiatorId: authUser.id },
       data: {
         contentHash,
         documentHash: contentHash,

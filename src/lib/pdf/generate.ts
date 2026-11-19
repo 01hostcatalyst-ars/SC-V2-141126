@@ -1,6 +1,6 @@
 import { launchBrowser } from "@/lib/pdf/chromiumLauncher";
 import crypto from "crypto";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { formatLegalDate, parseUserAgentString, formatUsageLicenseText, formatDeliverableTypeName, computeContentHash } from "@/lib/utils";
 import { getJurisdiction } from "@/lib/config/jurisdictions";
@@ -642,7 +642,7 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
 
   // 5. Upload document to Supabase storage
   const filePath = `agreements/${contractId}.pdf`;
-  const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+  const { data: uploadData, error: uploadError } = await getSupabaseAdmin().storage
     .from("profiles")
     .upload(filePath, pdfBuffer, {
       contentType: "application/pdf",

@@ -162,6 +162,7 @@ model User {
   cnicNumber      String?  @map("cnic_number")
   cnicPhotoUrl    String?  @map("cnic_photo_url")
   supabaseAuthId  String?  @unique @map("supabase_auth_id")
+  betterAuthId    String?  @unique @map("better_auth_id")
   role            Role
   agencyName      String?  @map("agency_name")
   agencyAddress   String?  @map("agency_address")

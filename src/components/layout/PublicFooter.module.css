@@ -8,6 +8,8 @@
 .main ul { list-style:none; padding:0; margin:0; }
 .main li + li { margin-top:3px; }
 .main nav a { display:inline-block; padding:5px 0; color:#71717a; font-size:12px; line-height:1.7; text-decoration:none; }
+.main nav button { padding:5px 0; color:#71717a; font-size:12px; line-height:1.7; }
+.main nav button:hover { color:#a13c6d; }
 .footer a { transition:color .2s; }
 .footer a:hover { color:#a13c6d; }
 .footer a:focus-visible { outline:2px solid #be185d; outline-offset:4px; border-radius:3px; }
@@ -26,6 +28,7 @@
  .main .company li { margin-top:0; }
  .bottom { align-items:flex-start; flex-direction:column; gap:8px; margin-top:28px; padding-top:17px; }
  .main nav a { padding-block:7px; }
+ .main nav button { padding-block:7px; }
  .legal a,.email { font-size:12px; padding-block:7px; }
 }
 @media(max-width:480px) {

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 
 interface UserProfile {
   id: string;
@@ -20,121 +20,60 @@ interface UserProfile {
   designation: string | null;
   isVerified: boolean;
 }
-
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   logout: () => Promise<void>;
 }
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const logout = async () => {
-    setLoading(true);
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      await supabase.auth.signOut();
-      setUser(null);
-      router.push("/");
-    } catch (err) {
-      console.error("Logout error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: session, isPending, error: sessionError } = authClient.useSession();
+  const [profile, setProfile] = useState<{ identityId: string; user: UserProfile } | null>(null);
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const identityId = session?.user.id;
 
   useEffect(() => {
-    let active = true;
-
-    const checkAuth = async () => {
+    if (isPending || sessionError) return;
+    if (!identityId) { router.replace("/login"); return; }
+    const controller = new AbortController();
+    async function loadProfile() {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          if (active) {
-            setUser(null);
-            setLoading(false);
-            router.push("/");
-          }
-          return;
-        }
-
-        // Fetch custom user profile from Database via API
-        const res = await fetch("/api/profile");
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (active) {
-            setUser(data.profile);
-          }
-        } else {
-          // If profile fetch fails, session might be invalid or sync issue
-          if (active) {
-            setUser(null);
-            router.push("/");
-          }
-        }
-      } catch (err) {
-        if (active) {
-          setUser(null);
-          router.push("/");
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
+        const response = await fetch("/api/profile", { cache: "no-store", signal: controller.signal });
+        if (response.status === 401) { router.replace("/login"); return; }
+        if (response.status === 404) { router.replace("/onboarding"); return; }
+        if (!response.ok) throw new Error("Could not load your profile.");
+        const data = await response.json();
+        if (!controller.signal.aborted && identityId) setProfile({ identityId, user: data.profile });
+      } catch {
+        if (!controller.signal.aborted) setError("Could not load your account. Please try again.");
       }
-    };
+    }
+    void loadProfile();
+    return () => controller.abort();
+  }, [identityId, isPending, sessionError, router, retry]);
 
-    checkAuth();
-
-    // Subscribe to auth state updates
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_OUT") {
-        if (active) {
-          setUser(null);
-          router.push("/");
-        }
-      }
-    });
-
-    return () => {
-      active = false;
-      subscription.unsubscribe();
-    };
-  }, [router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-theme-gradient flex items-center justify-center flex-col gap-3">
-        <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs font-bold uppercase tracking-wider text-black animate-pulse">
-          Securing Session...
-        </span>
-      </div>
-    );
+  async function logout() {
+    setLoggingOut(true);
+    try {
+      const result = await authClient.signOut();
+      if (result.error) throw new Error("Sign out failed");
+      setProfile(null);
+      router.replace("/login");
+      router.refresh();
+    } catch { setError("Could not sign out. Please try again."); }
+    finally { setLoggingOut(false); }
   }
-
-  if (!user) {
-    return null; // Will redirect shortly
-  }
-
-  return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
+  if (error || sessionError) return <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6"><div className="max-w-sm rounded-2xl border border-zinc-200 bg-white p-6"><p role="alert" className="text-sm text-red-700">{error || "Could not check your session."}</p><button type="button" onClick={() => { setError(""); setRetry(value => value + 1); void authClient.getSession(); }} className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white">Try again</button></div></div>;
+  const user = profile && profile.identityId === identityId ? profile.user : null;
+  if (isPending || !user || loggingOut) return <div className="flex min-h-screen items-center justify-center bg-zinc-50"><p role="status" className="text-sm text-zinc-600">{loggingOut ? "Signing out…" : "Opening your workspace…"}</p></div>;
+  return <AuthContext.Provider value={{ user, loading: false, logout }}>{children}</AuthContext.Provider>;
+}
+export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within a ProtectedRoute context provider");
-  }
+  if (!context) throw new Error("useAuth must be used within a ProtectedRoute");
   return context;
-};
+}

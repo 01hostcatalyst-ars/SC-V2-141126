@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { getAuthUser } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/prisma";
 import { ContractStatus, SignerRole } from "@prisma/client";
 import { generateContractPDF } from "@/lib/pdf/generate";
@@ -13,13 +13,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authUser = await getAuthUser();
+    const authUser = await getAuthUser(req);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { supabaseAuthId: authUser.id },
+      where: { id: authUser.id },
     });
 
     if (!dbUser) {
@@ -35,7 +35,7 @@ export async function POST(
     const { id } = await params;
 
     const contract = await prisma.contract.findUnique({
-      where: { id },
+      where: { id, initiatorId: authUser.id },
       include: { deliverables: true, signatures: true },
     });
 

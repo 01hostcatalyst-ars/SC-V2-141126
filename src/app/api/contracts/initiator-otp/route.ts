@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthUser } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth-user";
 import { sendEmailNotification } from "@/lib/notifications";
 import { getCompanyConfig } from "@/lib/config";
 
 export async function POST(req: Request) {
   try {
-    const authUser = await getAuthUser();
+    const authUser = await getAuthUser(req);
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { supabaseAuthId: authUser.id },
+      where: { id: authUser.id },
     });
 
     if (!dbUser) {
