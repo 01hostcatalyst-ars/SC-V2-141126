@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getPrivateDownloadUrl, privateFileExists } from "@/lib/storage";
 import { generateAuditCertificatePDF } from "@/lib/pdf/generateCertificate";
 import { ContractStatus } from "@prisma/client";
 
@@ -26,13 +26,7 @@ export async function GET(
     const certPath = `certificates/${contract.id}_certificate.pdf`;
 
     // Ensure rendered certificate PDF exists or generate on-demand
-    let fileExists = false;
-    try {
-      const { data } = await getSupabaseAdmin().storage.from("profiles").list("certificates", {
-        search: `${contract.id}_certificate.pdf`,
-      });
-      fileExists = Array.isArray(data) && data.length > 0;
-    } catch (_) {}
+    const fileExists = await privateFileExists(certPath);
 
     if (!fileExists) {
       try {
@@ -43,20 +37,13 @@ export async function GET(
       }
     }
 
-    // Generate signed URL from Supabase Storage valid for 300 seconds (5 mins)
-    const { data, error } = await getSupabaseAdmin().storage
-      .from("profiles")
-      .createSignedUrl(certPath, 300);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const url = await getPrivateDownloadUrl(certPath, 300);
 
     return NextResponse.json({
       success: true,
-      url: data.signedUrl,
+      url,
       contractNumber: contract.contractNumber,
-    });
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }

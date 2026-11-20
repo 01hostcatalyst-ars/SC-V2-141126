@@ -10,9 +10,13 @@
     "test:profile-refresh": "node --test tests/profile-refresh.test.cjs",
     "db:profile-refresh": "node scripts/install-profile-refresh.cjs",
     "db:calculator-guard": "node scripts/install-calculator-guard.cjs",
-    "test:calculator-security": "node --test tests/calculator-security.test.cjs"
+    "test:calculator-security": "node --test tests/calculator-security.test.cjs",
+    "test:storage": "node --test tests/s3-storage.test.cjs",
+    "storage:migrate": "node scripts/migrate-storage-to-s3.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1173.0",
+    "@aws-sdk/s3-request-presigner": "^3.1173.0",
     "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",

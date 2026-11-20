@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, contractAccessFilter } from "@/lib/auth-user";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getPrivateDownloadUrl, privateFileExists } from "@/lib/storage";
 import { prisma } from "@/lib/prisma";
 import { generateAuditCertificatePDF } from "@/lib/pdf/generateCertificate";
 
@@ -24,29 +24,25 @@ export async function GET(
       return NextResponse.json({ error: "Contract not found" }, { status: 404 });
     }
 
-    let certResult;
-    try {
-      certResult = await generateAuditCertificatePDF(contract.id);
-    } catch (certErr: any) {
-      console.error("Failed to generate audit certificate PDF:", certErr);
-      return NextResponse.json(
-        { error: "Failed to generate audit certificate: " + certErr.message },
-        { status: 500 }
-      );
+    const certPath = `certificates/${contract.id}_certificate.pdf`;
+    if (!(await privateFileExists(certPath))) {
+      try {
+        await generateAuditCertificatePDF(contract.id);
+      } catch (certErr: any) {
+        console.error("Failed to generate audit certificate PDF:", certErr);
+        return NextResponse.json(
+          { error: "Failed to generate audit certificate: " + certErr.message },
+          { status: 500 }
+        );
+      }
     }
 
-    const { data, error } = await getSupabaseAdmin().storage
-      .from("profiles")
-      .createSignedUrl(certResult.path, 60);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const url = await getPrivateDownloadUrl(certPath, 60);
 
     return NextResponse.json({
       success: true,
-      url: data.signedUrl,
-    });
+      url,
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }

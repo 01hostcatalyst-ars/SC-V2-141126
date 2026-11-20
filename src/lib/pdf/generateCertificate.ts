@@ -1,7 +1,7 @@
 import { launchBrowser } from "@/lib/pdf/chromiumLauncher";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { uploadPrivateFile } from "@/lib/storage";
 import { getJurisdiction } from "@/lib/config/jurisdictions";
 
 export async function generateAuditCertificatePDF(contractId: string) {
@@ -368,14 +368,7 @@ export async function generateAuditCertificatePDF(contractId: string) {
   }
 
   const filePath = `certificates/${contractId}_certificate.pdf`;
-  const { data: uploadData, error: uploadError } = await getSupabaseAdmin().storage
-    .from("profiles")
-    .upload(filePath, certPdfBuffer, {
-      contentType: "application/pdf",
-      upsert: true,
-    });
+  await uploadPrivateFile(filePath, certPdfBuffer, "application/pdf");
 
-  if (uploadError) throw new Error(uploadError.message);
-
-  return { path: uploadData.path, buffer: Buffer.from(certPdfBuffer) };
+  return { path: filePath, buffer: Buffer.from(certPdfBuffer) };
 }

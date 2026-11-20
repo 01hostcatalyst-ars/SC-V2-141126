@@ -1,6 +1,6 @@
 import { launchBrowser } from "@/lib/pdf/chromiumLauncher";
 import crypto from "crypto";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { uploadPrivateFile } from "@/lib/storage";
 import { prisma } from "@/lib/prisma";
 import { formatLegalDate, parseUserAgentString, formatUsageLicenseText, formatDeliverableTypeName, computeContentHash } from "@/lib/utils";
 import { getJurisdiction } from "@/lib/config/jurisdictions";
@@ -640,16 +640,9 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
   // 4. Compute SHA-256 integrity hash over rendered PDF binary buffer
   const pdfBinaryHash = crypto.createHash("sha256").update(pdfBuffer).digest("hex");
 
-  // 5. Upload document to Supabase storage
+  // 5. Upload document to private S3 storage, preserving the existing database path.
   const filePath = `agreements/${contractId}.pdf`;
-  const { data: uploadData, error: uploadError } = await getSupabaseAdmin().storage
-    .from("profiles")
-    .upload(filePath, pdfBuffer, {
-      contentType: "application/pdf",
-      upsert: true,
-    });
-
-  if (uploadError) throw new Error(uploadError.message);
+  await uploadPrivateFile(filePath, pdfBuffer, "application/pdf");
 
   // 6. Write PDF metadata & binary file checksum into Contract table in PostgreSQL
   await prisma.contract.update({
@@ -658,9 +651,9 @@ export async function generateContractPDF(contractId: string): Promise<{ path: s
       finalDocumentHash: finalDocHash,
       documentHash: finalDocHash,
       pdfBinaryHash,
-      pdfUrl: uploadData.path,
+      pdfUrl: filePath,
     },
   });
 
-  return { path: uploadData.path, buffer: Buffer.from(pdfBuffer) };
+  return { path: filePath, buffer: Buffer.from(pdfBuffer) };
 }

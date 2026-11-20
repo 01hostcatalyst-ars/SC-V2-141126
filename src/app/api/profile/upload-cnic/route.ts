@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-user";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { uploadPrivateFile } from "@/lib/storage";
+import { cnicImageType, MAX_CNIC_BYTES } from "@/lib/cnic-file";
+import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -11,40 +13,36 @@ export async function POST(req: Request) {
     }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file");
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Convert file to buffer for Supabase Storage uploads
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const fileExtension = file.name.split(".").pop();
-    const filePath = `cnic/${authUser.id}-${Date.now()}.${fileExtension}`;
-
-    // Upload to private CNIC storage bucket
-    const { data: uploadData, error: uploadError } = await getSupabaseAdmin().storage
-      .from("profiles")
-      .upload(filePath, buffer, {
-        contentType: file.type,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
+    if (file.size === 0 || file.size > MAX_CNIC_BYTES) {
+      return NextResponse.json({ error: "Upload an image smaller than or equal to 4 MB" }, { status: 400 });
     }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const imageType = cnicImageType(buffer);
+    if (!imageType) {
+      return NextResponse.json({ error: "Upload a JPEG, PNG, or WebP image" }, { status: 400 });
+    }
+
+    const filePath = `cnic/${authUser.id}-${randomUUID()}.${imageType.extension}`;
+    await uploadPrivateFile(filePath, buffer, imageType.contentType);
 
     // Update CNIC image path url in database
     const dbUser = await prisma.user.update({
       where: { id: authUser.id },
-      data: { cnicPhotoUrl: uploadData.path },
+      data: { cnicPhotoUrl: filePath },
     });
 
     return NextResponse.json({
       success: true,
       profile: dbUser,
-      path: uploadData.path,
-    });
+      path: filePath,
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }

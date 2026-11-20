@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getPrivateDownloadUrl, privateFileExists } from "@/lib/storage";
 import { generateContractPDF } from "@/lib/pdf/generate";
 import { ContractStatus } from "@prisma/client";
 
@@ -23,7 +23,10 @@ export async function GET(
       return NextResponse.json({ error: "PDF download is available only for bilaterally executed active agreements" }, { status: 400 });
     }
 
-    // Ensure rendered PDF exists or generate on-demand
+    // A missing archived document must be recovered, not silently replaced with new bytes.
+    if (contract.pdfUrl && !(await privateFileExists(contract.pdfUrl))) {
+      return NextResponse.json({ error: "The saved PDF is unavailable. Please contact support." }, { status: 503 });
+    }
     if (!contract.pdfUrl) {
       try {
         await generateContractPDF(contract.id);
@@ -40,20 +43,13 @@ export async function GET(
       return NextResponse.json({ error: "PDF document not generated or found" }, { status: 404 });
     }
 
-    // Generate signed URL from Supabase Storage valid for 300 seconds (5 mins)
-    const { data, error } = await getSupabaseAdmin().storage
-      .from("profiles")
-      .createSignedUrl(contract.pdfUrl, 300);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const url = await getPrivateDownloadUrl(contract.pdfUrl, 300);
 
     return NextResponse.json({
       success: true,
-      url: data.signedUrl,
+      url,
       contractNumber: contract.contractNumber,
-    });
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
