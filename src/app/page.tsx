@@ -24,11 +24,19 @@ export const metadata: Metadata = {
   },
 };
 
-// Keep this literal so Next.js can statically analyze the three-day ISR interval.
-export const revalidate = 259200;
+// Force dynamic rendering so Docker build does not attempt static database queries
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [heroCreator, spotlightCreators] = await Promise.all([getHomeHeroCreator(), getHomeSpotlightCreators()]);
+  let heroCreator = null;
+  let spotlightCreators: any[] = [];
+  try {
+    const [hero, spotlight] = await Promise.all([getHomeHeroCreator(), getHomeSpotlightCreators()]);
+    heroCreator = hero;
+    spotlightCreators = spotlight;
+  } catch (err) {
+    console.error("Failed to load featured homepage creators at runtime:", err);
+  }
   const schema = graph([{...pageNode('/', 'SignCollab — Creator discovery, rates & contracts', 'Find creators, explore estimated sponsorship rates, understand platform performance and audience insights, and build a clear partnership agreement.'), hasPart: [{ '@id': schemaUrl('/creators') }, { '@id': schemaUrl('/influencer-rate-calculator#webapp') }, { '@id': schemaUrl('/instant#application') }]}, faqNode('/', HOME_FAQS), {'@type': 'ItemList', '@id': schemaUrl('/#featured-creators'), name: 'Featured creators', numberOfItems: spotlightCreators.length, itemListElement: spotlightCreators.map((creator,index)=>({'@type':'ListItem',position:index+1,name:creator.brandName||creator.canonicalName,url:schemaUrl(`/creators/${creator.slug}`)}))}]);
   return <div className="min-h-screen bg-zinc-50 flex flex-col selection:bg-pink-200 selection:text-zinc-900">
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd(schema)}} />

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildSitemapIndexXml, getCreatorBatchCount } from "@/lib/seo/sitemaps";
 
-export const revalidate = 3600; // Cache and revalidate hourly
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.signcollab.com";

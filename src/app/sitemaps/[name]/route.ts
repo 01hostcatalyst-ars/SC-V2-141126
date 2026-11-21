@@ -6,7 +6,7 @@ import {
   getCreatorBatchEntries,
 } from "@/lib/seo/sitemaps";
 
-export const revalidate = 3600; // Cache and revalidate hourly
+export const dynamic = "force-dynamic";
 
 export async function GET(
   _request: Request,

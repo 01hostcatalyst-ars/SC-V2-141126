@@ -1,5 +1,11 @@
 FROM node:20-bookworm-slim AS base
 
+# Install OpenSSL and CA certificates so Prisma and runtime have complete SSL engine support
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
@@ -32,6 +38,7 @@ RUN npx prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV DATABASE_URL="postgresql://brandbridge:placeholder@localhost:5432/brandbridge"
 
 RUN npm run build
 
